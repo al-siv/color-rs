@@ -9,7 +9,7 @@ A professional CLI tool for color gradient calculations using perceptually unifo
 - **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
 - **Intelligent Stop Placement**: Automatically places gradient stops where colors change most rapidly
 - **Multiple Output Formats**: 
-  - Beautiful terminal tables with color information
+  - Beautiful terminal tables with color information and right-aligned numeric columns
   - SVG gradients with optional legends
   - High-quality PNG exports
 - **Proportional Design**: All dimensions scale with width (1:5 aspect ratio)
@@ -109,14 +109,14 @@ GRADIENT VALUES:
 ╭──────────┬─────────┬──────────────────╮
 │ Position │ Hex     │ RGB              │
 ├──────────┼─────────┼──────────────────┤
-│ 0%       │ #FF0000 │ rgb(255, 0, 0)   │
-│ 24%      │ #F0003D │ rgb(240, 0, 61)  │
-│ 35%      │ #E2005C │ rgb(226, 0, 92)  │
-│ 45%      │ #D30079 │ rgb(211, 0, 121) │
-│ 55%      │ #BF0098 │ rgb(191, 0, 152) │
-│ 65%      │ #A700B6 │ rgb(167, 0, 182) │
-│ 76%      │ #8400D5 │ rgb(132, 0, 213) │
-│ 100%     │ #0000FF │ rgb(0, 0, 255)   │
+│       0% │ #FF0000 │ rgb(255, 0, 0)   │
+│      24% │ #F0003D │ rgb(240, 0, 61)  │
+│      35% │ #E2005C │ rgb(226, 0, 92)  │
+│      45% │ #D30079 │ rgb(211, 0, 121) │
+│      55% │ #BF0098 │ rgb(191, 0, 152) │
+│      65% │ #A700B6 │ rgb(167, 0, 182) │
+│      76% │ #8400D5 │ rgb(132, 0, 213) │
+│     100% │ #0000FF │ rgb(0, 0, 255)   │
 ╰──────────┴─────────┴──────────────────╯
 ```
 
