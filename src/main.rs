@@ -13,12 +13,13 @@ use tiny_skia::*;
 use usvg::{Options, Tree, fontdb};
 use resvg;
 use colored::*;
+use tabled::{Table, Tabled, settings::Style};
 
 // Application metadata
-const APP_NAME: &str = "color-rs";
+const APP_NAME: &str = "Color-rs";
 const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions";
 const APP_AUTHOR: &str = "https://github.com/al-siv";
-const APP_VERSION: &str = "0.5.1";
+const APP_VERSION: &str = "0.6.0";
 
 // Height ratio: gradient height = width * HEIGHT_RATIO
 const HEIGHT_RATIO: f64 = 0.2; // 1/5 of width
@@ -120,10 +121,35 @@ struct GradientArgs {
     grad_stops_simple: Option<usize>,
 }
 
+#[derive(Tabled)]
+struct ColorInfo {
+    #[tabled(rename = "Color")]
+    label: String,
+    #[tabled(rename = "Hex")]
+    hex: String,
+    #[tabled(rename = "RGB")]
+    rgb: String,
+    #[tabled(rename = "HSL")]
+    hsl: String,
+    #[tabled(rename = "Lab")]
+    lab: String,
+}
+
+#[derive(Tabled)]
+struct GradientValue {
+    #[tabled(rename = "Position")]
+    position: String,
+    #[tabled(rename = "Hex")]
+    hex: String,
+    #[tabled(rename = "RGB")]
+    rgb: String,
+}
+
 fn main() -> Result<()> {
     // Print program information
-    println!("{} v{} - {}", APP_NAME, APP_VERSION, APP_ABOUT);
-    println!("Author: {}", APP_AUTHOR);
+    println!("{} {} v{}", "Application:".green().bold(), APP_NAME, APP_VERSION);
+    println!("{} {}", "About:".green().bold(), APP_ABOUT);
+    println!("{} {}", "Author:".green().bold(), APP_AUTHOR);
     println!();
 
     let cli = Cli::parse();
@@ -170,24 +196,37 @@ fn lab_to_hsl_values(lab: Lab) -> (f32, f32, f32) {
     (hsl.hue.into_positive_degrees(), hsl.saturation, hsl.lightness)
 }
 
-fn print_color_info(label: &str, lab: Lab) {
-    let hex = lab_to_hex(lab);
-    let (r, g, b) = lab_to_rgb_values(lab);
-    let (h, s, l) = lab_to_hsl_values(lab);
+fn print_color_info_table(start_lab: Lab, end_lab: Lab) {
+    let start_hex = lab_to_hex(start_lab);
+    let start_rgb = lab_to_rgb_values(start_lab);
+    let start_hsl = lab_to_hsl_values(start_lab);
     
-    println!("{}: {} | RGB({}, {}, {}) | HSL({:.1}°, {:.1}%, {:.1}%) | Lab({:.1}, {:.1}, {:.1})", 
-        label.bold().cyan(), 
-        hex.bright_magenta(),
-        r.to_string().bright_red(),
-        g.to_string().bright_green(), 
-        b.to_string().bright_blue(),
-        h,
-        s * 100.0,
-        l * 100.0,
-        lab.l,
-        lab.a,
-        lab.b
-    );
+    let end_hex = lab_to_hex(end_lab);
+    let end_rgb = lab_to_rgb_values(end_lab);
+    let end_hsl = lab_to_hsl_values(end_lab);
+    
+    let color_data = vec![
+        ColorInfo {
+            label: "Start Color".to_string(),
+            hex: start_hex,
+            rgb: format!("RGB({}, {}, {})", start_rgb.0, start_rgb.1, start_rgb.2),
+            hsl: format!("HSL({:.1}°, {:.1}%, {:.1}%)", start_hsl.0, start_hsl.1 * 100.0, start_hsl.2 * 100.0),
+            lab: format!("Lab({:.1}, {:.1}, {:.1})", start_lab.l, start_lab.a, start_lab.b),
+        },
+        ColorInfo {
+            label: "End Color".to_string(),
+            hex: end_hex,
+            rgb: format!("RGB({}, {}, {})", end_rgb.0, end_rgb.1, end_rgb.2),
+            hsl: format!("HSL({:.1}°, {:.1}%, {:.1}%)", end_hsl.0, end_hsl.1 * 100.0, end_hsl.2 * 100.0),
+            lab: format!("Lab({:.1}, {:.1}, {:.1})", end_lab.l, end_lab.a, end_lab.b),
+        },
+    ];
+    
+    println!("{}", "Color Information:".bold().to_uppercase());
+    let mut table = Table::new(color_data);
+    table.with(Style::rounded());
+    println!("{}", table);
+    println!();
 }
 
 /// Cubic Bezier easing function using kurbo library
@@ -317,6 +356,47 @@ fn calculate_intelligent_stops(num_stops: usize, ease_in: f64, ease_out: f64) ->
     stops
 }
 
+/// Calculate intelligent gradient stop positions with integer percentages
+/// Returns positions as integer percentages to avoid CSS formatting issues
+fn calculate_intelligent_stops_integer(num_stops: usize, ease_in: f64, ease_out: f64, start_pos: u8, end_pos: u8) -> Vec<u8> {
+    if num_stops == 0 {
+        return vec![];
+    }
+    if num_stops == 1 {
+        return vec![(start_pos + end_pos) / 2];
+    }
+    
+    // Get floating point positions first
+    let float_positions = calculate_intelligent_stops(num_stops, ease_in, ease_out);
+    let span = end_pos - start_pos;
+    
+    // Convert to integer positions and remove duplicates
+    let mut integer_positions: Vec<u8> = float_positions
+        .iter()
+        .map(|&t| {
+            let pos = start_pos as f64 + t * span as f64;
+            pos.round() as u8
+        })
+        .collect();
+    
+    // Remove duplicates while preserving order
+    integer_positions.dedup();
+    
+    // Ensure first and last positions are included
+    if !integer_positions.contains(&start_pos) {
+        integer_positions.insert(0, start_pos);
+    }
+    if !integer_positions.contains(&end_pos) {
+        integer_positions.push(end_pos);
+    }
+    
+    // Remove duplicates again after adding endpoints
+    integer_positions.dedup();
+    integer_positions.sort();
+    
+    integer_positions
+}
+
 fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
     let t = t as f32;
     Lab::new(
@@ -389,7 +469,7 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
         let font_size = (legend_height as f64 * 0.6).max(10.0) as u32;
         let text_y = gradient_height + (legend_height as f64 * 0.75) as u32;
         
-        svg.push_str(&format!("  <rect x=\"0\" y=\"{}\" width=\"100%\" height=\"{}\" fill=\"rgba(0,0,0,0.8)\" />\n", 
+        svg.push_str(&format!("  <rect x=\"0\" y=\"{}\" width=\"100%\" height=\"{}\" fill=\"rgb(0,0,0)\" />\n", 
                              gradient_height, legend_height));
         svg.push_str(&format!("  <text x=\"{}\" y=\"{}\" font-family=\"'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif\" font-size=\"{}\" fill=\"white\">\n", 
                              width / 100, text_y, font_size));
@@ -443,6 +523,17 @@ fn generate_png_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     Ok(())
 }
 
+fn print_gradient_table(values: Vec<GradientValue>) {
+    if values.is_empty() {
+        return;
+    }
+    
+    println!("{}", "Gradient Values:".bold().to_uppercase());
+    let mut table = Table::new(values);
+    table.with(Style::rounded());
+    println!("{}", table);
+}
+
 fn generate_gradient(args: GradientArgs) -> Result<()> {
     // Validate position bounds first
     if args.start_position > 100 || args.end_position > 100 {
@@ -464,46 +555,44 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
     let end_lab = parse_hex_color(&args.end_color)?;
 
     // Print color information with beautiful formatting
-    println!("{}", "Color Information:".bold().underline());
-    print_color_info("Start Color", start_lab);
-    print_color_info("End Color  ", end_lab);
-    println!();
+    print_color_info_table(start_lab, end_lab);
 
     // Generate SVG if requested
     if args.svg {
         let svg_content = generate_svg_gradient(&args, start_lab, end_lab)?;
         fs::write(&args.svg_name, svg_content)?;
-        println!("{} {}", "SVG gradient saved to:".green().bold(), args.svg_name.bright_white());
+        println!("{} {}\n", "SVG gradient saved to:".green().bold(), args.svg_name.bright_white());
     }
 
     // Generate PNG if requested
     if args.png {
         generate_png_gradient(&args, start_lab, end_lab)?;
-        println!("{} {}", "PNG gradient saved to:".green().bold(), args.png_name.bright_white());
+        println!("{} {}\n", "PNG gradient saved to:".green().bold(), args.png_name.bright_white());
     }
 
     // Generate gradient (console output)
-    println!("{}", "Gradient Values:".bold().underline());
+    let mut gradient_values = Vec::new();
     
     if let Some(num_stops) = args.grad_stops {
-        // Intelligent stop placement
-        let stop_positions = calculate_intelligent_stops(num_stops, args.ease_in, args.ease_out);
+        // Intelligent stop placement with integer percentages
+        let stop_positions = calculate_intelligent_stops_integer(num_stops, args.ease_in, args.ease_out, args.start_position, args.end_position);
         
-        for (i, &t) in stop_positions.iter().enumerate() {
-            let position = args.start_position as f64 + t * (args.end_position - args.start_position) as f64;
-            let smooth_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
+        for &position in stop_positions.iter() {
+            let normalized_t = (position - args.start_position) as f64 
+                / (args.end_position - args.start_position) as f64;
+            let smooth_t = cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
             let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
             let hex_color = lab_to_hex(interpolated_lab);
+            let rgb_values = lab_to_rgb_values(interpolated_lab);
             
-            println!("{} {}: {:.1}% - {}", 
-                "Stop".cyan(),
-                (i + 1).to_string().bright_yellow(), 
-                position, 
-                hex_color.bright_magenta()
-            );
+            gradient_values.push(GradientValue {
+                position: format!("{}%", position),
+                hex: hex_color,
+                rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+            });
         }
     } else if let Some(num_stops) = args.grad_stops_simple {
-        // Simple equal spacing
+        // Simple equal spacing with integer percentages
         for i in 0..num_stops {
             let t = if num_stops == 1 {
                 0.5
@@ -511,20 +600,26 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
                 i as f64 / (num_stops - 1) as f64
             };
             
-            let position = args.start_position as f64 + t * (args.end_position - args.start_position) as f64;
-            let smooth_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
+            let position_float = args.start_position as f64 + t * (args.end_position - args.start_position) as f64;
+            let position = position_float.round() as u8;
+            let normalized_t = (position - args.start_position) as f64 
+                / (args.end_position - args.start_position) as f64;
+            let smooth_t = cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
             let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
             let hex_color = lab_to_hex(interpolated_lab);
+            let rgb_values = lab_to_rgb_values(interpolated_lab);
             
-            println!("{} {}: {:.1}% - {}", 
-                "Stop".cyan(),
-                (i + 1).to_string().bright_yellow(), 
-                position, 
-                hex_color.bright_magenta()
-            );
+            gradient_values.push(GradientValue {
+                position: format!("{}%", position),
+                hex: hex_color,
+                rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+            });
         }
+        
+        // Remove duplicates based on position
+        gradient_values.dedup_by(|a, b| a.position == b.position);
     } else {
-        // Default behavior: every grad_step percent
+        // Default behavior: every grad_step percent (already integer)
         let mut position = args.start_position;
         while position <= args.end_position {
             let normalized_t = (position - args.start_position) as f64 
@@ -533,11 +628,13 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
             let smooth_t = cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
             let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
             let hex_color = lab_to_hex(interpolated_lab);
+            let rgb_values = lab_to_rgb_values(interpolated_lab);
             
-            println!("{}%: {}", 
-                position.to_string().bright_blue(), 
-                hex_color.bright_magenta()
-            );
+            gradient_values.push(GradientValue {
+                position: format!("{}%", position),
+                hex: hex_color,
+                rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+            });
             
             position += args.grad_step;
             if position > args.end_position && position - args.grad_step < args.end_position {
@@ -548,6 +645,8 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
             }
         }
     }
+    
+    print_gradient_table(gradient_values);
 
     Ok(())
 }
