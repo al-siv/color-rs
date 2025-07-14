@@ -1,15 +1,15 @@
 [package]
 name = "color-rs"
-version = "0.7.2"
+version = "0.8.0"
 edition = "2024" # DO NOT EDIT THIS LINE!!!
-description = "A professional CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions"
+description = "A CLI tool and Rust library for color gradient calculations using LAB color space with cubic-bezier easing functions"
 authors = ["al-siv <https://github.com/al-siv>"]
 license = "MIT"
 repository = "https://github.com/al-siv/color-rs"
 homepage = "https://github.com/al-siv/color-rs"
 documentation = "https://github.com/al-siv/color-rs#readme"
-keywords = ["color", "gradient", "lab", "css", "cli"]
-categories = ["command-line-utilities", "graphics", "multimedia::images"]
+keywords = ["color", "gradient", "lab", "css", "cli", "library"]
+categories = ["command-line-utilities", "graphics", "multimedia::images", "development-tools"]
 readme = "README.md"
 
 [dependencies]

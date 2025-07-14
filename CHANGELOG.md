@@ -1,0 +1,60 @@
+# Changelog
+
+All notable changes to the color-rs project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.8.0] - 2025-07-15
+
+### Added
+- Comprehensive refactoring of the codebase into modular structure
+- New library structure with separated concerns:
+  - `cli` module for command-line interface
+  - `color` module for color operations and conversions
+  - `gradient` module for gradient calculations and easing functions
+  - `image` module for SVG and PNG generation
+  - `error` module for custom error types
+  - `config` module for constants and configuration
+  - `utils` module for utility functions
+- Custom error types with proper error handling
+- Comprehensive unit test suite (16 tests)
+- Library API for programmatic usage
+- Enhanced documentation with inline code documentation
+- Type safety improvements with custom Result type
+- Better separation of CLI and library functionality
+
+### Changed
+- Restructured codebase from single main.rs file to modular library
+- Improved error handling using custom ColorError enum instead of anyhow everywhere
+- Enhanced code organization and maintainability
+- Better abstraction of core functionality
+- Simplified main.rs to focus only on CLI entry point
+
+### Technical Details
+- Added lib.rs as main library entry point
+- All modules now have comprehensive documentation
+- Error types properly implement std::error::Error trait
+- Configuration constants centralized in config module
+- Utility functions extracted and properly tested
+- Image generation logic separated and modularized
+
+## [0.7.2] - 2025-07-14
+
+### Added
+- Professional Table Formatting: Cargo-style output with right-aligned numeric columns
+- Enhanced Visual Design: Improved terminal output with beautiful ASCII tables
+- Integer Percentages: CSS-compatible integer percentage calculations
+- Solid PNG Backgrounds: Fixed PNG rendering with proper solid backgrounds
+- Comprehensive Documentation: Complete README with examples and usage guides
+- Intelligent Stop Placement: Advanced derivative-based gradient stop calculation
+- CSS Integration: Ready-to-use output for web development workflows
+- Production Ready: Stable API and comprehensive error handling
+
+### Features Summary
+- LAB color space for perceptually uniform gradients
+- CSS cubic-bezier timing functions
+- SVG and PNG export capabilities  
+- Multiple output formats (step-based, intelligent, equal spacing)
+- Professional terminal interface matching Rust toolchain aesthetics
+- Windows executable distribution for easy installation

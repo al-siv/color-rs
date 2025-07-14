@@ -1,9 +1,11 @@
 # color-rs
 
-A professional CLI tool for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
+A professional CLI tool and Rust library for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
 
 ## Features
 
+- **Modular Architecture**: Clean separation of CLI and library functionality
+- **Library & CLI**: Use as a command-line tool or integrate as a Rust library
 - **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
 - **Perceptually Uniform Gradients**: Uses LAB color space for visually smooth color transitions
 - **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
@@ -15,10 +17,73 @@ A professional CLI tool for color gradient calculations using perceptually unifo
 - **Proportional Design**: All dimensions scale with width (1:5 aspect ratio)
 - **Integer Percentages**: CSS-friendly percentage values for practical use
 - **Rich Color Information**: RGB, HSL, and LAB values for both start and end colors
+- **Type Safety**: Custom error types and comprehensive error handling
+- **Well Tested**: Comprehensive unit test suite with 16+ tests
 
-## Installation
+## Library Usage
 
-### Windows Users (Recommended)
+Color-rs can be used as a Rust library in your projects:
+
+```toml
+[dependencies]
+color-rs = "0.8.0"
+```
+
+### Basic Library Usage
+
+```rust
+use color_rs::{ColorRs, cli::GradientArgs};
+
+fn main() -> color_rs::Result<()> {
+    let color_rs = ColorRs::new();
+    
+    let args = GradientArgs {
+        start_color: "FF0000".to_string(),
+        end_color: "0000FF".to_string(),
+        start_position: 0,
+        end_position: 100,
+        ease_in: 0.25,
+        ease_out: 0.75,
+        svg: true,
+        png: false,
+        no_legend: false,
+        width: 1000,
+        svg_name: "my-gradient.svg".to_string(),
+        png_name: "gradient.png".to_string(),
+        grad_step: 5,
+        grad_stops: None,
+        grad_stops_simple: None,
+    };
+    
+    color_rs.generate_gradient(args)?;
+    Ok(())
+}
+```
+
+### Using Individual Modules
+
+```rust
+use color_rs::{
+    color::ColorProcessor,
+    gradient::GradientCalculator,
+    image::ImageGenerator,
+};
+
+// Parse colors
+let start_lab = ColorProcessor::parse_hex_color("#FF0000")?;
+let end_lab = ColorProcessor::parse_hex_color("#0000FF")?;
+
+// Generate gradient with cubic-bezier easing
+let smooth_t = GradientCalculator::cubic_bezier_ease(0.5, 0.25, 0.75);
+let mid_color = ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
+let hex_color = ColorProcessor::lab_to_hex(mid_color);
+
+println!("Mid-point color: {}", hex_color);
+```
+
+## CLI Usage
+
+#### Windows Users (Recommended)
 
 Download the pre-compiled executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
 
@@ -26,7 +91,7 @@ Download the pre-compiled executable from the [latest release](https://github.co
 2. Place it in a folder that's in your PATH or use it directly
 3. Run `color-rs.exe gradient --help` to get started
 
-### From Source
+#### From Source
 
 ```bash
 git clone https://github.com/al-siv/color-rs.git
@@ -36,14 +101,25 @@ cargo build --release
 
 The binary will be available at `target/release/color-rs` (or `target/release/color-rs.exe` on Windows).
 
-### Requirements
+#### Requirements
 
 - For Windows users: No additional requirements with the pre-compiled executable
 - For building from source: Rust 1.70+ and Cargo
 
-## Usage
-
 ### Basic Gradient
+
+## Installation
+
+### As a Library
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+color-rs = "0.8.0"
+```
+
+### As a CLI Tool
 
 ```bash
 color-rs gradient --start-color FF0000 --end-color 0000FF
@@ -205,6 +281,36 @@ The `--grad-stops` option uses curve derivatives to automatically place gradient
 
 ## Technical Details
 
+### Architecture
+
+Color-rs follows a modular architecture with clear separation of concerns:
+
+- **`lib.rs`**: Main library entry point with public API
+- **`cli.rs`**: Command-line interface and argument parsing
+- **`color.rs`**: Color operations, conversions, and LAB color space handling
+- **`gradient.rs`**: Gradient calculations and cubic-bezier easing functions
+- **`image.rs`**: SVG and PNG image generation
+- **`error.rs`**: Custom error types and error handling
+- **`config.rs`**: Configuration constants and default values
+- **`utils.rs`**: Utility functions and validation
+- **`main.rs`**: CLI entry point (minimal, delegates to library)
+
+### Error Handling
+
+Custom error types provide clear error messages and proper error propagation:
+
+```rust
+pub enum ColorError {
+    InvalidColor(String),
+    InvalidGradient(String),
+    ImageError(String),
+    IoError(std::io::Error),
+    SvgError(String),
+    InvalidArguments(String),
+    General(String),
+}
+```
+
 ### Dependencies
 - **kurbo**: Industry-standard 2D curve operations
 - **palette**: Professional color space conversions
@@ -220,9 +326,64 @@ The `--grad-stops` option uses curve derivatives to automatically place gradient
 - Minimal memory allocation
 
 ### Development
-- Cargo.lock is excluded from version control (proper Rust library practice)
-- Clean build artifacts with `cargo clean`
-- Release builds with `cargo build --release`
+
+```bash
+# Clone the repository
+git clone https://github.com/al-siv/color-rs.git
+cd color-rs
+
+# Run tests
+cargo test
+
+# Run with debug output
+cargo run -- gradient --start-color FF0000 --end-color 0000FF
+
+# Build optimized release
+cargo build --release
+
+# Run benchmarks (if available)
+cargo bench
+
+# Generate documentation
+cargo doc --open
+
+# Check code formatting
+cargo fmt --check
+
+# Run linter
+cargo clippy
+```
+
+### Project Structure
+
+```
+src/
+├── lib.rs          # Library entry point
+├── main.rs         # CLI entry point
+├── cli.rs          # CLI argument parsing
+├── color.rs        # Color operations
+├── gradient.rs     # Gradient calculations
+├── image.rs        # SVG/PNG generation
+├── error.rs        # Error handling
+├── config.rs       # Configuration
+└── utils.rs        # Utilities
+```
+
+### Testing
+
+The project includes comprehensive unit tests:
+
+```bash
+cargo test
+```
+
+Tests cover:
+- Color parsing and conversion
+- Gradient calculations
+- Cubic-bezier easing functions
+- Image generation validation
+- Error handling
+- Utility functions
 
 ## Examples
 
@@ -291,6 +452,15 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 **color-rs** - Professional color gradients for modern workflows
 
 ## Changelog
+
+### v0.8.0 - Major Refactoring (2025-07-15)
+- **Breaking Changes**: Restructured codebase into modular library architecture
+- **Library API**: Color-rs can now be used as a Rust library with clean public API
+- **Enhanced Error Handling**: Custom error types replace generic anyhow errors
+- **Comprehensive Testing**: Added 16+ unit tests covering all modules
+- **Improved Documentation**: Inline documentation and better code organization
+- **Type Safety**: Better type safety with custom Result type and validation
+- **Modular Design**: Separated CLI from library functionality for better reusability
 
 ### v0.7.2 - First Full Release (2025-07-14)
 - Professional Table Formatting: Cargo-style output with right-aligned numeric columns
