@@ -1,22 +1,22 @@
-# color-rs 🎨
+# color-rs
 
 A professional CLI tool for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
 
-## ✨ Features
+## Features
 
 - **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
 - **Perceptually Uniform Gradients**: Uses LAB color space for visually smooth color transitions
 - **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
 - **Intelligent Stop Placement**: Automatically places gradient stops where colors change most rapidly
 - **Multiple Output Formats**: 
-  - Beautiful terminal tables with color information and right-aligned numeric columns
-  - SVG gradients with optional legends
-  - High-quality PNG exports
+    - Beautiful terminal tables with color information and right-aligned numeric columns
+    - SVG gradients with optional legends
+    - High-quality PNG exports
 - **Proportional Design**: All dimensions scale with width (1:5 aspect ratio)
 - **Integer Percentages**: CSS-friendly percentage values for practical use
 - **Rich Color Information**: RGB, HSL, and LAB values for both start and end colors
 
-## 🚀 Installation
+## Installation
 
 ### Windows Users (Recommended)
 
@@ -41,7 +41,7 @@ The binary will be available at `target/release/color-rs` (or `target/release/co
 - For Windows users: No additional requirements with the pre-compiled executable
 - For building from source: Rust 1.70+ and Cargo
 
-## 📖 Usage
+## Usage
 
 ### Basic Gradient
 
@@ -53,7 +53,7 @@ color-rs gradient --start-color FF0000 --end-color 0000FF
 
 ```bash
 color-rs gradient --start-color FF6B35 --end-color 7209B7 \
-    --ease-in 0.25 --ease-out 0.75
+        --ease-in 0.25 --ease-out 0.75
 ```
 
 ### Generate Images
@@ -61,15 +61,15 @@ color-rs gradient --start-color FF6B35 --end-color 7209B7 \
 ```bash
 # SVG with legend
 color-rs gradient --start-color FF0000 --end-color 0000FF \
-    --svg --svg-name my-gradient.svg
+        --svg --svg-name my-gradient.svg
 
 # PNG without legend
 color-rs gradient --start-color FF0000 --end-color 0000FF \
-    --png --no-legend --png-name clean-gradient.png
+        --png --no-legend --png-name clean-gradient.png
 
 # Both formats with custom size
 color-rs gradient --start-color FF0000 --end-color 0000FF \
-    --svg --png --width 1600
+        --svg --png --width 1600
 ```
 
 ### Intelligent Stop Placement
@@ -77,27 +77,27 @@ color-rs gradient --start-color FF0000 --end-color 0000FF \
 ```bash
 # 8 intelligently placed stops
 color-rs gradient --start-color FF0000 --end-color 0000FF \
-    --grad-stops 8 --ease-in 0.9 --ease-out 0.1
+        --grad-stops 8 --ease-in 0.9 --ease-out 0.1
 
 # 10 equally spaced stops
 color-rs gradient --start-color FF0000 --end-color 0000FF \
-    --grad-stops-simple 10
+        --grad-stops-simple 10
 ```
 
 ### Partial Gradients
 
 ```bash
 color-rs gradient --start-color FF0000 --end-color 0000FF \
-    --start-position 20 --end-position 80
+        --start-position 20 --end-position 80
 ```
 
-## 📊 Output Examples
+## Output Examples
 
 ### Application Information (Cargo-Style)
 ```
  Application: Color-rs v0.7.2
-       About: A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions
-      Author: https://github.com/al-siv
+             About: A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions
+            Author: https://github.com/al-siv
 ```
 
 ### Color Information Table
@@ -128,30 +128,30 @@ GRADIENT VALUES:
 ╰──────────┴─────────┴──────────────────╯
 ```
 
-## 🎛️ Command Line Options
+## Command Line Options
 
 ```
 color-rs gradient [OPTIONS] --start-color <HEX> --end-color <HEX>
 
 OPTIONS:
-    --start-color <HEX>              Starting color (e.g., #FF0000 or FF0000)
-    --end-color <HEX>                Ending color (e.g., #0000FF or 0000FF)
-    --start-position <PERCENT>       Starting position [default: 0]
-    --end-position <PERCENT>         Ending position [default: 100]
-    --ease-in <EASE_IN>              Ease-in control point [default: 0.65]
-    --ease-out <EASE_OUT>            Ease-out control point [default: 0.35]
-    --svg                            Generate SVG image
-    --png                            Generate PNG image
-    --no-legend                      Disable legend (only with --svg or --png)
-    --width <WIDTH>                  Image width in pixels [default: 1000]
-    --svg-name <SVG_NAME>            SVG filename [default: gradient.svg]
-    --png-name <PNG_NAME>            PNG filename [default: gradient.png]
-    --grad-step <GRAD_STEP>          Output every X percent [default: 5]
-    --grad-stops <GRAD_STOPS>        Number of intelligent stops
-    --grad-stops-simple <GRAD_STOPS> Number of equal stops
+        --start-color <HEX>              Starting color (e.g., #FF0000 or FF0000)
+        --end-color <HEX>                Ending color (e.g., #0000FF or 0000FF)
+        --start-position <PERCENT>       Starting position [default: 0]
+        --end-position <PERCENT>         Ending position [default: 100]
+        --ease-in <EASE_IN>              Ease-in control point [default: 0.65]
+        --ease-out <EASE_OUT>            Ease-out control point [default: 0.35]
+        --svg                            Generate SVG image
+        --png                            Generate PNG image
+        --no-legend                      Disable legend (only with --svg or --png)
+        --width <WIDTH>                  Image width in pixels [default: 1000]
+        --svg-name <SVG_NAME>            SVG filename [default: gradient.svg]
+        --png-name <PNG_NAME>            PNG filename [default: gradient.png]
+        --grad-step <GRAD_STEP>          Output every X percent [default: 5]
+        --grad-stops <GRAD_STOPS>        Number of intelligent stops
+        --grad-stops-simple <GRAD_STOPS> Number of equal stops
 ```
 
-## 🎨 Color Spaces
+## Color Spaces
 
 ### LAB Color Space
 - **Perceptually uniform**: Equal numerical differences appear as equal visual differences
@@ -163,7 +163,7 @@ OPTIONS:
 2. Converted to LAB for perceptually uniform interpolation
 3. Converted back to sRGB for output
 
-## ⚙️ Cubic-Bezier Easing
+## Cubic-Bezier Easing
 
 The tool uses industry-standard cubic-bezier curves matching CSS timing functions:
 
@@ -174,7 +174,7 @@ The tool uses industry-standard cubic-bezier curves matching CSS timing function
 - **Ease-out**: `--ease-in 0 --ease-out 0.58`
 - **Ease-in-out**: `--ease-in 0.42 --ease-out 0.58`
 
-## 🧠 Intelligent Stop Placement
+## Intelligent Stop Placement
 
 The `--grad-stops` option uses curve derivatives to automatically place gradient stops where colors change most rapidly:
 
@@ -183,7 +183,7 @@ The `--grad-stops` option uses curve derivatives to automatically place gradient
 - Results in smoother gradients with fewer visible bands
 - Always uses integer percentages for CSS compatibility
 
-## 🖼️ Image Generation
+## Image Generation
 
 ### SVG Features
 - Scalable vector format
@@ -203,7 +203,7 @@ The `--grad-stops` option uses curve derivatives to automatically place gradient
 - Font size = legend height × 0.6
 - All dimensions scale proportionally
 
-## 🔧 Technical Details
+## Technical Details
 
 ### Dependencies
 - **kurbo**: Industry-standard 2D curve operations
@@ -224,24 +224,24 @@ The `--grad-stops` option uses curve derivatives to automatically place gradient
 - Clean build artifacts with `cargo clean`
 - Release builds with `cargo build --release`
 
-## 📝 Examples
+## Examples
 
 ### Web Development
 ```bash
 # Generate CSS-ready gradient
 color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
-    --grad-stops 5 --ease-in 0.25 --ease-out 0.75
+        --grad-stops 5 --ease-in 0.25 --ease-out 0.75
 ```
 
 Output for CSS:
 ```css
 background: linear-gradient(
-    to right,
-    rgb(255, 107, 53) 0%,
-    rgb(226, 78, 99) 35%,
-    rgb(189, 53, 132) 55%,
-    rgb(151, 28, 161) 75%,
-    rgb(114, 9, 183) 100%
+        to right,
+        rgb(255, 107, 53) 0%,
+        rgb(226, 78, 99) 35%,
+        rgb(189, 53, 132) 55%,
+        rgb(151, 28, 161) 75%,
+        rgb(114, 9, 183) 100%
 );
 ```
 
@@ -249,17 +249,17 @@ background: linear-gradient(
 ```bash
 # High-resolution design asset
 color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
-    --svg --png --width 3000 --no-legend
+        --svg --png --width 3000 --no-legend
 ```
 
 ### Color Analysis
 ```bash
 # Analyze color relationships
 color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
-    --grad-step 10
+        --grad-step 10
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -267,11 +267,11 @@ color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **kurbo**: Rust graphics ecosystem for curve mathematics
 - **palette**: Comprehensive color science library
@@ -279,7 +279,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **tabled**: Professional terminal table formatting
 - **LAB color space**: Perceptually uniform color representation
 
-## 🔗 Links
+## Links
 
 - [Repository](https://github.com/al-siv/color-rs)
 - [Issues](https://github.com/al-siv/color-rs/issues)
@@ -288,19 +288,19 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**color-rs** - Professional color gradients for modern workflows 🎨✨
+**color-rs** - Professional color gradients for modern workflows
 
-## 📋 Changelog
+## Changelog
 
 ### v0.7.2 - First Full Release (2025-07-14)
-- ✨ **Professional Table Formatting**: Cargo-style output with right-aligned numeric columns
-- 🎨 **Enhanced Visual Design**: Improved terminal output with beautiful ASCII tables
-- 🔧 **Integer Percentages**: CSS-compatible integer percentage calculations
-- 🖼️ **Solid PNG Backgrounds**: Fixed PNG rendering with proper solid backgrounds
-- 📚 **Comprehensive Documentation**: Complete README with examples and usage guides
-- ⚡ **Intelligent Stop Placement**: Advanced derivative-based gradient stop calculation
-- 🎯 **CSS Integration**: Ready-to-use output for web development workflows
-- 🏗️ **Production Ready**: Stable API and comprehensive error handling
+- Professional Table Formatting: Cargo-style output with right-aligned numeric columns
+- Enhanced Visual Design: Improved terminal output with beautiful ASCII tables
+- Integer Percentages: CSS-compatible integer percentage calculations
+- Solid PNG Backgrounds: Fixed PNG rendering with proper solid backgrounds
+- Comprehensive Documentation: Complete README with examples and usage guides
+- Intelligent Stop Placement: Advanced derivative-based gradient stop calculation
+- CSS Integration: Ready-to-use output for web development workflows
+- Production Ready: Stable API and comprehensive error handling
 
 ### Features Summary
 - LAB color space for perceptually uniform gradients
@@ -309,3 +309,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Multiple output formats (step-based, intelligent, equal spacing)
 - Professional terminal interface matching Rust toolchain aesthetics
 - Windows executable distribution for easy installation
+

@@ -50,4 +50,4 @@ background: linear-gradient(
 3. Use the SVG files for design mockups
 4. Export PNG files for presentations
 
-Perfect for modern web development! 🎨
+Perfect for modern web development!

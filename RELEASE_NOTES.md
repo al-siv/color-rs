@@ -1,32 +1,32 @@
-# Color-rs v0.7.2 - First Full Release 🎨
+# Color-rs v0.7.2 - First Full Release
 
 Welcome to the first stable release of **color-rs**! This is a professional CLI tool for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
 
-## 🎯 What's New in v0.7.2
+## What's New in v0.7.2
 
-### ✨ Professional Interface
+### Professional Interface
 - **Cargo-style Output**: Terminal formatting that matches Rust toolchain aesthetics
 - **Right-aligned Tables**: Professional numeric alignment in gradient tables
 - **Beautiful ASCII Tables**: Clean, bordered table output with consistent styling
 
-### 🎨 Enhanced Color Features
+### Enhanced Color Features
 - **Integer Percentages**: CSS-compatible percentage values (33%, 50%, 67%)
 - **Solid PNG Backgrounds**: Fixed PNG rendering with proper solid backgrounds
 - **LAB Color Space**: Perceptually uniform color transitions
 - **Rich Color Information**: RGB, HSL, and LAB values for all colors
 
-### 🔧 Advanced Functionality
+### Advanced Functionality
 - **Intelligent Stop Placement**: Derivative-based gradient stop calculation
 - **CSS Cubic-Bezier**: Professional timing functions matching web standards
 - **Multiple Output Formats**: Step-based, intelligent, and equal spacing options
 - **SVG & PNG Export**: High-quality image generation with optional legends
 
-### 🚀 Easy Installation
+### Easy Installation
 - **Windows Executable**: Pre-compiled `.exe` file for immediate use
 - **No Dependencies**: Windows users can run directly without installing Rust
 - **Cross-platform**: Source code available for all platforms
 
-## 📦 Downloads
+## Downloads
 
 ### Windows Users (Recommended)
 Download `color-rs.exe` from the assets below - no installation required!
@@ -34,7 +34,7 @@ Download `color-rs.exe` from the assets below - no installation required!
 ### All Platforms
 Clone the repository and build from source with Rust/Cargo.
 
-## 🔥 Quick Start
+## Quick Start
 
 ```bash
 # Basic gradient
@@ -49,7 +49,7 @@ color-rs gradient --start-color FF0000 --end-color 0000FF \
   --svg --png --width 1600
 ```
 
-## 🎨 Example Output
+## Example Output
 
 ```
  Application: Color-rs v0.7.2
@@ -67,7 +67,7 @@ GRADIENT VALUES:
 ╰──────────┴─────────┴──────────────────╯
 ```
 
-## 🛠️ Technical Highlights
+## Technical Highlights
 
 - **LAB Color Space**: Perceptually uniform color interpolation
 - **Kurbo Library**: Industry-standard 2D curve mathematics
@@ -77,6 +77,6 @@ GRADIENT VALUES:
 
 ---
 
-**Perfect for web developers, designers, and anyone working with color gradients!** 🌈
+**Perfect for web developers, designers, and anyone working with color gradients!**
 
 Ready to create beautiful, mathematically precise color gradients? Download and start using color-rs today!
