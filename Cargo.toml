@@ -1,9 +1,9 @@
 [package]
 name = "color-rs"
-version = "0.1.0"
+version = "0.5.1"
 edition = "2024" # DO NOT EDIT THIS LINE!!!
 description = "A CLI tool for color gradient calculations using LAB color space"
-authors = ["al-siv"]
+authors = ["https://github.com/al-siv"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
@@ -12,5 +12,6 @@ anyhow = "1.0"
 kurbo = "0.11"
 image = "0.25"
 tiny-skia = "0.11"
-usvg = "0.42"
-resvg = "0.42"
+usvg = "0.45"
+resvg = "0.45"
+colored = "3.0"

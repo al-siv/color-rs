@@ -5,19 +5,23 @@
 // - Industry-standard curve handling used by xi-editor, Runebender, etc.
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
-use palette::{Lab, Srgb, FromColor, IntoColor};
+use palette::{Lab, Srgb, Hsl, FromColor, IntoColor};
 use std::fs;
 use kurbo::{CubicBez, Point, ParamCurve};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use tiny_skia::*;
-use usvg::{Options, Tree};
+use usvg::{Options, Tree, fontdb};
 use resvg;
+use colored::*;
 
-
+// Application metadata
 const APP_NAME: &str = "color-rs";
 const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions";
 const APP_AUTHOR: &str = "https://github.com/al-siv";
 const APP_VERSION: &str = "0.5.1";
+
+// Height ratio: gradient height = width * HEIGHT_RATIO
+const HEIGHT_RATIO: f64 = 0.2; // 1/5 of width
 
 // Default values for GradientArgs
 const DEFAULT_START_POSITION: &str = "0";
@@ -81,11 +85,15 @@ struct GradientArgs {
 
     /// Generate SVG image of the gradient
     #[arg(long)]
-    img: bool,
+    svg: bool,
 
     /// Generate PNG image of the gradient
     #[arg(long)]
     png: bool,
+
+    /// Disable legend/caption on gradient images (only valid with --svg or --png)
+    #[arg(long)]
+    no_legend: bool,
 
     /// Width of the image in pixels (default: 1000)
     #[arg(long, default_value = DEFAULT_WIDTH)]
@@ -93,7 +101,7 @@ struct GradientArgs {
 
     /// Output filename for SVG image (default: gradient.svg)
     #[arg(long, default_value = DEFAULT_SVG_NAME)]
-    img_name: String,
+    svg_name: String,
 
     /// Output filename for PNG image (default: gradient.png)
     #[arg(long, default_value = DEFAULT_PNG_NAME)]
@@ -147,6 +155,39 @@ fn lab_to_hex(lab: Lab) -> String {
     let g = (rgb.green * 255.0).round() as u8;
     let b = (rgb.blue * 255.0).round() as u8;
     format!("#{:02X}{:02X}{:02X}", r, g, b)
+}
+
+fn lab_to_rgb_values(lab: Lab) -> (u8, u8, u8) {
+    let rgb: Srgb = lab.into_color();
+    let r = (rgb.red * 255.0).round() as u8;
+    let g = (rgb.green * 255.0).round() as u8;
+    let b = (rgb.blue * 255.0).round() as u8;
+    (r, g, b)
+}
+
+fn lab_to_hsl_values(lab: Lab) -> (f32, f32, f32) {
+    let hsl: Hsl = lab.into_color();
+    (hsl.hue.into_positive_degrees(), hsl.saturation, hsl.lightness)
+}
+
+fn print_color_info(label: &str, lab: Lab) {
+    let hex = lab_to_hex(lab);
+    let (r, g, b) = lab_to_rgb_values(lab);
+    let (h, s, l) = lab_to_hsl_values(lab);
+    
+    println!("{}: {} | RGB({}, {}, {}) | HSL({:.1}°, {:.1}%, {:.1}%) | Lab({:.1}, {:.1}, {:.1})", 
+        label.bold().cyan(), 
+        hex.bright_magenta(),
+        r.to_string().bright_red(),
+        g.to_string().bright_green(), 
+        b.to_string().bright_blue(),
+        h,
+        s * 100.0,
+        l * 100.0,
+        lab.l,
+        lab.a,
+        lab.b
+    );
 }
 
 /// Cubic Bezier easing function using kurbo library
@@ -223,9 +264,6 @@ fn calculate_intelligent_stops(num_stops: usize, ease_in: f64, ease_out: f64) ->
         Point::new(x2, 1.0),
         Point::new(1.0, 1.0),
     );
-    
-    // Sample the curve at high resolution to calculate derivative magnitudes
-    const INTELLIGENT_STOP_SAMPLE_POINTS: usize = 10000;
 
     let mut cumulative_importance = vec![0.0; INTELLIGENT_STOP_SAMPLE_POINTS + 1];
 
@@ -290,7 +328,9 @@ fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
 
 fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
     let width = args.width;
-    let height = 120; // Increased height for text
+    let gradient_height = (width as f64 * HEIGHT_RATIO) as u32;
+    let legend_height = if args.no_legend { 0 } else { (gradient_height as f64 * 0.2).max(20.0) as u32 };
+    let total_height = gradient_height + legend_height;
     
     let start_hex = lab_to_hex(start_lab);
     let end_hex = lab_to_hex(end_lab);
@@ -300,76 +340,7 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     let end_pixel = (args.end_position as f64 / 100.0 * width as f64) as u32;
     
     let mut svg = String::new();
-    svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, height));
-    svg.push('\n');
-    
-    // Add gradient definition with properly calculated stops
-    svg.push_str("  <defs>\n");
-    svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
-    
-    // Calculate dynamic number of stops based on gradient span to prevent banding
-    // Use quality factor of 2x the percentage span, with reasonable min/max bounds
-    let gradient_span = args.end_position - args.start_position;
-    let base_stops = (gradient_span as usize).saturating_mul(2); // Quality factor of 2
-    let num_stops = base_stops.max(10).min(1000); // Min 10 stops, max 1000 for performance
-    
-    for i in 0..=num_stops {
-        let t = i as f64 / num_stops as f64;
-        let bezier_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
-        let interpolated_lab = interpolate_lab(start_lab, end_lab, bezier_t);
-        let hex_color = lab_to_hex(interpolated_lab);
-        let offset = t * 100.0;
-        
-        svg.push_str(&format!("      <stop offset=\"{}%\" stop-color=\"{}\" />\n", 
-                             offset, hex_color));
-    }
-    
-    svg.push_str("    </linearGradient>\n");
-    svg.push_str("  </defs>\n");
-    
-    // Left fill (0% to start_position) with start color
-    if start_pixel > 0 {
-        svg.push_str(&format!("  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"100\" fill=\"{}\" />\n",
-                             start_pixel, start_hex));
-    }
-    
-    // Gradient section (start_position to end_position)
-    if end_pixel > start_pixel {
-        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"100\" fill=\"url(#grad)\" />\n",
-                             start_pixel, end_pixel - start_pixel));
-    }
-    
-    // Right fill (end_position to 100%) with end color
-    if end_pixel < width {
-        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"100\" fill=\"{}\" />\n",
-                             end_pixel, width - end_pixel, end_hex));
-    }
-    
-    // Add information text with dark background for readability
-    svg.push_str("  <rect x=\"0\" y=\"100\" width=\"100%\" height=\"20\" fill=\"rgba(0,0,0,0.8)\" />\n");
-    svg.push_str(&format!("  <text x=\"10\" y=\"115\" font-family=\"'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif\" font-size=\"12\" fill=\"white\">\n"));
-    svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n", 
-                         args.ease_in, args.ease_out, args.start_position, args.end_position, start_hex, end_hex));
-    svg.push_str("  </text>\n");
-    
-    svg.push_str("</svg>");
-    
-    Ok(svg)
-}
-
-fn generate_svg_gradient_for_png(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
-    let width = args.width;
-    let height = 100; // Reduced height since no text caption
-    
-    let start_hex = lab_to_hex(start_lab);
-    let end_hex = lab_to_hex(end_lab);
-    
-    // Calculate positions as pixels
-    let start_pixel = (args.start_position as f64 / 100.0 * width as f64) as u32;
-    let end_pixel = (args.end_position as f64 / 100.0 * width as f64) as u32;
-    
-    let mut svg = String::new();
-    svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, height));
+    svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, total_height));
     svg.push('\n');
     
     // Add gradient definition with properly calculated stops
@@ -398,48 +369,69 @@ fn generate_svg_gradient_for_png(args: &GradientArgs, start_lab: Lab, end_lab: L
     // Left fill (0% to start_position) with start color
     if start_pixel > 0 {
         svg.push_str(&format!("  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
-                             start_pixel, height, start_hex));
+                             start_pixel, gradient_height, start_hex));
     }
     
     // Gradient section (start_position to end_position)
     if end_pixel > start_pixel {
         svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"url(#grad)\" />\n",
-                             start_pixel, end_pixel - start_pixel, height));
+                             start_pixel, end_pixel - start_pixel, gradient_height));
     }
     
     // Right fill (end_position to 100%) with end color
     if end_pixel < width {
         svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
-                             end_pixel, width - end_pixel, height, end_hex));
+                             end_pixel, width - end_pixel, gradient_height, end_hex));
     }
     
-    // No text caption for PNG - clean gradient only
+    // Add legend if not disabled
+    if !args.no_legend {
+        let font_size = (legend_height as f64 * 0.6).max(10.0) as u32;
+        let text_y = gradient_height + (legend_height as f64 * 0.75) as u32;
+        
+        svg.push_str(&format!("  <rect x=\"0\" y=\"{}\" width=\"100%\" height=\"{}\" fill=\"rgba(0,0,0,0.8)\" />\n", 
+                             gradient_height, legend_height));
+        svg.push_str(&format!("  <text x=\"{}\" y=\"{}\" font-family=\"'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif\" font-size=\"{}\" fill=\"white\">\n", 
+                             width / 100, text_y, font_size));
+        svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n", 
+                             args.ease_in, args.ease_out, args.start_position, args.end_position, start_hex, end_hex));
+        svg.push_str("  </text>\n");
+    }
+    
     svg.push_str("</svg>");
     
     Ok(svg)
 }
 
+
 fn generate_png_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
     let width = args.width;
-    let height = 100; // Match the PNG-specific SVG height
+    let gradient_height = (width as f64 * HEIGHT_RATIO) as u32;
+    let legend_height = if args.no_legend { 0 } else { (gradient_height as f64 * 0.2).max(20.0) as u32 };
+    let total_height = gradient_height + legend_height;
     
-    // Create SVG without text for reliable PNG rendering
-    let svg_content = generate_svg_gradient_for_png(args, start_lab, end_lab)?;
+    // Create SVG content using the same function as SVG generation
+    let svg_content = generate_svg_gradient(args, start_lab, end_lab)?;
     
-    // Parse SVG
-    let options = Options::default();
+    // Configure usvg options with font database for text-to-paths conversion
+    let mut options = Options::default();
+    let mut fontdb = fontdb::Database::new();
+    fontdb.load_system_fonts();
+    options.fontdb = std::sync::Arc::new(fontdb);
+    
+    // Parse SVG with font resolution
     let tree = Tree::from_str(&svg_content, &options)
         .map_err(|e| anyhow!("Failed to parse SVG: {}", e))?;
     
     // Create pixmap
-    let mut pixmap = Pixmap::new(width, height)
+    let mut pixmap = Pixmap::new(width, total_height)
         .ok_or_else(|| anyhow!("Failed to create pixmap"))?;
     
-    // Render SVG to pixmap
+    // Render SVG to pixmap (this converts text to paths automatically)
     resvg::render(&tree, Transform::default(), &mut pixmap.as_mut());
     
     // Convert to image crate format
-    let img: RgbaImage = ImageBuffer::from_fn(width, height, |x, y| {
+    let img: RgbaImage = ImageBuffer::from_fn(width, total_height, |x, y| {
         let pixel = pixmap.pixel(x, y).unwrap();
         Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
     });
@@ -462,24 +454,37 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
         return Err(anyhow!("Start position must be less than end position"));
     }
 
+    // Validate --no-legend usage
+    if args.no_legend && !args.svg && !args.png {
+        return Err(anyhow!("--no-legend can only be used with --svg or --png"));
+    }
+
     // Parse colors
     let start_lab = parse_hex_color(&args.start_color)?;
     let end_lab = parse_hex_color(&args.end_color)?;
 
+    // Print color information with beautiful formatting
+    println!("{}", "Color Information:".bold().underline());
+    print_color_info("Start Color", start_lab);
+    print_color_info("End Color  ", end_lab);
+    println!();
+
     // Generate SVG if requested
-    if args.img {
+    if args.svg {
         let svg_content = generate_svg_gradient(&args, start_lab, end_lab)?;
-        fs::write(&args.img_name, svg_content)?;
-        println!("SVG gradient saved to: {}", args.img_name);
+        fs::write(&args.svg_name, svg_content)?;
+        println!("{} {}", "SVG gradient saved to:".green().bold(), args.svg_name.bright_white());
     }
 
     // Generate PNG if requested
     if args.png {
         generate_png_gradient(&args, start_lab, end_lab)?;
-        println!("PNG gradient saved to: {}", args.png_name);
+        println!("{} {}", "PNG gradient saved to:".green().bold(), args.png_name.bright_white());
     }
 
     // Generate gradient (console output)
+    println!("{}", "Gradient Values:".bold().underline());
+    
     if let Some(num_stops) = args.grad_stops {
         // Intelligent stop placement
         let stop_positions = calculate_intelligent_stops(num_stops, args.ease_in, args.ease_out);
@@ -490,7 +495,12 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
             let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
             let hex_color = lab_to_hex(interpolated_lab);
             
-            println!("Stop {}: {:.1}% - {}", i + 1, position, hex_color);
+            println!("{} {}: {:.1}% - {}", 
+                "Stop".cyan(),
+                (i + 1).to_string().bright_yellow(), 
+                position, 
+                hex_color.bright_magenta()
+            );
         }
     } else if let Some(num_stops) = args.grad_stops_simple {
         // Simple equal spacing
@@ -506,7 +516,12 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
             let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
             let hex_color = lab_to_hex(interpolated_lab);
             
-            println!("Stop {}: {:.1}% - {}", i + 1, position, hex_color);
+            println!("{} {}: {:.1}% - {}", 
+                "Stop".cyan(),
+                (i + 1).to_string().bright_yellow(), 
+                position, 
+                hex_color.bright_magenta()
+            );
         }
     } else {
         // Default behavior: every grad_step percent
@@ -519,7 +534,10 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
             let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
             let hex_color = lab_to_hex(interpolated_lab);
             
-            println!("{}%: {}", position, hex_color);
+            println!("{}%: {}", 
+                position.to_string().bright_blue(), 
+                hex_color.bright_magenta()
+            );
             
             position += args.grad_step;
             if position > args.end_position && position - args.grad_step < args.end_position {
