@@ -1,0 +1,11 @@
+[package]
+name = "color-rs"
+version = "0.1.0"
+edition = "2024" # DO NOT EDIT THIS LINE!!!
+description = "A CLI tool for color gradient calculations using LAB color space"
+authors = ["al-siv"]
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+palette = "0.7"
+anyhow = "1.0"

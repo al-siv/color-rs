@@ -1,0 +1,17 @@
+# Файлы сборки Rust
+/target/
+**/*.rs.bk
+
+# Файлы IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+*.tmp
+*.temp
