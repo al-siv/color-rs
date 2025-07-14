@@ -9,15 +9,22 @@ use palette::{Lab, Srgb, FromColor, IntoColor};
 use std::fs;
 use kurbo::{CubicBez, Point, ParamCurve};
 
+
+const APP_NAME: &str = "color-rs";
+const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions";
+const APP_AUTHOR: &str = "https://github.com/al-siv";
+const APP_VERSION: &str = "0.5.0";
+
 fn parse_percentage(s: &str) -> Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
     trimmed.parse::<u8>().map_err(|_| format!("Invalid percentage value: {}", s))
 }
 
 #[derive(Parser)]
-#[command(name = "color-rs")]
-#[command(about = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions")]
-#[command(version = "0.1.0")]
+#[command(name = APP_NAME)]
+#[command(about = APP_ABOUT)]
+#[command(author = APP_AUTHOR)]
+#[command(version = APP_VERSION)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -47,12 +54,12 @@ struct GradientArgs {
     #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = "100")]
     end_position: u8,
 
-    /// Ease-in control point for cubic-bezier (0.0-1.0, default: 0.42)
-    #[arg(long, default_value = "0.42")]
+    /// Ease-in control point for cubic-bezier (0.0-1.0, default: 0.65)
+    #[arg(long, default_value = "0.65")]
     ease_in: f64,
 
-    /// Ease-out control point for cubic-bezier (0.0-1.0, default: 0.58)
-    #[arg(long, default_value = "0.58")]
+    /// Ease-out control point for cubic-bezier (0.0-1.0, default: 0.35)
+    #[arg(long, default_value = "0.35")]
     ease_out: f64,
 
     /// Generate SVG image of the gradient
@@ -182,8 +189,12 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     svg.push_str("  <defs>\n");
     svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
     
-    // Generate multiple gradient stops using cubic-bezier calculation
-    let num_stops = 20; // Number of intermediate stops for smooth gradient
+    // Calculate dynamic number of stops based on gradient span to prevent banding
+    // Use quality factor of 2x the percentage span, with reasonable min/max bounds
+    let gradient_span = args.end_position - args.start_position;
+    let base_stops = (gradient_span as usize).saturating_mul(2); // Quality factor of 2
+    let num_stops = base_stops.max(10).min(1000); // Min 10 stops, max 1000 for performance
+    
     for i in 0..=num_stops {
         let t = i as f64 / num_stops as f64;
         let bezier_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
