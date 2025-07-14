@@ -17,7 +17,7 @@ use resvg;
 const APP_NAME: &str = "color-rs";
 const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions";
 const APP_AUTHOR: &str = "https://github.com/al-siv";
-const APP_VERSION: &str = "0.5.0";
+const APP_VERSION: &str = "0.5.1";
 
 // Default values for GradientArgs
 const DEFAULT_START_POSITION: &str = "0";
@@ -27,6 +27,10 @@ const DEFAULT_EASE_OUT: &str = "0.35";
 const DEFAULT_WIDTH: &str = "1000";
 const DEFAULT_SVG_NAME: &str = "gradient.svg";
 const DEFAULT_PNG_NAME: &str = "gradient.png";
+const DEFAULT_GRAD_STEP: &str = "5";
+
+// Number of sample points for intelligent stop calculation
+const INTELLIGENT_STOP_SAMPLE_POINTS: usize = 10000;
 
 fn parse_percentage(s: &str) -> Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
@@ -94,6 +98,18 @@ struct GradientArgs {
     /// Output filename for PNG image (default: gradient.png)
     #[arg(long, default_value = DEFAULT_PNG_NAME)]
     png_name: String,
+
+    /// Output gradient values every X percent (default: 5%)
+    #[arg(long, default_value = DEFAULT_GRAD_STEP, conflicts_with_all = ["grad_stops", "grad_stops_simple"], help = "Output gradient values every X percent (default: 5%)")]
+    grad_step: u8,
+
+    /// Number of intelligently placed gradient stops to output
+    #[arg(long, conflicts_with_all = ["grad_step", "grad_stops_simple"], help = "Number of intelligently placed gradient stops using curve derivatives")]
+    grad_stops: Option<usize>,
+
+    /// Number of equally spaced gradient stops to output
+    #[arg(long, conflicts_with_all = ["grad_step", "grad_stops"], help = "Number of equally spaced gradient stops")]
+    grad_stops_simple: Option<usize>,
 }
 
 fn main() -> Result<()> {
@@ -187,6 +203,82 @@ fn solve_cubic_bezier_for_x(curve: &CubicBez, target_x: f64) -> f64 {
     point.y.clamp(0.0, 1.0)
 }
 
+/// Calculate intelligent gradient stop positions based on cubic-bezier curve derivatives
+/// Places more stops where the curve changes rapidly to prevent visual banding
+fn calculate_intelligent_stops(num_stops: usize, ease_in: f64, ease_out: f64) -> Vec<f64> {
+    if num_stops == 0 {
+        return vec![];
+    }
+    if num_stops == 1 {
+        return vec![0.5];
+    }
+    
+    let x1 = ease_in.clamp(0.0, 1.0);
+    let x2 = ease_out.clamp(0.0, 1.0);
+    
+    // Create cubic bezier curve
+    let curve = CubicBez::new(
+        Point::new(0.0, 0.0),
+        Point::new(x1, 0.0),
+        Point::new(x2, 1.0),
+        Point::new(1.0, 1.0),
+    );
+    
+    // Sample the curve at high resolution to calculate derivative magnitudes
+    const INTELLIGENT_STOP_SAMPLE_POINTS: usize = 10000;
+
+    let mut cumulative_importance = vec![0.0; INTELLIGENT_STOP_SAMPLE_POINTS + 1];
+
+    for i in 0..INTELLIGENT_STOP_SAMPLE_POINTS {
+        let t = i as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
+        let dt = 1.0 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
+
+        // Calculate derivative magnitude using numerical differentiation
+        let current_point = curve.eval(t);
+        let next_point = curve.eval((t + dt).min(1.0));
+        
+        let dy = next_point.y - current_point.y;
+        // Only consider color space changes (y-axis), ignore time progression (x-axis)
+        // This focuses on where the easing function changes rapidly in terms of output value
+        let derivative_magnitude = dy.abs();
+        
+        // Accumulate importance (areas where curve changes rapidly get higher weight)
+        cumulative_importance[i + 1] = cumulative_importance[i] + derivative_magnitude;
+    }
+
+    let total_importance = cumulative_importance[INTELLIGENT_STOP_SAMPLE_POINTS];
+    if total_importance == 0.0 {
+        // Fallback to equal spacing if no variation
+        return (0..num_stops)
+            .map(|i| i as f64 / (num_stops - 1).max(1) as f64)
+            .collect();
+    }
+    
+    // Distribute stops based on cumulative importance
+    let mut stops = Vec::new();
+    for i in 0..num_stops {
+        let target_importance = (i as f64 / (num_stops - 1).max(1) as f64) * total_importance;
+        
+        // Binary search to find the t value corresponding to target importance
+        let mut low = 0;
+        let mut high = INTELLIGENT_STOP_SAMPLE_POINTS;
+        
+        while high - low > 1 {
+            let mid = (low + high) / 2;
+            if cumulative_importance[mid] < target_importance {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+        
+        let t = low as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
+        stops.push(t);
+    }
+    
+    stops
+}
+
 fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
     let t = t as f32;
     Lab::new(
@@ -265,12 +357,74 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     Ok(svg)
 }
 
+fn generate_svg_gradient_for_png(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
+    let width = args.width;
+    let height = 100; // Reduced height since no text caption
+    
+    let start_hex = lab_to_hex(start_lab);
+    let end_hex = lab_to_hex(end_lab);
+    
+    // Calculate positions as pixels
+    let start_pixel = (args.start_position as f64 / 100.0 * width as f64) as u32;
+    let end_pixel = (args.end_position as f64 / 100.0 * width as f64) as u32;
+    
+    let mut svg = String::new();
+    svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, height));
+    svg.push('\n');
+    
+    // Add gradient definition with properly calculated stops
+    svg.push_str("  <defs>\n");
+    svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
+    
+    // Calculate dynamic number of stops based on gradient span to prevent banding
+    let gradient_span = args.end_position - args.start_position;
+    let base_stops = (gradient_span as usize).saturating_mul(2);
+    let num_stops = base_stops.max(10).min(1000);
+    
+    for i in 0..=num_stops {
+        let t = i as f64 / num_stops as f64;
+        let bezier_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
+        let interpolated_lab = interpolate_lab(start_lab, end_lab, bezier_t);
+        let hex_color = lab_to_hex(interpolated_lab);
+        let offset = t * 100.0;
+        
+        svg.push_str(&format!("      <stop offset=\"{}%\" stop-color=\"{}\" />\n", 
+                             offset, hex_color));
+    }
+    
+    svg.push_str("    </linearGradient>\n");
+    svg.push_str("  </defs>\n");
+    
+    // Left fill (0% to start_position) with start color
+    if start_pixel > 0 {
+        svg.push_str(&format!("  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
+                             start_pixel, height, start_hex));
+    }
+    
+    // Gradient section (start_position to end_position)
+    if end_pixel > start_pixel {
+        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"url(#grad)\" />\n",
+                             start_pixel, end_pixel - start_pixel, height));
+    }
+    
+    // Right fill (end_position to 100%) with end color
+    if end_pixel < width {
+        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
+                             end_pixel, width - end_pixel, height, end_hex));
+    }
+    
+    // No text caption for PNG - clean gradient only
+    svg.push_str("</svg>");
+    
+    Ok(svg)
+}
+
 fn generate_png_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
     let width = args.width;
-    let height = 120;
+    let height = 100; // Match the PNG-specific SVG height
     
-    // Create SVG first
-    let svg_content = generate_svg_gradient(args, start_lab, end_lab)?;
+    // Create SVG without text for reliable PNG rendering
+    let svg_content = generate_svg_gradient_for_png(args, start_lab, end_lab)?;
     
     // Parse SVG
     let options = Options::default();
@@ -326,21 +480,55 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
     }
 
     // Generate gradient (console output)
-    for position in args.start_position..=args.end_position {
-        // Normalize position to range [0, 1]
-        let normalized_t = (position - args.start_position) as f64 
-            / (args.end_position - args.start_position) as f64;
+    if let Some(num_stops) = args.grad_stops {
+        // Intelligent stop placement
+        let stop_positions = calculate_intelligent_stops(num_stops, args.ease_in, args.ease_out);
         
-        // Apply smoothing
-        let smooth_t = cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-        
-        // Interpolate color in LAB space
-        let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
-        
-        // Convert back to HEX
-        let hex_color = lab_to_hex(interpolated_lab);
-        
-        println!("{}%: {}", position, hex_color);
+        for (i, &t) in stop_positions.iter().enumerate() {
+            let position = args.start_position as f64 + t * (args.end_position - args.start_position) as f64;
+            let smooth_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
+            let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
+            let hex_color = lab_to_hex(interpolated_lab);
+            
+            println!("Stop {}: {:.1}% - {}", i + 1, position, hex_color);
+        }
+    } else if let Some(num_stops) = args.grad_stops_simple {
+        // Simple equal spacing
+        for i in 0..num_stops {
+            let t = if num_stops == 1 {
+                0.5
+            } else {
+                i as f64 / (num_stops - 1) as f64
+            };
+            
+            let position = args.start_position as f64 + t * (args.end_position - args.start_position) as f64;
+            let smooth_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
+            let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
+            let hex_color = lab_to_hex(interpolated_lab);
+            
+            println!("Stop {}: {:.1}% - {}", i + 1, position, hex_color);
+        }
+    } else {
+        // Default behavior: every grad_step percent
+        let mut position = args.start_position;
+        while position <= args.end_position {
+            let normalized_t = (position - args.start_position) as f64 
+                / (args.end_position - args.start_position) as f64;
+            
+            let smooth_t = cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
+            let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
+            let hex_color = lab_to_hex(interpolated_lab);
+            
+            println!("{}%: {}", position, hex_color);
+            
+            position += args.grad_step;
+            if position > args.end_position && position - args.grad_step < args.end_position {
+                // Ensure we always include the end position
+                position = args.end_position;
+            } else if position > args.end_position {
+                break;
+            }
+        }
     }
 
     Ok(())
