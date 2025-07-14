@@ -1,7 +1,13 @@
+// Using kurbo library for robust 2D curve operations
+// kurbo is part of the Rust graphics ecosystem and provides:
+// - Well-tested cubic Bezier implementations
+// - Optimized mathematical operations
+// - Industry-standard curve handling used by xi-editor, Runebender, etc.
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
 use palette::{Lab, Srgb, FromColor, IntoColor};
 use std::fs;
+use kurbo::{CubicBez, Point, ParamCurve};
 
 fn parse_percentage(s: &str) -> Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
@@ -10,7 +16,7 @@ fn parse_percentage(s: &str) -> Result<u8, String> {
 
 #[derive(Parser)]
 #[command(name = "color-rs")]
-#[command(about = "A CLI tool for color gradient calculations using LAB color space")]
+#[command(about = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions")]
 #[command(version = "0.1.0")]
 struct Cli {
     #[command(subcommand)]
@@ -19,7 +25,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Generate a gradient between two colors using LAB color space
+    /// Generate a gradient between two colors using LAB color space with cubic-bezier timing
     Gradient(GradientArgs),
 }
 
@@ -94,8 +100,8 @@ fn lab_to_hex(lab: Lab) -> String {
     format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 
-/// Cubic Bezier easing function (CSS timing function)
-/// Implements cubic-bezier(x1, 0, x2, 1) for t in [0, 1]
+/// Cubic Bezier easing function using kurbo library
+/// Implements cubic-bezier(x1, 0, x2, 1) easing functions
 /// This matches CSS timing functions like ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
 fn cubic_bezier_ease(t: f64, x1: f64, x2: f64) -> f64 {
     if t <= 0.0 { return 0.0; }
@@ -105,60 +111,47 @@ fn cubic_bezier_ease(t: f64, x1: f64, x2: f64) -> f64 {
     let x1 = x1.clamp(0.0, 1.0);
     let x2 = x2.clamp(0.0, 1.0);
     
-    // For cubic bezier with control points (0,0), (x1,0), (x2,1), (1,1)
-    // We need to solve for t value where x-coordinate equals input t
-    // Then return the corresponding y-coordinate
+    // Create cubic bezier curve with control points (0,0), (x1,0), (x2,1), (1,1)
+    // This matches cubic-bezier specification
+    let curve = CubicBez::new(
+        Point::new(0.0, 0.0),      // Start point
+        Point::new(x1, 0.0),       // First control point (x1, 0)
+        Point::new(x2, 1.0),       // Second control point (x2, 1)
+        Point::new(1.0, 1.0),      // End point
+    );
     
-    // Use Newton-Raphson method to find parameter value
-    cubic_bezier_solve(t, x1, x2)
+    // Use binary search to find parameter where x-coordinate equals target
+    solve_cubic_bezier_for_x(&curve, t)
 }
 
-/// Solve cubic bezier equation to find y-value for given x using Newton-Raphson
-fn cubic_bezier_solve(x: f64, x1: f64, x2: f64) -> f64 {
-    // For cubic bezier (0,0), (x1,0), (x2,1), (1,1)
-    // x(t) = 3(1-t)²t*x1 + 3(1-t)t²*x2 + t³
-    // y(t) = 3(1-t)t²*1 + t³ = 3(1-t)t² + t³ = t²(3-3t+t) = t²(3-2t)
+/// Binary search to find parameter t where curve.eval(t).x == target_x
+/// This replaces our custom Newton-Raphson implementation with a robust binary search
+fn solve_cubic_bezier_for_x(curve: &CubicBez, target_x: f64) -> f64 {
+    const EPSILON: f64 = 1e-7;
+    const MAX_ITERATIONS: usize = 50;
     
-    let mut t = x; // Initial guess
+    let mut low = 0.0;
+    let mut high = 1.0;
     
-    // Newton-Raphson iteration
-    for _ in 0..8 {
-        let current_x = cubic_bezier_x(t, x1, x2);
-        let error = current_x - x;
+    for _ in 0..MAX_ITERATIONS {
+        let mid = (low + high) * 0.5;
+        let point = curve.eval(mid);
+        let current_x = point.x;
         
-        if error.abs() < 1e-7 {
-            break;
+        if (current_x - target_x).abs() < EPSILON {
+            return point.y.clamp(0.0, 1.0);
         }
         
-        let derivative = cubic_bezier_x_derivative(t, x1, x2);
-        if derivative.abs() < 1e-7 {
-            break;
+        if current_x < target_x {
+            low = mid;
+        } else {
+            high = mid;
         }
-        
-        t = t - error / derivative;
-        t = t.clamp(0.0, 1.0);
     }
     
-    // Return y-coordinate for the solved t
-    cubic_bezier_y(t)
-}
-
-/// Calculate x-coordinate of cubic bezier curve
-fn cubic_bezier_x(t: f64, x1: f64, x2: f64) -> f64 {
-    let u = 1.0 - t;
-    3.0 * u * u * t * x1 + 3.0 * u * t * t * x2 + t * t * t
-}
-
-/// Calculate derivative of x-coordinate 
-fn cubic_bezier_x_derivative(t: f64, x1: f64, x2: f64) -> f64 {
-    let u = 1.0 - t;
-    3.0 * u * u * x1 + 6.0 * u * t * (x2 - x1) + 3.0 * t * t * (1.0 - x2)
-}
-
-/// Calculate y-coordinate of cubic bezier curve with control points (0,0), (x1,0), (x2,1), (1,1)
-fn cubic_bezier_y(t: f64) -> f64 {
-    // y(t) = 3(1-t)t² + t³ = t²(3-2t)
-    t * t * (3.0 - 2.0 * t)
+    // If we didn't converge, evaluate at the midpoint
+    let point = curve.eval((low + high) * 0.5);
+    point.y.clamp(0.0, 1.0)
 }
 
 fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
@@ -172,7 +165,7 @@ fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
 
 fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
     let width = args.width;
-    let height = 100; // Fixed height for the gradient bar
+    let height = 120; // Increased height for text
     
     let start_hex = lab_to_hex(start_lab);
     let end_hex = lab_to_hex(end_lab);
@@ -185,52 +178,49 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, height));
     svg.push('\n');
     
-    // Add CSS animation with cubic-bezier timing
-    svg.push_str("  <style>\n");
-    svg.push_str("    .gradient-rect {\n");
-    svg.push_str(&format!("      animation: colorTransition 1s ease-out forwards;\n"));
-    svg.push_str(&format!("      animation-timing-function: cubic-bezier({}, 0, {}, 1);\n", args.ease_in, args.ease_out));
-    svg.push_str("    }\n");
-    svg.push_str("    @keyframes colorTransition {\n");
-    svg.push_str(&format!("      from {{ stop-color: {}; }}\n", start_hex));
-    svg.push_str(&format!("      to {{ stop-color: {}; }}\n", end_hex));
-    svg.push_str("    }\n");
-    svg.push_str("  </style>\n");
-    
-    // Add gradient definition using cubic-bezier directly
+    // Add gradient definition with properly calculated stops
     svg.push_str("  <defs>\n");
     svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
     
-    // Use only start and end colors - let CSS cubic-bezier handle the interpolation
-    svg.push_str(&format!("      <stop offset=\"0%\" stop-color=\"{}\" />\n", start_hex));
-    svg.push_str(&format!("      <stop offset=\"100%\" stop-color=\"{}\" />\n", end_hex));
-    svg.push_str(&format!("        <animate attributeName=\"offset\" values=\"0%;100%\" dur=\"1s\" \n"));
-    svg.push_str(&format!("                 calcMode=\"spline\" keySplines=\"{} 0 {} 1\" keyTimes=\"0;1\" />\n", args.ease_in, args.ease_out));
+    // Generate multiple gradient stops using cubic-bezier calculation
+    let num_stops = 20; // Number of intermediate stops for smooth gradient
+    for i in 0..=num_stops {
+        let t = i as f64 / num_stops as f64;
+        let bezier_t = cubic_bezier_ease(t, args.ease_in, args.ease_out);
+        let interpolated_lab = interpolate_lab(start_lab, end_lab, bezier_t);
+        let hex_color = lab_to_hex(interpolated_lab);
+        let offset = t * 100.0;
+        
+        svg.push_str(&format!("      <stop offset=\"{}%\" stop-color=\"{}\" />\n", 
+                             offset, hex_color));
+    }
     
     svg.push_str("    </linearGradient>\n");
     svg.push_str("  </defs>\n");
     
     // Left fill (0% to start_position) with start color
     if start_pixel > 0 {
-        svg.push_str(&format!("  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
-                             start_pixel, height, start_hex));
+        svg.push_str(&format!("  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"100\" fill=\"{}\" />\n",
+                             start_pixel, start_hex));
     }
     
     // Gradient section (start_position to end_position)
     if end_pixel > start_pixel {
-        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"url(#grad)\" />\n",
-                             start_pixel, end_pixel - start_pixel, height));
+        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"100\" fill=\"url(#grad)\" />\n",
+                             start_pixel, end_pixel - start_pixel));
     }
     
     // Right fill (end_position to 100%) with end color
     if end_pixel < width {
-        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
-                             end_pixel, width - end_pixel, height, end_hex));
+        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"100\" fill=\"{}\" />\n",
+                             end_pixel, width - end_pixel, end_hex));
     }
     
-    // Add information text
-    svg.push_str(&format!("  <text x=\"10\" y=\"{}\" font-family=\"monospace\" font-size=\"12\" fill=\"white\">\n", height + 20));
-    svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1)\n", args.ease_in, args.ease_out));
+    // Add information text with dark background for readability
+    svg.push_str("  <rect x=\"0\" y=\"100\" width=\"100%\" height=\"20\" fill=\"rgba(0,0,0,0.8)\" />\n");
+    svg.push_str(&format!("  <text x=\"10\" y=\"115\" font-family=\"monospace\" font-size=\"12\" fill=\"white\">\n"));
+    svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}%\n", 
+                         args.ease_in, args.ease_out, args.start_position, args.end_position));
     svg.push_str("  </text>\n");
     
     svg.push_str("</svg>");

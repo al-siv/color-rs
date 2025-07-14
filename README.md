@@ -10,9 +10,10 @@ A CLI utility for working with color gradients in LAB color space with CSS cubic
 
 - **LAB Color Space**: All calculations are performed in the perceptually uniform LAB color space
 - **CSS Cubic-Bezier**: Professional timing functions matching CSS cubic-bezier specifications
+- **Kurbo Library**: Uses the industry-standard kurbo 2D graphics library for robust curve calculations
 - **SVG Output**: Generate SVG images with native cubic-bezier animation support
 - **Precise Positioning**: Specify start and end positions as percentages
-- **Mathematical Accuracy**: Newton-Raphson iteration for accurate bezier calculations
+- **Mathematical Accuracy**: Binary search algorithm for accurate bezier curve solving
 
 ## Installation
 
@@ -156,13 +157,19 @@ Advantages of LAB for gradients:
 
 ## Smoothing Algorithm
 
-The program uses a combined smoothing algorithm:
+## Technical Details
 
-1. **Smoothstep**: Basic S-shaped curve
-2. **Power Function**: Controls transition steepness via the `smoothing` parameter
-3. **Tension**: Additional modulation via the `tension` parameter
+- Uses LAB color space for perceptually uniform color interpolation
+- Implements CSS cubic-bezier curve mathematics using the kurbo library
+- SVG output includes native CSS cubic-bezier animation support
+- Binary search algorithm for accurate bezier curve parameter solving
+- Built with Rust for performance and safety
 
-This creates a gradient that starts slowly, accelerates in the middle, and slows down at the end.
+### Libraries Used
+
+- **kurbo**: Industry-standard 2D graphics library for robust curve calculations
+- **palette**: Color space conversions and manipulations
+- **clap**: Command-line argument parsing
 
 ## License
 

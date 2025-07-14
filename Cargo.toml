@@ -6,6 +6,7 @@ description = "A CLI tool for color gradient calculations using LAB color space"
 authors = ["al-siv"]
 
 [dependencies]
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 palette = "0.7"
 anyhow = "1.0"
+kurbo = "0.11"
