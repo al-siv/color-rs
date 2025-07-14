@@ -1,6 +1,12 @@
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
 use palette::{Lab, Srgb, FromColor, IntoColor};
+use std::fs;
+
+fn parse_percentage(s: &str) -> Result<u8, String> {
+    let trimmed = s.trim_end_matches('%');
+    trimmed.parse::<u8>().map_err(|_| format!("Invalid percentage value: {}", s))
+}
 
 #[derive(Parser)]
 #[command(name = "color-rs")]
@@ -19,20 +25,20 @@ enum Commands {
 
 #[derive(Args)]
 struct GradientArgs {
-    /// Starting color in HEX format (e.g., #FF0000)
+    /// Starting color in HEX format (e.g., #FF0000 or FF0000)
     #[arg(long, value_name = "HEX")]
     start_color: String,
 
-    /// Starting position as percentage (e.g., 20 for 20%)
-    #[arg(long, value_name = "PERCENT")]
+    /// Starting position as percentage (e.g., 20 or 20%)
+    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage)]
     start_position: u8,
 
-    /// Ending color in HEX format (e.g., #0000FF)
+    /// Ending color in HEX format (e.g., #0000FF or 0000FF)
     #[arg(long, value_name = "HEX")]
     end_color: String,
 
-    /// Ending position as percentage (e.g., 80 for 80%)
-    #[arg(long, value_name = "PERCENT")]
+    /// Ending position as percentage (e.g., 80 or 80%)
+    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage)]
     end_position: u8,
 
     /// Smoothing coefficient for gradient curve (default: 2.0)
@@ -42,6 +48,18 @@ struct GradientArgs {
     /// Additional curve tension parameter (default: 0.5)
     #[arg(long, default_value = "0.5")]
     tension: f64,
+
+    /// Generate SVG image of the gradient
+    #[arg(long)]
+    img: bool,
+
+    /// Width of the SVG image in pixels (default: 1000)
+    #[arg(long, default_value = "1000")]
+    width: u32,
+
+    /// Output filename for SVG image (default: gradient.svg)
+    #[arg(long, default_value = "gradient.svg")]
+    img_name: String,
 }
 
 fn main() -> Result<()> {
@@ -82,13 +100,13 @@ fn smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
 }
 
 fn smooth_interpolate(t: f64, smoothing: f64, tension: f64) -> f64 {
-    // Создаем сглаженную кривую используя комбинацию функций
+    // Create a smooth curve using a combination of functions
     let smooth_t = smoothstep(0.0, 1.0, t);
     
-    // Применяем дополнительное сглаживание
+    // Apply additional smoothing
     let powered_t = smooth_t.powf(smoothing);
     
-    // Добавляем напряжение для более естественной кривой
+    // Add tension for a more natural curve
     let tension_factor = 1.0 + tension * (1.0 - 2.0 * (smooth_t - 0.5).abs());
     
     (powered_t * tension_factor).clamp(0.0, 1.0)
@@ -103,32 +121,101 @@ fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
     )
 }
 
-fn generate_gradient(args: GradientArgs) -> Result<()> {
-    // Проверяем корректность позиций
-    if args.start_position >= args.end_position {
-        return Err(anyhow!("Start position must be less than end position"));
+fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
+    let width = args.width;
+    let height = 100; // Fixed height for the gradient bar
+    
+    let start_hex = lab_to_hex(start_lab);
+    let end_hex = lab_to_hex(end_lab);
+    
+    // Calculate positions as pixels
+    let start_pixel = (args.start_position as f64 / 100.0 * width as f64) as u32;
+    let end_pixel = (args.end_position as f64 / 100.0 * width as f64) as u32;
+    
+    let mut svg = String::new();
+    svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, height));
+    svg.push('\n');
+    
+    // Add gradient definition
+    svg.push_str("  <defs>\n");
+    svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
+    
+    // Generate gradient stops
+    for position in args.start_position..=args.end_position {
+        let normalized_t = (position - args.start_position) as f64 
+            / (args.end_position - args.start_position) as f64;
+        let smooth_t = smooth_interpolate(normalized_t, args.smoothing, args.tension);
+        let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
+        let hex_color = lab_to_hex(interpolated_lab);
+        
+        let stop_position = ((position - args.start_position) as f64 
+            / (args.end_position - args.start_position) as f64) * 100.0;
+        
+        svg.push_str(&format!("      <stop offset=\"{}%\" stop-color=\"{}\" />\n", 
+                             stop_position, hex_color));
     }
+    
+    svg.push_str("    </linearGradient>\n");
+    svg.push_str("  </defs>\n");
+    
+    // Left fill (0% to start_position) with start color
+    if start_pixel > 0 {
+        svg.push_str(&format!("  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
+                             start_pixel, height, start_hex));
+    }
+    
+    // Gradient section (start_position to end_position)
+    if end_pixel > start_pixel {
+        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"url(#grad)\" />\n",
+                             start_pixel, end_pixel - start_pixel, height));
+    }
+    
+    // Right fill (end_position to 100%) with end color
+    if end_pixel < width {
+        svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
+                             end_pixel, width - end_pixel, height, end_hex));
+    }
+    
+    svg.push_str("</svg>");
+    
+    Ok(svg)
+}
+
+fn generate_gradient(args: GradientArgs) -> Result<()> {
+    // Validate position bounds first
     if args.start_position > 100 || args.end_position > 100 {
         return Err(anyhow!("Positions must be between 0 and 100"));
     }
+    
+    // Then validate position order
+    if args.start_position >= args.end_position {
+        return Err(anyhow!("Start position must be less than end position"));
+    }
 
-    // Парсим цвета
+    // Parse colors
     let start_lab = parse_hex_color(&args.start_color)?;
     let end_lab = parse_hex_color(&args.end_color)?;
 
-    // Генерируем градиент
+    // Generate SVG if requested
+    if args.img {
+        let svg_content = generate_svg_gradient(&args, start_lab, end_lab)?;
+        fs::write(&args.img_name, svg_content)?;
+        println!("SVG gradient saved to: {}", args.img_name);
+    }
+
+    // Generate gradient (console output)
     for position in args.start_position..=args.end_position {
-        // Нормализуем позицию в диапазон [0, 1]
+        // Normalize position to range [0, 1]
         let normalized_t = (position - args.start_position) as f64 
             / (args.end_position - args.start_position) as f64;
         
-        // Применяем сглаживание
+        // Apply smoothing
         let smooth_t = smooth_interpolate(normalized_t, args.smoothing, args.tension);
         
-        // Интерполируем цвет в LAB пространстве
+        // Interpolate color in LAB space
         let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
         
-        // Конвертируем обратно в HEX
+        // Convert back to HEX
         let hex_color = lab_to_hex(interpolated_lab);
         
         println!("{}%: {}", position, hex_color);
