@@ -146,10 +146,10 @@ struct GradientValue {
 }
 
 fn main() -> Result<()> {
-    // Print program information
-    println!("{} {} v{}", "Application:".green().bold(), APP_NAME, APP_VERSION);
-    println!("{} {}", "About:".green().bold(), APP_ABOUT);
-    println!("{} {}", "Author:".green().bold(), APP_AUTHOR);
+    // Print program information with cargo-style formatting
+    println!("{:>12} {} v{}", "Application:".green().bold(), APP_NAME, APP_VERSION);
+    println!("{:>12} {}", "About:".green().bold(), APP_ABOUT);
+    println!("{:>12} {}", "Author:".green().bold(), APP_AUTHOR);
     println!();
 
     let cli = Cli::parse();
@@ -222,7 +222,7 @@ fn print_color_info_table(start_lab: Lab, end_lab: Lab) {
         },
     ];
     
-    println!("{}", "Color Information:".bold().to_uppercase());
+    println!("{}", " Color Information: ".bold().to_uppercase().bright_yellow().on_blue());
     let mut table = Table::new(color_data);
     table.with(Style::rounded());
     println!("{}", table);
@@ -528,7 +528,7 @@ fn print_gradient_table(values: Vec<GradientValue>) {
         return;
     }
     
-    println!("{}", "Gradient Values:".bold().to_uppercase());
+    println!("{}", " Gradient Values: ".bold().to_uppercase().bright_yellow().on_blue());
     let mut table = Table::new(values);
     table.with(Style::rounded());
     println!("{}", table);
