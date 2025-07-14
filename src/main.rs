@@ -8,12 +8,25 @@ use clap::{Args, Parser, Subcommand};
 use palette::{Lab, Srgb, FromColor, IntoColor};
 use std::fs;
 use kurbo::{CubicBez, Point, ParamCurve};
+use image::{ImageBuffer, Rgba, RgbaImage};
+use tiny_skia::*;
+use usvg::{Options, Tree};
+use resvg;
 
 
 const APP_NAME: &str = "color-rs";
 const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions";
 const APP_AUTHOR: &str = "https://github.com/al-siv";
 const APP_VERSION: &str = "0.5.0";
+
+// Default values for GradientArgs
+const DEFAULT_START_POSITION: &str = "0";
+const DEFAULT_END_POSITION: &str = "100";
+const DEFAULT_EASE_IN: &str = "0.65";
+const DEFAULT_EASE_OUT: &str = "0.35";
+const DEFAULT_WIDTH: &str = "1000";
+const DEFAULT_SVG_NAME: &str = "gradient.svg";
+const DEFAULT_PNG_NAME: &str = "gradient.png";
 
 fn parse_percentage(s: &str) -> Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
@@ -43,7 +56,7 @@ struct GradientArgs {
     start_color: String,
 
     /// Starting position as percentage (e.g., 20 or 20%, default: 0%)
-    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = "0")]
+    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_START_POSITION)]
     start_position: u8,
 
     /// Ending color in HEX format (e.g., #0000FF or 0000FF)
@@ -51,31 +64,44 @@ struct GradientArgs {
     end_color: String,
 
     /// Ending position as percentage (e.g., 80 or 80%, default: 100%)
-    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = "100")]
+    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_END_POSITION)]
     end_position: u8,
 
     /// Ease-in control point for cubic-bezier (0.0-1.0, default: 0.65)
-    #[arg(long, default_value = "0.65")]
+    #[arg(long, default_value = DEFAULT_EASE_IN)]
     ease_in: f64,
 
     /// Ease-out control point for cubic-bezier (0.0-1.0, default: 0.35)
-    #[arg(long, default_value = "0.35")]
+    #[arg(long, default_value = DEFAULT_EASE_OUT)]
     ease_out: f64,
 
     /// Generate SVG image of the gradient
     #[arg(long)]
     img: bool,
 
-    /// Width of the SVG image in pixels (default: 1000)
-    #[arg(long, default_value = "1000")]
+    /// Generate PNG image of the gradient
+    #[arg(long)]
+    png: bool,
+
+    /// Width of the image in pixels (default: 1000)
+    #[arg(long, default_value = DEFAULT_WIDTH)]
     width: u32,
 
     /// Output filename for SVG image (default: gradient.svg)
-    #[arg(long, default_value = "gradient.svg")]
+    #[arg(long, default_value = DEFAULT_SVG_NAME)]
     img_name: String,
+
+    /// Output filename for PNG image (default: gradient.png)
+    #[arg(long, default_value = DEFAULT_PNG_NAME)]
+    png_name: String,
 }
 
 fn main() -> Result<()> {
+    // Print program information
+    println!("{} v{} - {}", APP_NAME, APP_VERSION, APP_ABOUT);
+    println!("Author: {}", APP_AUTHOR);
+    println!();
+
     let cli = Cli::parse();
 
     match cli.command {
@@ -229,14 +255,46 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     
     // Add information text with dark background for readability
     svg.push_str("  <rect x=\"0\" y=\"100\" width=\"100%\" height=\"20\" fill=\"rgba(0,0,0,0.8)\" />\n");
-    svg.push_str(&format!("  <text x=\"10\" y=\"115\" font-family=\"monospace\" font-size=\"12\" fill=\"white\">\n"));
-    svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}%\n", 
-                         args.ease_in, args.ease_out, args.start_position, args.end_position));
+    svg.push_str(&format!("  <text x=\"10\" y=\"115\" font-family=\"'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif\" font-size=\"12\" fill=\"white\">\n"));
+    svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n", 
+                         args.ease_in, args.ease_out, args.start_position, args.end_position, start_hex, end_hex));
     svg.push_str("  </text>\n");
     
     svg.push_str("</svg>");
     
     Ok(svg)
+}
+
+fn generate_png_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
+    let width = args.width;
+    let height = 120;
+    
+    // Create SVG first
+    let svg_content = generate_svg_gradient(args, start_lab, end_lab)?;
+    
+    // Parse SVG
+    let options = Options::default();
+    let tree = Tree::from_str(&svg_content, &options)
+        .map_err(|e| anyhow!("Failed to parse SVG: {}", e))?;
+    
+    // Create pixmap
+    let mut pixmap = Pixmap::new(width, height)
+        .ok_or_else(|| anyhow!("Failed to create pixmap"))?;
+    
+    // Render SVG to pixmap
+    resvg::render(&tree, Transform::default(), &mut pixmap.as_mut());
+    
+    // Convert to image crate format
+    let img: RgbaImage = ImageBuffer::from_fn(width, height, |x, y| {
+        let pixel = pixmap.pixel(x, y).unwrap();
+        Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
+    });
+    
+    // Save PNG
+    img.save(&args.png_name)
+        .map_err(|e| anyhow!("Failed to save PNG: {}", e))?;
+    
+    Ok(())
 }
 
 fn generate_gradient(args: GradientArgs) -> Result<()> {
@@ -259,6 +317,12 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
         let svg_content = generate_svg_gradient(&args, start_lab, end_lab)?;
         fs::write(&args.img_name, svg_content)?;
         println!("SVG gradient saved to: {}", args.img_name);
+    }
+
+    // Generate PNG if requested
+    if args.png {
+        generate_png_gradient(&args, start_lab, end_lab)?;
+        println!("PNG gradient saved to: {}", args.png_name);
     }
 
     // Generate gradient (console output)
