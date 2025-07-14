@@ -18,6 +18,14 @@ A professional CLI tool for color gradient calculations using perceptually unifo
 
 ## 🚀 Installation
 
+### Windows Users (Recommended)
+
+Download the pre-compiled executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
+
+1. Download `color-rs.exe` from the release assets
+2. Place it in a folder that's in your PATH or use it directly
+3. Run `color-rs.exe gradient --help` to get started
+
 ### From Source
 
 ```bash
@@ -26,12 +34,12 @@ cd color-rs
 cargo build --release
 ```
 
-The binary will be available at `target/release/color-rs`.
+The binary will be available at `target/release/color-rs` (or `target/release/color-rs.exe` on Windows).
 
 ### Requirements
 
-- Rust 1.70+
-- Cargo
+- For Windows users: No additional requirements with the pre-compiled executable
+- For building from source: Rust 1.70+ and Cargo
 
 ## 📖 Usage
 
@@ -87,7 +95,7 @@ color-rs gradient --start-color FF0000 --end-color 0000FF \
 
 ### Application Information (Cargo-Style)
 ```
- Application: Color-rs v0.6.0
+ Application: Color-rs v0.7.2
        About: A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions
       Author: https://github.com/al-siv
 ```
@@ -281,3 +289,23 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **color-rs** - Professional color gradients for modern workflows 🎨✨
+
+## 📋 Changelog
+
+### v0.7.2 - First Full Release (2025-07-14)
+- ✨ **Professional Table Formatting**: Cargo-style output with right-aligned numeric columns
+- 🎨 **Enhanced Visual Design**: Improved terminal output with beautiful ASCII tables
+- 🔧 **Integer Percentages**: CSS-compatible integer percentage calculations
+- 🖼️ **Solid PNG Backgrounds**: Fixed PNG rendering with proper solid backgrounds
+- 📚 **Comprehensive Documentation**: Complete README with examples and usage guides
+- ⚡ **Intelligent Stop Placement**: Advanced derivative-based gradient stop calculation
+- 🎯 **CSS Integration**: Ready-to-use output for web development workflows
+- 🏗️ **Production Ready**: Stable API and comprehensive error handling
+
+### Features Summary
+- LAB color space for perceptually uniform gradients
+- CSS cubic-bezier timing functions
+- SVG and PNG export capabilities  
+- Multiple output formats (step-based, intelligent, equal spacing)
+- Professional terminal interface matching Rust toolchain aesthetics
+- Windows executable distribution for easy installation

@@ -19,7 +19,7 @@ use tabled::{Table, Tabled, settings::{Style, Alignment, object::Columns}};
 const APP_NAME: &str = "Color-rs";
 const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions";
 const APP_AUTHOR: &str = "https://github.com/al-siv";
-const APP_VERSION: &str = "0.6.0";
+const APP_VERSION: &str = "0.7.2";
 
 // Height ratio: gradient height = width * HEIGHT_RATIO
 const HEIGHT_RATIO: f64 = 0.2; // 1/5 of width
