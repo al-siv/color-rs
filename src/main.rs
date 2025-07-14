@@ -29,16 +29,16 @@ struct GradientArgs {
     #[arg(long, value_name = "HEX")]
     start_color: String,
 
-    /// Starting position as percentage (e.g., 20 or 20%)
-    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage)]
+    /// Starting position as percentage (e.g., 20 or 20%, default: 0%)
+    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = "0")]
     start_position: u8,
 
     /// Ending color in HEX format (e.g., #0000FF or 0000FF)
     #[arg(long, value_name = "HEX")]
     end_color: String,
 
-    /// Ending position as percentage (e.g., 80 or 80%)
-    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage)]
+    /// Ending position as percentage (e.g., 80 or 80%, default: 100%)
+    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = "100")]
     end_position: u8,
 
     /// Smoothing coefficient for gradient curve (default: 2.0)

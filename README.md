@@ -35,15 +35,20 @@ The executable will be located at `target/release/color-rs`.
 ### Main Command - Gradient
 
 ```bash
+color-rs gradient --start-color #FF0000 --end-color #0000FF
+```
+
+With custom positions:
+```bash
 color-rs gradient --start-color #FF0000 --start-position 20 --end-color #0000FF --end-position 80
 ```
 
 ### Parameters
 
 - `--start-color <HEX>` - Starting color in HEX format (e.g., #FF0000 or FF0000)
-- `--start-position <PERCENT>` - Starting position as percentage (e.g., 20 or 20%)
+- `--start-position <PERCENT>` - Starting position as percentage (e.g., 20 or 20%, default: 0%)
 - `--end-color <HEX>` - Ending color in HEX format (e.g., #0000FF or 0000FF)  
-- `--end-position <PERCENT>` - Ending position as percentage (e.g., 80 or 80%)
+- `--end-position <PERCENT>` - Ending position as percentage (e.g., 80 or 80%, default: 100%)
 - `--smoothing <FLOAT>` - Smoothing coefficient (default: 2.0)
 - `--tension <FLOAT>` - Curve tension coefficient (default: 0.5)
 - `--img` - Generate SVG image of the gradient
@@ -55,7 +60,7 @@ color-rs gradient --start-color #FF0000 --start-position 20 --end-color #0000FF 
 #### Basic Red to Blue Gradient
 
 ```bash
-color-rs gradient --start-color #FF0000 --start-position 0 --end-color #0000FF --end-position 100
+color-rs gradient --start-color #FF0000 --end-color #0000FF
 ```
 
 #### Gradient with Custom Positions
@@ -79,12 +84,7 @@ color-rs gradient \
 #### Generate SVG Image
 
 ```bash
-color-rs gradient \
-  --start-color #FF0000 \
-  --start-position 20 \
-  --end-color #00FF00 \
-  --end-position 80 \
-  --img
+color-rs gradient --start-color #FF0000 --end-color #00FF00 --img
 ```
 
 #### Generate Custom SVG Image
