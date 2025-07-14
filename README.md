@@ -1,17 +1,18 @@
 # color-rs
 
-A CLI utility for working with color gradients in LAB color space.
+A CLI utility for working with color gradients in LAB color space with CSS cubic-bezier timing functions.
 
 ## Description
 
-`color-rs` is a command-line tool that allows you to create smooth color gradients between two colors, using the LAB color space for more accurate and visually pleasing transitions.
+`color-rs` is a command-line tool that allows you to create smooth color gradients between two colors, using the LAB color space for perceptually uniform transitions and CSS cubic-bezier timing functions for professional-grade curve control.
 
 ### Features
 
 - **LAB Color Space**: All calculations are performed in the perceptually uniform LAB color space
-- **Smooth Gradients**: Uses spline-like interpolation for natural transitions
-- **Flexible Settings**: Configurable smoothing and curve tension coefficients
+- **CSS Cubic-Bezier**: Professional timing functions matching CSS cubic-bezier specifications
+- **SVG Output**: Generate SVG images with native cubic-bezier animation support
 - **Precise Positioning**: Specify start and end positions as percentages
+- **Mathematical Accuracy**: Newton-Raphson iteration for accurate bezier calculations
 
 ## Installation
 
@@ -38,16 +39,27 @@ The executable will be located at `target/release/color-rs`.
 color-rs gradient --start-color #FF0000 --end-color #0000FF
 ```
 
-With custom positions:
+With custom positions and cubic-bezier timing:
 ```bash
-color-rs gradient --start-color #FF0000 --start-position 20 --end-color #0000FF --end-position 80
+color-rs gradient --start-color #FF0000 --start-position 20 --end-color #0000FF --end-position 80 --ease-in 0.25 --ease-out 0.75
+```
+
+Generate SVG output:
+```bash
+color-rs gradient --start-color #FF0000 --end-color #0000FF --img --img-name "gradient.svg"
 ```
 
 ### Parameters
 
 - `--start-color <HEX>` - Starting color in HEX format (e.g., #FF0000 or FF0000)
 - `--start-position <PERCENT>` - Starting position as percentage (e.g., 20 or 20%, default: 0%)
-- `--end-color <HEX>` - Ending color in HEX format (e.g., #0000FF or 0000FF)  
+- `--end-color <HEX>` - Ending color in HEX format (e.g., #0000FF or 0000FF)
+- `--end-position <PERCENT>` - Ending position as percentage (e.g., 80 or 80%, default: 100%)
+- `--ease-in <FLOAT>` - Ease-in control point for cubic-bezier (0.0-1.0, default: 0.42)
+- `--ease-out <FLOAT>` - Ease-out control point for cubic-bezier (0.0-1.0, default: 0.58)
+- `--img` - Generate SVG image
+- `--img-name <FILENAME>` - SVG output filename (default: gradient.svg)
+- `--width <PIXELS>` - SVG width in pixels (default: 1000)  
 - `--end-position <PERCENT>` - Ending position as percentage (e.g., 80 or 80%, default: 100%)
 - `--smoothing <FLOAT>` - Smoothing coefficient (default: 2.0)
 - `--tension <FLOAT>` - Curve tension coefficient (default: 0.5)

@@ -41,13 +41,13 @@ struct GradientArgs {
     #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = "100")]
     end_position: u8,
 
-    /// Smoothing coefficient for gradient curve (default: 2.0)
-    #[arg(long, default_value = "2.0")]
-    smoothing: f64,
+    /// Ease-in control point for cubic-bezier (0.0-1.0, default: 0.42)
+    #[arg(long, default_value = "0.42")]
+    ease_in: f64,
 
-    /// Additional curve tension parameter (default: 0.5)
-    #[arg(long, default_value = "0.5")]
-    tension: f64,
+    /// Ease-out control point for cubic-bezier (0.0-1.0, default: 0.58)
+    #[arg(long, default_value = "0.58")]
+    ease_out: f64,
 
     /// Generate SVG image of the gradient
     #[arg(long)]
@@ -94,22 +94,71 @@ fn lab_to_hex(lab: Lab) -> String {
     format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 
-fn smoothstep(edge0: f64, edge1: f64, x: f64) -> f64 {
-    let t = ((x - edge0) / (edge1 - edge0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
+/// Cubic Bezier easing function (CSS timing function)
+/// Implements cubic-bezier(x1, 0, x2, 1) for t in [0, 1]
+/// This matches CSS timing functions like ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
+fn cubic_bezier_ease(t: f64, x1: f64, x2: f64) -> f64 {
+    if t <= 0.0 { return 0.0; }
+    if t >= 1.0 { return 1.0; }
+    
+    // Clamp control points to valid range
+    let x1 = x1.clamp(0.0, 1.0);
+    let x2 = x2.clamp(0.0, 1.0);
+    
+    // For cubic bezier with control points (0,0), (x1,0), (x2,1), (1,1)
+    // We need to solve for t value where x-coordinate equals input t
+    // Then return the corresponding y-coordinate
+    
+    // Use Newton-Raphson method to find parameter value
+    cubic_bezier_solve(t, x1, x2)
 }
 
-fn smooth_interpolate(t: f64, smoothing: f64, tension: f64) -> f64 {
-    // Create a smooth curve using a combination of functions
-    let smooth_t = smoothstep(0.0, 1.0, t);
+/// Solve cubic bezier equation to find y-value for given x using Newton-Raphson
+fn cubic_bezier_solve(x: f64, x1: f64, x2: f64) -> f64 {
+    // For cubic bezier (0,0), (x1,0), (x2,1), (1,1)
+    // x(t) = 3(1-t)²t*x1 + 3(1-t)t²*x2 + t³
+    // y(t) = 3(1-t)t²*1 + t³ = 3(1-t)t² + t³ = t²(3-3t+t) = t²(3-2t)
     
-    // Apply additional smoothing
-    let powered_t = smooth_t.powf(smoothing);
+    let mut t = x; // Initial guess
     
-    // Add tension for a more natural curve
-    let tension_factor = 1.0 + tension * (1.0 - 2.0 * (smooth_t - 0.5).abs());
+    // Newton-Raphson iteration
+    for _ in 0..8 {
+        let current_x = cubic_bezier_x(t, x1, x2);
+        let error = current_x - x;
+        
+        if error.abs() < 1e-7 {
+            break;
+        }
+        
+        let derivative = cubic_bezier_x_derivative(t, x1, x2);
+        if derivative.abs() < 1e-7 {
+            break;
+        }
+        
+        t = t - error / derivative;
+        t = t.clamp(0.0, 1.0);
+    }
     
-    (powered_t * tension_factor).clamp(0.0, 1.0)
+    // Return y-coordinate for the solved t
+    cubic_bezier_y(t)
+}
+
+/// Calculate x-coordinate of cubic bezier curve
+fn cubic_bezier_x(t: f64, x1: f64, x2: f64) -> f64 {
+    let u = 1.0 - t;
+    3.0 * u * u * t * x1 + 3.0 * u * t * t * x2 + t * t * t
+}
+
+/// Calculate derivative of x-coordinate 
+fn cubic_bezier_x_derivative(t: f64, x1: f64, x2: f64) -> f64 {
+    let u = 1.0 - t;
+    3.0 * u * u * x1 + 6.0 * u * t * (x2 - x1) + 3.0 * t * t * (1.0 - x2)
+}
+
+/// Calculate y-coordinate of cubic bezier curve with control points (0,0), (x1,0), (x2,1), (1,1)
+fn cubic_bezier_y(t: f64) -> f64 {
+    // y(t) = 3(1-t)t² + t³ = t²(3-2t)
+    t * t * (3.0 - 2.0 * t)
 }
 
 fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
@@ -136,24 +185,27 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
     svg.push_str(&format!(r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#, width, height));
     svg.push('\n');
     
-    // Add gradient definition
+    // Add CSS animation with cubic-bezier timing
+    svg.push_str("  <style>\n");
+    svg.push_str("    .gradient-rect {\n");
+    svg.push_str(&format!("      animation: colorTransition 1s ease-out forwards;\n"));
+    svg.push_str(&format!("      animation-timing-function: cubic-bezier({}, 0, {}, 1);\n", args.ease_in, args.ease_out));
+    svg.push_str("    }\n");
+    svg.push_str("    @keyframes colorTransition {\n");
+    svg.push_str(&format!("      from {{ stop-color: {}; }}\n", start_hex));
+    svg.push_str(&format!("      to {{ stop-color: {}; }}\n", end_hex));
+    svg.push_str("    }\n");
+    svg.push_str("  </style>\n");
+    
+    // Add gradient definition using cubic-bezier directly
     svg.push_str("  <defs>\n");
     svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
     
-    // Generate gradient stops
-    for position in args.start_position..=args.end_position {
-        let normalized_t = (position - args.start_position) as f64 
-            / (args.end_position - args.start_position) as f64;
-        let smooth_t = smooth_interpolate(normalized_t, args.smoothing, args.tension);
-        let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
-        let hex_color = lab_to_hex(interpolated_lab);
-        
-        let stop_position = ((position - args.start_position) as f64 
-            / (args.end_position - args.start_position) as f64) * 100.0;
-        
-        svg.push_str(&format!("      <stop offset=\"{}%\" stop-color=\"{}\" />\n", 
-                             stop_position, hex_color));
-    }
+    // Use only start and end colors - let CSS cubic-bezier handle the interpolation
+    svg.push_str(&format!("      <stop offset=\"0%\" stop-color=\"{}\" />\n", start_hex));
+    svg.push_str(&format!("      <stop offset=\"100%\" stop-color=\"{}\" />\n", end_hex));
+    svg.push_str(&format!("        <animate attributeName=\"offset\" values=\"0%;100%\" dur=\"1s\" \n"));
+    svg.push_str(&format!("                 calcMode=\"spline\" keySplines=\"{} 0 {} 1\" keyTimes=\"0;1\" />\n", args.ease_in, args.ease_out));
     
     svg.push_str("    </linearGradient>\n");
     svg.push_str("  </defs>\n");
@@ -175,6 +227,11 @@ fn generate_svg_gradient(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> R
         svg.push_str(&format!("  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
                              end_pixel, width - end_pixel, height, end_hex));
     }
+    
+    // Add information text
+    svg.push_str(&format!("  <text x=\"10\" y=\"{}\" font-family=\"monospace\" font-size=\"12\" fill=\"white\">\n", height + 20));
+    svg.push_str(&format!("    cubic-bezier({}, 0, {}, 1)\n", args.ease_in, args.ease_out));
+    svg.push_str("  </text>\n");
     
     svg.push_str("</svg>");
     
@@ -210,7 +267,7 @@ fn generate_gradient(args: GradientArgs) -> Result<()> {
             / (args.end_position - args.start_position) as f64;
         
         // Apply smoothing
-        let smooth_t = smooth_interpolate(normalized_t, args.smoothing, args.tension);
+        let smooth_t = cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
         
         // Interpolate color in LAB space
         let interpolated_lab = interpolate_lab(start_lab, end_lab, smooth_t);
