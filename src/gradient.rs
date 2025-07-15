@@ -6,7 +6,7 @@ use tabled::Tabled;
 use crate::cli::GradientArgs;
 use crate::color::ColorProcessor;
 use crate::config::*;
-use crate::error::Result;
+use crate::error::{Result, ColorError};
 
 /// Gradient value for display in tables
 #[derive(Tabled)]
@@ -318,9 +318,14 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     // Validate arguments
     args.validate()?;
 
-    // Parse colors
-    let start_lab = ColorProcessor::parse_hex_color(&args.start_color)?;
-    let end_lab = ColorProcessor::parse_hex_color(&args.end_color)?;
+    // Parse colors using unified color parser
+    use crate::color_parser::ColorParser;
+    let parser = ColorParser::new();
+    
+    let (start_lab, _) = parser.parse(&args.start_color)
+        .map_err(|e| ColorError::InvalidColor(format!("Failed to parse start color '{}': {}", args.start_color, e)))?;
+    let (end_lab, _) = parser.parse(&args.end_color)
+        .map_err(|e| ColorError::InvalidColor(format!("Failed to parse end color '{}': {}", args.end_color, e)))?;
 
     // Print color information with beautiful formatting
     ColorProcessor::print_color_info_table(start_lab, end_lab);
@@ -386,5 +391,22 @@ mod tests {
         assert_eq!(stops[0], 0);
         assert_eq!(stops[stops.len()-1], 100);
         assert!(stops.len() <= 5);
+    }
+
+    #[test]
+    fn test_unified_color_parsing() {
+        use crate::color_parser::ColorParser;
+        let parser = ColorParser::new();
+        
+        // Test that gradient can parse various color formats
+        let (hex_color, _) = parser.parse("#FF0000").unwrap();
+        let (rgb_color, _) = parser.parse("rgb(255, 0, 0)").unwrap();
+        let (named_color, _) = parser.parse("red").unwrap();
+        let (hsl_color, _) = parser.parse("hsl(0, 100%, 50%)").unwrap();
+        
+        // All should produce similar LAB values for red
+        assert!((hex_color.l - rgb_color.l).abs() < 1.0);
+        assert!((hex_color.l - named_color.l).abs() < 1.0);
+        assert!((hex_color.l - hsl_color.l).abs() < 1.0);
     }
 }

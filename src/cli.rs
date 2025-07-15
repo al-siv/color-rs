@@ -35,16 +35,16 @@ pub enum Commands {
 /// Arguments for gradient generation
 #[derive(Args, Clone)]
 pub struct GradientArgs {
-    /// Starting color in HEX format (e.g., #FF0000 or FF0000)
-    #[arg(long, value_name = "HEX")]
+    /// Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)
+    #[arg(long, value_name = "COLOR")]
     pub start_color: String,
 
     /// Starting position as percentage (e.g., 20 or 20%, default: 0%)
     #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_START_POSITION)]
     pub start_position: u8,
 
-    /// Ending color in HEX format (e.g., #0000FF or 0000FF)
-    #[arg(long, value_name = "HEX")]
+    /// Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
+    #[arg(long, value_name = "COLOR")]
     pub end_color: String,
 
     /// Ending position as percentage (e.g., 80 or 80%, default: 100%)
@@ -157,10 +157,6 @@ pub struct ColorMatchArgs {
     /// Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
     #[arg(value_name = "COLOR")]
     pub color: String,
-
-    /// Show detailed output with all color format conversions and additional information
-    #[arg(long)]
-    pub detailed: bool,
 }
 
 impl ColorMatchArgs {

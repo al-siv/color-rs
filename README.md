@@ -4,11 +4,12 @@ A professional CLI tool and Rust library for color gradient calculations using p
 
 ## Features
 
+- **Universal Color Parsing**: Supports HEX, RGB, HSL, and 148+ named colors across all commands
+- **Perceptually Accurate Processing**: LAB color space for smooth gradients and Delta E color distance for accurate color matching
+- **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, LAB, XYZ, OKLCH, and perceptually accurate grayscale with HEX encoding
 - **Modular Architecture**: Clean separation of CLI and library functionality
 - **Library & CLI**: Use as a command-line tool or integrate as a Rust library
 - **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
-- **Perceptually Uniform Gradients**: Uses LAB color space for visually smooth color transitions
-- **Color Analysis & Conversion**: Universal color format recognition with comprehensive output
 - **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
 - **Intelligent Stop Placement**: Automatically places gradient stops where colors change most rapidly
 - **Multiple Output Formats**: 
@@ -19,7 +20,7 @@ A professional CLI tool and Rust library for color gradient calculations using p
 - **Integer Percentages**: CSS-friendly percentage values for practical use
 - **Rich Color Information**: RGB, HSL, LAB, XYZ, OKLCH values with color name recognition
 - **Type Safety**: Custom error types and comprehensive error handling
-- **Well Tested**: Comprehensive unit test suite with 16+ tests
+- **Well Tested**: Comprehensive unit test suite with 24+ tests
 
 ## Library Usage
 
@@ -38,9 +39,10 @@ use color_rs::{ColorRs, cli::GradientArgs};
 fn main() -> color_rs::Result<()> {
     let color_rs = ColorRs::new();
     
+    // Generate gradient with named colors
     let args = GradientArgs {
-        start_color: "FF0000".to_string(),
-        end_color: "0000FF".to_string(),
+        start_color: "red".to_string(),           // Named color
+        end_color: "blue".to_string(),           // Named color
         start_position: 0,
         end_position: 100,
         ease_in: 0.25,
@@ -57,6 +59,14 @@ fn main() -> color_rs::Result<()> {
     };
     
     color_rs.generate_gradient(args)?;
+    
+    // Analyze a color
+    let analysis = color_rs.color_match("rgb(255, 87, 51)")?;
+    println!("{}", analysis);
+    
+    Ok(())
+}
+```
     Ok(())
 }
 ```
@@ -123,7 +133,14 @@ color-rs = "0.8.0"
 ### As a CLI Tool
 
 ```bash
+# Using HEX colors
 color-rs gradient --start-color FF0000 --end-color 0000FF
+
+# Using named colors
+color-rs gradient --start-color red --end-color blue
+
+# Using RGB/HSL colors
+color-rs gradient --start-color "rgb(255,0,0)" --end-color "hsl(240,100%,50%)"
 ```
 
 ### Custom Easing
@@ -171,14 +188,20 @@ color-rs gradient --start-color FF0000 --end-color 0000FF \
 ### Color Matching and Analysis
 
 ```bash
-# Basic color analysis (auto-detects format)
+# Color analysis (auto-detects format and provides comprehensive output)
 color-rs color-match "#FF5733"
 color-rs color-match "rgb(255, 87, 51)"
 color-rs color-match "red"
 color-rs color-match "hsl(240, 100%, 50%)"
+```
 
-# Detailed analysis with all color formats
-color-rs color-match "#FF5733" --detailed
+### Gradient Generation with Universal Color Parsing
+
+```bash
+# Use any color format for gradients
+color-rs gradient --start-color "red" --end-color "blue"
+color-rs gradient --start-color "#FF0000" --end-color "rgb(0, 0, 255)"
+color-rs gradient --start-color "hsl(0, 100%, 50%)" --end-color "hsl(240, 100%, 50%)"
 ```
 
 ## Output Examples
@@ -244,7 +267,7 @@ Format Conversions:
 • OKLCH:  oklch(0.680, 0.210, 33.7°)
 
 Additional Information:
-• Grayscale: rgb(153, 153, 153) (LAB L* = 60.2)
+• Grayscale: rgb(153, 153, 153) #999999 (LAB L* = 60.2)
 • Relative Luminance: 0.522
 • Brightness: Light
 ```
@@ -253,11 +276,11 @@ Additional Information:
 
 ### Gradient Command
 ```
-color-rs gradient [OPTIONS] --start-color <HEX> --end-color <HEX>
+color-rs gradient [OPTIONS] --start-color <COLOR> --end-color <COLOR>
 
 OPTIONS:
-        --start-color <HEX>              Starting color (e.g., #FF0000 or FF0000)
-        --end-color <HEX>                Ending color (e.g., #0000FF or 0000FF)
+        --start-color <COLOR>            Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)
+        --end-color <COLOR>              Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
         --start-position <PERCENT>       Starting position [default: 0]
         --end-position <PERCENT>         Ending position [default: 100]
         --ease-in <EASE_IN>              Ease-in control point [default: 0.65]
@@ -275,16 +298,13 @@ OPTIONS:
 
 ### Color-Match Command
 ```
-color-rs color-match [OPTIONS] <COLOR>
+color-rs color-match <COLOR>
 
 ARGUMENTS:
         <COLOR>                          Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
 
-OPTIONS:
-        --detailed                       Show detailed output with all color format conversions and additional information
+The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions, perceptually accurate grayscale (with HEX encoding), and additional information including relative luminance and brightness classification.
 ```
-
-The color-match command automatically detects the input format and provides comprehensive color analysis:
 
 - **Input Format Auto-Detection**: Supports hex (#FF5733), RGB/RGBA (rgb(255,87,51)), HSL/HSLA (hsl(11,100%,60%)), and named colors (red, blue, etc.)
 - **Comprehensive Conversion**: Outputs RGB, Hex, HSL, LAB, XYZ, and OKLCH formats

@@ -158,7 +158,7 @@ impl ColorProcessor {
 }
 
 /// Match and convert a color to all formats with comprehensive output
-pub fn color_match(color_input: &str, detailed: bool) -> Result<String> {
+pub fn color_match(color_input: &str) -> Result<String> {
     use crate::color_parser::ColorParser;
     use palette::{Srgb, Hsl, Oklch, Xyz};
     use std::fmt::Write;
@@ -185,75 +185,58 @@ pub fn color_match(color_input: &str, detailed: bool) -> Result<String> {
     
     let mut output = String::new();
     
-    if detailed {
-        // Detailed output with all conversions
-        write!(output, "Color Analysis for: {}\n", color_input).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "{}\n", "─".repeat(50)).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // Original input
-        write!(output, "Input: {}\n", color_input).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "Name: {}\n", color_name).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // All format conversions
-        write!(output, "Format Conversions:\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // sRGB values (0-255)
-        write!(output, "• RGB:    rgb({}, {}, {})\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // Hex
-        write!(output, "• Hex:    #{:02x}{:02x}{:02x}\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // HSL
-        let hsl: Hsl = lab_color.into_color();
-        write!(output, "• HSL:    hsl({:.0}, {:.1}%, {:.1}%)\n", 
-                hsl.hue.into_positive_degrees(),
-                hsl.saturation * 100.0,
-                hsl.lightness * 100.0).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // LAB
-        write!(output, "• LAB:    lab({:.2}, {:.2}, {:.2})\n", lab_color.l, lab_color.a, lab_color.b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // XYZ
-        let xyz: Xyz = lab_color.into_color();
-        write!(output, "• XYZ:    xyz({:.3}, {:.3}, {:.3})\n", xyz.x, xyz.y, xyz.z).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // OKLCH
-        let oklch: Oklch = lab_color.into_color();
-        write!(output, "• OKLCH:  oklch({:.3}, {:.3}, {:.1}°)\n", 
-                oklch.l, oklch.chroma, oklch.hue.into_positive_degrees()).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // Additional information
-        write!(output, "Additional Information:\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "• Grayscale: rgb({}, {}, {}) (LAB L* = {:.1})\n", 
-                grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_l).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        // Luminance and contrast information
-        let luminance = 0.299 * (r as f32 / 255.0) + 
-                       0.587 * (g as f32 / 255.0) + 
-                       0.114 * (b as f32 / 255.0);
-        write!(output, "• Relative Luminance: {:.3}\n", luminance).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        let brightness = if luminance > 0.5 { "Light" } else { "Dark" };
-        write!(output, "• Brightness: {}", brightness).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-    } else {
-        // Compact output - just the main conversions
-        write!(output, "RGB: rgb({}, {}, {})\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "Hex: #{:02x}{:02x}{:02x}\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        let hsl: Hsl = lab_color.into_color();
-        write!(output, "HSL: hsl({:.0}, {:.1}%, {:.1}%)\n", 
-                hsl.hue.into_positive_degrees(),
-                hsl.saturation * 100.0,
-                hsl.lightness * 100.0).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
-        write!(output, "LAB: lab({:.2}, {:.2}, {:.2})\n", lab_color.l, lab_color.a, lab_color.b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "Grayscale: rgb({}, {}, {})\n", grayscale_rgb, grayscale_rgb, grayscale_rgb).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "Name: {}", color_name).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    }
+    // Comprehensive output - always detailed
+    write!(output, "Color Analysis for: {}\n", color_input).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    write!(output, "{}\n", "──────────────────────────────────────────────────").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // Original input
+    write!(output, "Input: {}\n", color_input).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    write!(output, "Name: {}\n", color_name).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // All format conversions
+    write!(output, "Format Conversions:\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // sRGB values (0-255)
+    write!(output, "• RGB:    rgb({}, {}, {})\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // Hex
+    write!(output, "• Hex:    #{:02x}{:02x}{:02x}\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // HSL
+    let hsl: Hsl = lab_color.into_color();
+    write!(output, "• HSL:    hsl({:.0}, {:.1}%, {:.1}%)\n", 
+            hsl.hue.into_positive_degrees(),
+            hsl.saturation * 100.0,
+            hsl.lightness * 100.0).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // LAB
+    write!(output, "• LAB:    lab({:.2}, {:.2}, {:.2})\n", lab_color.l, lab_color.a, lab_color.b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // XYZ
+    let xyz: Xyz = lab_color.into_color();
+    write!(output, "• XYZ:    xyz({:.3}, {:.3}, {:.3})\n", xyz.x, xyz.y, xyz.z).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // OKLCH
+    let oklch: Oklch = lab_color.into_color();
+    write!(output, "• OKLCH:  oklch({:.3}, {:.3}, {:.1}°)\n", 
+            oklch.l, oklch.chroma, oklch.hue.into_positive_degrees()).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // Additional information
+    write!(output, "Additional Information:\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    write!(output, "• Grayscale: rgb({}, {}, {}) #{:02x}{:02x}{:02x} (LAB L* = {:.1})\n", 
+            grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_l).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    // Luminance and contrast information
+    let luminance = 0.299 * (r as f32 / 255.0) + 
+                   0.587 * (g as f32 / 255.0) + 
+                   0.114 * (b as f32 / 255.0);
+    write!(output, "• Relative Luminance: {:.3}\n", luminance).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+    
+    let brightness = if luminance > 0.5 { "Light" } else { "Dark" };
+    write!(output, "• Brightness: {}", brightness).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
     
     Ok(output.trim_end().to_string())
 }
@@ -334,59 +317,50 @@ mod tests {
 
     #[test]
     fn test_color_match() {
-        // Test compact output
-        let compact_output = color_match("#FF5733", false).unwrap();
-        assert!(compact_output.contains("RGB: rgb(255, 87, 51)"));
-        assert!(compact_output.contains("Hex: #ff5733"));
-        assert!(compact_output.contains("HSL: hsl("));
-        assert!(compact_output.contains("LAB: lab("));
-        assert!(compact_output.contains("Grayscale: rgb("));
-        assert!(compact_output.contains("Name: "));
-
-        // Test detailed output
-        let detailed_output = color_match("#FF5733", true).unwrap();
-        assert!(detailed_output.contains("Color Analysis for: #FF5733"));
-        assert!(detailed_output.contains("Format Conversions:"));
-        assert!(detailed_output.contains("Additional Information:"));
-        assert!(detailed_output.contains("• RGB:    rgb(255, 87, 51)"));
-        assert!(detailed_output.contains("• Hex:    #ff5733"));
-        assert!(detailed_output.contains("• HSL:"));
-        assert!(detailed_output.contains("• LAB:"));
-        assert!(detailed_output.contains("• XYZ:"));
-        assert!(detailed_output.contains("• OKLCH:"));
-        assert!(detailed_output.contains("• Grayscale:"));
-        assert!(detailed_output.contains("• Relative Luminance:"));
-        assert!(detailed_output.contains("• Brightness:"));
+        // Test comprehensive output (always detailed now)
+        let output = color_match("#FF5733").unwrap();
+        assert!(output.contains("Color Analysis for: #FF5733"));
+        assert!(output.contains("Format Conversions:"));
+        assert!(output.contains("Additional Information:"));
+        assert!(output.contains("• RGB:    rgb(255, 87, 51)"));
+        assert!(output.contains("• Hex:    #ff5733"));
+        assert!(output.contains("• HSL:"));
+        assert!(output.contains("• LAB:"));
+        assert!(output.contains("• XYZ:"));
+        assert!(output.contains("• OKLCH:"));
+        assert!(output.contains("• Grayscale:"));
+        assert!(output.contains("• Relative Luminance:"));
+        assert!(output.contains("• Brightness:"));
     }
 
     #[test]
     fn test_color_match_various_formats() {
         // Test hex input
-        let hex_result = color_match("#FF0000", false).unwrap();
+        let hex_result = color_match("#FF0000").unwrap();
         assert!(hex_result.contains("rgb(255, 0, 0)"));
 
         // Test RGB input
-        let rgb_result = color_match("rgb(0, 255, 0)", false).unwrap();
+        let rgb_result = color_match("rgb(0, 255, 0)").unwrap();
         assert!(rgb_result.contains("rgb(0, 255, 0)"));
 
         // Test named color input
-        let named_result = color_match("red", false).unwrap();
+        let named_result = color_match("red").unwrap();
         assert!(named_result.contains("rgb(255, 0, 0)"));
         assert!(named_result.contains("Name: Red"));
 
         // Test HSL input
-        let hsl_result = color_match("hsl(240, 100%, 50%)", false).unwrap();
+        let hsl_result = color_match("hsl(240, 100%, 50%)").unwrap();
         assert!(hsl_result.contains("rgb(0, 0, 255)"));
     }
 
     #[test]
     fn test_color_match_grayscale() {
-        let result = color_match("#808080", false).unwrap();
+        let result = color_match("#808080").unwrap();
         assert!(result.contains("Grayscale: rgb("));
+        assert!(result.contains("#808080")); // Should include HEX format for grayscale
         
         // For gray color, grayscale should be close to the original
-        let detailed = color_match("#808080", true).unwrap();
-        assert!(detailed.contains("LAB L*"));
+        assert!(result.contains("LAB L*"));
     }
 
     #[test]

@@ -39,7 +39,7 @@ impl ColorRs {
 
     /// Match and convert color between different color spaces
     pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
-        color::color_match(&args.color, args.detailed)
+        color::color_match(&args.color)
     }
 }
 
