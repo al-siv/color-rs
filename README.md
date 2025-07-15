@@ -8,6 +8,7 @@ A professional CLI tool and Rust library for color gradient calculations using p
 - **Library & CLI**: Use as a command-line tool or integrate as a Rust library
 - **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
 - **Perceptually Uniform Gradients**: Uses LAB color space for visually smooth color transitions
+- **Color Analysis & Conversion**: Universal color format recognition with comprehensive output
 - **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
 - **Intelligent Stop Placement**: Automatically places gradient stops where colors change most rapidly
 - **Multiple Output Formats**: 
@@ -16,7 +17,7 @@ A professional CLI tool and Rust library for color gradient calculations using p
     - High-quality PNG exports
 - **Proportional Design**: All dimensions scale with width (1:5 aspect ratio)
 - **Integer Percentages**: CSS-friendly percentage values for practical use
-- **Rich Color Information**: RGB, HSL, and LAB values for both start and end colors
+- **Rich Color Information**: RGB, HSL, LAB, XYZ, OKLCH values with color name recognition
 - **Type Safety**: Custom error types and comprehensive error handling
 - **Well Tested**: Comprehensive unit test suite with 16+ tests
 
@@ -167,6 +168,19 @@ color-rs gradient --start-color FF0000 --end-color 0000FF \
         --start-position 20 --end-position 80
 ```
 
+### Color Matching and Analysis
+
+```bash
+# Basic color analysis (auto-detects format)
+color-rs color-match "#FF5733"
+color-rs color-match "rgb(255, 87, 51)"
+color-rs color-match "red"
+color-rs color-match "hsl(240, 100%, 50%)"
+
+# Detailed analysis with all color formats
+color-rs color-match "#FF5733" --detailed
+```
+
 ## Output Examples
 
 ### Application Information (Cargo-Style)
@@ -204,8 +218,40 @@ GRADIENT VALUES:
 ╰──────────┴─────────┴──────────────────╯
 ```
 
+### Color-Match Basic Output
+```
+RGB: rgb(255, 87, 51)
+Hex: #ff5733
+HSL: hsl(11, 100.0%, 60.0%)
+LAB: lab(60.18, 62.06, 54.34)
+Grayscale: rgb(153, 153, 153)
+Name: Tomato
+```
+
+### Color-Match Detailed Output
+```
+Color Analysis for: #FF5733
+──────────────────────────────────────────────────
+Input: #FF5733
+Name: Tomato
+
+Format Conversions:
+• RGB:    rgb(255, 87, 51)
+• Hex:    #ff5733
+• HSL:    hsl(11, 100.0%, 60.0%)
+• LAB:    lab(60.18, 62.06, 54.34)
+• XYZ:    xyz(0.453, 0.283, 0.062)
+• OKLCH:  oklch(0.680, 0.210, 33.7°)
+
+Additional Information:
+• Grayscale: rgb(153, 153, 153) (LAB L* = 60.2)
+• Relative Luminance: 0.522
+• Brightness: Light
+```
+
 ## Command Line Options
 
+### Gradient Command
 ```
 color-rs gradient [OPTIONS] --start-color <HEX> --end-color <HEX>
 
@@ -226,6 +272,25 @@ OPTIONS:
         --grad-stops <GRAD_STOPS>        Number of intelligent stops
         --grad-stops-simple <GRAD_STOPS> Number of equal stops
 ```
+
+### Color-Match Command
+```
+color-rs color-match [OPTIONS] <COLOR>
+
+ARGUMENTS:
+        <COLOR>                          Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
+
+OPTIONS:
+        --detailed                       Show detailed output with all color format conversions and additional information
+```
+
+The color-match command automatically detects the input format and provides comprehensive color analysis:
+
+- **Input Format Auto-Detection**: Supports hex (#FF5733), RGB/RGBA (rgb(255,87,51)), HSL/HSLA (hsl(11,100%,60%)), and named colors (red, blue, etc.)
+- **Comprehensive Conversion**: Outputs RGB, Hex, HSL, LAB, XYZ, and OKLCH formats
+- **Color Name Recognition**: Uses a database of 148+ named colors to find the closest match
+- **Grayscale Conversion**: Calculates grayscale equivalent using LAB L* component for perceptually accurate results
+- **Luminance Analysis**: Provides relative luminance and brightness classification
 
 ## Color Spaces
 

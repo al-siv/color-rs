@@ -28,6 +28,8 @@ pub struct Cli {
 pub enum Commands {
     /// Generate a gradient between two colors using LAB color space with cubic-bezier timing
     Gradient(GradientArgs),
+    /// Match and convert a color between different color spaces
+    ColorMatch(ColorMatchArgs),
 }
 
 /// Arguments for gradient generation
@@ -145,6 +147,27 @@ impl GradientArgs {
             ));
         }
 
+        Ok(())
+    }
+}
+
+/// Arguments for color matching and conversion
+#[derive(Args, Clone)]
+pub struct ColorMatchArgs {
+    /// Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
+    #[arg(value_name = "COLOR")]
+    pub color: String,
+
+    /// Show detailed output with all color format conversions and additional information
+    #[arg(long)]
+    pub detailed: bool,
+}
+
+impl ColorMatchArgs {
+    /// Validate the color match arguments
+    pub fn validate(&self) -> Result<()> {
+        // The color validation will be done by the color parser
+        // No specific validation needed for CLI args
         Ok(())
     }
 }

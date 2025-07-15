@@ -6,6 +6,7 @@
 
 pub mod cli;
 pub mod color;
+pub mod color_parser;
 pub mod config;
 pub mod error;
 pub mod gradient;
@@ -13,7 +14,7 @@ pub mod image;
 pub mod utils;
 
 // Re-export main types for convenience
-pub use cli::{Cli, Commands, GradientArgs};
+pub use cli::{Cli, Commands, GradientArgs, ColorMatchArgs};
 pub use color::{ColorInfo, ColorSpace};
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
@@ -34,6 +35,11 @@ impl ColorRs {
     /// Generate a gradient based on the provided arguments
     pub fn generate_gradient(&self, args: GradientArgs) -> Result<()> {
         gradient::generate_gradient(args)
+    }
+
+    /// Match and convert color between different color spaces
+    pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
+        color::color_match(&args.color, args.detailed)
     }
 }
 

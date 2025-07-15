@@ -15,6 +15,10 @@ fn main() -> color_rs::Result<()> {
     
     match cli_args.command {
         cli::Commands::Gradient(args) => color_rs.generate_gradient(args)?,
+        cli::Commands::ColorMatch(args) => {
+            let result = color_rs.color_match(args)?;
+            println!("{}", result);
+        },
     }
 
     Ok(())
