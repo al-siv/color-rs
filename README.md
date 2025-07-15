@@ -1,13 +1,16 @@
 # color-rs
 
-A professional CLI tool and Rust library for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
+A professional C```toml
+[dependencies]
+color-rs = "0.8.4"
+```ool and Rust library for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
 
 ## Features
 
 - **Simplified Interface**: Direct color arguments without flags - just `gradient red blue`
 - **Universal Color Parsing**: Supports HEX, RGB, HSL, and 148+ named colors across all commands
-- **Perceptually Accurate Processing**: LAB color space for smooth gradients and Delta E color distance for accurate color matching
-- **WCAG Compliance**: Proper relative luminance calculations with gamma correction for accessibility testing
+- **Perceptually Accurate Processing**: LAB color space for smooth gradients and ImprovedCiede2000 Delta E for precise color distance calculations
+- **WCAG Compliance**: Official WCAG 2.1 implementation for relative luminance and contrast ratio calculations using palette library
 - **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
 - **Modular Architecture**: Clean separation of concerns with dedicated modules for color utilities, formatting, and parsing
 - **Library & CLI**: Use as a command-line tool or integrate as a Rust library
@@ -549,38 +552,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
-### v0.8.1 - Enhanced Color Analysis & Simplified Interface (2025-07-15)
-- **Simplified CLI**: Removed `--start-color` and `--end-color` flags - now just `gradient red blue`
-- **WCAG Compliance**: Added proper WCAG 2.1 relative luminance calculations with gamma correction
-- **Contrast Analysis**: Shows contrast ratios against white and black backgrounds for accessibility testing
-- **Enhanced Documentation**: Updated examples and documentation to reflect new interface and features
-- **Accessibility Focus**: Tools now provide data needed for WCAG AA/AAA compliance testing
+### v0.8.4 - Color Accuracy Improvements (2025-07-15)
+- **ImprovedCiede2000 Delta E**: Replaces simple Euclidean distance with perceptually uniform color difference calculations. Red vs Blue ΔE ≈ 23 (vs ≈ 175 with old method)
+- **Official WCAG 2.1 Implementation**: Uses palette's `Wcag21RelativeContrast` for standards-compliant accessibility calculations
+- **Professional Color Interpolation**: Leverages palette's `Mix` trait for accurate color blending
+- **Dual HSL Conversion Paths**: Offers both direct HSL→RGB and HSL→XYZ→LAB→RGB conversion with typically <1 RGB unit difference
 
-### v0.8.0 - Major Refactoring (2025-07-15)
-- **Breaking Changes**: Restructured codebase into modular library architecture
-- **Library API**: Color-rs can now be used as a Rust library with clean public API
-- **Enhanced Error Handling**: Custom error types replace generic anyhow errors
-- **Comprehensive Testing**: Added 24+ unit tests covering all modules
-- **Improved Documentation**: Inline documentation and better code organization
-- **Type Safety**: Better type safety with custom Result type and validation
-- **Modular Design**: Separated CLI from library functionality for better reusability
+These improvements ensure color calculations match professional color management standards.
 
-### v0.7.2 - First Full Release (2025-07-14)
-- Professional Table Formatting: Cargo-style output with right-aligned numeric columns
-- Enhanced Visual Design: Improved terminal output with beautiful ASCII tables
-- Integer Percentages: CSS-compatible integer percentage calculations
-- Solid PNG Backgrounds: Fixed PNG rendering with proper solid backgrounds
-- Comprehensive Documentation: Complete README with examples and usage guides
-- Intelligent Stop Placement: Advanced derivative-based gradient stop calculation
-- CSS Integration: Ready-to-use output for web development workflows
-- Production Ready: Stable API and comprehensive error handling
-
-### Key Features
-- LAB color space for perceptually uniform gradients
-- CSS cubic-bezier timing functions
-- SVG and PNG export capabilities  
-- Multiple output formats (step-based, intelligent, equal spacing)
-- Professional terminal interface matching Rust toolchain aesthetics
-- Windows executable distribution for easy installation
-- WCAG 2.1 compliant accessibility calculations
+### Architecture
 

@@ -91,14 +91,14 @@ impl ColorProcessor {
         ColorInfo {
             label,
             hex,
-            rgb: format!("RGB({}, {}, {})", rgb.0, rgb.1, rgb.2),
+            rgb: format!("rgb({}, {}, {})", rgb.0, rgb.1, rgb.2),
             hsl: format!(
-                "HSL({:.1}°, {:.1}%, {:.1}%)",
+                "hsl({:.1}, {:.1}%, {:.1}%)",
                 hsl.0,
                 hsl.1 * 100.0,
                 hsl.2 * 100.0
             ),
-            lab: format!("Lab({:.1}, {:.1}, {:.1})", lab.l, lab.a, lab.b),
+            lab: format!("lab({:.1}, {:.1}, {:.1})", lab.l, lab.a, lab.b),
         }
     }
 
@@ -117,7 +117,7 @@ impl ColorProcessor {
 
         println!(
             "{}",
-            " Color Information: "
+            " GRADIENT VALUES:  "
                 .bold()
                 .to_uppercase()
                 .black()

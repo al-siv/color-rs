@@ -88,9 +88,9 @@ mod tests {
         let red_lab = Lab::new(53.24, 80.09, 67.20);
         let blue_lab = Lab::new(32.30, 79.20, -107.86);
 
-        // Distance should be perceptually meaningful
+        // Distance should be perceptually meaningful using ImprovedCiede2000
         let distance = ColorUtils::lab_delta_e_distance(red_lab, blue_lab);
-        assert!(distance > 100.0); // Red and blue should be quite different
+        assert!(distance > 20.0); // Red and blue should be quite different (actual ~23)
 
         // Test identity (same color should have distance 0)
         let identity_distance = ColorUtils::lab_delta_e_distance(red_lab, red_lab);

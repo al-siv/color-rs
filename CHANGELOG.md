@@ -5,6 +5,24 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2025-01-23
+
+### Changed
+- **Improved Color Accuracy**: Replaced custom color algorithms with palette library implementations
+  - **Delta E Calculation**: Now uses `ImprovedCiede2000` algorithm instead of simple Euclidean distance for more accurate perceptual color differences
+  - **WCAG Compliance**: Replaced custom relative luminance and contrast ratio calculations with palette's `Wcag21RelativeContrast` implementation
+  - **Color Interpolation**: Now uses palette's `Mix` trait instead of manual LAB component interpolation
+- **Enhanced HSL Processing**: Added alternative HSL→XYZ→LAB→RGB conversion path alongside direct HSL→RGB conversion
+- **Comprehensive Testing**: Added comparison tests between direct and LAB-based HSL→RGB conversion methods with 10 test colors
+
+### Added
+- `hsl_to_rgb_via_lab()` method for alternative HSL to RGB conversion via LAB color space
+- Detailed comparison tests showing differences between conversion methods (typically <1 RGB unit difference)
+
+### Fixed
+- Updated test expectations to match more accurate ImprovedCiede2000 delta E values (∼23 for red vs blue instead of ∼175 from Euclidean)
+- Improved color distance calculations now provide more reliable perceptual color matching
+
 ## [0.8.3] - 2025-01-23
 
 ### Added
