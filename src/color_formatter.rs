@@ -42,16 +42,12 @@ impl ColorFormatter {
     }
 
     /// Write basic color information
-    fn write_basic_info(
-        output: &mut String,
-        color_input: &str,
-        color_name: &str,
-    ) -> Result<()> {
-        write!(output, "Input: {}\n", color_input)
+    fn write_basic_info(output: &mut String, color_input: &str, color_name: &str) -> Result<()> {
+        writeln!(output, "Input: {}", color_input)
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "Name: {}\n", color_name)
+        writeln!(output, "CSS-name: {}", color_name)
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
     }
 
@@ -187,7 +183,10 @@ impl ColorFormatter {
                 hsl.saturation * 100.0,
                 hsl.lightness * 100.0
             ),
-            lab: format!("lab({:.2}, {:.2}, {:.2})", lab_color.l, lab_color.a, lab_color.b),
+            lab: format!(
+                "lab({:.2}, {:.2}, {:.2})",
+                lab_color.l, lab_color.a, lab_color.b
+            ),
         }
     }
 }
@@ -200,11 +199,7 @@ mod tests {
     #[test]
     fn test_format_comprehensive_report() {
         let lab_color = Lab::new(50.0, 20.0, -30.0);
-        let result = ColorFormatter::format_comprehensive_report(
-            lab_color,
-            "#008080",
-            "teal",
-        );
+        let result = ColorFormatter::format_comprehensive_report(lab_color, "#008080", "teal");
 
         assert!(result.is_ok());
         let output = result.unwrap();

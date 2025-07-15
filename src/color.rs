@@ -171,10 +171,10 @@ impl ColorProcessor {
 pub fn color_match(color_input: &str) -> Result<String> {
     // Parse the input color
     let (lab_color, _format) = parse_color_with_parser(color_input)?;
-    
-    // Get color name 
+
+    // Get color name
     let color_name = get_color_name_for_lab(lab_color)?;
-    
+
     // Generate comprehensive report
     ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name)
 }
@@ -182,7 +182,7 @@ pub fn color_match(color_input: &str) -> Result<String> {
 /// Parse color input using the integrated parser
 fn parse_color_with_parser(color_input: &str) -> Result<(Lab, crate::color_parser::ColorFormat)> {
     use crate::color_parser::ColorParser;
-    
+
     let parser = ColorParser::new();
     parser.parse(color_input).map_err(|e| {
         ColorError::InvalidColor(format!("Failed to parse color '{}': {}", color_input, e))
@@ -192,7 +192,7 @@ fn parse_color_with_parser(color_input: &str) -> Result<(Lab, crate::color_parse
 /// Get color name for a LAB color
 fn get_color_name_for_lab(lab_color: Lab) -> Result<String> {
     use crate::color_parser::ColorParser;
-    
+
     // Convert LAB back to sRGB for name lookup
     let srgb: Srgb = lab_color.into_color();
     let r = (srgb.red * 255.0).round() as u8;

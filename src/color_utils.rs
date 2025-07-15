@@ -6,8 +6,8 @@
 
 use crate::error::{ColorError, Result};
 use palette::{
-    color_difference::{ImprovedCiede2000, Wcag21RelativeContrast}, 
-    FromColor, Hsl, IntoColor, Lab, Mix, Srgb, Xyz
+    FromColor, Hsl, IntoColor, Lab, Mix, Srgb, Xyz,
+    color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
 };
 
 /// Universal color utilities for calculations and transformations
@@ -15,12 +15,12 @@ pub struct ColorUtils;
 
 impl ColorUtils {
     /// Convert RGB to LAB color space for perceptually accurate comparisons
-    /// 
+    ///
     /// Uses the palette crate for reliable sRGB to LAB conversion
-    /// 
+    ///
     /// # Arguments
     /// * `rgb` - RGB values as [r, g, b] where each component is 0-255
-    /// 
+    ///
     /// # Returns
     /// * LAB color space representation
     pub fn rgb_to_lab(rgb: [u8; 3]) -> Lab {
@@ -33,10 +33,10 @@ impl ColorUtils {
     }
 
     /// Convert LAB color to RGB values
-    /// 
+    ///
     /// # Arguments
     /// * `lab` - LAB color space representation
-    /// 
+    ///
     /// # Returns
     /// * RGB values as (r, g, b) where each component is 0-255
     pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
@@ -48,94 +48,94 @@ impl ColorUtils {
     }
 
     /// Convert HSL to RGB using the palette crate
-    /// 
+    ///
     /// This replaces manual HSL->RGB conversion with the reliable palette implementation
-    /// 
+    ///
     /// # Arguments
     /// * `h` - Hue (0.0-1.0, will be wrapped if outside range)
     /// * `s` - Saturation (0.0-1.0, will be clamped)
     /// * `l` - Lightness (0.0-1.0, will be clamped)
-    /// 
+    ///
     /// # Returns
     /// * RGB values as (r, g, b) where each component is 0-255
     pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
         use palette::RgbHue;
-        
+
         // Create HSL color using palette
         let hsl: Hsl = Hsl::new(
             RgbHue::from_degrees(h * 360.0),
             s.clamp(0.0, 1.0),
             l.clamp(0.0, 1.0),
         );
-        
+
         // Convert directly to sRGB
         let srgb: Srgb = hsl.into_color();
-        
+
         // Convert to 0-255 range
         let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
         let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
         let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
-        
+
         (r, g, b)
     }
 
     /// Convert HSL to RGB via LAB color space using palette library
-    /// 
+    ///
     /// This provides an alternative conversion path: HSL → XYZ → LAB → RGB
     /// which may have different characteristics than direct HSL → RGB conversion
-    /// 
+    ///
     /// # Arguments
     /// * `h` - Hue (0.0-1.0, will be wrapped if outside range)
     /// * `s` - Saturation (0.0-1.0, will be clamped)
     /// * `l` - Lightness (0.0-1.0, will be clamped)
-    /// 
+    ///
     /// # Returns
     /// * RGB values as (r, g, b) where each component is 0-255
     pub fn hsl_to_rgb_via_lab(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
         use palette::RgbHue;
-        
+
         // Create HSL color using palette
         let hsl: Hsl = Hsl::new(
             RgbHue::from_degrees(h * 360.0),
             s.clamp(0.0, 1.0),
             l.clamp(0.0, 1.0),
         );
-        
+
         // Convert HSL → XYZ → LAB → RGB
         let xyz: Xyz = hsl.into_color();
         let lab: Lab = xyz.into_color();
         let srgb: Srgb = lab.into_color();
-        
+
         // Convert to 0-255 range
         let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
         let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
         let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
-        
+
         (r, g, b)
     }
 
     /// Calculate Delta E using improved CIEDE2000 algorithm from palette library
-    /// 
+    ///
     /// This uses the ImprovedCiede2000 implementation from palette which provides
     /// more accurate perceptual color difference measurements than the basic formula
-    /// 
+    ///
     /// # Arguments
     /// * `lab1` - First LAB color
     /// * `lab2` - Second LAB color
-    /// 
+    ///
     /// # Returns
     /// * Improved Delta E distance (0.0 = identical, higher = more different)
-    pub fn lab_delta_e_distance(lab1: Lab, lab2: Lab) -> f32 {
+    pub fn lab_distance(lab1: Lab, lab2: Lab) -> f32 {
         lab1.improved_difference(lab2)
     }
 
     /// Interpolate between two LAB colors using palette's Mix trait
-    /// 
+    ///
     /// # Arguments
     /// * `start` - Starting LAB color
     /// * `end` - Ending LAB color
     /// * `t` - Interpolation factor (0.0 = start, 1.0 = end)
-    /// 
+    ///
     /// # Returns
     /// * Interpolated LAB color
     pub fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
@@ -143,18 +143,18 @@ impl ColorUtils {
     }
 
     /// Calculate WCAG relative luminance using palette's implementation
-    /// 
+    ///
     /// Uses the official WCAG 2.1 implementation from the palette library
     /// which provides proper gamma correction and standards compliance
-    /// 
+    ///
     /// # Arguments
     /// * `r` - Red component (0-255)
-    /// * `g` - Green component (0-255) 
+    /// * `g` - Green component (0-255)
     /// * `b` - Blue component (0-255)
-    /// 
+    ///
     /// # Returns
     /// * WCAG relative luminance value (0.0-1.0)
-    /// 
+    ///
     /// # Example
     /// ```rust
     /// use color_rs::color_utils::ColorUtils;
@@ -162,32 +162,28 @@ impl ColorUtils {
     /// // Returns approximately 0.283 for #FF5733
     /// ```
     pub fn wcag_relative_luminance(r: u8, g: u8, b: u8) -> f32 {
-        let srgb = Srgb::new(
-            r as f32 / 255.0,
-            g as f32 / 255.0,
-            b as f32 / 255.0,
-        );
+        let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
         srgb.relative_luminance().luma
     }
 
     /// Calculate WCAG contrast ratio using palette's implementation
-    /// 
+    ///
     /// Uses the official WCAG 2.1 contrast ratio implementation from palette
     /// which automatically handles the (L1 + 0.05) / (L2 + 0.05) formula
-    /// 
+    ///
     /// WCAG compliance levels:
     /// - AA Normal Text: 4.5:1 minimum
     /// - AA Large Text: 3.0:1 minimum  
     /// - AAA Normal Text: 7.0:1 minimum
     /// - AAA Large Text: 4.5:1 minimum
-    /// 
+    ///
     /// # Arguments
     /// * `color1_rgb` - First color as (r, g, b) tuple (0-255 each)
     /// * `color2_rgb` - Second color as (r, g, b) tuple (0-255 each)
-    /// 
+    ///
     /// # Returns
     /// * Contrast ratio (1.0:1 to 21.0:1)
-    /// 
+    ///
     /// # Example
     /// ```rust
     /// use color_rs::color_utils::ColorUtils;
@@ -210,10 +206,10 @@ impl ColorUtils {
     }
 
     /// Parse a hex color string into LAB color space
-    /// 
+    ///
     /// # Arguments
     /// * `hex` - Hex color string (with or without #)
-    /// 
+    ///
     /// # Returns
     /// * LAB color space representation
     pub fn parse_hex_color(hex: &str) -> Result<Lab> {
@@ -232,10 +228,10 @@ impl ColorUtils {
     }
 
     /// Convert LAB color to hex string
-    /// 
+    ///
     /// # Arguments
     /// * `lab` - LAB color space representation
-    /// 
+    ///
     /// # Returns
     /// * Hex color string (with # prefix)
     pub fn lab_to_hex(lab: Lab) -> String {
@@ -297,41 +293,71 @@ mod tests {
     fn test_hsl_conversion_methods_comparison() {
         // Test 10 randomly chosen colors across HSL space
         let test_colors = [
-            (0.0, 1.0, 0.5),      // Pure red
-            (120.0/360.0, 1.0, 0.5), // Pure green  
-            (240.0/360.0, 1.0, 0.5), // Pure blue
-            (60.0/360.0, 1.0, 0.5),  // Yellow
-            (300.0/360.0, 1.0, 0.5), // Magenta
-            (180.0/360.0, 1.0, 0.5), // Cyan
-            (30.0/360.0, 0.8, 0.6),  // Orange-ish
-            (210.0/360.0, 0.6, 0.4), // Blue-ish
-            (270.0/360.0, 0.7, 0.3), // Purple-ish
-            (150.0/360.0, 0.5, 0.7), // Green-ish
+            (0.0, 1.0, 0.5),           // Pure red
+            (120.0 / 360.0, 1.0, 0.5), // Pure green
+            (240.0 / 360.0, 1.0, 0.5), // Pure blue
+            (60.0 / 360.0, 1.0, 0.5),  // Yellow
+            (300.0 / 360.0, 1.0, 0.5), // Magenta
+            (180.0 / 360.0, 1.0, 0.5), // Cyan
+            (30.0 / 360.0, 0.8, 0.6),  // Orange-ish
+            (210.0 / 360.0, 0.6, 0.4), // Blue-ish
+            (270.0 / 360.0, 0.7, 0.3), // Purple-ish
+            (150.0 / 360.0, 0.5, 0.7), // Green-ish
         ];
 
         for (h, s, l) in test_colors.iter() {
             let direct = ColorUtils::hsl_to_rgb(*h, *s, *l);
             let via_lab = ColorUtils::hsl_to_rgb_via_lab(*h, *s, *l);
-            
+
             // Calculate difference between the two methods
             let diff_r = (direct.0 as i16 - via_lab.0 as i16).abs();
             let diff_g = (direct.1 as i16 - via_lab.1 as i16).abs();
             let diff_b = (direct.2 as i16 - via_lab.2 as i16).abs();
-            
+
             // Print comparison for analysis
-            println!("HSL({:.3}, {:.3}, {:.3}) -> Direct: RGB({}, {}, {}) vs Via LAB: RGB({}, {}, {}) | Diff: ({}, {}, {})",
-                h * 360.0, s, l, 
-                direct.0, direct.1, direct.2,
-                via_lab.0, via_lab.1, via_lab.2,
-                diff_r, diff_g, diff_b
+            println!(
+                "HSL({:.3}, {:.3}, {:.3}) -> Direct: RGB({}, {}, {}) vs Via LAB: RGB({}, {}, {}) | Diff: ({}, {}, {})",
+                h * 360.0,
+                s,
+                l,
+                direct.0,
+                direct.1,
+                direct.2,
+                via_lab.0,
+                via_lab.1,
+                via_lab.2,
+                diff_r,
+                diff_g,
+                diff_b
             );
-            
+
             // The differences should generally be small for most colors
             // but may be larger in some edge cases due to different conversion paths
             // We'll allow up to 5 units of difference per channel as acceptable
-            assert!(diff_r <= 5, "Red difference too large: {} for HSL({:.3}, {:.3}, {:.3})", diff_r, h * 360.0, s, l);
-            assert!(diff_g <= 5, "Green difference too large: {} for HSL({:.3}, {:.3}, {:.3})", diff_g, h * 360.0, s, l);
-            assert!(diff_b <= 5, "Blue difference too large: {} for HSL({:.3}, {:.3}, {:.3})", diff_b, h * 360.0, s, l);
+            assert!(
+                diff_r <= 5,
+                "Red difference too large: {} for HSL({:.3}, {:.3}, {:.3})",
+                diff_r,
+                h * 360.0,
+                s,
+                l
+            );
+            assert!(
+                diff_g <= 5,
+                "Green difference too large: {} for HSL({:.3}, {:.3}, {:.3})",
+                diff_g,
+                h * 360.0,
+                s,
+                l
+            );
+            assert!(
+                diff_b <= 5,
+                "Blue difference too large: {} for HSL({:.3}, {:.3}, {:.3})",
+                diff_b,
+                h * 360.0,
+                s,
+                l
+            );
         }
     }
 
@@ -341,16 +367,16 @@ mod tests {
         let blue_lab = Lab::new(32.30, 79.20, -107.86);
 
         // Distance should be perceptually meaningful using ImprovedCiede2000
-        let distance = ColorUtils::lab_delta_e_distance(red_lab, blue_lab);
+        let distance = ColorUtils::lab_distance(red_lab, blue_lab);
         assert!(distance > 20.0); // Red and blue should be quite different (actual ~23)
 
         // Test identity (same color should have distance 0)
-        let identity_distance = ColorUtils::lab_delta_e_distance(red_lab, red_lab);
+        let identity_distance = ColorUtils::lab_distance(red_lab, red_lab);
         assert!(identity_distance < 0.001);
 
         // Test symmetry
-        let distance_ab = ColorUtils::lab_delta_e_distance(red_lab, blue_lab);
-        let distance_ba = ColorUtils::lab_delta_e_distance(blue_lab, red_lab);
+        let distance_ab = ColorUtils::lab_distance(red_lab, blue_lab);
+        let distance_ba = ColorUtils::lab_distance(blue_lab, red_lab);
         assert!((distance_ab - distance_ba).abs() < 0.001);
     }
 

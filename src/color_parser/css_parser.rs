@@ -4,7 +4,7 @@
 //! Original: https://github.com/7thSigil/css-color-parser-rs
 //! Authors: Dean McNamee, Katkov Oleksandr
 
-use super::color_names::COLOR_DATA;
+use super::color_names::CSS_COLOR_DATA;
 use super::types::{ColorFormat, ParsedColor};
 use crate::error::{ColorError, Result};
 use std::collections::HashMap;
@@ -19,7 +19,7 @@ impl CssColorParser {
     /// Create a new CSS color parser
     pub fn new() -> Self {
         Self {
-            named_colors: Self::create_named_colors_from_data(),
+            named_colors: Self::create_named_css_colors_from_data(),
         }
     }
 
@@ -231,16 +231,16 @@ impl CssColorParser {
         Ok(alpha.clamp(0.0, 1.0))
     }
 
-    /// Create named colors map from unified COLOR_DATA
-    fn create_named_colors_from_data() -> HashMap<String, (u8, u8, u8)> {
-        let mut colors = HashMap::new();
+    /// Create named colors map from unified CSS_COLOR_DATA
+    fn create_named_css_colors_from_data() -> HashMap<String, (u8, u8, u8)> {
+        let mut css_colors = HashMap::new();
 
-        // Use COLOR_DATA as single source of truth, converting to lowercase for CSS compatibility
-        for &(name, [r, g, b]) in COLOR_DATA {
-            colors.insert(name.to_lowercase(), (r, g, b));
+        // Use CSS_COLOR_DATA as single source of truth, converting to lowercase for CSS compatibility
+        for &(name, [r, g, b]) in CSS_COLOR_DATA {
+            css_colors.insert(name.to_lowercase(), (r, g, b));
         }
 
-        colors
+        css_colors
     }
 }
 
