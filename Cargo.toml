@@ -1,6 +1,6 @@
 [package]
 name = "color-rs"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2024" # DO NOT EDIT THIS LINE!!!
 description = "A CLI tool and Rust library for color gradient calculations using LAB color space with cubic-bezier easing functions"
 authors = ["al-siv <https://github.com/al-siv>"]
