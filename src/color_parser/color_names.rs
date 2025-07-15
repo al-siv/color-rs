@@ -1,10 +1,10 @@
 //! Color Name Resolver
-//! 
+//!
 //! Modernized and integrated version of color-name
 //! Original: https://github.com/annymosse/color-name
 //! Author: annymosse
 
-use palette::{Lab, Srgb, IntoColor};
+use crate::color_utils::ColorUtils;
 
 /// Color name resolver for finding closest color names
 pub struct ColorNameResolver {
@@ -25,11 +25,11 @@ impl ColorNameResolver {
         let mut closest_name = "Unknown";
 
         // Convert input RGB to LAB for perceptually accurate comparison
-        let input_lab = self.rgb_to_lab(rgb);
+        let input_lab = ColorUtils::rgb_to_lab(rgb);
 
         for &(name, color_rgb) in self.colors {
-            let color_lab = self.rgb_to_lab(color_rgb);
-            let distance = self.lab_distance(input_lab, color_lab);
+            let color_lab = ColorUtils::rgb_to_lab(color_rgb);
+            let distance = ColorUtils::lab_delta_e_distance(input_lab, color_lab);
             if distance < min_distance {
                 min_distance = distance;
                 closest_name = name;
@@ -51,7 +51,10 @@ impl ColorNameResolver {
 
     /// Get all available color names
     pub fn get_all_names(&self) -> Vec<String> {
-        self.colors.iter().map(|(name, _)| name.to_string()).collect()
+        self.colors
+            .iter()
+            .map(|(name, _)| name.to_string())
+            .collect()
     }
 
     /// Get color RGB by name (case insensitive)
@@ -63,24 +66,6 @@ impl ColorNameResolver {
             }
         }
         None
-    }
-
-    /// Calculate Delta E 1976 (CIE76) color difference in LAB space
-    fn lab_distance(&self, lab1: Lab, lab2: Lab) -> f32 {
-        let dl = lab1.l - lab2.l;
-        let da = lab1.a - lab2.a;
-        let db = lab1.b - lab2.b;
-        (dl * dl + da * da + db * db).sqrt()
-    }
-
-    /// Convert RGB to LAB color space for perceptually accurate comparisons
-    fn rgb_to_lab(&self, rgb: [u8; 3]) -> Lab {
-        let srgb = Srgb::new(
-            rgb[0] as f32 / 255.0,
-            rgb[1] as f32 / 255.0,
-            rgb[2] as f32 / 255.0,
-        );
-        srgb.into_color()
     }
 }
 
@@ -97,57 +82,57 @@ mod tests {
 
     #[test]
     fn test_lab_distance_calculation() {
-        let resolver = ColorNameResolver::new();
-        
+        let _resolver = ColorNameResolver::new();
+
         // Test Delta E calculation with known values
         let red_lab = Lab::new(53.24, 80.09, 67.20);
         let blue_lab = Lab::new(32.30, 79.20, -107.86);
-        
+
         // Distance should be perceptually meaningful
-        let distance = resolver.lab_distance(red_lab, blue_lab);
+        let distance = ColorUtils::lab_delta_e_distance(red_lab, blue_lab);
         assert!(distance > 100.0); // Red and blue should be quite different
-        
+
         // Test identity (same color should have distance 0)
-        let identity_distance = resolver.lab_distance(red_lab, red_lab);
+        let identity_distance = ColorUtils::lab_delta_e_distance(red_lab, red_lab);
         assert!(identity_distance < 0.001);
-        
+
         // Test symmetry
-        let distance_ab = resolver.lab_distance(red_lab, blue_lab);
-        let distance_ba = resolver.lab_distance(blue_lab, red_lab);
+        let distance_ab = ColorUtils::lab_delta_e_distance(red_lab, blue_lab);
+        let distance_ba = ColorUtils::lab_delta_e_distance(blue_lab, red_lab);
         assert!((distance_ab - distance_ba).abs() < 0.001);
     }
 
     #[test]
     fn test_rgb_to_lab_conversion() {
-        let resolver = ColorNameResolver::new();
-        
+        let _resolver = ColorNameResolver::new();
+
         // Test known RGB to LAB conversion
-        let red_lab = resolver.rgb_to_lab([255, 0, 0]);
+        let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
         assert!((red_lab.l - 53.24).abs() < 1.0); // Red lightness around 53
         assert!(red_lab.a > 70.0); // Positive a (green-red axis)
         assert!(red_lab.b > 60.0); // Positive b (blue-yellow axis)
-        
-        let black_lab = resolver.rgb_to_lab([0, 0, 0]);
+
+        let black_lab = ColorUtils::rgb_to_lab([0, 0, 0]);
         assert!(black_lab.l < 1.0); // Black should have very low lightness
-        
-        let white_lab = resolver.rgb_to_lab([255, 255, 255]);
+
+        let white_lab = ColorUtils::rgb_to_lab([255, 255, 255]);
         assert!(white_lab.l > 95.0); // White should have high lightness
     }
 
     #[test]
     fn test_find_closest_color() {
         let resolver = ColorNameResolver::new();
-        
+
         // Test finding closest color to pure red
         let red_rgb = [255, 0, 0];
         let closest = resolver.find_closest_name(red_rgb);
         assert_eq!(closest, "Red");
-        
+
         // Test finding closest color to pure blue
         let blue_rgb = [0, 0, 255];
         let closest = resolver.find_closest_name(blue_rgb);
         assert_eq!(closest, "Blue");
-        
+
         // Test finding closest color to white
         let white_rgb = [255, 255, 255];
         let closest = resolver.find_closest_name(white_rgb);

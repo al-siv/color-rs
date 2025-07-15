@@ -1,8 +1,8 @@
 //! Command-line interface for color-rs
 
-use clap::{Args, Parser, Subcommand};
 use crate::config::*;
 use crate::error::{ColorError, Result};
+use clap::{Args, Parser, Subcommand};
 
 /// Parse percentage values for CLI arguments
 fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
@@ -36,16 +36,16 @@ pub enum Commands {
 #[derive(Args, Clone)]
 pub struct GradientArgs {
     /// Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)
-    #[arg(long, value_name = "COLOR")]
+    #[arg(value_name = "START_COLOR")]
     pub start_color: String,
+
+    /// Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
+    #[arg(value_name = "END_COLOR")]
+    pub end_color: String,
 
     /// Starting position as percentage (e.g., 20 or 20%, default: 0%)
     #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_START_POSITION)]
     pub start_position: u8,
-
-    /// Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
-    #[arg(long, value_name = "COLOR")]
-    pub end_color: String,
 
     /// Ending position as percentage (e.g., 80 or 80%, default: 100%)
     #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_END_POSITION)]
@@ -171,7 +171,7 @@ impl ColorMatchArgs {
 /// Print application information in cargo style
 pub fn print_app_info() {
     use colored::*;
-    
+
     println!(
         "{:>13} {} v{}",
         "Application:".green().bold(),

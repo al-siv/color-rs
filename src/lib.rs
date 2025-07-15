@@ -6,7 +6,9 @@
 
 pub mod cli;
 pub mod color;
+pub mod color_formatter;
 pub mod color_parser;
+pub mod color_utils;
 pub mod config;
 pub mod error;
 pub mod gradient;
@@ -14,11 +16,12 @@ pub mod image;
 pub mod utils;
 
 // Re-export main types for convenience
-pub use cli::{Cli, Commands, GradientArgs, ColorMatchArgs};
+pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
+pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
-pub use image::{ImageGenerator, ImageFormat};
+pub use image::{ImageFormat, ImageGenerator};
 
 /// Current version of the color-rs library
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -5,6 +5,33 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2025-01-23
+
+### Added
+- New `color_formatter` module for centralized color display and formatting logic
+- New `color_utils` module containing universal color utility functions
+- Comprehensive test coverage for all color conversion and WCAG functions
+
+### Changed  
+- **Major Architectural Improvements**: Separated concerns across modules for better maintainability
+  - Moved WCAG calculations to `ColorUtils` for reusability across modules
+  - Refactored large `color_match` function (~140 lines) into smaller, focused functions
+  - Created dedicated `ColorFormatter` for all color display and reporting logic
+  - Replaced manual color conversions with reliable `palette` crate implementations
+- **ColorNameResolver**: Removed duplicate color conversion functions, now uses `ColorUtils`
+- **CssColorParser**: Updated to use `ColorUtils::hsl_to_rgb` instead of manual implementation
+- **ColorProcessor**: Streamlined to focus on core color operations, removed duplicate WCAG methods
+
+### Removed
+- Duplicate WCAG relative luminance and contrast ratio implementations
+- Manual HSL to RGB conversion functions (replaced with palette-based implementations)
+- Misplaced color utility functions from domain-specific modules
+
+### Fixed
+- Type consistency in color conversion functions
+- Import optimization and removal of unused dependencies
+- Eliminated code duplication across multiple modules
+
 ## [0.8.0] - 2025-07-15
 
 ### Added

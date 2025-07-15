@@ -1,22 +1,22 @@
 //! Integrated color parser module for color-rs
-//! 
+//!
 //! This module combines and modernizes functionality from:
 //! - css-color-parser-rs (https://github.com/7thSigil/css-color-parser-rs) by Katkov Oleksandr
 //! - color-name (https://github.com/annymosse/color-name) by annymosse
-//! 
+//!
 //! We are heavily inspired by these libraries and have integrated and modernized
 //! their functionality for our use case.
 
-pub mod css_parser;
 pub mod color_names;
+pub mod css_parser;
 pub mod types;
 
-pub use css_parser::CssColorParser;
 pub use color_names::ColorNameResolver;
-pub use types::{ParsedColor, ColorFormat};
+pub use css_parser::CssColorParser;
+pub use types::{ColorFormat, ParsedColor};
 
 use crate::error::{ColorError, Result};
-use palette::{Lab, Srgb, IntoColor};
+use palette::{IntoColor, Lab, Srgb};
 
 /// Unified color parser that can handle various input formats
 pub struct ColorParser {
@@ -42,7 +42,10 @@ impl ColorParser {
         }
 
         // If CSS parsing failed, return error
-        Err(ColorError::InvalidColor(format!("Unable to parse color: {}", input)))
+        Err(ColorError::InvalidColor(format!(
+            "Unable to parse color: {}",
+            input
+        )))
     }
 
     /// Get the closest color name for given RGB values
@@ -52,11 +55,7 @@ impl ColorParser {
 
     /// Convert sRGB values to LAB color space
     fn srgb_to_lab(&self, r: u8, g: u8, b: u8) -> Lab {
-        let srgb = Srgb::new(
-            r as f32 / 255.0,
-            g as f32 / 255.0,
-            b as f32 / 255.0,
-        );
+        let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
         srgb.into_color()
     }
 }

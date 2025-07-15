@@ -1,9 +1,10 @@
 //! Color operations and conversions for color-rs
 
-use palette::{FromColor, Hsl, IntoColor, Lab, Srgb};
-use tabled::Tabled;
+use crate::color_formatter::ColorFormatter;
 use crate::config::{HEX_COLOR_LENGTH, RGB_MAX};
 use crate::error::{ColorError, Result};
+use palette::{FromColor, Hsl, IntoColor, Lab, Srgb};
+use tabled::Tabled;
 
 /// Color information for display in tables
 #[derive(Tabled)]
@@ -45,7 +46,11 @@ impl ColorProcessor {
         let g = u8::from_str_radix(&hex[2..4], 16)?;
         let b = u8::from_str_radix(&hex[4..6], 16)?;
 
-        let rgb = Srgb::new(r as f32 / RGB_MAX as f32, g as f32 / RGB_MAX as f32, b as f32 / RGB_MAX as f32);
+        let rgb = Srgb::new(
+            r as f32 / RGB_MAX as f32,
+            g as f32 / RGB_MAX as f32,
+            b as f32 / RGB_MAX as f32,
+        );
         Ok(Lab::from_color(rgb))
     }
 
@@ -93,17 +98,17 @@ impl ColorProcessor {
                 hsl.1 * 100.0,
                 hsl.2 * 100.0
             ),
-            lab: format!(
-                "Lab({:.1}, {:.1}, {:.1})",
-                lab.l, lab.a, lab.b
-            ),
+            lab: format!("Lab({:.1}, {:.1}, {:.1})", lab.l, lab.a, lab.b),
         }
     }
 
     /// Print color information table
     pub fn print_color_info_table(start_lab: Lab, end_lab: Lab) {
         use colored::*;
-        use tabled::{Table, settings::{Alignment, Style, object::Columns}};
+        use tabled::{
+            Table,
+            settings::{Alignment, Style, object::Columns},
+        };
 
         let color_data = vec![
             Self::create_color_info("Start Color".to_string(), start_lab),
@@ -155,96 +160,53 @@ impl ColorProcessor {
 
         Ok(())
     }
+
+    /// Format color information for table display
+    pub fn format_color_info(lab_color: Lab, label: &str) -> ColorInfo {
+        ColorFormatter::format_color_info(lab_color, label)
+    }
 }
 
 /// Match and convert a color to all formats with comprehensive output
 pub fn color_match(color_input: &str) -> Result<String> {
+    // Parse the input color
+    let (lab_color, _format) = parse_color_with_parser(color_input)?;
+    
+    // Get color name 
+    let color_name = get_color_name_for_lab(lab_color)?;
+    
+    // Generate comprehensive report
+    ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name)
+}
+
+/// Parse color input using the integrated parser
+fn parse_color_with_parser(color_input: &str) -> Result<(Lab, crate::color_parser::ColorFormat)> {
     use crate::color_parser::ColorParser;
-    use palette::{Srgb, Hsl, Oklch, Xyz};
-    use std::fmt::Write;
     
-    // Create color parser instance
     let parser = ColorParser::new();
+    parser.parse(color_input).map_err(|e| {
+        ColorError::InvalidColor(format!("Failed to parse color '{}': {}", color_input, e))
+    })
+}
+
+/// Get color name for a LAB color
+fn get_color_name_for_lab(lab_color: Lab) -> Result<String> {
+    use crate::color_parser::ColorParser;
     
-    // Parse the input color using the integrated parser
-    let (lab_color, _format) = parser.parse(color_input)
-        .map_err(|e| ColorError::InvalidColor(format!("Failed to parse color '{}': {}", color_input, e)))?;
-    
-    // Convert LAB back to sRGB for display and name lookup
+    // Convert LAB back to sRGB for name lookup
     let srgb: Srgb = lab_color.into_color();
     let r = (srgb.red * 255.0).round() as u8;
     let g = (srgb.green * 255.0).round() as u8;
     let b = (srgb.blue * 255.0).round() as u8;
-    
-    // Find color name
-    let color_name = parser.get_color_name(r, g, b);
-    
-    // Calculate grayscale equivalent using LAB L* component
-    let grayscale_l = lab_color.l;
-    let grayscale_rgb = (grayscale_l / 100.0 * 255.0).round() as u8;
-    
-    let mut output = String::new();
-    
-    // Comprehensive output - always detailed
-    write!(output, "Color Analysis for: {}\n", color_input).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    write!(output, "{}\n", "──────────────────────────────────────────────────").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // Original input
-    write!(output, "Input: {}\n", color_input).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    write!(output, "Name: {}\n", color_name).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // All format conversions
-    write!(output, "Format Conversions:\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // sRGB values (0-255)
-    write!(output, "• RGB:    rgb({}, {}, {})\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // Hex
-    write!(output, "• Hex:    #{:02x}{:02x}{:02x}\n", r, g, b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // HSL
-    let hsl: Hsl = lab_color.into_color();
-    write!(output, "• HSL:    hsl({:.0}, {:.1}%, {:.1}%)\n", 
-            hsl.hue.into_positive_degrees(),
-            hsl.saturation * 100.0,
-            hsl.lightness * 100.0).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // LAB
-    write!(output, "• LAB:    lab({:.2}, {:.2}, {:.2})\n", lab_color.l, lab_color.a, lab_color.b).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // XYZ
-    let xyz: Xyz = lab_color.into_color();
-    write!(output, "• XYZ:    xyz({:.3}, {:.3}, {:.3})\n", xyz.x, xyz.y, xyz.z).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // OKLCH
-    let oklch: Oklch = lab_color.into_color();
-    write!(output, "• OKLCH:  oklch({:.3}, {:.3}, {:.1}°)\n", 
-            oklch.l, oklch.chroma, oklch.hue.into_positive_degrees()).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    write!(output, "\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // Additional information
-    write!(output, "Additional Information:\n").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    write!(output, "• Grayscale: rgb({}, {}, {}) #{:02x}{:02x}{:02x} (LAB L* = {:.1})\n", 
-            grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_rgb, grayscale_l).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    // Luminance and contrast information
-    let luminance = 0.299 * (r as f32 / 255.0) + 
-                   0.587 * (g as f32 / 255.0) + 
-                   0.114 * (b as f32 / 255.0);
-    write!(output, "• Relative Luminance: {:.3}\n", luminance).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    let brightness = if luminance > 0.5 { "Light" } else { "Dark" };
-    write!(output, "• Brightness: {}", brightness).map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-    
-    Ok(output.trim_end().to_string())
+
+    let parser = ColorParser::new();
+    Ok(parser.get_color_name(r, g, b))
 }
 
 /// Parse color input from various formats
 pub fn parse_color_input(input: &str) -> Result<Lab> {
     let input = input.trim();
-    
+
     // Try hex format first
     if input.starts_with('#') {
         let hex = &input[1..];
@@ -255,30 +217,36 @@ pub fn parse_color_input(input: &str) -> Result<Lab> {
                 .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
             let b = u8::from_str_radix(&hex[4..6], 16)
                 .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-            
+
             let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
             return Ok(srgb.into_color());
         }
     }
-    
+
     // Try rgb format
     if input.starts_with("rgb(") && input.ends_with(')') {
-        let content = &input[4..input.len()-1];
+        let content = &input[4..input.len() - 1];
         let parts: Vec<&str> = content.split(',').map(|s| s.trim()).collect();
         if parts.len() == 3 {
-            let r: u8 = parts[0].parse()
+            let r: u8 = parts[0]
+                .parse()
                 .map_err(|_| ColorError::InvalidColor("Invalid RGB value".to_string()))?;
-            let g: u8 = parts[1].parse()
+            let g: u8 = parts[1]
+                .parse()
                 .map_err(|_| ColorError::InvalidColor("Invalid RGB value".to_string()))?;
-            let b: u8 = parts[2].parse()
+            let b: u8 = parts[2]
+                .parse()
                 .map_err(|_| ColorError::InvalidColor("Invalid RGB value".to_string()))?;
-            
+
             let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
             return Ok(srgb.into_color());
         }
     }
-    
-    Err(ColorError::InvalidColor(format!("Unrecognized color format: {}", input)))
+
+    Err(ColorError::InvalidColor(format!(
+        "Unrecognized color format: {}",
+        input
+    )))
 }
 
 #[cfg(test)]
@@ -310,7 +278,7 @@ mod tests {
         let red = Lab::new(53.2, 80.1, 67.2);
         let blue = Lab::new(32.3, 79.2, -107.9);
         let mid = ColorProcessor::interpolate_lab(red, blue, 0.5);
-        
+
         // Middle color should be between red and blue
         assert!(mid.l > blue.l && mid.l < red.l);
     }
@@ -329,7 +297,7 @@ mod tests {
         assert!(output.contains("• XYZ:"));
         assert!(output.contains("• OKLCH:"));
         assert!(output.contains("• Grayscale:"));
-        assert!(output.contains("• Relative Luminance:"));
+        assert!(output.contains("• WCAG Relative Luminance:"));
         assert!(output.contains("• Brightness:"));
     }
 
@@ -358,7 +326,7 @@ mod tests {
         let result = color_match("#808080").unwrap();
         assert!(result.contains("Grayscale: rgb("));
         assert!(result.contains("#808080")); // Should include HEX format for grayscale
-        
+
         // For gray color, grayscale should be close to the original
         assert!(result.contains("LAB L*"));
     }
@@ -367,7 +335,7 @@ mod tests {
     fn test_parse_color_input() {
         let lab_from_hex = parse_color_input("#FF5733").unwrap();
         let lab_from_rgb = parse_color_input("rgb(255, 87, 51)").unwrap();
-        
+
         assert!((lab_from_hex.l - lab_from_rgb.l).abs() < 0.01);
         assert!((lab_from_hex.a - lab_from_rgb.a).abs() < 0.01);
         assert!((lab_from_hex.b - lab_from_rgb.b).abs() < 0.01);

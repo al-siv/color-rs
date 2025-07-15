@@ -27,9 +27,10 @@ impl Utils {
     /// Validate a percentage value (0-100)
     pub fn validate_percentage(value: u8) -> Result<()> {
         if value > MAX_PERCENTAGE {
-            return Err(ColorError::InvalidArguments(
-                format!("Percentage value {} exceeds maximum of {}", value, MAX_PERCENTAGE),
-            ));
+            return Err(ColorError::InvalidArguments(format!(
+                "Percentage value {} exceeds maximum of {}",
+                value, MAX_PERCENTAGE
+            )));
         }
         Ok(())
     }
@@ -37,12 +38,10 @@ impl Utils {
     /// Validate a cubic-bezier control point (0.0-1.0)
     pub fn validate_bezier_point(value: f64) -> Result<()> {
         if value < BEZIER_MIN || value > BEZIER_MAX {
-            return Err(ColorError::InvalidArguments(
-                format!(
-                    "Cubic-bezier control point {} must be between {} and {}",
-                    value, BEZIER_MIN, BEZIER_MAX
-                ),
-            ));
+            return Err(ColorError::InvalidArguments(format!(
+                "Cubic-bezier control point {} must be between {} and {}",
+                value, BEZIER_MIN, BEZIER_MAX
+            )));
         }
         Ok(())
     }
@@ -79,9 +78,10 @@ impl Utils {
         let invalid_chars = ['<', '>', ':', '"', '|', '?', '*'];
         for ch in invalid_chars {
             if filename.contains(ch) {
-                return Err(ColorError::InvalidArguments(
-                    format!("Filename contains invalid character: {}", ch),
-                ));
+                return Err(ColorError::InvalidArguments(format!(
+                    "Filename contains invalid character: {}",
+                    ch
+                )));
             }
         }
 
@@ -123,23 +123,22 @@ impl Utils {
     /// Sanitize a color hex string
     pub fn sanitize_hex_color(hex: &str) -> String {
         let mut cleaned = hex.trim().to_uppercase();
-        
+
         // Remove # if present
         if cleaned.starts_with('#') {
             cleaned = cleaned[1..].to_string();
         }
-        
+
         // Ensure it's 6 characters
         if cleaned.len() == 3 {
             // Convert 3-digit hex to 6-digit
             let chars: Vec<char> = cleaned.chars().collect();
-            cleaned = format!("{}{}{}{}{}{}", 
-                chars[0], chars[0], 
-                chars[1], chars[1], 
-                chars[2], chars[2]
+            cleaned = format!(
+                "{}{}{}{}{}{}",
+                chars[0], chars[0], chars[1], chars[1], chars[2], chars[2]
             );
         }
-        
+
         cleaned
     }
 }
@@ -181,7 +180,10 @@ mod tests {
     #[test]
     fn test_easing_presets() {
         assert_eq!(Utils::easing_preset_to_points("linear"), Some((0.0, 1.0)));
-        assert_eq!(Utils::easing_preset_to_points("ease-in-out"), Some((0.42, 0.58)));
+        assert_eq!(
+            Utils::easing_preset_to_points("ease-in-out"),
+            Some((0.42, 0.58))
+        );
         assert_eq!(Utils::easing_preset_to_points("invalid"), None);
     }
 

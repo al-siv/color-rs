@@ -1,12 +1,12 @@
 //! Gradient calculations and easing functions for color-rs
 
-use kurbo::{CubicBez, ParamCurve, Point};
-use palette::Lab;
-use tabled::Tabled;
 use crate::cli::GradientArgs;
 use crate::color::ColorProcessor;
 use crate::config::*;
-use crate::error::{Result, ColorError};
+use crate::error::{ColorError, Result};
+use kurbo::{CubicBez, ParamCurve, Point};
+use palette::Lab;
+use tabled::Tabled;
 
 /// Gradient value for display in tables
 #[derive(Tabled)]
@@ -220,7 +220,8 @@ impl GradientCalculator {
                 let normalized_t = (position - args.start_position) as f64
                     / (args.end_position - args.start_position) as f64;
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-                let interpolated_lab = ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
+                let interpolated_lab =
+                    ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
                 let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
                 let rgb_values = ColorProcessor::lab_to_rgb_values(interpolated_lab);
 
@@ -239,13 +240,14 @@ impl GradientCalculator {
                     i as f64 / (num_stops - 1) as f64
                 };
 
-                let position_float =
-                    args.start_position as f64 + t * (args.end_position - args.start_position) as f64;
+                let position_float = args.start_position as f64
+                    + t * (args.end_position - args.start_position) as f64;
                 let position = position_float.round() as u8;
                 let normalized_t = (position - args.start_position) as f64
                     / (args.end_position - args.start_position) as f64;
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-                let interpolated_lab = ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
+                let interpolated_lab =
+                    ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
                 let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
                 let rgb_values = ColorProcessor::lab_to_rgb_values(interpolated_lab);
 
@@ -266,7 +268,8 @@ impl GradientCalculator {
                     / (args.end_position - args.start_position) as f64;
 
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-                let interpolated_lab = ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
+                let interpolated_lab =
+                    ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
                 let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
                 let rgb_values = ColorProcessor::lab_to_rgb_values(interpolated_lab);
 
@@ -296,7 +299,10 @@ impl GradientCalculator {
         }
 
         use colored::*;
-        use tabled::{Table, settings::{Alignment, Style, object::Columns}};
+        use tabled::{
+            Table,
+            settings::{Alignment, Style, object::Columns},
+        };
 
         println!(
             "{}",
@@ -321,11 +327,19 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     // Parse colors using unified color parser
     use crate::color_parser::ColorParser;
     let parser = ColorParser::new();
-    
-    let (start_lab, _) = parser.parse(&args.start_color)
-        .map_err(|e| ColorError::InvalidColor(format!("Failed to parse start color '{}': {}", args.start_color, e)))?;
-    let (end_lab, _) = parser.parse(&args.end_color)
-        .map_err(|e| ColorError::InvalidColor(format!("Failed to parse end color '{}': {}", args.end_color, e)))?;
+
+    let (start_lab, _) = parser.parse(&args.start_color).map_err(|e| {
+        ColorError::InvalidColor(format!(
+            "Failed to parse start color '{}': {}",
+            args.start_color, e
+        ))
+    })?;
+    let (end_lab, _) = parser.parse(&args.end_color).map_err(|e| {
+        ColorError::InvalidColor(format!(
+            "Failed to parse end color '{}': {}",
+            args.end_color, e
+        ))
+    })?;
 
     // Print color information with beautiful formatting
     ColorProcessor::print_color_info_table(start_lab, end_lab);
@@ -334,7 +348,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     if args.svg || args.png {
         use crate::image::ImageGenerator;
         let generator = ImageGenerator::new();
-        
+
         if args.svg {
             generator.generate_svg(&args, start_lab, end_lab)?;
             use colored::*;
@@ -371,7 +385,7 @@ mod tests {
     fn test_cubic_bezier_ease() {
         // Test linear case
         assert!((GradientCalculator::cubic_bezier_ease(0.5, 0.0, 1.0) - 0.5).abs() < 0.01);
-        
+
         // Test boundary conditions
         assert_eq!(GradientCalculator::cubic_bezier_ease(0.0, 0.5, 0.5), 0.0);
         assert_eq!(GradientCalculator::cubic_bezier_ease(1.0, 0.5, 0.5), 1.0);
@@ -382,14 +396,14 @@ mod tests {
         let stops = GradientCalculator::calculate_intelligent_stops(5, 0.25, 0.75);
         assert_eq!(stops.len(), 5);
         assert!(stops[0] < stops[1]);
-        assert!(stops[stops.len()-1] <= 1.0);
+        assert!(stops[stops.len() - 1] <= 1.0);
     }
 
     #[test]
     fn test_intelligent_stops_integer() {
         let stops = GradientCalculator::calculate_intelligent_stops_integer(5, 0.25, 0.75, 0, 100);
         assert_eq!(stops[0], 0);
-        assert_eq!(stops[stops.len()-1], 100);
+        assert_eq!(stops[stops.len() - 1], 100);
         assert!(stops.len() <= 5);
     }
 
@@ -397,13 +411,13 @@ mod tests {
     fn test_unified_color_parsing() {
         use crate::color_parser::ColorParser;
         let parser = ColorParser::new();
-        
+
         // Test that gradient can parse various color formats
         let (hex_color, _) = parser.parse("#FF0000").unwrap();
         let (rgb_color, _) = parser.parse("rgb(255, 0, 0)").unwrap();
         let (named_color, _) = parser.parse("red").unwrap();
         let (hsl_color, _) = parser.parse("hsl(0, 100%, 50%)").unwrap();
-        
+
         // All should produce similar LAB values for red
         assert!((hex_color.l - rgb_color.l).abs() < 1.0);
         assert!((hex_color.l - named_color.l).abs() < 1.0);

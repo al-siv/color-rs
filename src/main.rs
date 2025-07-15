@@ -1,7 +1,7 @@
 //! Main entry point for the color-rs CLI application
 
 use clap::Parser;
-use color_rs::{cli, ColorRs};
+use color_rs::{ColorRs, cli};
 
 fn main() -> color_rs::Result<()> {
     // Print application information
@@ -12,13 +12,13 @@ fn main() -> color_rs::Result<()> {
 
     // Create color-rs instance and process command
     let color_rs = ColorRs::new();
-    
+
     match cli_args.command {
         cli::Commands::Gradient(args) => color_rs.generate_gradient(args)?,
         cli::Commands::ColorMatch(args) => {
             let result = color_rs.color_match(args)?;
             println!("{}", result);
-        },
+        }
     }
 
     Ok(())

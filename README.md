@@ -4,10 +4,12 @@ A professional CLI tool and Rust library for color gradient calculations using p
 
 ## Features
 
+- **Simplified Interface**: Direct color arguments without flags - just `gradient red blue`
 - **Universal Color Parsing**: Supports HEX, RGB, HSL, and 148+ named colors across all commands
 - **Perceptually Accurate Processing**: LAB color space for smooth gradients and Delta E color distance for accurate color matching
-- **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, LAB, XYZ, OKLCH, and perceptually accurate grayscale with HEX encoding
-- **Modular Architecture**: Clean separation of CLI and library functionality
+- **WCAG Compliance**: Proper relative luminance calculations with gamma correction for accessibility testing
+- **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
+- **Modular Architecture**: Clean separation of concerns with dedicated modules for color utilities, formatting, and parsing
 - **Library & CLI**: Use as a command-line tool or integrate as a Rust library
 - **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
 - **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
@@ -60,13 +62,10 @@ fn main() -> color_rs::Result<()> {
     
     color_rs.generate_gradient(args)?;
     
-    // Analyze a color
+    // Analyze a color with WCAG compliance data
     let analysis = color_rs.color_match("rgb(255, 87, 51)")?;
     println!("{}", analysis);
     
-    Ok(())
-}
-```
     Ok(())
 }
 ```
@@ -119,6 +118,62 @@ The binary will be available at `target/release/color-rs` (or `target/release/co
 
 ### Basic Gradient
 
+```bash
+# Using HEX colors - simplified syntax
+color-rs gradient FF0000 0000FF
+
+# Using named colors
+color-rs gradient red blue
+
+# Using RGB/HSL colors
+color-rs gradient "rgb(255,0,0)" "hsl(240,100%,50%)"
+```
+
+### Custom Easing
+
+```bash
+color-rs gradient FF6B35 7209B7 --ease-in 0.25 --ease-out 0.75
+```
+
+### Generate Images
+
+```bash
+# SVG with legend
+color-rs gradient FF0000 0000FF --svg --svg-name my-gradient.svg
+
+# PNG without legend
+color-rs gradient FF0000 0000FF --png --no-legend --png-name clean-gradient.png
+
+# Both formats with custom size
+color-rs gradient FF0000 0000FF --svg --png --width 1600
+```
+
+### Intelligent Stop Placement
+
+```bash
+# 8 intelligently placed stops
+color-rs gradient FF0000 0000FF --grad-stops 8 --ease-in 0.9 --ease-out 0.1
+
+# 10 equally spaced stops
+color-rs gradient FF0000 0000FF --grad-stops-simple 10
+```
+
+### Partial Gradients
+
+```bash
+color-rs gradient FF0000 0000FF --start-position 20 --end-position 80
+```
+
+### Color Matching and Analysis
+
+```bash
+# Color analysis with WCAG compliance data
+color-rs color-match "#FF5733"
+color-rs color-match "rgb(255, 87, 51)"
+color-rs color-match "red"
+color-rs color-match "hsl(240, 100%, 50%)"
+```
+
 ## Installation
 
 ### As a Library
@@ -127,81 +182,41 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-color-rs = "0.8.0"
+color-rs = "0.8.3"
 ```
 
 ### As a CLI Tool
 
+#### Windows Users (Recommended)
+
+Download the pre-compiled executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
+
+1. Download `color-rs.exe` from the release assets
+2. Place it in a folder that's in your PATH or use it directly
+3. Run `color-rs.exe gradient --help` to get started
+
+#### From Source
+
 ```bash
-# Using HEX colors
-color-rs gradient --start-color FF0000 --end-color 0000FF
-
-# Using named colors
-color-rs gradient --start-color red --end-color blue
-
-# Using RGB/HSL colors
-color-rs gradient --start-color "rgb(255,0,0)" --end-color "hsl(240,100%,50%)"
+git clone https://github.com/al-siv/color-rs.git
+cd color-rs
+cargo build --release
 ```
 
-### Custom Easing
+The binary will be available at `target/release/color-rs` (or `target/release/color-rs.exe` on Windows).
+
+#### Requirements
+
+- For Windows users: No additional requirements with the pre-compiled executable
+- For building from source: Rust 1.70+ and Cargo
+
+### Universal Color Format Support
 
 ```bash
-color-rs gradient --start-color FF6B35 --end-color 7209B7 \
-        --ease-in 0.25 --ease-out 0.75
-```
-
-### Generate Images
-
-```bash
-# SVG with legend
-color-rs gradient --start-color FF0000 --end-color 0000FF \
-        --svg --svg-name my-gradient.svg
-
-# PNG without legend
-color-rs gradient --start-color FF0000 --end-color 0000FF \
-        --png --no-legend --png-name clean-gradient.png
-
-# Both formats with custom size
-color-rs gradient --start-color FF0000 --end-color 0000FF \
-        --svg --png --width 1600
-```
-
-### Intelligent Stop Placement
-
-```bash
-# 8 intelligently placed stops
-color-rs gradient --start-color FF0000 --end-color 0000FF \
-        --grad-stops 8 --ease-in 0.9 --ease-out 0.1
-
-# 10 equally spaced stops
-color-rs gradient --start-color FF0000 --end-color 0000FF \
-        --grad-stops-simple 10
-```
-
-### Partial Gradients
-
-```bash
-color-rs gradient --start-color FF0000 --end-color 0000FF \
-        --start-position 20 --end-position 80
-```
-
-### Color Matching and Analysis
-
-```bash
-# Color analysis (auto-detects format and provides comprehensive output)
-color-rs color-match "#FF5733"
-color-rs color-match "rgb(255, 87, 51)"
-color-rs color-match "red"
-color-rs color-match "hsl(240, 100%, 50%)"
-```
-
-### Gradient Generation with Universal Color Parsing
-
-```bash
-# Use any color format for gradients
-color-rs gradient --start-color "red" --end-color "blue"
-color-rs gradient --start-color "#FF0000" --end-color "rgb(0, 0, 255)"
-color-rs gradient --start-color "hsl(0, 100%, 50%)" --end-color "hsl(240, 100%, 50%)"
+# Use any color format for gradients - now with simplified syntax
+color-rs gradient red blue
+color-rs gradient "#FF0000" "rgb(0, 0, 255)"
+color-rs gradient "hsl(0, 100%, 50%)" "hsl(240, 100%, 50%)"
 ```
 
 ## Output Examples
@@ -241,17 +256,7 @@ GRADIENT VALUES:
 ╰──────────┴─────────┴──────────────────╯
 ```
 
-### Color-Match Basic Output
-```
-RGB: rgb(255, 87, 51)
-Hex: #ff5733
-HSL: hsl(11, 100.0%, 60.0%)
-LAB: lab(60.18, 62.06, 54.34)
-Grayscale: rgb(153, 153, 153)
-Name: Tomato
-```
-
-### Color-Match Detailed Output
+### Color-Match Enhanced Output with WCAG Compliance
 ```
 Color Analysis for: #FF5733
 ──────────────────────────────────────────────────
@@ -268,7 +273,9 @@ Format Conversions:
 
 Additional Information:
 • Grayscale: rgb(153, 153, 153) #999999 (LAB L* = 60.2)
-• Relative Luminance: 0.522
+• WCAG Relative Luminance: 0.283
+• Contrast vs White: 3.15:1
+• Contrast vs Black: 6.66:1
 • Brightness: Light
 ```
 
@@ -276,24 +283,26 @@ Additional Information:
 
 ### Gradient Command
 ```
-color-rs gradient [OPTIONS] --start-color <COLOR> --end-color <COLOR>
+color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
+
+ARGUMENTS:
+    <START_COLOR>    Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)
+    <END_COLOR>      Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
 
 OPTIONS:
-        --start-color <COLOR>            Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)
-        --end-color <COLOR>              Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
-        --start-position <PERCENT>       Starting position [default: 0]
-        --end-position <PERCENT>         Ending position [default: 100]
-        --ease-in <EASE_IN>              Ease-in control point [default: 0.65]
-        --ease-out <EASE_OUT>            Ease-out control point [default: 0.35]
-        --svg                            Generate SVG image
-        --png                            Generate PNG image
-        --no-legend                      Disable legend (only with --svg or --png)
-        --width <WIDTH>                  Image width in pixels [default: 1000]
-        --svg-name <SVG_NAME>            SVG filename [default: gradient.svg]
-        --png-name <PNG_NAME>            PNG filename [default: gradient.png]
-        --grad-step <GRAD_STEP>          Output every X percent [default: 5]
-        --grad-stops <GRAD_STOPS>        Number of intelligent stops
-        --grad-stops-simple <GRAD_STOPS> Number of equal stops
+    --start-position <PERCENT>       Starting position [default: 0]
+    --end-position <PERCENT>         Ending position [default: 100]
+    --ease-in <EASE_IN>              Ease-in control point [default: 0.65]
+    --ease-out <EASE_OUT>            Ease-out control point [default: 0.35]
+    --svg                            Generate SVG image
+    --png                            Generate PNG image
+    --no-legend                      Disable legend (only with --svg or --png)
+    --width <WIDTH>                  Image width in pixels [default: 1000]
+    --svg-name <SVG_NAME>            SVG filename [default: gradient.svg]
+    --png-name <PNG_NAME>            PNG filename [default: gradient.png]
+    --grad-step <GRAD_STEP>          Output every X percent [default: 5]
+    --grad-stops <GRAD_STOPS>        Number of intelligent stops
+    --grad-stops-simple <GRAD_STOPS> Number of equal stops
 ```
 
 ### Color-Match Command
@@ -301,16 +310,19 @@ OPTIONS:
 color-rs color-match <COLOR>
 
 ARGUMENTS:
-        <COLOR>                          Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
+    <COLOR>    Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
 
-The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions, perceptually accurate grayscale (with HEX encoding), and additional information including relative luminance and brightness classification.
+The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions, WCAG-compliant relative luminance calculations, contrast ratios, and accessibility information.
 ```
 
+Key features of color analysis:
 - **Input Format Auto-Detection**: Supports hex (#FF5733), RGB/RGBA (rgb(255,87,51)), HSL/HSLA (hsl(11,100%,60%)), and named colors (red, blue, etc.)
 - **Comprehensive Conversion**: Outputs RGB, Hex, HSL, LAB, XYZ, and OKLCH formats
 - **Color Name Recognition**: Uses a database of 148+ named colors to find the closest match
 - **Grayscale Conversion**: Calculates grayscale equivalent using LAB L* component for perceptually accurate results
-- **Luminance Analysis**: Provides relative luminance and brightness classification
+- **WCAG Compliance**: Provides proper relative luminance with gamma correction (not simple weighted averages)
+- **Contrast Analysis**: Shows contrast ratios against white and black backgrounds
+- **Accessibility Testing**: Helps determine if colors meet WCAG AA/AAA contrast requirements
 
 ## Color Spaces
 
@@ -474,9 +486,8 @@ Tests cover:
 
 ### Web Development
 ```bash
-# Generate CSS-ready gradient
-color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
-        --grad-stops 5 --ease-in 0.25 --ease-out 0.75
+# Generate CSS-ready gradient with simplified syntax
+color-rs gradient "FF6B35" "7209B7" --grad-stops 5 --ease-in 0.25 --ease-out 0.75
 ```
 
 Output for CSS:
@@ -494,15 +505,15 @@ background: linear-gradient(
 ### Design Assets
 ```bash
 # High-resolution design asset
-color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
-        --svg --png --width 3000 --no-legend
+color-rs gradient "FF6B35" "7209B7" --svg --png --width 3000 --no-legend
 ```
 
-### Color Analysis
+### Color Analysis for Accessibility
 ```bash
-# Analyze color relationships
-color-rs gradient --start-color "FF6B35" --end-color "7209B7" \
-        --grad-step 10
+# Check WCAG compliance
+color-rs color-match "#FF5733"
+# Output includes contrast ratios: 3.15:1 vs white, 6.66:1 vs black
+# Helps determine if color meets WCAG AA (4.5:1) requirements
 ```
 
 ## Contributing
@@ -538,11 +549,18 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+### v0.8.1 - Enhanced Color Analysis & Simplified Interface (2025-07-15)
+- **Simplified CLI**: Removed `--start-color` and `--end-color` flags - now just `gradient red blue`
+- **WCAG Compliance**: Added proper WCAG 2.1 relative luminance calculations with gamma correction
+- **Contrast Analysis**: Shows contrast ratios against white and black backgrounds for accessibility testing
+- **Enhanced Documentation**: Updated examples and documentation to reflect new interface and features
+- **Accessibility Focus**: Tools now provide data needed for WCAG AA/AAA compliance testing
+
 ### v0.8.0 - Major Refactoring (2025-07-15)
 - **Breaking Changes**: Restructured codebase into modular library architecture
 - **Library API**: Color-rs can now be used as a Rust library with clean public API
 - **Enhanced Error Handling**: Custom error types replace generic anyhow errors
-- **Comprehensive Testing**: Added 16+ unit tests covering all modules
+- **Comprehensive Testing**: Added 24+ unit tests covering all modules
 - **Improved Documentation**: Inline documentation and better code organization
 - **Type Safety**: Better type safety with custom Result type and validation
 - **Modular Design**: Separated CLI from library functionality for better reusability
@@ -557,11 +575,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - CSS Integration: Ready-to-use output for web development workflows
 - Production Ready: Stable API and comprehensive error handling
 
-### Features Summary
+### Key Features
 - LAB color space for perceptually uniform gradients
 - CSS cubic-bezier timing functions
 - SVG and PNG export capabilities  
 - Multiple output formats (step-based, intelligent, equal spacing)
 - Professional terminal interface matching Rust toolchain aesthetics
 - Windows executable distribution for easy installation
+- WCAG 2.1 compliant accessibility calculations
 

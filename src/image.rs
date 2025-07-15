@@ -81,7 +81,12 @@ impl ImageGenerator {
     }
 
     /// Create SVG content string
-    fn create_svg_content(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
+    fn create_svg_content(
+        &self,
+        args: &GradientArgs,
+        start_lab: Lab,
+        end_lab: Lab,
+    ) -> Result<String> {
         let width = args.width;
         let gradient_height = (width as f64 * HEIGHT_RATIO) as u32;
         let legend_height = if args.no_legend {
@@ -107,7 +112,9 @@ impl ImageGenerator {
 
         // Add gradient definition with properly calculated stops
         svg.push_str("  <defs>\n");
-        svg.push_str("    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
+        svg.push_str(
+            "    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n",
+        );
 
         // Calculate dynamic number of stops based on gradient span to prevent banding
         let gradient_span = args.end_position - args.start_position;
@@ -170,11 +177,19 @@ impl ImageGenerator {
             ));
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\">\n",
-                width / 100, text_y, FONT_FAMILY, font_size
+                width / 100,
+                text_y,
+                FONT_FAMILY,
+                font_size
             ));
             svg.push_str(&format!(
                 "    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n",
-                args.ease_in, args.ease_out, args.start_position, args.end_position, start_hex, end_hex
+                args.ease_in,
+                args.ease_out,
+                args.start_position,
+                args.end_position,
+                start_hex,
+                end_hex
             ));
             svg.push_str("  </text>\n");
         }
@@ -252,8 +267,10 @@ mod tests {
         let args = create_test_args();
         let start_lab = ColorProcessor::parse_hex_color(&args.start_color).unwrap();
         let end_lab = ColorProcessor::parse_hex_color(&args.end_color).unwrap();
-        
-        let svg_content = generator.create_svg_content(&args, start_lab, end_lab).unwrap();
+
+        let svg_content = generator
+            .create_svg_content(&args, start_lab, end_lab)
+            .unwrap();
         assert!(svg_content.contains("<svg"));
         assert!(svg_content.contains("linearGradient"));
         assert!(svg_content.contains("</svg>"));
@@ -263,14 +280,14 @@ mod tests {
     fn test_image_params_validation() {
         let generator = ImageGenerator::new();
         let mut args = create_test_args();
-        
+
         // Valid case
         assert!(generator.validate_image_params(&args).is_ok());
-        
+
         // Invalid width
         args.width = 0;
         assert!(generator.validate_image_params(&args).is_err());
-        
+
         // Too large width
         args.width = 15000;
         assert!(generator.validate_image_params(&args).is_err());
