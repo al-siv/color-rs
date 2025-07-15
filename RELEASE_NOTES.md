@@ -1,8 +1,24 @@
-# Color-rs v0.7.2 - First Full Release
+# Color-rs v0.8.1 - Major Architecture and Feature Update
 
-Welcome to the first stable release of **color-rs**! This is a professional CLI tool for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
+Welcome to **color-rs v0.8.1**! This release brings significant improvements with a completely modular architecture, enhanced color parsing capabilities, and comprehensive color matching functionality.
 
-## What's New in v0.7.2
+## What's New in v0.8.1
+
+### Major Architecture Improvements
+- **Modular Library Structure**: Complete refactoring into organized modules (cli, color, gradient, image, error, config, utils, color_parser)
+- **Enhanced Color Parser**: Full CSS color support with named colors, rgb(), hsl(), rgba(), hsla() formats
+- **Comprehensive Color Matching**: Advanced color analysis with multiple color space conversions
+- **Improved Error Handling**: Custom error types with proper error propagation
+- **Library API**: Clean programmatic interface for integration into other projects
+
+### Enhanced Color Features
+- **CSS Color Support**: Parse any CSS color format including named colors (red, blue, forestgreen, etc.)
+- **Multi-Format Analysis**: LAB, HSL, RGB, XYZ, OKLCH color space conversions
+- **Color Name Resolution**: Find closest color names for any RGB values
+- **Advanced Analysis**: Brightness calculation, relative luminance, grayscale conversion
+- **Detailed Output**: Comprehensive color information with optional detailed mode
+
+### What's New in v0.7.2
 
 ### Professional Interface
 - **Cargo-style Output**: Terminal formatting that matches Rust toolchain aesthetics

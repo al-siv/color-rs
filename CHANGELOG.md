@@ -5,6 +5,38 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2025-07-15
+
+### Added
+- Enhanced color parser with comprehensive CSS color support
+  - Full CSS color format support: hex (#FF0000), rgb(), rgba(), hsl(), hsla()
+  - Named color support with 140+ standard CSS color names (red, blue, forestgreen, etc.)
+  - Automatic format detection and parsing
+- Comprehensive color matching functionality
+  - Detailed color analysis with multiple color space conversions
+  - LAB, HSL, RGB, XYZ, OKLCH color space support
+  - Color name resolution and closest color matching
+  - Brightness and relative luminance calculations
+  - Grayscale conversion functionality
+- Windows executable distribution
+  - Pre-compiled Windows executable (color-rs.exe) with release optimizations
+  - Cross-platform support for easy Windows installation
+  - No dependencies required for Windows users
+
+### Enhanced
+- Improved modular library architecture with dedicated color parser module
+- Extended error handling for color parsing edge cases
+- Enhanced documentation with comprehensive color format examples
+- Better integration between CLI and library components
+- Improved type safety and error propagation
+
+### Technical Details
+- New `color_parser` module with CSS and named color support
+- Integration of css-color-parser-rs and color-name functionality
+- Comprehensive test suite expanded to 20 tests
+- Cross-compilation support for Windows targets
+- Optimized release builds for production distribution
+
 ## [0.8.0] - 2025-07-15
 
 ### Added
