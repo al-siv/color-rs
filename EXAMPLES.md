@@ -16,6 +16,39 @@ color-rs gradient "#FF6B35" "hsl(270, 100%, 50%)"
 color-rs gradient FF6B35 7209B7 --start-position 20 --end-position 80
 ```
 
+## RAL Color System Examples
+
+```bash
+# RAL Classic colors (both formats supported)
+color-rs color-match "RAL 1000"          # Green beige (with space)
+color-rs color-match "RAL1000"           # Green beige (without space)
+color-rs color-match "RAL 3020"          # Traffic red
+
+# RAL Design System+ colors
+color-rs color-match "H010L20C10"        # Wenge Black
+color-rs color-match "H040L50C70"        # Pompeii Red
+
+# Search by RAL color names
+color-rs color-match "signal yellow"     # Finds RAL 1003
+color-rs color-match "traffic red"       # Finds RAL 3020
+color-rs color-match "pure blue"         # Finds RAL 5005
+
+# Use RAL colors in gradients
+color-rs gradient "RAL 1000" "RAL 5005"  # Green beige to pure blue
+color-rs gradient "signal yellow" "traffic red" --svg --width 1600
+```
+
+**All RAL color inputs receive comprehensive analysis including:**
+- Complete format conversions (RGB, HSL, LAB, XYZ, OKLCH)
+- WCAG compliance data (relative luminance, contrast ratios)
+- Accessibility information
+- Closest RAL matches from both classifications
+
+RAL color matching provides:
+- **Separate Classifications**: 2 closest matches from RAL Classic and RAL Design System+ each
+- **Precise Matching**: Delta E calculations for perceptually accurate closest color finding
+- **Complete Information**: Code, name, hex value, and color distance for each match
+
 ## Advanced Features
 
 ```bash

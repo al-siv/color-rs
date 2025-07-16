@@ -204,7 +204,7 @@ mod tests {
         assert!(result.is_ok());
         let output = result.unwrap();
         assert!(output.contains("Color Analysis for: #008080"));
-        assert!(output.contains("Name: teal"));
+        assert!(output.contains("CSS-name: teal"));
         assert!(output.contains("Format Conversions:"));
         assert!(output.contains("Additional Information:"));
     }

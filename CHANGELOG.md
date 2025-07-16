@@ -5,6 +5,47 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2025-07-15
+
+### Fixed
+- **RAL Color Output Format**: RAL colors now display full comprehensive analysis reports
+  - **Complete Information**: RAL colors show RGB, HSL, LAB, XYZ, OKLCH format conversions
+  - **WCAG Compliance**: Include WCAG relative luminance and contrast ratio data for RAL colors
+  - **Consistency**: All color input types now provide identical comprehensive output format
+  - **User Request**: Addressed user feedback about compact format being insufficient
+
+### Removed
+- **Compact RAL Format**: Removed short-form RAL color display function in favor of comprehensive reports
+
+## [0.9.0] - 2025-01-15
+
+### Added
+- **Complete RAL Color System Support**: Comprehensive integration of RAL color standards
+  - **RAL Classic**: 213 standardized colors with CIELAB 1976, CMYK, and LRV data
+  - **RAL Design System+**: 1825 colors with CIELAB 1931 hue/lightness/chromaticity data
+  - **Multiple Input Formats**: Supports both "RAL 1000" and "RAL1000" (with and without space)
+  - **Name-based Lookup**: Search RAL colors by name (e.g., "signal yellow", "traffic red")
+  - **Intelligent CSS Filtering**: Prevents conflicts between RAL names and common CSS color names
+- **Separate Classification Matching**: Shows 2 closest colors from each classification separately
+  - **RAL Classic**: Dedicated matching for users tied to classic color system
+  - **RAL Design System+**: Separate results for extended color palette users
+  - **Delta E Calculations**: Perceptually accurate color distance measurements
+- **Enhanced Color Analysis**: Extended color-match command with RAL integration
+  - **Comprehensive Reports**: Includes closest RAL matches for any input color
+  - **Professional Output**: Clean formatting with proper classification names
+  - **Full RAL Information**: Code, name, hex value, and color distance for each match
+
+### Changed
+- **Version**: Updated from 0.8.4 to 0.9.0 to reflect major RAL functionality addition
+- **Test Suite**: Expanded to 37+ tests including comprehensive RAL color system validation
+- **Documentation**: Updated README.md and EXAMPLES.md with RAL usage examples
+- **Color Name Handling**: Fixed CSS color name capitalization to use proper lowercase format
+
+### Fixed
+- **CSS Color Priority**: Ensured common CSS colors (red, blue, etc.) are processed as CSS colors, not RAL names
+- **Test Compatibility**: Updated test expectations to work with enhanced color output format
+- **Import Cleanup**: Removed unused imports to eliminate compiler warnings
+
 ## [0.8.4] - 2025-01-23
 
 ### Changed

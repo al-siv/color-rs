@@ -6,7 +6,7 @@
 
 use crate::error::{ColorError, Result};
 use palette::{
-    FromColor, Hsl, IntoColor, Lab, Mix, Srgb, Xyz,
+    FromColor, Hsl, IntoColor, Lab, Mix, Srgb,
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
 };
 
@@ -70,41 +70,6 @@ impl ColorUtils {
 
         // Convert directly to sRGB
         let srgb: Srgb = hsl.into_color();
-
-        // Convert to 0-255 range
-        let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
-        let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
-        let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
-
-        (r, g, b)
-    }
-
-    /// Convert HSL to RGB via LAB color space using palette library
-    ///
-    /// This provides an alternative conversion path: HSL → XYZ → LAB → RGB
-    /// which may have different characteristics than direct HSL → RGB conversion
-    ///
-    /// # Arguments
-    /// * `h` - Hue (0.0-1.0, will be wrapped if outside range)
-    /// * `s` - Saturation (0.0-1.0, will be clamped)
-    /// * `l` - Lightness (0.0-1.0, will be clamped)
-    ///
-    /// # Returns
-    /// * RGB values as (r, g, b) where each component is 0-255
-    pub fn hsl_to_rgb_via_lab(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
-        use palette::RgbHue;
-
-        // Create HSL color using palette
-        let hsl: Hsl = Hsl::new(
-            RgbHue::from_degrees(h * 360.0),
-            s.clamp(0.0, 1.0),
-            l.clamp(0.0, 1.0),
-        );
-
-        // Convert HSL → XYZ → LAB → RGB
-        let xyz: Xyz = hsl.into_color();
-        let lab: Lab = xyz.into_color();
-        let srgb: Srgb = lab.into_color();
 
         // Convert to 0-255 range
         let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
@@ -272,93 +237,6 @@ mod tests {
         assert_eq!(r, 0);
         assert_eq!(g, 0);
         assert_eq!(b, 255);
-    }
-
-    #[test]
-    fn test_hsl_to_rgb_via_lab_conversion() {
-        // Test pure red (H=0, S=1, L=0.5)
-        let (r, g, b) = ColorUtils::hsl_to_rgb_via_lab(0.0, 1.0, 0.5);
-        assert_eq!(r, 255);
-        assert_eq!(g, 0);
-        assert_eq!(b, 0);
-
-        // Test pure blue (H=240/360, S=1, L=0.5)
-        let (r, g, b) = ColorUtils::hsl_to_rgb_via_lab(240.0 / 360.0, 1.0, 0.5);
-        assert_eq!(r, 0);
-        assert_eq!(g, 0);
-        assert_eq!(b, 255);
-    }
-
-    #[test]
-    fn test_hsl_conversion_methods_comparison() {
-        // Test 10 randomly chosen colors across HSL space
-        let test_colors = [
-            (0.0, 1.0, 0.5),           // Pure red
-            (120.0 / 360.0, 1.0, 0.5), // Pure green
-            (240.0 / 360.0, 1.0, 0.5), // Pure blue
-            (60.0 / 360.0, 1.0, 0.5),  // Yellow
-            (300.0 / 360.0, 1.0, 0.5), // Magenta
-            (180.0 / 360.0, 1.0, 0.5), // Cyan
-            (30.0 / 360.0, 0.8, 0.6),  // Orange-ish
-            (210.0 / 360.0, 0.6, 0.4), // Blue-ish
-            (270.0 / 360.0, 0.7, 0.3), // Purple-ish
-            (150.0 / 360.0, 0.5, 0.7), // Green-ish
-        ];
-
-        for (h, s, l) in test_colors.iter() {
-            let direct = ColorUtils::hsl_to_rgb(*h, *s, *l);
-            let via_lab = ColorUtils::hsl_to_rgb_via_lab(*h, *s, *l);
-
-            // Calculate difference between the two methods
-            let diff_r = (direct.0 as i16 - via_lab.0 as i16).abs();
-            let diff_g = (direct.1 as i16 - via_lab.1 as i16).abs();
-            let diff_b = (direct.2 as i16 - via_lab.2 as i16).abs();
-
-            // Print comparison for analysis
-            println!(
-                "HSL({:.3}, {:.3}, {:.3}) -> Direct: RGB({}, {}, {}) vs Via LAB: RGB({}, {}, {}) | Diff: ({}, {}, {})",
-                h * 360.0,
-                s,
-                l,
-                direct.0,
-                direct.1,
-                direct.2,
-                via_lab.0,
-                via_lab.1,
-                via_lab.2,
-                diff_r,
-                diff_g,
-                diff_b
-            );
-
-            // The differences should generally be small for most colors
-            // but may be larger in some edge cases due to different conversion paths
-            // We'll allow up to 5 units of difference per channel as acceptable
-            assert!(
-                diff_r <= 5,
-                "Red difference too large: {} for HSL({:.3}, {:.3}, {:.3})",
-                diff_r,
-                h * 360.0,
-                s,
-                l
-            );
-            assert!(
-                diff_g <= 5,
-                "Green difference too large: {} for HSL({:.3}, {:.3}, {:.3})",
-                diff_g,
-                h * 360.0,
-                s,
-                l
-            );
-            assert!(
-                diff_b <= 5,
-                "Blue difference too large: {} for HSL({:.3}, {:.3}, {:.3})",
-                diff_b,
-                h * 360.0,
-                s,
-                l
-            );
-        }
     }
 
     #[test]

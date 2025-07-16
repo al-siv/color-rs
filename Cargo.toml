@@ -1,6 +1,6 @@
 [package]
 name = "color-rs"
-version = "0.8.4"
+version = "0.9.1"
 edition = "2024" # DO NOT EDIT THIS LINE!!!
 description = "A CLI tool and Rust library for color gradient calculations using LAB color space with cubic-bezier easing functions"
 authors = ["al-siv <https://github.com/al-siv>"]
@@ -11,6 +11,7 @@ documentation = "https://github.com/al-siv/color-rs#readme"
 keywords = ["color", "gradient", "lab", "css", "cli", "library"]
 categories = ["command-line-utilities", "graphics", "multimedia::images", "development-tools"]
 readme = "README.md"
+default-run = "color-rs"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
@@ -23,3 +24,4 @@ usvg = "0.45"
 resvg = "0.45"
 colored = "3.0"
 tabled = "0.20"
+regex = "1.0"

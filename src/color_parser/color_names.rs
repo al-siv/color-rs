@@ -22,7 +22,7 @@ impl ColorNameResolver {
     /// Find the closest color name for given RGB values using LAB color space distance
     pub fn find_closest_name(&self, rgb: [u8; 3]) -> String {
         let mut min_distance = f32::MAX;
-        let mut closest_name = "Unknown";
+        let mut closest_name = "unknown";
 
         // Convert input RGB to LAB for perceptually accurate comparison
         let input_lab = ColorUtils::rgb_to_lab(rgb);
@@ -126,17 +126,17 @@ mod tests {
         // Test finding closest color to pure red
         let red_rgb = [255, 0, 0];
         let closest = resolver.find_closest_name(red_rgb);
-        assert_eq!(closest, "Red");
+        assert_eq!(closest, "red");
 
         // Test finding closest color to pure blue
         let blue_rgb = [0, 0, 255];
         let closest = resolver.find_closest_name(blue_rgb);
-        assert_eq!(closest, "Blue");
+        assert_eq!(closest, "blue");
 
         // Test finding closest color to white
         let white_rgb = [255, 255, 255];
         let closest = resolver.find_closest_name(white_rgb);
-        assert_eq!(closest, "White");
+        assert_eq!(closest, "white");
     }
 }
 

@@ -169,14 +169,31 @@ impl ColorProcessor {
 
 /// Match and convert a color to all formats with comprehensive output
 pub fn color_match(color_input: &str) -> Result<String> {
+    // First, try to parse as RAL code (RAL Classic or Design System+)
+    if let Some(ral_match) = try_parse_ral_color(color_input) {
+        // Convert RAL match to LAB color for comprehensive analysis
+        let hex_without_hash = ral_match.hex.trim_start_matches('#');
+        let r = u8::from_str_radix(&hex_without_hash[0..2], 16).unwrap_or(0);
+        let g = u8::from_str_radix(&hex_without_hash[2..4], 16).unwrap_or(0);
+        let b = u8::from_str_radix(&hex_without_hash[4..6], 16).unwrap_or(0);
+        
+        let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+        let lab_color: Lab = srgb.into_color();
+        
+        // Use the RAL color name as the color name
+        let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
+        
+        return format_comprehensive_report_with_ral(lab_color, color_input, &ral_color_name);
+    }
+
     // Parse the input color
     let (lab_color, _format) = parse_color_with_parser(color_input)?;
 
     // Get color name
     let color_name = get_color_name_for_lab(lab_color)?;
 
-    // Generate comprehensive report
-    ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name)
+    // Generate comprehensive report including RAL matches
+    format_comprehensive_report_with_ral(lab_color, color_input, &color_name)
 }
 
 /// Parse color input using the integrated parser
@@ -314,7 +331,7 @@ mod tests {
         // Test named color input
         let named_result = color_match("red").unwrap();
         assert!(named_result.contains("rgb(255, 0, 0)"));
-        assert!(named_result.contains("Name: Red"));
+        assert!(named_result.contains("CSS-name: red"));
 
         // Test HSL input
         let hsl_result = color_match("hsl(240, 100%, 50%)").unwrap();
@@ -340,4 +357,71 @@ mod tests {
         assert!((lab_from_hex.a - lab_from_rgb.a).abs() < 0.01);
         assert!((lab_from_hex.b - lab_from_rgb.b).abs() < 0.01);
     }
+}
+
+/// Try to parse input as RAL color code or name
+fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
+    use crate::color_parser::parse_ral_color;
+    
+    // The parse_ral_color function now handles CSS color filtering internally
+    parse_ral_color(input)
+}
+
+/// Generate comprehensive report including RAL color matches
+fn format_comprehensive_report_with_ral(lab_color: Lab, input: &str, color_name: &str) -> Result<String> {
+    use crate::color_parser::{find_closest_ral_classic, find_closest_ral_design, RgbColor};
+    use palette::IntoColor;
+    
+    // Get the base report
+    let base_report = ColorFormatter::format_comprehensive_report(lab_color, input, color_name)?;
+    
+    // Convert LAB to RGB for RAL matching
+    let srgb: Srgb = lab_color.into_color();
+    let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
+    let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
+    let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
+    
+    let rgb = RgbColor::new(r, g, b);
+    
+    // Find 2 closest from each classification separately
+    let classic_matches = find_closest_ral_classic(&rgb, 2);
+    let design_matches = find_closest_ral_design(&rgb, 2);
+    
+    if classic_matches.is_empty() && design_matches.is_empty() {
+        return Ok(base_report);
+    }
+    
+    let mut ral_section = String::from("\nClosest RAL Colors:\n");
+    
+    // Add RAL Classic results
+    if !classic_matches.is_empty() {
+        ral_section.push_str("RAL Classic:\n");
+        for (i, ral_match) in classic_matches.iter().enumerate() {
+            ral_section.push_str(&format!(
+                "  {}. {} ({})\n     Hex: {} | ΔE: {:.2}\n",
+                i + 1,
+                ral_match.name,
+                ral_match.code,
+                ral_match.hex,
+                ral_match.distance
+            ));
+        }
+    }
+    
+    // Add RAL Design System+ results
+    if !design_matches.is_empty() {
+        ral_section.push_str("RAL Design System+:\n");
+        for (i, ral_match) in design_matches.iter().enumerate() {
+            ral_section.push_str(&format!(
+                "  {}. {} ({})\n     Hex: {} | ΔE: {:.2}\n",
+                i + 1,
+                ral_match.name,
+                ral_match.code,
+                ral_match.hex,
+                ral_match.distance
+            ));
+        }
+    }
+    
+    Ok(format!("{}{}", base_report, ral_section))
 }

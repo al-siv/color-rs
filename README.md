@@ -1,14 +1,12 @@
 # color-rs
 
-A professional C```toml
-[dependencies]
-color-rs = "0.8.4"
-```ool and Rust library for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
+A professional CLI tool and Rust library for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
 
 ## Features
 
 - **Simplified Interface**: Direct color arguments without flags - just `gradient red blue`
 - **Universal Color Parsing**: Supports HEX, RGB, HSL, and 148+ named colors across all commands
+- **RAL Color System**: Complete support for RAL Classic (213 colors) and RAL Design System+ (1825 colors) with precise color matching
 - **Perceptually Accurate Processing**: LAB color space for smooth gradients and ImprovedCiede2000 Delta E for precise color distance calculations
 - **WCAG Compliance**: Official WCAG 2.1 implementation for relative luminance and contrast ratio calculations using palette library
 - **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
@@ -25,7 +23,7 @@ color-rs = "0.8.4"
 - **Integer Percentages**: CSS-friendly percentage values for practical use
 - **Rich Color Information**: RGB, HSL, LAB, XYZ, OKLCH values with color name recognition
 - **Type Safety**: Custom error types and comprehensive error handling
-- **Well Tested**: Comprehensive unit test suite with 24+ tests
+- **Well Tested**: Comprehensive unit test suite with 37+ tests
 
 ## Library Usage
 
@@ -33,6 +31,8 @@ Color-rs can be used as a Rust library in your projects:
 
 ```toml
 [dependencies]
+color-rs = "0.9.1"
+```
 color-rs = "0.8.0"
 ```
 
@@ -316,9 +316,24 @@ ARGUMENTS:
     <COLOR>    Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
 
 The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions, WCAG-compliant relative luminance calculations, contrast ratios, and accessibility information.
+
+#### RAL Color System Support
+The color-match command now includes comprehensive RAL color system support with:
+- **RAL Classic**: 213 standardized colors (e.g., "RAL 1000", "RAL1000")
+- **RAL Design System+**: 1825 colors in hue/lightness/chromaticity format (e.g., "H010L20C10")
+- **Name-based lookup**: Search by RAL color names (e.g., "signal yellow", "traffic red")
+- **Closest matches**: Shows 2 closest colors from each classification separately
+- **Complete Analysis**: RAL colors receive the same comprehensive analysis as all other color inputs
+
+Examples:
+```bash
+color-rs color-match "RAL 1000"          # RAL Classic with space
+color-rs color-match "RAL1000"           # RAL Classic without space  
+color-rs color-match "H010L20C10"        # RAL Design System+
+color-rs color-match "signal yellow"     # RAL name search
 ```
 
-Key features of color analysis:
+All color inputs (including RAL colors) receive comprehensive analysis including:
 - **Input Format Auto-Detection**: Supports hex (#FF5733), RGB/RGBA (rgb(255,87,51)), HSL/HSLA (hsl(11,100%,60%)), and named colors (red, blue, etc.)
 - **Comprehensive Conversion**: Outputs RGB, Hex, HSL, LAB, XYZ, and OKLCH formats
 - **Color Name Recognition**: Uses a database of 148+ named colors to find the closest match
