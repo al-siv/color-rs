@@ -1,0 +1,1826 @@
+Code;Name;Hex
+RAL 000 15 00;Ink black;#414141
+RAL 000 20 00;Slate black;#474646
+RAL 000 25 00;Onyx black;#504F4F
+RAL 000 30 00;Medium black;#565656
+RAL 000 35 00;Briquette grey;#5F5F5F
+RAL 000 40 00;Dark grey;#696968
+RAL 000 45 00;Architecture grey;#757473
+RAL 000 50 00;Steel grey;#7E7F7E
+RAL 000 55 00;Medium grey;#898989
+RAL 000 60 00;Ash grey;#959595
+RAL 000 65 00;Mortar grey;#A3A3A3
+RAL 000 70 00;Light grey;#B0B0B0
+RAL 000 75 00;Marble grey;#BDBDBD
+RAL 000 80 00;Foggy grey;#CACAC9
+RAL 000 85 00;Shadow white;#D7D7D5
+RAL 000 90 00;Winter white;#E2E3E1
+RAL 010 20 10;Wenge black;#524446
+RAL 010 20 15;Cherry black;#564144
+RAL 010 20 20;Dark mahogany;#5B3F43
+RAL 010 20 25;Rusty red;#5E3E43
+RAL 010 30 10;Laurel nut rusty brown;#665255
+RAL 010 30 15;Night mauve;#6A5054
+RAL 010 30 20;Pinkish brown;#714E53
+RAL 010 30 25;Chestnut red;#774A52
+RAL 010 30 30;Leather red;#7C4851
+RAL 010 30 35;Anthracite red;#7E454F
+RAL 010 30 40;Brown magenta;#86404F
+RAL 010 30 44;Atlas red;#8B3D4F
+RAL 010 40 10;Caput mortuum grey red;#796567
+RAL 010 40 15;Rust brown;#806165
+RAL 010 40 20;Sunset red;#875F64
+RAL 010 40 25;Mineral red;#8D5C65
+RAL 010 40 30;Dull magenta;#945963
+RAL 010 40 35;Velvet red;#975460
+RAL 010 40 40;Algae red;#9F5161
+RAL 010 40 45;Raspberry ice cream red;#A54D61
+RAL 010 40 50;Fuchsia red;#AB4960
+RAL 010 40 53;Primal red;#AE465E
+RAL 010 50 10;Old mahogany;#8F797D
+RAL 010 50 15;Dull dusky pink;#96757A
+RAL 010 50 20;Brickwork red;#9D737A
+RAL 010 50 25;Matte carmine;#A67079
+RAL 010 50 30;Marble red;#AE6C78
+RAL 010 50 35;Geranium red;#B36876
+RAL 010 50 40;Slate pink;#B86576
+RAL 010 50 45;Tulip red;#BD5F74
+RAL 010 50 50;Vibrant red;#C65C74
+RAL 010 60 10;Lilac grey;#A89093
+RAL 010 60 15;Ice orchid red;#B18E93
+RAL 010 60 20;Lime pink;#BA8B92
+RAL 010 60 25;Lipstick pink;#C08690
+RAL 010 60 30;Japanese coral;#C7828F
+RAL 010 60 35;Rose red;#D07F8D
+RAL 010 60 40;Strawberry milkshake red;#D67B8C
+RAL 010 60 45;Luminous pink;#DF768B
+RAL 010 70 10;Pale mauve;#C3AAAE
+RAL 010 70 15;Powder rose;#CAA7AB
+RAL 010 70 20;Silver rose;#D4A3AB
+RAL 010 70 25;Flamingo pink;#DC9FA9
+RAL 010 70 30;Cherry blossom pink;#E39CA8
+RAL 010 70 35;Baby pink;#EB96A5
+RAL 010 80 10;Mud pink;#DEC3C5
+RAL 010 80 15;Ice hot pink;#E5C0C4
+RAL 010 80 20;Pastel pink;#EFBCC3
+RAL 010 85 05;Pearl rose;#DED1D3
+RAL 010 85 10;Salmon rose;#E4CDD1
+RAL 010 85 15;Milkshake pink;#EFCCD2
+RAL 010 85 20;Carnation pink;#F8CBD2
+RAL 010 90 05;Rose cream;#EFE0DF
+RAL 010 90 10;Light apricot;#F2DBD8
+RAL 010 93 05;White-red;#F1E6E8
+RAL 020 20 05;Deep brown;#4C4545
+RAL 020 20 10;Night red;#524343
+RAL 020 20 20;Dark red brown;#5B4041
+RAL 020 20 29;Burgundy;#633C40
+RAL 020 30 05;Rhodonite brown;#5D5454
+RAL 020 30 10;Budapest brown;#645151
+RAL 020 30 20;Kremlin red;#6F4B4C
+RAL 020 30 30;Crystal dark red;#78464A
+RAL 020 30 40;Amaranth blossom;#844048
+RAL 020 30 48;Sweet cherry red;#8C3C46
+RAL 020 40 05;Greyish brown;#726868
+RAL 020 40 10;Nut brown;#786464
+RAL 020 40 20;Antique red;#855E60
+RAL 020 40 30;Hermosa pink;#92585C
+RAL 020 40 40;October red;#9B5157
+RAL 020 40 50;Bright red;#A74751
+RAL 020 50 05;Zircon grey;#897D7C
+RAL 020 50 10;Sandstone red grey;#907879
+RAL 020 50 20;Red grey;#9F7274
+RAL 020 50 30;Venetian red;#AC6C70
+RAL 020 50 40;Alsike clover red;#B6646B
+RAL 020 50 50;Flame red;#C25C67
+RAL 020 50 58;Lingonberry red;#D25766
+RAL 020 60 05;Globe thistle grey rose;#9F9493
+RAL 020 60 10;Tin pink;#A78E8F
+RAL 020 60 20;Retro pink;#B88A8C
+RAL 020 60 30;Begonia rusty rose;#C68186
+RAL 020 60 40;Lotus red;#D37A82
+RAL 020 70 05;Fashion mauve;#B9ADAC
+RAL 020 70 10;Tourmaline mauve;#C0A7A8
+RAL 020 70 20;Rosewood apricot;#D4A2A5
+RAL 020 70 30;Marker pink;#E49BA0
+RAL 020 80 05;Aurora grey;#D5C7C6
+RAL 020 80 10;Quartz rose;#DCC1C2
+RAL 020 80 20;Marzipan pink;#EEBCBE
+RAL 020 85 05;Almond blossom pink;#DFD1D1
+RAL 020 85 10;Salmon cream;#E7CECE
+RAL 020 85 20;Elegant light rose;#FBC9CA
+RAL 020 90 05;Mussel white;#F0E2DE
+RAL 020 90 10;Peach cream;#F3DDD9
+RAL 020 93 05;Blossom white;#F6E6E3
+RAL 030 30 10;Laurel nut rusty brown;#635351
+RAL 030 30 20;Autumn leaf red;#6E4D4B
+RAL 030 30 30;Macore veneer red;#784845
+RAL 030 30 40;Crimson red;#854343
+RAL 030 30 45;Blood red;#863E3F
+RAL 030 40 10;Peat red brown;#766361
+RAL 030 40 20;Cranberry red;#86605C
+RAL 030 40 30;Brick brown;#925955
+RAL 030 40 40;Spicy red;#9D5351
+RAL 030 40 50;Hibiscus red;#A84C4C
+RAL 030 40 60;Emperor cherry red;#B14548
+RAL 030 50 10;Earth red;#8F7875
+RAL 030 50 20;Terracotta red brown;#9D736F
+RAL 030 50 30;Clay red;#AB6D68
+RAL 030 50 40;Vermilion red;#B86762
+RAL 030 50 50;Maple red;#C25F5C
+RAL 030 50 60;Holland red;#CF5654
+RAL 030 60 10;Storm red;#A6908E
+RAL 030 60 20;Desert red;#B78A86
+RAL 030 60 30;Antique pink;#C5827C
+RAL 030 60 40;Light tomato;#D37D77
+RAL 030 60 50;Calypso red;#E0746E
+RAL 030 70 10;Florida grey;#C0A8A6
+RAL 030 70 20;Dull apricot;#D2A19C
+RAL 030 70 30;Salmon pink red;#E29A94
+RAL 030 70 40;Flamingo red;#F0938C
+RAL 030 80 10;Salt pink;#DBC2BF
+RAL 030 80 20;Magnolia pink;#ECBBB6
+RAL 030 85 05;Almond cream;#DFD0CB
+RAL 030 85 10;Soft ice rose;#E5CEC9
+RAL 030 85 20;Peach red;#F6CBC3
+RAL 030 90 05;Antique white;#EFE1DC
+RAL 030 90 10;Wedding pink;#F5DFD9
+RAL 030 93 05;Parchment white;#F7E7E3
+RAL 040 20 19;Wild brown;#5A433F
+RAL 040 30 05;Basalt black;#5D5552
+RAL 040 30 10;Caviar black;#62524E
+RAL 040 30 20;Coffee brown;#6D4E47
+RAL 040 30 30;Root brown;#774B43
+RAL 040 30 40;Corrosion red;#80463E
+RAL 040 40 05;Ash brown;#726865
+RAL 040 40 10;Somali brown;#776560
+RAL 040 40 20;Vandyck brown;#84625A
+RAL 040 40 30;Chestnut brown;#8D5A4E
+RAL 040 40 40;Brick red;#985447
+RAL 040 40 50;Henna red;#A35041
+RAL 040 40 60;Copper red;#AA473B
+RAL 040 40 67;China red;#B24539
+RAL 040 50 05;Nomad grey;#877C79
+RAL 040 50 10;Umbra sand;#8E7A74
+RAL 040 50 20;Agate brown;#9C746A
+RAL 040 50 30;Rust coloured;#AA6F61
+RAL 040 50 40;Ant red;#B36857
+RAL 040 50 50;English red;#C0624F
+RAL 040 50 60;Fox red;#CE5E4A
+RAL 040 50 70;Pompeii red;#D55845
+RAL 040 60 05;Warm grey;#9F9491
+RAL 040 60 10;Light caramel;#A8918B
+RAL 040 60 20;Sienna yellow;#B4897E
+RAL 040 60 30;Cedar red;#C48677
+RAL 040 60 40;Terra orange;#CF806E
+RAL 040 60 50;Mandarin orange;#DC7B64
+RAL 040 60 60;Coral orange;#E67359
+RAL 040 70 05;Passepartout grey;#B7ACA9
+RAL 040 70 10;Mohair mauve;#C2A9A3
+RAL 040 70 20;Soft sienna;#D2A499
+RAL 040 70 30;Industrial rose;#E09D8D
+RAL 040 70 40;Apricot red;#E99885
+RAL 040 70 50;Fruit red;#FA9079
+RAL 040 80 05;Natural silk grey;#D4C7C3
+RAL 040 80 10;Thulite rose;#DEC4BC
+RAL 040 80 20;Madder orange;#F1C1B4
+RAL 040 80 30;Nature apricot;#FEBAA9
+RAL 040 85 05;Pandora grey;#E1D2CE
+RAL 040 85 10;Fine alabaster;#EAD2CA
+RAL 040 85 20;Delicate sweet apricot;#FACCBD
+RAL 040 90 05;Sahara light red;#F1E2DC
+RAL 040 90 10;Delicate rose;#F7E0D7
+RAL 040 93 05;Natural white;#F9EAE4
+RAL 050 20 10;Granite brown;#504541
+RAL 050 20 16;Night brown;#56443E
+RAL 050 30 10;Obsidian brown;#5F504A
+RAL 050 30 20;Tropical wood brown;#6A4F44
+RAL 050 30 30;Tobacco brown;#744C3E
+RAL 050 30 36;Rosewood brown;#7A4B3C
+RAL 050 40 10;Mocha black;#76645D
+RAL 050 40 20;Florentine brown;#806153
+RAL 050 40 30;Curry brown;#895E4D
+RAL 050 40 40;Madeira brown;#945943
+RAL 050 40 50;Autumn red;#9D5640
+RAL 050 50 10;Teakwood brown;#8D7B73
+RAL 050 50 20;Milk coffee brown;#997767
+RAL 050 50 30;Golden brown;#A5725C
+RAL 050 50 40;Copper-metal red;#AE6C50
+RAL 050 50 50;Gold varnish brown;#B96746
+RAL 050 50 60;Titian red;#BD623D
+RAL 050 50 70;Poppy red;#CC5C36
+RAL 050 50 78;Persian orange;#D16032
+RAL 050 60 10;Ecru ochre;#A59188
+RAL 050 60 20;Caramel brown;#B18C7B
+RAL 050 60 30;Medium brown;#C28971
+RAL 050 60 40;Apricot brown;#C98365
+RAL 050 60 50;Orange yellow;#D67F59
+RAL 050 60 60;Camel red;#E17B4E
+RAL 050 60 70;Carrot orange;#E67045
+RAL 050 60 80;Gerbera red;#F26D3F
+RAL 050 70 10;Bamboo beige;#C0ACA2
+RAL 050 70 20;Amber grey;#CEA796
+RAL 050 70 30;Sienna ochre;#DBA188
+RAL 050 70 40;Light amber orange;#E99B7B
+RAL 050 70 50;Melon red;#F39670
+RAL 050 70 60;Mango orange;#FE9063
+RAL 050 80 10;Pale sienna;#DBC5BB
+RAL 050 80 20;Soft orange;#E9BFAC
+RAL 050 80 30;Pallid orange;#F6B99F
+RAL 050 85 05;Ocean sand;#E2D3CC
+RAL 050 85 10;Pure beige;#E6CFC3
+RAL 050 85 20;Biscuit cream;#F6CBB7
+RAL 050 90 05;Eggshell white;#EDE0D8
+RAL 050 90 10;Light peach rose;#FBE2D6
+RAL 050 93 05;Tulle white;#F9EBE4
+RAL 060 20 05;Industrial black;#4A4643
+RAL 060 30 05;Vehicle body grey;#5C5551
+RAL 060 30 10;Nutria fur brown;#60534B
+RAL 060 30 20;Peat brown;#665042
+RAL 060 30 27;Cassiterite brown;#6F5141
+RAL 060 40 05;Zinc grey;#716863
+RAL 060 40 10;Moor oak grey;#75655C
+RAL 060 40 20;Coffee bean brown;#7F6351
+RAL 060 40 30;Brazilian brown;#876048
+RAL 060 40 40;Plane brown;#915F41
+RAL 060 50 05;Chinchilla grey;#877D77
+RAL 060 50 10;Sandstone grey;#8C7C71
+RAL 060 50 20;Mushroom brown;#967965
+RAL 060 50 30;Mustard brown;#A2775A
+RAL 060 50 40;Camel brown;#AA714D
+RAL 060 50 50;Date fruit brown;#B37045
+RAL 060 50 60;Elm brown red;#B66838
+RAL 060 50 70;Dry clay;#C16933
+RAL 060 60 05;Screed grey;#A09790
+RAL 060 60 10;Oak brown;#A59387
+RAL 060 60 20;Light topaz ochre;#B4907B
+RAL 060 60 30;Cognac brown;#BC8D6D
+RAL 060 60 40;Maple syrup brown;#CB8C5E
+RAL 060 60 50;Turmeric red;#CC814E
+RAL 060 60 60;Bitter orange;#D77F43
+RAL 060 60 70;Gold orange;#DC7C37
+RAL 060 60 80;Accent orange;#E6752A
+RAL 060 70 05;Cement greige;#B9AFA9
+RAL 060 70 10;Putty grey;#C0ADA1
+RAL 060 70 20;Peanut butter;#CBA891
+RAL 060 70 30;Peach yellow;#D3A281
+RAL 060 70 40;Candle yellow;#E1A074
+RAL 060 70 50;Topaz yellow;#EB9C67
+RAL 060 70 60;Melon orange;#F19758
+RAL 060 70 70;Indian yellow;#FC9348
+RAL 060 80 05;Light chamois beige;#D3C9C1
+RAL 060 80 10;Soft greige;#D8C6B9
+RAL 060 80 20;Biscuit beige;#E7C2AA
+RAL 060 80 30;Mild orange;#F4BE9A
+RAL 060 80 40;Apricot orange;#FDB889
+RAL 060 85 05;Champagne rose;#E0D4CC
+RAL 060 85 10;Cornmeal beige;#E8D3C5
+RAL 060 85 20;Dough yellow;#F3CFB6
+RAL 060 85 30;Light saffron orange;#FFCCA5
+RAL 060 90 05;Grain white;#EFE3D9
+RAL 060 90 10;Vanilla cream;#F7E0D2
+RAL 060 90 15;Apricot cream;#FCDCC9
+RAL 060 93 05;Wool white;#F7EBE2
+RAL 070 30 10;Mineral brown;#5C5148
+RAL 070 30 20;Beech brown;#655444
+RAL 070 40 10;Mink brown;#71655A
+RAL 070 40 20;Huckleberry brown;#7A634E
+RAL 070 40 30;Arable brown;#826448
+RAL 070 40 40;Autumn gold;#88613D
+RAL 070 50 10;Saruk grey;#887B6E
+RAL 070 50 20;Ash gold;#927961
+RAL 070 50 30;Lion's mane blonde;#997552
+RAL 070 50 40;Antique gold;#A17344
+RAL 070 50 50;Stage gold;#A2723D
+RAL 070 50 55;Theatre gold;#AA7034
+RAL 070 60 10;Light mahogany;#A19285
+RAL 070 60 20;Dark blond;#AB9178
+RAL 070 60 30;Light oak brown;#B38C67
+RAL 070 60 40;Grain brown;#BB8B58
+RAL 070 60 50;Mud yellow;#C48949
+RAL 070 60 60;Mustard yellow;#CC863B
+RAL 070 60 70;Sea buckthorn yellow brown;#CF8432
+RAL 070 60 75;Autumn leaf orange;#D1812A
+RAL 070 70 10;Ginger grey yellow;#BAAC9D
+RAL 070 70 20;Light ash brown;#C5A98D
+RAL 070 70 30;Golden beige;#D0A77E
+RAL 070 70 40;Dechant pear yellow;#D19F6A
+RAL 070 70 50;Honeycomb yellow;#DFA15F
+RAL 070 70 60;Gorse yellow orange;#E9A04F
+RAL 070 70 70;Naples yellow;#EB9A3F
+RAL 070 70 80;Saffron gold;#F09630
+RAL 070 80 10;Flax beige;#D5C5B6
+RAL 070 80 20;Buttercup yellow;#E4C5A8
+RAL 070 80 30;Golden oat coloured;#ECC196
+RAL 070 80 40;Apricot yellow;#F6C088
+RAL 070 80 50;Warm apricot;#FEBC75
+RAL 070 80 60;Golden rain yellow;#FFBA65
+RAL 070 85 05;Almond beige;#DED4CA
+RAL 070 85 10;Silver thistle beige;#E5D3C5
+RAL 070 85 20;Sandalwood beige;#EFD0B2
+RAL 070 85 30;Hair blonde;#FACFA2
+RAL 070 90 05;Off white;#EDE3DA
+RAL 070 90 10;Light corn;#F3E2D2
+RAL 070 90 20;Chalk yellow;#FEDEC0
+RAL 070 93 05;Anemone white;#F7ECE2
+RAL 075 40 10;Tree bark brown;#71685D
+RAL 075 40 20;Caraway brown;#786551
+RAL 075 40 30;Bark brown;#7D6346
+RAL 075 40 38;Lizard brown;#81633E
+RAL 075 50 10;Rye dough brown;#887D71
+RAL 075 50 20;China cinnamon;#907A62
+RAL 075 50 30;Grog yellow;#987954
+RAL 075 50 40;Amber brown;#9E7749
+RAL 075 50 50;Cinnamon brown;#A3753C
+RAL 075 50 58;Cumin ochre;#A47232
+RAL 075 60 10;Putty yellow;#A29487
+RAL 075 60 20;Walnut shell brown;#AA9278
+RAL 075 60 30;Clay ochre;#B29069
+RAL 075 60 40;Funchal yellow;#B98E5A
+RAL 075 60 50;Mango brown;#BE8C49
+RAL 075 60 60;Turmeric brown;#C3893A
+RAL 075 60 70;Bamboo brown;#CA872A
+RAL 075 70 10;Flax fibre grey;#BAAD9F
+RAL 075 70 20;Light pumpkin brown;#C4AA8C
+RAL 075 70 30;Golden thistle yellow;#CCA87E
+RAL 075 70 40;Brick yellow;#D3A56C
+RAL 075 70 50;Deep bamboo yellow;#DAA45E
+RAL 075 70 60;Intense yellow;#E2A14B
+RAL 075 70 70;Pumpkin yellow;#EAA139
+RAL 075 70 80;Autumn yellow;#EB9F2B
+RAL 075 80 10;Chalk beige;#D7C8B8
+RAL 075 80 20;Light corn yellow;#E1C6A7
+RAL 075 80 30;Dark yellow;#E8C295
+RAL 075 80 40;Ash yellow;#F0C186
+RAL 075 80 50;Orient yellow;#F6BD73
+RAL 075 80 60;Carriage yellow;#FFBB63
+RAL 075 85 10;Water lily white;#E4D4C3
+RAL 075 85 20;Banana ice cream;#EED2B2
+RAL 075 85 30;Maple beige;#F7D0A2
+RAL 075 85 40;Goldenrod yellow;#FECD90
+RAL 075 90 10;Dessert cream;#F5E5D2
+RAL 075 90 20;Butter white;#FCE0C0
+RAL 075 93 05;Vanilla white;#F4ECE3
+RAL 080 20 05;Night brown black;#4A4743
+RAL 080 20 10;Vanilla bean brown;#4D4740
+RAL 080 30 05;Earth black;#5A5550
+RAL 080 30 10;Olive black;#5C544A
+RAL 080 30 20;Clove yellow brown;#615341
+RAL 080 30 26;Smoked oak brown;#64533C
+RAL 080 40 05;Office grey;#6E6962
+RAL 080 40 10;Stone brown;#71685B
+RAL 080 40 20;Pimento grain brown;#76654D
+RAL 080 40 30;Ochre green;#7B6442
+RAL 080 40 40;Autumn leaf brown;#82653A
+RAL 080 50 05;Dusk grey;#837E76
+RAL 080 50 10;Rye brown;#877C6F
+RAL 080 50 20;Greyish yellow;#8E7B60
+RAL 080 50 30;Chili green;#937A53
+RAL 080 50 40;Dirt yellow;#977845
+RAL 080 50 50;Chamois yellow;#9C7839
+RAL 080 60 05;Flannel grey;#9B958E
+RAL 080 60 10;Light khaki;#9E9384
+RAL 080 60 20;Spelt grain brown;#A79375
+RAL 080 60 30;Golden quartz ochre;#AD9165
+RAL 080 60 40;Bamboo yellow;#B18E58
+RAL 080 60 50;Brass yellow;#B78E49
+RAL 080 60 60;Fig mustard yellow;#BD8E39
+RAL 080 60 70;Yellow gold;#C08D2D
+RAL 080 70 05;Garlic beige;#B3AEA6
+RAL 080 70 10;Fine greige;#B8AC9C
+RAL 080 70 20;Yellow brown;#C1AB8B
+RAL 080 70 30;Mustard seed beige;#C7A97B
+RAL 080 70 40;Diamond yellow;#CFA86A
+RAL 080 70 50;Antique brass;#D4A75A
+RAL 080 70 60;Courgette yellow;#DBA74B
+RAL 080 70 70;Grapefruit yellow;#DFA639
+RAL 080 70 80;Sunflower yellow;#E0A226
+RAL 080 70 88;Arnica yellow;#E5A10E
+RAL 080 80 05;Micaceous light grey;#CFC9C0
+RAL 080 80 10;Pastel sand;#D6C8B7
+RAL 080 80 20;Natural rice beige;#DDC5A4
+RAL 080 80 30;Yellow beige;#E3C393
+RAL 080 80 40;Straw yellow;#EBC281
+RAL 080 80 50;Mirabelle yellow;#F2C172
+RAL 080 80 60;Full yellow;#F8C05F
+RAL 080 80 70;Pear yellow;#FBBD4E
+RAL 080 80 80;Fire yellow;#FFBA36
+RAL 080 80 90;Summer yellow;#FFBA1F
+RAL 080 85 05;Wheat flour white;#DBD4CA
+RAL 080 85 10;Onion white;#E0D4C2
+RAL 080 85 20;Nashi pear beige;#EAD3B2
+RAL 080 85 30;Vespa yellow;#F1D0A0
+RAL 080 85 40;Puff pastry yellow;#F9CF8D
+RAL 080 90 05;Japanese white;#EDE5DA
+RAL 080 90 10;Mushroom white;#EFE1CF
+RAL 080 90 20;Macadamia beige;#ECD6B6
+RAL 080 90 30;Horseradish yellow;#FFDFAE
+RAL 080 93 05;Milk star white;#F3EAE1
+RAL 085 40 10;Mineral green;#716A5E
+RAL 085 40 20;Khaki green;#74674F
+RAL 085 40 30;Moss brown;#7A6847
+RAL 085 50 10;Coriander ochre;#867E6F
+RAL 085 50 20;Pyrite slate green;#8C7D61
+RAL 085 50 30;Sepia yellow;#927D54
+RAL 085 50 40;Marshy green;#947B48
+RAL 085 50 50;Honey yellow green;#987B3D
+RAL 085 60 10;Matte olive;#9E9587
+RAL 085 60 20;Pond green;#A59476
+RAL 085 60 30;Wood green;#AB9367
+RAL 085 60 40;Lichen green;#AF9358
+RAL 085 60 50;Mineral umber;#B4934A
+RAL 085 60 60;Loden yellow;#B9923B
+RAL 085 70 10;Raffia greige;#B6AD9C
+RAL 085 70 20;Feldspar grey;#BFAC8C
+RAL 085 70 30;Hay yellow;#C5AC7A
+RAL 085 70 40;Winter pear beige;#C9AA6B
+RAL 085 70 50;Autumn apple yellow;#CEA95A
+RAL 085 70 60;Pitmaston pear yellow;#D0A848
+RAL 085 70 70;Immortelle yellow;#D4A738
+RAL 085 70 75;Golden beryl yellow;#DAA92D
+RAL 085 80 10;Velvet beige;#D1C7B5
+RAL 085 80 20;Mineral beige;#D8C6A4
+RAL 085 80 30;Moonlight yellow;#E1C692
+RAL 085 80 40;Table pear yellow;#E6C582
+RAL 085 80 50;Fruit yellow;#E9C370
+RAL 085 80 60;Adonis rose yellow;#EEC25D
+RAL 085 80 70;Barberry yellow;#F2C14B
+RAL 085 80 80;Dandelion yellow;#F4BF36
+RAL 085 80 85;Decor yellow;#F5BF2C
+RAL 085 85 10;Alabaster white;#DDD2BF
+RAL 085 85 20;Light blond;#E5D2B0
+RAL 085 85 30;Willow-flower yellow;#EDD19E
+RAL 085 85 40;Light ginger yellow;#F4D28E
+RAL 085 90 10;Tulip white;#F0E5D3
+RAL 085 90 20;Alpine berry yellow;#F6E1BE
+RAL 085 90 30;China clay yellow;#FBDEAB
+RAL 085 93 05;Vintage white;#F2ECE3
+RAL 090 30 10;Limonite brown;#5B554A
+RAL 090 30 20;Bark green;#5F5641
+RAL 090 40 10;Boulder brown;#706A5D
+RAL 090 40 20;Plum green;#73684D
+RAL 090 40 30;Vine leaf green;#766843
+RAL 090 50 10;Graphite grey green;#847E70
+RAL 090 50 20;Pesto green;#887D61
+RAL 090 50 30;Giant cactus green;#8E7E51
+RAL 090 50 40;Aubergine green;#917E45
+RAL 090 60 10;Oyster grey;#9B9485
+RAL 090 60 20;Manzanilla olive;#A29474
+RAL 090 60 30;Camouflage olive;#A59467
+RAL 090 60 40;Laurel green;#A89356
+RAL 090 60 50;Faint green;#A89043
+RAL 090 60 60;Titanite yellow;#AF9538
+RAL 090 70 10;Dusty yellow;#B5AE9D
+RAL 090 70 20;Barbados beige;#BBAD8A
+RAL 090 70 30;Rhubarb leaf green;#BEAB7B
+RAL 090 70 40;Hedgehog cactus yellow green;#C5AE6A
+RAL 090 70 50;Gooseberry yellow;#C8AD5A
+RAL 090 70 60;Bud green;#CAAC47
+RAL 090 70 70;Catkin yellow;#CDAC33
+RAL 090 70 80;Prehnite yellow;#CFAB22
+RAL 090 80 10;Light beige;#D0C7B3
+RAL 090 80 20;Champagne beige;#D5C6A3
+RAL 090 80 30;Lemon sorbet yellow;#DCC894
+RAL 090 80 40;Blossom yellow;#E0C984
+RAL 090 80 50;Tasman honey yellow;#E5C76D
+RAL 090 80 60;New yellow;#E7C558
+RAL 090 80 70;Fashion yellow;#EBC648
+RAL 090 80 80;Poster yellow;#EAC42C
+RAL 090 80 90;Contrasting yellow;#F0C503
+RAL 090 85 05;Pepper white;#DAD4CA
+RAL 090 85 10;Paella natural white;#DFD5C2
+RAL 090 85 20;Cider yellow;#E4D5B0
+RAL 090 85 30;Palm sugar yellow;#EAD59F
+RAL 090 85 40;March yellow;#EDD38C
+RAL 090 85 50;Oriole yellow;#F2D479
+RAL 090 90 05;Marzipan white;#EAE4D9
+RAL 090 90 10;Primrose white;#EBE4D1
+RAL 090 90 20;Cream yellow;#F2E3BD
+RAL 090 90 30;Wax yellow;#F6E2AC
+RAL 090 90 40;Lemon cream;#FCE299
+RAL 090 90 50;Tiger yellow;#FDDE82
+RAL 090 90 60;Sunrose yellow;#FEDC70
+RAL 090 93 05;Cream white;#F0EBE0
+RAL 095 40 10;Shady green;#6E6A5D
+RAL 095 40 20;Forest green;#71684E
+RAL 095 40 30;Bean green;#726843
+RAL 095 50 10;Dull olive;#837E70
+RAL 095 50 20;Cabbage green;#877E62
+RAL 095 50 30;Caper green;#8B7F54
+RAL 095 50 40;Garden lettuce green;#8D7E45
+RAL 095 50 50;Artichoke green;#8F813C
+RAL 095 60 10;Pale green grey;#9C9686
+RAL 095 60 20;Pale green;#9F9676
+RAL 095 60 30;Cypress green;#A39565
+RAL 095 60 40;Grape green;#A59556
+RAL 095 60 50;Gooseberry green;#A69746
+RAL 095 60 60;Guava green;#A59439
+RAL 095 60 70;Romaine green;#A7962A
+RAL 095 70 10;Sand grey;#B6B09E
+RAL 095 70 20;Crocodile green;#BAB08F
+RAL 095 70 30;Chicory green;#BEB07E
+RAL 095 70 40;Banana green;#C0AF6A
+RAL 095 70 50;Star fruit yellow green;#C0AF5C
+RAL 095 70 60;Papaya yellow green;#C0AE4C
+RAL 095 70 70;Bronze green;#C5B037
+RAL 095 80 10;Sapphire light yellow;#CFC9B8
+RAL 095 80 20;Pale olive;#D5CAA7
+RAL 095 80 30;Asparagus yellow;#DBCC96
+RAL 095 80 40;Pea green;#DECB83
+RAL 095 80 50;Williams pear yellow;#DECA72
+RAL 095 80 60;Greenish yellow;#DCC75F
+RAL 095 80 70;Mimosa yellow;#DFC94B
+RAL 095 80 80;Sorbet yellow;#DAC438
+RAL 095 85 10;Salsify white;#DCD6C4
+RAL 095 85 20;Dull light yellow;#E2D7B4
+RAL 095 85 30;Leaf yellow;#E6D6A0
+RAL 095 85 40;Natural yellow;#EBD78D
+RAL 095 85 50;Sport yellow;#ECD67C
+RAL 095 90 10;Atlas white;#ECE5D0
+RAL 095 90 20;Pearl yellow;#F1E4C0
+RAL 095 90 30;Lemon ice cream yellow;#F6E3AC
+RAL 095 90 40;Fresh yellow;#F7E297
+RAL 095 90 50;Luminescent yellow;#FDE588
+RAL 095 90 59;Dynamic yellow;#FFE479
+RAL 095 93 05;Crepe silk white;#EEEBE2
+RAL 100 20 05;Night green;#4A4945
+RAL 100 30 05;Volcanic stone green;#56554F
+RAL 100 30 10;Vermilion green;#585449
+RAL 100 30 20;Uniform green;#5A5741
+RAL 100 40 05;Doves grey;#6A6962
+RAL 100 40 10;Slick green;#6C695B
+RAL 100 40 20;Broccoli green;#6D694F
+RAL 100 40 30;High forest green;#706A43
+RAL 100 40 40;Brussels sprout green;#716B3B
+RAL 100 50 05;Forest floor khaki;#817F77
+RAL 100 50 10;Lapwing grey green;#827E6E
+RAL 100 50 20;Green woodpecker olive;#848060
+RAL 100 50 30;Steppe green;#847E52
+RAL 100 50 40;Faience green;#888045
+RAL 100 50 50;Tool green;#868039
+RAL 100 60 05;Smoky grey green;#99978E
+RAL 100 60 10;Olivine grey;#979483
+RAL 100 60 20;Grey-headed woodpecker green;#9D9776
+RAL 100 60 30;Cardamom green;#9D9664
+RAL 100 60 40;Lettuce green;#9F9857
+RAL 100 60 50;Art Nouveau green;#9F9946
+RAL 100 60 60;Smoothie green;#9B9532
+RAL 100 70 05;Smoky white;#B3B1A8
+RAL 100 70 10;Anise grey yellow;#B4B09E
+RAL 100 70 20;Sand brown;#B6B08D
+RAL 100 70 30;Hippie green;#B6B07B
+RAL 100 70 40;Linden green;#BAB26C
+RAL 100 70 50;Dill green;#B8AF57
+RAL 100 70 60;New green;#B6AF44
+RAL 100 80 05;Natural grey;#CAC9BF
+RAL 100 80 10;Pale beige;#CECAB5
+RAL 100 80 20;Soft green;#D4CCA7
+RAL 100 80 30;Silver green;#D3CA93
+RAL 100 80 40;March tulip green;#D4CB81
+RAL 100 80 50;Light olive;#D4CB6E
+RAL 100 80 60;Advertisement green;#D9CD5B
+RAL 100 80 70;LED green;#D8CD48
+RAL 100 80 80;March green;#D5CE33
+RAL 100 85 05;Celery white;#D9D7CD
+RAL 100 85 10;Palm heart cream;#DBD6C2
+RAL 100 85 20;Beige green;#DDD6B0
+RAL 100 85 30;Crystal yellow;#E1D7A0
+RAL 100 90 05;Brilliant yellow;#E8E5D9
+RAL 100 90 10;Elderberry white;#EAE5D1
+RAL 100 90 20;Designer cream yellow;#EEE5BF
+RAL 100 90 30;Boxwood yellow;#EEE4AA
+RAL 100 90 40;Primrose yellow;#F3E699
+RAL 100 90 50;Spring yellow;#F1E586
+RAL 100 93 05;Fog white;#EFEDE3
+RAL 110 20 10;Metal construction green;#484840
+RAL 110 30 10;Dark olive green;#57574C
+RAL 110 30 20;Nori seaweed green;#585945
+RAL 110 40 10;Stump green;#6A6B5D
+RAL 110 40 20;Antique green;#67694D
+RAL 110 40 30;Gardener green;#696C46
+RAL 110 40 40;Kirchner green;#686E3C
+RAL 110 50 10;November green;#7F7F70
+RAL 110 50 20;Alexandrite green;#7E8061
+RAL 110 50 30;Plant green;#7D8153
+RAL 110 50 40;Ripe green;#7B8244
+RAL 110 50 50;Portuguese green;#79833A
+RAL 110 50 55;Flag green;#798533
+RAL 110 60 10;Grey green;#959685
+RAL 110 60 20;Peapod green;#939777
+RAL 110 60 30;Indian green;#969A69
+RAL 110 60 40;Winterpea green;#929A58
+RAL 110 60 50;Airline green;#909C49
+RAL 110 60 60;Woodruff green;#909F3B
+RAL 110 60 65;Traffic light green;#91A033
+RAL 110 70 10;Chinese tea green;#B0B19E
+RAL 110 70 20;Wall green;#AFB28E
+RAL 110 70 30;Wasabi green;#ACB17D
+RAL 110 70 40;April green;#ACB46E
+RAL 110 70 50;Delaunay green;#ACB65D
+RAL 110 70 60;Lime green;#A8B64C
+RAL 110 70 70;Chlorophyll green;#A1B62B
+RAL 110 70 77;Marker green;#A0B42D
+RAL 110 80 10;Spring grey;#C7C9B7
+RAL 110 80 20;Mint ice green;#CBCCA7
+RAL 110 80 30;Springtide green;#C9CE95
+RAL 110 80 40;Lime sorbet green;#C7CF84
+RAL 110 80 50;Easter green;#C8D172
+RAL 110 80 60;Clown green;#C4D160
+RAL 110 80 70;Juice green;#C2D24C
+RAL 110 85 10;Veltliner white;#D5D6C3
+RAL 110 85 20;Kohlrabi green;#D5D7B1
+RAL 110 85 30;Burgundy grey;#D7DAA1
+RAL 110 85 40;Wax green;#D5DA8E
+RAL 110 85 50;Sprout green;#D2DA7A
+RAL 110 90 05;Cotton white;#E4E2D7
+RAL 110 90 10;Light fern green;#E6E6D2
+RAL 110 90 20;Lily scent green;#E6E7BF
+RAL 110 90 30;Kiwi ice cream green;#E5E7AC
+RAL 110 90 40;Lime juice green;#E4E99B
+RAL 110 93 05;Raffia white;#EBEBE1
+RAL 110 96 02;Laundry white;#F4F3EF
+RAL 120 30 05;Racing green;#545650
+RAL 120 30 10;Country house green;#53574B
+RAL 120 30 20;Avocado dark green;#515842
+RAL 120 40 05;English green;#686962
+RAL 120 40 10;Almond green;#66695B
+RAL 120 40 20;Cactus green;#636B51
+RAL 120 40 30;Basil green;#626E48
+RAL 120 40 40;Pepper green;#5C703B
+RAL 120 50 05;Smoke green;#7E7F77
+RAL 120 50 10;Velvet green grey;#7B8071
+RAL 120 50 20;Parrot green;#788262
+RAL 120 50 30;Quartz green;#758254
+RAL 120 50 40;Hedge green;#72864C
+RAL 120 50 50;Birch leaf green;#6C863E
+RAL 120 60 05;Bluish grey;#979A90
+RAL 120 60 10;Lavender leaf green;#929787
+RAL 120 60 20;Cider pear green;#909978
+RAL 120 60 30;Vesuvian green;#8C9D6B
+RAL 120 60 40;Bamboo grass green;#899F5D
+RAL 120 60 50;Aloe vera green;#83A04D
+RAL 120 60 60;Mamba green;#7DA03E
+RAL 120 60 63;Luminescent green;#7CA23D
+RAL 120 70 05;Laurel grey;#AFB1A7
+RAL 120 70 10;Nile green;#ACB19E
+RAL 120 70 20;Filigree green;#A8B38F
+RAL 120 70 30;Serpentine green;#A6B682
+RAL 120 70 40;Light birch green;#A1B872
+RAL 120 70 50;Clematis green;#9CB960
+RAL 120 70 60;Tourmaline green;#95B751
+RAL 120 70 70;Cocktail green;#92BC42
+RAL 120 70 75;Brilliant green;#8DB836
+RAL 120 80 05;Dust green;#C8CBC1
+RAL 120 80 10;Modern Style green;#C5CAB6
+RAL 120 80 20;Avocado cream;#C4CEA9
+RAL 120 80 30;Natural green;#BECF97
+RAL 120 80 40;Summer green;#BBD289
+RAL 120 80 50;Fashion green;#B6D478
+RAL 120 80 60;Neon green;#B1D669
+RAL 120 85 05;Chalk green;#D4D6CC
+RAL 120 85 10;Light feather green;#D1D7C4
+RAL 120 85 20;Lake green;#D0DAB4
+RAL 120 85 30;Aqua green;#CCDBA2
+RAL 120 90 05;Lily of the valley white;#E2E4D9
+RAL 120 90 10;Pale pistachio;#E4E7D3
+RAL 120 90 20;Kiwi sorbet green;#DEE8C2
+RAL 120 90 30;Ice-cold green;#DAEBB1
+RAL 120 93 05;Touch of white green;#E9ECE1
+RAL 130 30 10;Arame seaweed green;#53584D
+RAL 130 30 20;Kelp green;#4E5945
+RAL 130 40 10;Soft olive;#666C5F
+RAL 130 40 20;Alpine lake green;#5D6C53
+RAL 130 40 30;Gemstone green;#5A6F4B
+RAL 130 50 10;Dubuffet green;#788072
+RAL 130 50 20;Spanish green;#758468
+RAL 130 50 30;Algae green;#6C855B
+RAL 130 50 40;Hot pepper green;#65884F
+RAL 130 50 50;Emerald clear green;#5D8947
+RAL 130 60 10;Matte sage green;#909989
+RAL 130 60 20;Old green;#8A9B7D
+RAL 130 60 30;Pea aubergine green;#839D71
+RAL 130 60 40;Grasshopper green;#7C9F64
+RAL 130 60 50;Parisian green;#74A256
+RAL 130 60 60;Primal green;#69A449
+RAL 130 70 10;Limestone green;#A9B3A3
+RAL 130 70 20;Soap green;#A4B695
+RAL 130 70 30;Watercolour green;#9BB787
+RAL 130 70 40;Vangogh green;#94B979
+RAL 130 70 50;Apple green;#8DBC6E
+RAL 130 70 60;Ultra green;#84BE5F
+RAL 130 80 10;Jade light green;#C3CCBB
+RAL 130 80 20;Enamel green;#BDCEAD
+RAL 130 80 30;Pastel green;#B6D1A0
+RAL 130 80 40;Jasmine green;#AFD592
+RAL 130 80 50;Crystal green;#A7D683
+RAL 130 85 05;Grape oil green;#D1D7CD
+RAL 130 85 10;Duchamp light green;#CFD9C6
+RAL 130 85 20;Pallid light green;#C9DBB8
+RAL 130 85 30;Viridine green;#C5DEAC
+RAL 130 90 05;Silver poplar white;#E0E4DA
+RAL 130 90 10;Mediterranean green;#E0E3D9
+RAL 130 90 20;Spring green;#D8E9C6
+RAL 130 93 05;Bean white;#E8ECE3
+RAL 140 20 05;Melanite black green;#454845
+RAL 140 20 10;Mountain range green;#424941
+RAL 140 20 20;Bavarian green;#414B3E
+RAL 140 30 05;Black Forest green;#555954
+RAL 140 30 10;Copper pyrite green;#51594F
+RAL 140 30 20;Nettle green;#4B5C48
+RAL 140 30 30;Chestnut green;#425E3F
+RAL 140 30 40;Ranger green;#395E3C
+RAL 140 40 05;Stone green;#676C66
+RAL 140 40 10;Loden green;#626C60
+RAL 140 40 20;Acacia green;#586D55
+RAL 140 40 30;Peacock green;#51704C
+RAL 140 40 40;Radical green;#487547
+RAL 140 40 50;Brazilian green;#407740
+RAL 140 50 05;Silver maple green;#7A8079
+RAL 140 50 10;Fir spruce green;#768174
+RAL 140 50 20;Silver willow green;#6E8368
+RAL 140 50 30;Rambling green;#65875F
+RAL 140 50 40;Guinean green;#588853
+RAL 140 50 50;Mountain meadow green;#4F8C4C
+RAL 140 50 60;Temperamental green;#408E42
+RAL 140 60 05;Camouflage green;#919791
+RAL 140 60 10;Silver linden grey;#8B9889
+RAL 140 60 20;Spinach green;#859E80
+RAL 140 60 30;Blackthorn green;#7BA174
+RAL 140 60 40;Fresh green;#72A369
+RAL 140 60 50;Parsley green;#64A45E
+RAL 140 60 60;Oregano green;#59A754
+RAL 140 60 70;Balloon green;#4AA74B
+RAL 140 70 05;Ginkgo green;#AAB0A9
+RAL 140 70 10;Wormwood green;#A3B1A3
+RAL 140 70 20;Dew green;#9CB697
+RAL 140 70 30;Aniseed leaf green;#91B98C
+RAL 140 70 40;Sour green;#89BD80
+RAL 140 70 50;Acid green;#7CBF74
+RAL 140 70 60;Drop green;#71C067
+RAL 140 80 05;Willow green;#C5CCC2
+RAL 140 80 10;Pastel grey green;#BFCCBC
+RAL 140 80 20;Gio Ponti green;#B6D0B0
+RAL 140 80 30;Relaxation green;#ABD3A4
+RAL 140 80 40;Dentist green;#9DD697
+RAL 140 85 05;Deadnettle white;#D0D8CF
+RAL 140 85 10;Leek white;#CCDACA
+RAL 140 85 20;Limestone slate;#C3DEBD
+RAL 140 85 30;Mint cocktail green;#B6DFB0
+RAL 140 90 05;Rosemary white;#E0E6DB
+RAL 140 90 10;Touch of green;#DCE8D6
+RAL 140 93 05;Chestnut white;#E8EEE4
+RAL 150 30 10;Thyme green;#515C53
+RAL 150 30 20;Moselle green;#475E4E
+RAL 150 30 30;Mountain green;#3D5E46
+RAL 150 40 10;Felt green;#616D63
+RAL 150 40 20;Firm green;#58715C
+RAL 150 40 30;Genever green;#4A7254
+RAL 150 40 40;Ink green;#3C744C
+RAL 150 40 50;Ireland green;#307649
+RAL 150 50 10;Sage green grey;#738176
+RAL 150 50 20;Korean mint;#69866E
+RAL 150 50 30;Field green;#608866
+RAL 150 50 40;Celery green;#518D63
+RAL 150 50 50;Rich green;#3E8F58
+RAL 150 50 60;Cold green;#239151
+RAL 150 60 10;Pointed cabbage green;#8C9B8E
+RAL 150 60 20;Orient green;#7F9E86
+RAL 150 60 30;Rosemary green;#73A07D
+RAL 150 60 40;Mosaic green;#65A474
+RAL 150 60 50;Bouncy ball green;#58A96F
+RAL 150 60 60;Energy green;#3AA861
+RAL 150 70 10;Tea green;#A3B3A6
+RAL 150 70 20;Liebermann green;#98B89F
+RAL 150 70 30;Oilcloth green;#8ABD95
+RAL 150 70 40;Jade stone green;#7CBE8C
+RAL 150 70 50;Verdigris coloured;#6CC181
+RAL 150 80 10;Organza green;#BDCEC0
+RAL 150 80 20;Pastel mint green;#B1D2B7
+RAL 150 80 30;Bright green;#A3D6AF
+RAL 150 80 40;Mother-of-pearl green;#95DAA5
+RAL 150 85 05;Asparagus white;#CCD7CE
+RAL 150 85 10;Transparent white;#C9DACA
+RAL 150 85 20;Pallid green;#BFDEC1
+RAL 150 90 05;Mineral white;#DCE5DA
+RAL 150 90 10;Alabaster green;#D9E9D8
+RAL 150 93 05;Quark white;#E4EDE4
+RAL 160 20 05;Beryl black green;#464A48
+RAL 160 20 10;Mussel green;#404B45
+RAL 160 20 15;Pumpkin green black;#394A43
+RAL 160 20 20;Opulent green;#394942
+RAL 160 30 05;Rich olive;#535955
+RAL 160 30 10;Exclusive green;#4E5A53
+RAL 160 30 15;Leaf green;#485A4F
+RAL 160 30 20;Mountain mint;#415A4D
+RAL 160 30 25;Order green;#3B5C4A
+RAL 160 30 30;Troll green;#345E48
+RAL 160 30 35;Card table green;#2C5E45
+RAL 160 30 40;Lemon balm green;#235F44
+RAL 160 40 05;Jasper green;#656C68
+RAL 160 40 10;Siberian green;#5D6D65
+RAL 160 40 15;Cucumber green;#576E62
+RAL 160 40 20;Serbian green;#506F5F
+RAL 160 40 25;Black pine green;#49705B
+RAL 160 40 30;Pumpkin green;#427259
+RAL 160 40 35;Jade mussel green;#3A7457
+RAL 160 40 40;Clover green;#317656
+RAL 160 40 45;Frog green;#287451
+RAL 160 40 50;Universal green;#16754E
+RAL 160 40 55;Column of oak green;#05784D
+RAL 160 50 05;Arctic lichen green;#79817C
+RAL 160 50 10;Atlas cedar green;#708278
+RAL 160 50 15;Stone cypress green;#6A8476
+RAL 160 50 20;Juniper green;#638674
+RAL 160 50 25;Sports field green;#5B8770
+RAL 160 50 30;Leisure green;#54896E
+RAL 160 50 35;Adamite green;#4E8B6B
+RAL 160 50 40;Metallic green;#3F8C68
+RAL 160 50 45;Vital green;#398F68
+RAL 160 50 50;Golf green;#298E62
+RAL 160 50 55;Iceland green;#109161
+RAL 160 50 60;Real turquoise;#00905C
+RAL 160 60 05;Sandstone grey green;#8F9893
+RAL 160 60 10;Slate green;#86998F
+RAL 160 60 15;Mild green;#809D8D
+RAL 160 60 20;Douglas fir green;#779E89
+RAL 160 60 25;Practice green;#709F84
+RAL 160 60 30;Memphis green;#68A183
+RAL 160 60 35;Advertising green;#5FA582
+RAL 160 60 40;Hunter green;#55A47E
+RAL 160 60 45;Linoleum green;#4CA77C
+RAL 160 60 50;Parakeet green;#3BA878
+RAL 160 60 55;Emerald light green;#32A774
+RAL 160 60 58;Alhambra green;#1CA971
+RAL 160 70 05;Greenish grey;#A7B2AC
+RAL 160 70 10;Weak green;#9EB3A7
+RAL 160 70 15;Andean slate;#96B4A3
+RAL 160 70 20;Ceramic green;#90B7A1
+RAL 160 70 25;Water green;#88BB9F
+RAL 160 70 30;Mountain lake green;#7DBC9C
+RAL 160 70 35;American green;#74BD99
+RAL 160 70 40;Techno turquoise;#6AC096
+RAL 160 70 45;Garish green;#5EC292
+RAL 160 70 50;Malachite green;#54C391
+RAL 160 80 05;Fog green;#BFCAC4
+RAL 160 80 10;Matte jade green;#B8CDC0
+RAL 160 80 15;Sun yellow;#AFCFBD
+RAL 160 80 20;Feather green;#A7D2BA
+RAL 160 80 25;Menthol green;#A1D4B8
+RAL 160 80 30;Silk green;#99D7B6
+RAL 160 85 05;Light green;#CAD6CF
+RAL 160 85 10;Micaceous green;#C3D8CC
+RAL 160 85 15;Moonstone green;#BBDBC7
+RAL 160 90 05;Watercolour white;#DBE5DC
+RAL 160 90 10;Moonlight green;#D3E8D9
+RAL 160 90 15;Glacial water green;#CCEAD6
+RAL 160 93 05;Mountain crystal silver;#E0ECE6
+RAL 170 20 10;Deep green;#3E4A46
+RAL 170 20 15;Intense green;#394A45
+RAL 170 20 20;Coach green;#334C45
+RAL 170 20 25;Off-road green;#2F4C42
+RAL 170 30 10;Garnet black green;#4C5B55
+RAL 170 30 15;Dark green;#435B52
+RAL 170 30 20;Thistle green;#3E5B51
+RAL 170 30 25;Raspberry leaf green;#355E50
+RAL 170 30 30;Chrysocolla dark green;#2F5E50
+RAL 170 30 35;Trapper green;#26604F
+RAL 170 30 40;Permanent green;#16624E
+RAL 170 40 10;Chalcedony green;#5B6C65
+RAL 170 40 15;Palace green;#536D63
+RAL 170 40 20;Plantain green;#4B7063
+RAL 170 40 25;Ore mountains green;#457060
+RAL 170 40 30;Tractor green;#3D7561
+RAL 170 40 35;Victoria green;#2F745E
+RAL 170 40 40;Device green;#20755E
+RAL 170 40 45;Environmental green;#08765D
+RAL 170 40 50;Vegan green;#00765A
+RAL 170 50 10;Bournonite green;#6E827B
+RAL 170 50 15;Fuchsite green;#67867A
+RAL 170 50 20;Blackberry leaf green;#5F8678
+RAL 170 50 25;Tourmaline blue;#568876
+RAL 170 50 30;Dream green;#4A8A75
+RAL 170 50 35;Accent green blue;#3E8B73
+RAL 170 50 40;Spectral green;#308D71
+RAL 170 50 45;Mallard green;#1E8E71
+RAL 170 50 50;Chagall green;#00916F
+RAL 170 50 55;Absinthe turquoise;#00906D
+RAL 170 60 10;Quantum green;#849A92
+RAL 170 60 15;Bitter clover green;#7E9D90
+RAL 170 60 20;Cyprus green;#739F8F
+RAL 170 60 25;Succulent green;#6AA08E
+RAL 170 60 30;Vibrant green;#5EA28C
+RAL 170 60 35;Klimt green;#50A68A
+RAL 170 60 40;Persian green;#44A689
+RAL 170 60 45;Sport green;#33A685
+RAL 170 60 50;Active green;#1BAA87
+RAL 170 70 10;Lovage green;#9DB4AB
+RAL 170 70 15;Chrysopal light green;#95B6A8
+RAL 170 70 20;Source green;#8BB9A7
+RAL 170 70 25;Orient mosaic green;#83BBA6
+RAL 170 70 30;Mint cold green;#75BEA5
+RAL 170 70 35;Emerald green;#6ABEA2
+RAL 170 70 40;Expressionism green;#5FBFA0
+RAL 170 80 10;Fluorite blue;#B7CEC5
+RAL 170 80 15;Swimming pool green;#ACD0C3
+RAL 170 80 20;Sky green;#A4D5C2
+RAL 170 80 25;Larimar green;#99D4BF
+RAL 170 85 05;Silicate light turquoise;#CBD7D2
+RAL 170 85 10;Topaz green;#C3DAD0
+RAL 170 85 15;Refrigerator green;#B8DDCD
+RAL 170 85 20;Crystal glass green;#B0E0CB
+RAL 170 90 05;Crystal salt white;#DAE5DE
+RAL 170 90 10;Turquoise white;#D1E9DD
+RAL 170 93 05;Snow crystal green;#E2EDE7
+RAL 180 20 05;Pitch green;#454C4B
+RAL 180 20 10;Lacquer green;#3E4A47
+RAL 180 20 15;Fence green;#374B48
+RAL 180 20 20;Myrtle green;#304C48
+RAL 180 30 05;Amazon green;#535B59
+RAL 180 30 10;Rich grey turquoise;#4A5A56
+RAL 180 30 15;Blackboard green;#435C57
+RAL 180 30 20;Swedish green;#3C5D56
+RAL 180 30 25;Fjord green;#335E56
+RAL 180 30 30;Urban green;#295F56
+RAL 180 30 35;Jungle green;#196054
+RAL 180 40 05;Earth green;#626C69
+RAL 180 40 10;Pine green;#5A6E69
+RAL 180 40 15;Forest greenery;#516F68
+RAL 180 40 20;Sea green;#477168
+RAL 180 40 25;Eucalyptus green;#3E7268
+RAL 180 40 30;Fresh ivy green;#2F7469
+RAL 180 40 35;Chrysocolla medium green;#1C7566
+RAL 180 40 40;Poster green;#007565
+RAL 180 40 45;Teal dark green;#007666
+RAL 180 50 05;Dusk green;#788280
+RAL 180 50 10;Refreshing green;#6D827D
+RAL 180 50 15;Dull turquoise;#63857D
+RAL 180 50 20;Azurite water green;#59867D
+RAL 180 50 25;Copper mineral green;#4D897E
+RAL 180 50 30;Glass green;#408B7C
+RAL 180 50 35;Summer turquoise;#318C7D
+RAL 180 50 40;Christmas green;#1B8C7B
+RAL 180 50 45;Industrial turquoise;#00907B
+RAL 180 50 50;Ocean green;#00907A
+RAL 180 60 05;Marble green-grey;#8D9996
+RAL 180 60 10;Tile green;#829A95
+RAL 180 60 15;Copper roof green;#789D94
+RAL 180 60 20;Sage green;#6E9F94
+RAL 180 60 25;Petrol green;#61A093
+RAL 180 60 30;Dioptase green;#54A394
+RAL 180 60 35;Stamp pad green;#46A593
+RAL 180 60 40;Light turquoise;#2FA794
+RAL 180 60 45;Caribbean green;#02A994
+RAL 180 60 50;Brilliant turquoise;#00AA93
+RAL 180 70 05;Feldspar silver;#A6B1AE
+RAL 180 70 10;Delicate green;#98B3AD
+RAL 180 70 15;Silicate green;#8FB6AD
+RAL 180 70 20;Mint bonbon green;#85B9AD
+RAL 180 70 25;Glacial green;#78BAAC
+RAL 180 70 30;Bath turquoise;#6DBDAD
+RAL 180 70 35;Mountain lake azure;#5BBFAC
+RAL 180 70 40;Pure cyan;#4AC2AD
+RAL 180 80 05;Aragonite white;#BFCBC6
+RAL 180 80 10;Light teal;#B4CEC7
+RAL 180 80 15;Whirlpool green;#ABD2C8
+RAL 180 80 20;Opal turquoise;#9CD3C6
+RAL 180 80 25;Light Capri green;#91D5C6
+RAL 180 80 30;Tender turquoise;#89DAC8
+RAL 180 85 05;Sea haze grey;#CAD7D3
+RAL 180 85 10;Tierra del Fuego sea green;#C0DAD3
+RAL 180 85 15;Pale mountain lake turquoise;#B8DED2
+RAL 180 85 20;Coral green;#AADFCF
+RAL 180 90 05;Transparent green;#DBE7E2
+RAL 180 90 10;Ice water green;#D0ECE3
+RAL 180 93 05;Arctic white;#E2EEEA
+RAL 190 20 20;Night turquoise;#2F4D4A
+RAL 190 30 15;Carriage green;#415C5A
+RAL 190 30 20;Stockade green;#375D5B
+RAL 190 30 25;Action green;#2D5E5B
+RAL 190 30 30;Myrtle deep green;#20605D
+RAL 190 30 35;Plankton green;#0E605D
+RAL 190 40 10;Mud green;#586C6A
+RAL 190 40 15;Moor pond green;#4F6F6D
+RAL 190 40 20;Lush green;#44716E
+RAL 190 40 25;Butterfly green;#37726F
+RAL 190 40 30;Fashion blue;#267470
+RAL 190 40 35;Office blue green;#097671
+RAL 190 40 40;Iguana green;#007771
+RAL 190 40 45;Dark teal;#007A73
+RAL 190 50 10;Storm green;#6D8481
+RAL 190 50 15;Dark turquoise;#628682
+RAL 190 50 20;Fir blue;#578884
+RAL 190 50 25;Apatite blue;#488984
+RAL 190 50 30;Egyptian green;#368B86
+RAL 190 50 35;Ornamental turquoise;#208C86
+RAL 190 50 40;Eyeshadow turquoise;#008F89
+RAL 190 50 45;Clear turquoise;#00908A
+RAL 190 60 10;Subtle turquoise;#829B98
+RAL 190 60 15;Pale verdigris;#779D98
+RAL 190 60 20;Goose pond green;#6EA09B
+RAL 190 60 25;Tourmaline turquoise;#5EA39D
+RAL 190 60 30;Baltic green;#4DA49E
+RAL 190 60 35;Ceramic blue turquoise;#39A6A0
+RAL 190 60 40;Baltic turquoise;#0CA8A1
+RAL 190 60 45;Tyrolite blue-green;#00A8A0
+RAL 190 70 10;Marble green;#9AB4B1
+RAL 190 70 15;Jade green;#8FB6B1
+RAL 190 70 20;Spring water turquoise;#82B8B2
+RAL 190 70 25;Florida turquoise;#75BBB5
+RAL 190 70 30;Hygiene green;#69BEB8
+RAL 190 70 35;Arctic green;#55BFB7
+RAL 190 80 10;Andean opal green;#B3CFCA
+RAL 190 80 15;Cold turquoise;#A9D2CD
+RAL 190 80 20;Teal blue;#9BD2CD
+RAL 190 80 25;Pool green;#8FD5CF
+RAL 190 85 05;Morning dew white;#C5D9D6
+RAL 190 85 10;Bath salt green;#BADCD6
+RAL 190 85 15;Capri water blue;#AADFD6
+RAL 190 85 20;Horizon blue;#9CE2D7
+RAL 190 90 05;Cool white;#DBE6E2
+RAL 190 90 10;Source blue;#CFEAE5
+RAL 190 93 05;Egyptian white;#E3EDEB
+RAL 200 20 05;Concealed green;#444A4A
+RAL 200 20 10;Dark pine green;#3C4A4B
+RAL 200 20 15;Roof tile green;#374A4B
+RAL 200 20 20;Shrub green;#304C4E
+RAL 200 20 23;Customs green;#264D4F
+RAL 200 30 05;Darkness green;#4F5858
+RAL 200 30 10;Tree bark green;#485B5B
+RAL 200 30 15;Hornblende green;#405D5D
+RAL 200 30 20;Malachite blue turquoise;#385E5F
+RAL 200 30 25;Antique turquoise;#285D5E
+RAL 200 30 30;Wool turquoise;#1A5F62
+RAL 200 30 33;Ice dark turquoise;#006164
+RAL 200 40 05;Calcite grey green;#616C6C
+RAL 200 40 10;Brochantite green;#596D6E
+RAL 200 40 15;Pyrite green;#4F6F6F
+RAL 200 40 20;Dusky alpine blue;#427172
+RAL 200 40 25;Bath green;#377374
+RAL 200 40 30;Mayan blue;#237477
+RAL 200 40 35;Byzantine blue;#007579
+RAL 200 40 40;Active turquoise;#00787D
+RAL 200 50 05;North grey;#748080
+RAL 200 50 10;Eye grey;#6C8384
+RAL 200 50 15;Nickel ore green;#618686
+RAL 200 50 20;Seafoam green;#548788
+RAL 200 50 25;Kandinsky turquoise;#46898C
+RAL 200 50 30;Caribbean turquoise;#308B8D
+RAL 200 50 35;Well blue;#118E92
+RAL 200 50 40;Industrial blue;#008F93
+RAL 200 50 45;India blue;#009096
+RAL 200 60 05;Shady grey;#8C9999
+RAL 200 60 10;North Cape grey;#829A9B
+RAL 200 60 15;Woad indigo;#769D9E
+RAL 200 60 20;Art nouveau turquoise;#6AA0A1
+RAL 200 60 25;Coolbox ice turquoise;#59A1A2
+RAL 200 60 30;Aquamarine blue;#48A4A5
+RAL 200 60 35;Arctic blue;#33A5A9
+RAL 200 60 40;Wax crayon blue;#05A8AC
+RAL 200 70 05;Prince grey;#A5B1B1
+RAL 200 70 10;Calcite blue;#9AB5B5
+RAL 200 70 15;Cold front green;#8CB6B6
+RAL 200 70 20;Kingfisher turquoise;#82B9B9
+RAL 200 70 25;Fresh soft blue;#74BCBF
+RAL 200 80 05;China light green;#BFCBCA
+RAL 200 80 10;Baroque chalk soft blue;#B2CECE
+RAL 200 80 15;Ice boutique turquoise;#A6CFCE
+RAL 200 80 20;Summer soft blue;#9AD4D3
+RAL 200 80 25;Mountain lake blue;#8CD5D6
+RAL 200 85 05;Raffia light grey;#CAD7D7
+RAL 200 85 10;Cold air turquoise;#C0DADA
+RAL 200 85 15;Frosty soft blue;#B3DDDD
+RAL 200 85 20;Ice crystal blue;#A6E0DF
+RAL 200 90 05;Frosty green;#DBE8E5
+RAL 200 90 10;Frosty white blue;#CEE9E5
+RAL 200 93 05;Chilly white;#E2EEEB
+RAL 210 30 10;Graphite black green;#4A5A5C
+RAL 210 30 15;Mallard blue;#415C60
+RAL 210 30 20;Transporter green;#365E64
+RAL 210 30 25;Deep Atlantic blue;#2B5E65
+RAL 210 30 30;Kali blue;#175F68
+RAL 210 40 10;Linen grey;#586C6F
+RAL 210 40 15;China green blue;#4F6F74
+RAL 210 40 20;Dusk blue;#437177
+RAL 210 40 25;Trouser blue;#347178
+RAL 210 40 30;Indigo blue;#1E737D
+RAL 210 40 35;Cold blue;#007681
+RAL 210 40 38;Mary blue;#007481
+RAL 210 50 10;Uniform green grey;#6B8386
+RAL 210 50 15;Labradorite green;#628488
+RAL 210 50 20;Enamel antique green;#54868D
+RAL 210 50 25;Cranach blue;#458990
+RAL 210 50 30;China blue;#2D8A94
+RAL 210 50 35;Glacier blue;#148C98
+RAL 210 50 40;Curaçao blue;#008E9B
+RAL 210 50 45;Atlantic blue;#008F9E
+RAL 210 60 10;Ash blue;#829A9D
+RAL 210 60 15;Baltic blue;#769CA0
+RAL 210 60 20;Beach blue;#6BA1A7
+RAL 210 60 25;Basilica blue;#5AA4AB
+RAL 210 60 30;Danube blue;#48A5AF
+RAL 210 60 35;Altdorf sky blue;#2CA5B1
+RAL 210 60 40;Garish blue;#00A8B5
+RAL 210 70 10;Storm grey;#9BB4B7
+RAL 210 70 15;Persian blue;#8FB6BA
+RAL 210 70 20;Aqua blue;#81B9BF
+RAL 210 70 25;Maritime soft blue;#73BBC3
+RAL 210 70 30;Mountain blue;#61BEC8
+RAL 210 70 35;Panorama blue;#4CC0CB
+RAL 210 80 10;Turquoise grey;#B7D0D1
+RAL 210 80 15;Dolphin blue;#AAD2D4
+RAL 210 80 20;Aroma blue;#9CD3D8
+RAL 210 80 25;Vibrant soft blue;#8FD6DD
+RAL 210 85 05;Siesta white;#C9D8D9
+RAL 210 85 10;Mint blue;#BADDDE
+RAL 210 85 15;Fine blue;#B5DEDF
+RAL 210 85 20;Pale blue;#A7E0E1
+RAL 210 90 05;Tulle soft blue;#DAE7E5
+RAL 210 90 10;Antarctic blue;#CDE9E7
+RAL 220 20 05;Navy black;#43494B
+RAL 220 20 10;Indigo carmine;#3C4A4E
+RAL 220 20 15;Artist blue;#344A50
+RAL 220 20 20;Natural indigo;#2D4B53
+RAL 220 30 05;Panda black;#51595A
+RAL 220 30 10;Pallasite blue;#4A5B5E
+RAL 220 30 15;Hurricane green blue;#435D64
+RAL 220 30 20;Watercolour blue;#385E66
+RAL 220 30 25;Coral blue;#2E606B
+RAL 220 30 30;Sandalwood grey blue;#155F6D
+RAL 220 40 05;Limousine grey blue;#626C6E
+RAL 220 40 10;Corundum blue;#5A6E72
+RAL 220 40 15;Smock blue;#4F6F77
+RAL 220 40 20;Mordant blue;#45717B
+RAL 220 40 25;Cotton indigo;#37737F
+RAL 220 40 30;Fjord blue;#1F7586
+RAL 220 40 35;Azure green blue;#007689
+RAL 220 40 40;Cyan blue;#00788E
+RAL 220 50 05;Winter cloud grey;#788284
+RAL 220 50 10;Cadet grey;#6F8388
+RAL 220 50 15;Holbein blue grey;#62858D
+RAL 220 50 20;Shady blue;#558791
+RAL 220 50 25;Fresco blue;#488895
+RAL 220 50 30;Craftsman blue;#318899
+RAL 220 50 35;Marker blue;#198CA0
+RAL 220 50 40;Toy blue;#008EA5
+RAL 220 60 05;Deep sea grey;#8E989A
+RAL 220 60 10;Tile blue;#839BA0
+RAL 220 60 15;Morning blue;#799DA5
+RAL 220 60 20;Frost blue;#699FAB
+RAL 220 60 25;Summer turquoise blue;#5BA1B0
+RAL 220 60 30;Fischer blue;#4AA4B5
+RAL 220 60 35;Planet blue;#36A3B8
+RAL 220 60 40;January blue;#00A5BD
+RAL 220 70 05;Tempered grey;#A6B2B5
+RAL 220 70 10;Mohair soft blue grey;#9DB5BB
+RAL 220 70 15;Kitchen blue;#90B8C0
+RAL 220 70 20;Culinary blue;#84B9C4
+RAL 220 70 25;Blouson blue;#72BAC9
+RAL 220 70 30;Mountain range blue;#61BACC
+RAL 220 70 35;Holiday blue;#4BBFD4
+RAL 220 80 05;Pastel blue;#BFCCCD
+RAL 220 80 10;Clinical soft blue;#B5D0D5
+RAL 220 80 15;Children's soft blue;#A6CFD8
+RAL 220 80 20;Tourmaline water blue;#9ED4E0
+RAL 220 80 25;Fresh blue;#92D7E3
+RAL 220 85 05;Transparent blue;#CCD9DC
+RAL 220 85 10;Ice shard soft blue;#C0DCE1
+RAL 220 85 15;Polar blue;#B3DEE6
+RAL 220 90 05;Cold soft blue;#DAE7E6
+RAL 220 90 10;Full moon grey;#CDE7E7
+RAL 230 20 10;Ore bluish black;#3F4B50
+RAL 230 20 15;Firmanent blue;#384B53
+RAL 230 20 20;Prussian blue;#2D4955
+RAL 230 30 10;Galenite blue;#4D5B61
+RAL 230 30 15;Berry blue green;#435B65
+RAL 230 30 20;Teal dark blue;#3A5D6A
+RAL 230 30 25;Thunderstorm blue;#2D5E6F
+RAL 230 40 10;Cone green blue;#5B6D74
+RAL 230 40 15;Juniper berry blue;#536E79
+RAL 230 40 20;Loon turquoise;#48717F
+RAL 230 40 25;Workshop blue;#387184
+RAL 230 40 30;Pilot blue;#2C738A
+RAL 230 40 35;Ink blue;#007590
+RAL 230 40 40;Techno blue;#007593
+RAL 230 50 10;Gravel grey blue;#6F838A
+RAL 230 50 15;Spruce blue;#658690
+RAL 230 50 20;Casual blue;#5A8797
+RAL 230 50 25;Forget-me-not blue;#4D889B
+RAL 230 50 30;Zircon blue;#378BA3
+RAL 230 50 35;Lagoon blue;#1F8BA6
+RAL 230 50 40;Azores blue;#008CAD
+RAL 230 60 10;Kingfisher grey;#869CA4
+RAL 230 60 15;Silver fir blue;#7B9CA7
+RAL 230 60 20;Pyjama blue;#6E9EAE
+RAL 230 60 25;Starflower blue;#5E9FB4
+RAL 230 60 30;Sports blue;#4FA0B9
+RAL 230 60 35;Greek blue;#37A3C1
+RAL 230 60 40;Alpine blue;#00A4C7
+RAL 230 70 10;Ice gull grey blue;#A0B6BE
+RAL 230 70 15;Thistleblossom soft blue;#91B6C2
+RAL 230 70 20;Tennis blue;#85B8C9
+RAL 230 70 25;Vintage blue;#7ABACF
+RAL 230 70 30;Fitness blue;#68BBD4
+RAL 230 80 10;Pallid blue;#B7CFD6
+RAL 230 80 15;Alpine morning blue;#ABCEDA
+RAL 230 80 20;Light blue;#A1D2E2
+RAL 230 85 05;Polar soft blue;#CED9DD
+RAL 230 85 10;Washing powder white;#C1D9E1
+RAL 230 85 15;Himalaya white blue;#B8DCE7
+RAL 230 85 20;Atmospheric soft blue;#ABDEEE
+RAL 230 90 05;Brilliant white;#DBE6E6
+RAL 240 20 05;Nightshade blue;#454A4D
+RAL 240 20 10;Elderberry black;#3F4A51
+RAL 240 20 15;Metal blue;#394A55
+RAL 240 20 20;Crowberry blue;#334B59
+RAL 240 20 22;Rich blue;#294A5B
+RAL 240 30 05;Diamond grey;#52595C
+RAL 240 30 10;Dirty blue;#4C5A62
+RAL 240 30 15;Deep sea blue;#455B67
+RAL 240 30 20;Lasurite blue;#3C5C6C
+RAL 240 30 25;Work blue;#2F5C72
+RAL 240 30 30;Gemstone blue;#215D77
+RAL 240 30 35;Captain blue;#065F7C
+RAL 240 40 05;Blue anthracite;#646B70
+RAL 240 40 10;Blackthorn blue;#5C6D76
+RAL 240 40 15;Celeste blue;#536E7D
+RAL 240 40 20;Denim blue;#486F82
+RAL 240 40 25;Orient blue;#3C708A
+RAL 240 40 30;Sailor blue;#28718F
+RAL 240 40 35;Stone blue;#007295
+RAL 240 40 40;Pure light blue;#00749A
+RAL 240 50 05;Smoky blue;#798186
+RAL 240 50 10;Tool blue;#6F828C
+RAL 240 50 15;Technical blue;#668494
+RAL 240 50 20;Coelin blue;#5A859A
+RAL 240 50 25;Greenland blue;#4C86A0
+RAL 240 50 30;Summer blue;#3C87A6
+RAL 240 50 35;Advertising blue;#1F88AD
+RAL 240 50 40;Indian inc blue;#0088B2
+RAL 240 60 05;Carrier pigeon blue;#8F999E
+RAL 240 60 10;Bird blue;#8297A2
+RAL 240 60 15;Architecture blue;#7A9AAA
+RAL 240 60 20;Shirt blue;#709DB3
+RAL 240 60 25;Steel light blue;#639EBA
+RAL 240 60 30;Fairytale blue;#519FC0
+RAL 240 60 35;Princess blue;#3CA0C8
+RAL 240 60 40;Clear blue;#1BA3CB
+RAL 240 70 05;Laundry blue;#A7B1B7
+RAL 240 70 10;Eye blue;#9EB2BD
+RAL 240 70 15;Bermuda blue;#93B5C5
+RAL 240 70 20;Sea blue;#88B5CB
+RAL 240 70 25;Madonna blue;#7BB8D3
+RAL 240 70 30;Caribbean blue;#6BB8D8
+RAL 240 80 05;Hazy blue;#BFCACF
+RAL 240 80 10;Light topaz soft blue;#B9CFD9
+RAL 240 80 15;Baby blue;#AECFDE
+RAL 240 80 20;Crystal blue;#A1D1E6
+RAL 240 85 05;Ice grey;#CDD7DD
+RAL 240 85 10;Air blue;#C2D8E3
+RAL 240 85 15;Paris blue;#B7DBEB
+RAL 240 90 05;Soft blue white;#DCE7E9
+RAL 240 90 10;Chalky blue white;#CFE8EF
+RAL 250 20 20;Cosmos blue;#334A5B
+RAL 250 20 25;Dark denim blue;#2F4A5F
+RAL 250 30 15;Black Forest blue;#455968
+RAL 250 30 20;Swallow blue;#3B5A6E
+RAL 250 30 25;Navy dark blue;#335B74
+RAL 250 30 30;Pompeii blue;#235B7B
+RAL 250 40 10;Trekking blue;#5E6C77
+RAL 250 40 15;Steel blue grey;#556C7D
+RAL 250 40 20;Berry blue;#4A6C83
+RAL 250 40 25;Linen blue;#3F6E8B
+RAL 250 40 30;Pool blue;#336F93
+RAL 250 40 35;Kingfisher blue;#1A6F97
+RAL 250 40 40;Europe blue;#00719C
+RAL 250 50 10;Metal grey;#72818D
+RAL 250 50 15;Titanium blue;#688194
+RAL 250 50 20;Mallorca blue;#60839B
+RAL 250 50 25;Linoleum blue;#5583A3
+RAL 250 50 30;Prominent blue;#4684AB
+RAL 250 50 35;Turkish blue;#3386B2
+RAL 250 50 40;Primal blue;#0487B9
+RAL 250 60 10;Bird blue grey;#8798A5
+RAL 250 60 15;Gentle blue;#7F99AD
+RAL 250 60 20;Aragonite blue;#749AB4
+RAL 250 60 25;Pearl blue;#699BBC
+RAL 250 60 30;Topaz blue;#5C9DC3
+RAL 250 60 35;Stratos blue;#4D9DCA
+RAL 250 60 40;Structural blue;#3A9FD3
+RAL 250 70 10;Foggy blue;#9FB2BE
+RAL 250 70 15;Chalk blue;#97B3C7
+RAL 250 70 20;Medium blue;#8CB3CE
+RAL 250 70 25;Meadow blossom blue;#82B5D5
+RAL 250 70 30;Broom butterfly blue;#75B5DC
+RAL 250 80 10;Light cyan;#B9CBD8
+RAL 250 80 15;Himalaya blue;#B2CEE0
+RAL 250 80 20;Velvet blue;#A4CBE5
+RAL 250 85 05;White blue;#CCD4DA
+RAL 250 85 10;Washing powder soft blue;#C2D5E2
+RAL 250 85 15;Diamond soft blue;#BCD8EA
+RAL 250 90 05;Ice white;#DBE3E7
+RAL 260 20 05;Blue-black;#474A4E
+RAL 260 20 10;Nato blue;#424952
+RAL 260 20 15;Suit blue;#3B4856
+RAL 260 20 20;Halite blue;#384A5C
+RAL 260 30 05;Alpine duck grey;#54595E
+RAL 260 30 10;Bronze blue;#505A65
+RAL 260 30 15;Berlin blue;#4A596A
+RAL 260 30 20;French blue;#445A70
+RAL 260 30 25;Tanzanite blue;#3A5A75
+RAL 260 30 30;Opal blue;#345B7D
+RAL 260 30 35;Royal blue;#1E5B85
+RAL 260 40 05;Swedish blue;#666A70
+RAL 260 40 10;Sheet blue;#626D79
+RAL 260 40 15;Plum blue;#5C6D80
+RAL 260 40 20;Cadet blue;#526C85
+RAL 260 40 25;Enamel blue;#4B6E8C
+RAL 260 40 30;Copenhagen blue;#426E92
+RAL 260 40 35;Bauhaus blue;#356E99
+RAL 260 40 40;Navy blue;#1E70A3
+RAL 260 40 45;LED blue;#0070A9
+RAL 260 50 05;Spitsbergen blue;#797E85
+RAL 260 50 10;Cypress grey blue;#75808D
+RAL 260 50 15;Mahonia berry blue;#6E8194
+RAL 260 50 20;Doves blue;#6A849D
+RAL 260 50 25;Biedermeier blue;#6084A6
+RAL 260 50 30;Beijing blue;#5485AF
+RAL 260 50 35;Vermeer blue;#4784B3
+RAL 260 50 40;Meissen blue;#3586BD
+RAL 260 60 05;Seal grey;#91979E
+RAL 260 60 10;Diopside blue;#8B97A5
+RAL 260 60 15;Nordland blue;#879BB0
+RAL 260 60 20;Cranberry blue;#7E9AB5
+RAL 260 60 25;Lupine blue;#759BBE
+RAL 260 60 30;Blueberry soft blue;#6B9CC6
+RAL 260 60 35;Brilliant blue;#5F9DCD
+RAL 260 70 05;Northern light grey;#ABB1B8
+RAL 260 70 10;Petrel blue grey;#A5B2C0
+RAL 260 70 15;Nordland light blue;#9CB2C8
+RAL 260 70 20;Matte blue;#96B4D0
+RAL 260 70 25;Pacific blue;#8CB4D8
+RAL 260 80 05;Light blue grey;#C3CAD1
+RAL 260 80 10;Powder soft blue;#BDCBD9
+RAL 260 80 15;Wind blue;#B5CCE0
+RAL 260 85 05;Satin white;#CDD3D9
+RAL 260 85 10;Sea breeze green;#C8D7E5
+RAL 260 90 05;Milk blue;#DDE3E7
+RAL 270 20 20;Crow black blue;#3A475C
+RAL 270 20 25;Indigo black;#344660
+RAL 270 20 29;Effervescent blue;#2E4667
+RAL 270 30 15;Midnight blue;#4C5768
+RAL 270 30 20;Dark blue;#47576F
+RAL 270 30 25;Grape blue;#415776
+RAL 270 30 30;Medici blue;#39567C
+RAL 270 30 35;Kolibri blue;#2F5682
+RAL 270 30 40;Prince blue;#1F568A
+RAL 270 40 15;Pewter grey;#5F6B7F
+RAL 270 40 20;Parlour blue;#576A85
+RAL 270 40 25;Functional blue;#536B8D
+RAL 270 40 30;Make-up blue;#4A6A94
+RAL 270 40 35;Lapis lazuli blue;#406A9B
+RAL 270 40 40;Magic blue;#3469A2
+RAL 270 50 10;Brocade blue;#77808F
+RAL 270 50 15;Noble blue;#738197
+RAL 270 50 20;Delft blue;#6D819E
+RAL 270 50 25;Cocktail blue;#6780A6
+RAL 270 50 30;Sage blossom blue;#5E80AD
+RAL 270 50 35;Viennese blue;#557FB2
+RAL 270 50 40;Cornflower blue;#4A81BD
+RAL 270 60 10;Fantasy grey;#8C97A7
+RAL 270 60 15;Lilac blue;#8998B0
+RAL 270 60 20;Lavender blue;#8398B7
+RAL 270 60 25;Delphinium blue;#7D98BF
+RAL 270 60 30;Eyeshadow blue;#7699C8
+RAL 270 60 35;Butterfly blue;#6B97CE
+RAL 270 70 10;Feather soft blue;#A7B1C1
+RAL 270 70 15;Satin soft blue;#A1B1C9
+RAL 270 70 20;Angel blue;#9CB2D2
+RAL 270 70 25;Boy blue;#93AFD8
+RAL 270 80 10;Light pearl soft blue;#C1CAD9
+RAL 270 80 15;Retina soft blue;#B9C9E1
+RAL 270 85 05;Angel hair silver;#D1D4DA
+RAL 270 85 10;Mother-of-pearl silver;#CAD4E4
+RAL 270 85 15;Murano soft blue;#C4D4EC
+RAL 270 90 05;Bleached white;#E0E3E8
+RAL 280 20 05;Granite black;#4A4A4E
+RAL 280 20 10;Diamond black;#474A53
+RAL 280 20 15;Crow black;#444958
+RAL 280 20 20;Manganese black;#41485B
+RAL 280 20 25;Elite blue;#3F4862
+RAL 280 20 30;Ambassador blue;#3A4868
+RAL 280 30 05;Smoking night blue;#57585D
+RAL 280 30 10;Meteorite black blue;#555965
+RAL 280 30 15;Anthracite blue;#52596B
+RAL 280 30 20;Garnet stone blue;#4F5972
+RAL 280 30 25;Hydrogen blue;#4C5977
+RAL 280 30 30;Deep blue;#45577E
+RAL 280 30 35;Theatre blue;#425783
+RAL 280 30 40;Poster blue;#3D588A
+RAL 280 40 05;Gallery grey;#696B71
+RAL 280 40 10;Suede indigo;#666A78
+RAL 280 40 15;Dark lavender;#636A7F
+RAL 280 40 20;Starry sky blue;#5F6A86
+RAL 280 40 25;Indigo navy blue;#5D6B8E
+RAL 280 40 30;Evening blue;#586A94
+RAL 280 40 35;Portuguese blue;#526B9B
+RAL 280 40 40;Neptune blue;#4A6AA3
+RAL 280 40 45;Hyacinth blue;#4169AA
+RAL 280 50 05;Noble grey;#7D8087
+RAL 280 50 10;Ice blue grey;#7B808F
+RAL 280 50 15;Granite blue;#788096
+RAL 280 50 20;Lavender mauve;#747F9E
+RAL 280 50 25;Costume blue;#717FA5
+RAL 280 50 30;Light mauve;#6C7FAD
+RAL 280 50 35;Sapphire shimmer blue;#667EB3
+RAL 280 50 40;Diva violet;#6180BE
+RAL 280 60 05;Tulle grey;#94979E
+RAL 280 60 10;Sweet lavender;#9196A6
+RAL 280 60 15;Marble blue;#8E96AE
+RAL 280 60 20;Misty violet;#8B96B7
+RAL 280 60 25;Opal violet;#8695BE
+RAL 280 60 30;Persian violet;#8296C5
+RAL 280 60 35;Organza violet;#7E97CF
+RAL 280 70 05;Taupe grey;#ACAEB6
+RAL 280 70 10;Tulle violet;#ABB0BF
+RAL 280 70 15;Foxflower viola;#A8B0C8
+RAL 280 70 20;Lilac scent soft blue;#A3AFD1
+RAL 280 70 25;Aster flower blue;#A1B0DA
+RAL 280 80 05;Viola ice grey;#C8CAD1
+RAL 280 80 10;Hyacinth white soft blue;#C4C9D9
+RAL 280 80 15;Violet scent soft blue;#BFC8E0
+RAL 280 85 05;Pebble soft blue white;#D2D5DB
+RAL 280 85 10;Jewellery white;#CDD4E4
+RAL 280 90 05;Mauve white;#E0E3E8
+RAL 280 93 05;Porcelain white;#E8EAF0
+RAL 290 20 10;Spinel stone black;#454650
+RAL 290 20 15;Black violet;#474655
+RAL 290 20 20;Tropical night blue;#47485D
+RAL 290 20 25;Indigo violet;#434661
+RAL 290 20 30;Ultramarine violet;#404465
+RAL 290 20 35;Schiava blue;#3E446C
+RAL 290 30 10;Flintstone blue;#565562
+RAL 290 30 15;Spinel black;#555669
+RAL 290 30 20;Church blue;#52536D
+RAL 290 30 25;Gloomy blue;#525475
+RAL 290 30 30;Lviv blue;#4F537B
+RAL 290 30 35;British mauve;#4D5483
+RAL 290 30 40;Official violet;#495389
+RAL 290 40 10;Shearwater black;#696876
+RAL 290 40 15;Agate violet;#68687D
+RAL 290 40 20;Deep lavender;#656785
+RAL 290 40 25;Dusk mauve;#63658B
+RAL 290 40 30;Rich violet;#606592
+RAL 290 40 35;Onion skin blue;#5E6498
+RAL 290 40 40;Iris blue;#5B65A1
+RAL 290 40 45;Violet blue;#5664A7
+RAL 290 50 10;Ash mauve;#7C7C8C
+RAL 290 50 15;Stormy mauve;#7B7C92
+RAL 290 50 20;Silk crepe mauve;#797A9B
+RAL 290 50 25;Hyacinth mauve;#797BA4
+RAL 290 50 30;Mountain flower mauve;#777AAA
+RAL 290 50 35;Chalcedony violet;#7379B2
+RAL 290 50 40;Gladiola blue;#7079BA
+RAL 290 60 10;Lavender blossom grey;#9293A5
+RAL 290 60 15;Delicate violet;#9393AC
+RAL 290 60 20;Opera mauve;#8F91B5
+RAL 290 60 25;Soft blue lavender;#9092BD
+RAL 290 60 30;Pleated mauve;#8D91C4
+RAL 290 60 35;True lavender;#888FCA
+RAL 290 70 10;Cream violet;#ADADBF
+RAL 290 70 15;Wisteria light soft blue;#ABABC7
+RAL 290 70 20;Blossom mauve;#A8ABCE
+RAL 290 70 25;Sorbet ice mauve;#A7AAD7
+RAL 290 80 10;Tulip soft blue;#C6C6D7
+RAL 290 80 15;Pale lilac;#C6C6DE
+RAL 290 85 05;Limestone mauve;#D5D5DA
+RAL 290 85 10;Orchid white;#D0D3E9
+RAL 290 90 05;Violet white;#DADBE0
+RAL 290 93 05;Lilac white;#E8E9EF
+RAL 300 20 05;Night black;#4B494E
+RAL 300 20 10;Heron blue;#494650
+RAL 300 20 15;Viola black;#494655
+RAL 300 20 20;Blackberry black;#49455A
+RAL 300 20 25;Cardinal mauve;#49445C
+RAL 300 20 30;Ceremonial purple;#474364
+RAL 300 30 05;Night grey;#59575D
+RAL 300 30 10;Mourning violet;#585562
+RAL 300 30 15;Club grey;#595466
+RAL 300 30 20;Mulberry mauve black;#59536C
+RAL 300 30 25;Evening mauve;#595272
+RAL 300 30 30;Opera blue;#595278
+RAL 300 30 35;Deep violet;#57517E
+RAL 300 30 40;Sage violet;#565084
+RAL 300 40 05;Baroque grey;#6C6A70
+RAL 300 40 10;Gobelin mauve;#6B6775
+RAL 300 40 15;Orchid grey;#6B657B
+RAL 300 40 20;Old mauve;#6C6581
+RAL 300 40 25;Parma mauve;#6C6488
+RAL 300 40 30;Wool violet;#6C638E
+RAL 300 40 35;Fine purple;#6B6293
+RAL 300 40 40;Clematis blue;#696099
+RAL 300 40 45;Coronation blue;#6860A1
+RAL 300 50 05;Hawk grey;#807E85
+RAL 300 50 10;Violet grey;#817C8B
+RAL 300 50 15;Capercaillie mauve;#817B92
+RAL 300 50 20;Parisian violet;#817999
+RAL 300 50 25;Tulip violet;#8178A0
+RAL 300 50 30;Toy mauve;#8177A7
+RAL 300 50 35;Wintertime mauve;#8277AE
+RAL 300 50 40;Clear mauve;#8075B4
+RAL 300 60 05;Partridge grey;#98969E
+RAL 300 60 10;Rose grey;#9893A3
+RAL 300 60 15;Antique viola;#9992AB
+RAL 300 60 20;Larkspur violet;#9990B1
+RAL 300 60 25;Silk lilac;#988EB8
+RAL 300 60 30;Heliotropic mauve;#988DC0
+RAL 300 60 35;Amethyst grey;#978BC6
+RAL 300 70 05;Velvet grey;#B0AEB7
+RAL 300 70 10;Morning mist grey;#B1ABBC
+RAL 300 70 15;Eyeshadow viola;#B1AAC4
+RAL 300 70 20;Lavender violet;#B2A9CB
+RAL 300 70 25;Pink lavender;#B2A7D2
+RAL 300 80 05;Hazy mauve;#CAC8D0
+RAL 300 80 10;Pale violet;#C9C5D8
+RAL 300 80 15;Ice mauve;#CBC4DE
+RAL 300 85 05;Delicate viola;#D5D4DA
+RAL 300 85 10;Powder viola white;#D8D1E4
+RAL 300 90 05;Translucent white;#E4E2E8
+RAL 310 20 20;Obsidian lava black;#4F4658
+RAL 310 20 25;Operetta mauve;#51445D
+RAL 310 20 30;Powerful violet;#4F4261
+RAL 310 30 15;Dark grey mauve;#5F5667
+RAL 310 30 20;Powerful mauve;#5E536B
+RAL 310 30 25;English violet;#615270
+RAL 310 30 30;Crystal purple;#635176
+RAL 310 30 35;Succinct violet;#625078
+RAL 310 30 40;Loden purple;#654F7F
+RAL 310 40 10;Dark pink;#706976
+RAL 310 40 15;Violet haze;#73687C
+RAL 310 40 20;Indigo red;#756781
+RAL 310 40 25;Charoite violet;#766587
+RAL 310 40 30;Royal purple;#76628A
+RAL 310 40 35;Magenta violet;#776190
+RAL 310 40 40;Pure mauve;#7A6196
+RAL 310 50 10;Dull mauve;#857D8C
+RAL 310 50 15;Batik lilac;#867C92
+RAL 310 50 20;Provence violet;#8A7B97
+RAL 310 50 25;Baroness mauve;#8C799E
+RAL 310 50 30;Bitter violet;#8D77A4
+RAL 310 50 35;Violet rose;#8D75A8
+RAL 310 50 40;Orchid mauve;#8F74AE
+RAL 310 60 10;Gentle mauve;#9B93A3
+RAL 310 60 15;Smoky mauve;#9F92AA
+RAL 310 60 20;Saffron blossom mauve;#A291B0
+RAL 310 60 25;Flirty pink;#A48FB5
+RAL 310 60 30;Peony mauve;#A58DBA
+RAL 310 60 35;Lilac purple;#A78AC3
+RAL 310 70 10;Amorphous rose;#B5ACBB
+RAL 310 70 15;Transparent mauve;#B8AAC2
+RAL 310 70 20;Blue pink;#B9A8C7
+RAL 310 70 25;Glass violet;#BBA7CE
+RAL 310 80 10;Powder viola;#CDC5D5
+RAL 310 80 15;Orchid violet;#D1C4DB
+RAL 310 85 05;Fairy pink;#D6D3DA
+RAL 310 85 10;Tricot lilac white;#DBD1E2
+RAL 310 90 05;Wallflower white;#E8E3E7
+RAL 320 20 05;Lava black;#4D494E
+RAL 320 20 10;Obsidian red;#4E464F
+RAL 320 20 15;Spinel violet;#4F4451
+RAL 320 20 20;Aubergine mauve;#534455
+RAL 320 20 25;Dark purple;#534259
+RAL 320 30 05;Violet black;#5B565B
+RAL 320 30 10;Stone violet;#5D545E
+RAL 320 30 15;Amethyst dark violet;#605161
+RAL 320 30 20;Dark blackberry;#634F66
+RAL 320 30 25;Purpurite violet;#664E6A
+RAL 320 30 30;Damson mauve;#674C6E
+RAL 320 30 35;Grape purple;#694B73
+RAL 320 30 37;Lounge violet;#6C4B77
+RAL 320 40 05;Slate mauve;#6E696F
+RAL 320 40 10;Olivine basalt;#716672
+RAL 320 40 15;Antique grey;#746477
+RAL 320 40 20;Basil mauve;#77627B
+RAL 320 40 25;Gladiola violet;#796080
+RAL 320 40 30;Cabbage blossom violet;#7D5D83
+RAL 320 40 35;Lilac violet;#7F5A87
+RAL 320 40 40;Violet purple;#82598E
+RAL 320 50 05;Grey violet;#827C83
+RAL 320 50 10;British grey mauve;#867987
+RAL 320 50 15;Parma grey;#89778C
+RAL 320 50 20;Cyclamen;#8E7793
+RAL 320 50 25;Poetry mauve;#907397
+RAL 320 50 30;Viola grey;#94729D
+RAL 320 50 35;Aster violetta;#966D9F
+RAL 320 50 40;Empire violet;#996FA7
+RAL 320 60 05;Aragonite grey;#9A949C
+RAL 320 60 10;Chalk violet;#9E929F
+RAL 320 60 15;Amethyst grey violet;#A28FA5
+RAL 320 60 20;Wonder violet;#A58BA9
+RAL 320 60 25;Nightshade violet;#A889AF
+RAL 320 60 30;Lobby lilac;#AC87B5
+RAL 320 60 35;Blackberry sorbet;#AE85B9
+RAL 320 70 05;Elderberry grey;#B2ACB3
+RAL 320 70 10;Bellflower violet;#B6A9B9
+RAL 320 70 15;Quartz violet;#B9A6BE
+RAL 320 70 20;Beach lilac;#C0A5C6
+RAL 320 70 25;Lilac pink;#C3A2CA
+RAL 320 80 05;Light violet;#CDC7CD
+RAL 320 80 10;Amethyst light violet;#D1C4D3
+RAL 320 80 15;Cosmetic mauve;#D4C0D6
+RAL 320 85 05;Blackberry cream;#D8D1D9
+RAL 320 85 10;Ametrine quartz;#DDCFDF
+RAL 320 90 05;Apatite pink;#E8E1E6
+RAL 330 20 20;Profound mauve;#554251
+RAL 330 20 25;Opulent mauve;#5A4256
+RAL 330 30 15;Currant violet;#645361
+RAL 330 30 20;Mexican purple;#685164
+RAL 330 30 25;Parma plum red;#6B4E66
+RAL 330 30 30;Intense purple;#704C6A
+RAL 330 30 35;Opulent purple;#734B6E
+RAL 330 30 40;Intense mauve;#75476F
+RAL 330 40 10;Patina violet;#746772
+RAL 330 40 15;Dark purple grey;#786576
+RAL 330 40 20;Amaranth red;#7D647A
+RAL 330 40 25;Deep magenta;#81627D
+RAL 330 40 30;Phloxflower violet;#885F81
+RAL 330 40 35;Thistle mauve;#8B5D84
+RAL 330 40 40;Visiona red;#8C5885
+RAL 330 40 45;Purpurite red;#8F5788
+RAL 330 50 10;Burlap grey;#897A86
+RAL 330 50 15;Sapphire pink;#8F7A8C
+RAL 330 50 20;Dianthus mauve;#947790
+RAL 330 50 25;Crystal pink;#987593
+RAL 330 50 30;Tulipan violet;#9D7399
+RAL 330 50 35;Violet red;#A0709C
+RAL 330 50 40;Orchid purple;#A56D9E
+RAL 330 60 10;Greige violet;#A1929F
+RAL 330 60 15;Vesuvian violet;#A791A4
+RAL 330 60 20;Gentian violet;#AD8EA8
+RAL 330 60 25;Wilhelminian pink;#AF8AA9
+RAL 330 60 30;Stage mauve;#B588AF
+RAL 330 60 35;Cheddar pink mauve;#BB85B3
+RAL 330 60 40;Colombo red mauve;#BE82B7
+RAL 330 70 10;Mist pink;#BCABB9
+RAL 330 70 15;Leek blossom pink;#BFA7BB
+RAL 330 70 20;Strawberry pink;#C5A6C0
+RAL 330 70 25;Purple pink;#CCA3C5
+RAL 330 70 30;Clover pink;#D0A1C7
+RAL 330 80 10;Purple white;#D5C4D1
+RAL 330 80 15;Lovely pink;#DAC1D5
+RAL 330 80 20;Designer pink;#E2BFD9
+RAL 330 85 05;Light magnolia rose;#D9D3D9
+RAL 330 85 10;Raspberry pink;#E2D1DE
+RAL 330 85 15;Heavenly pink;#E8CEE1
+RAL 330 90 05;Delicacy white;#EBE2E5
+RAL 340 20 05;Liquorice black;#4D474B
+RAL 340 20 10;Mangosteen violet;#50444A
+RAL 340 20 15;Sitter red;#53414B
+RAL 340 20 20;Juice violet;#58414E
+RAL 340 20 25;Prestige mauve;#5F4252
+RAL 340 30 05;Apple herb black;#5C5559
+RAL 340 30 10;Passionfruit mauve;#61525A
+RAL 340 30 15;Dark fig violet;#66505C
+RAL 340 30 20;Ruby violet;#6A4E5E
+RAL 340 30 25;Blackberry deep red;#6F4C62
+RAL 340 30 30;Deep red;#714963
+RAL 340 30 35;Velvet mauve;#754664
+RAL 340 30 38;Forest fruit red;#7A4366
+RAL 340 40 05;Mauve brown;#6F676B
+RAL 340 40 10;Spinel grey;#76646D
+RAL 340 40 15;Earth brown violet;#7B6270
+RAL 340 40 20;Dahlia matte red;#805F72
+RAL 340 40 25;Brocade violet;#855D76
+RAL 340 40 30;Madder magenta;#895A78
+RAL 340 40 35;Club mauve;#8B557A
+RAL 340 40 40;Cherry red;#90527B
+RAL 340 40 45;Magenta red;#994F80
+RAL 340 50 05;Jubilee grey;#857C81
+RAL 340 50 10;Port wine red;#8C7984
+RAL 340 50 15;Raw garnet viola;#927686
+RAL 340 50 20;Milkwort red;#987489
+RAL 340 50 25;Rust magenta;#9D708B
+RAL 340 50 30;Raspberry jelly red;#A26D8E
+RAL 340 50 35;Thimble red;#A56890
+RAL 340 50 40;Cyclamen red;#AD6693
+RAL 340 50 45;Brilliant carmine;#B26295
+RAL 340 60 05;Heather red grey;#9E959A
+RAL 340 60 10;Piano mauve;#A48F9B
+RAL 340 60 15;Evening pink;#AC8D9F
+RAL 340 60 20;Capri fashion pink;#B08AA1
+RAL 340 60 25;Antique hot pink;#B587A3
+RAL 340 60 30;Cheek red;#BA84A6
+RAL 340 60 35;Hollyhock blossom pink;#C181A9
+RAL 340 60 40;Bishop red;#C87CAD
+RAL 340 70 05;Mauve grey;#B6ACB1
+RAL 340 70 10;Buckwheat mauve;#BCA8B3
+RAL 340 70 15;Hollyhock pink;#C5A6B8
+RAL 340 70 20;Idyllic pink;#CBA3BB
+RAL 340 70 25;Morning glory pink;#CE9FBB
+RAL 340 70 30;Soft fuschia;#D69CC0
+RAL 340 70 35;Firm pink;#DD99C4
+RAL 340 80 05;Piano grey rose;#D1C7CA
+RAL 340 80 10;Mint blossom rose;#D9C4D0
+RAL 340 80 15;Scandalous rose;#E0C0D2
+RAL 340 80 20;Bonbon rose;#E7BDD4
+RAL 340 85 05;Strawberry cream;#DDD2D8
+RAL 340 85 10;Light flamingo pink;#E5CFDB
+RAL 340 85 15;Lacquer mauve;#EECDDF
+RAL 340 90 05;Rose white;#EBE1E4
+RAL 340 93 05;Dress pink;#F1E8ED
+RAL 350 20 10;Mulled wine red;#514449
+RAL 350 20 15;Soft red;#57444B
+RAL 350 20 20;Star ruby;#5C414B
+RAL 350 20 25;Chilli black red;#5F404C
+RAL 350 20 30;Tulip poplar purple;#653D4E
+RAL 350 30 10;Sparrow grey red;#625158
+RAL 350 30 15;Siliceous red;#684F59
+RAL 350 30 20;Liqueur red;#6F4E5B
+RAL 350 30 25;Wine gummy red;#744B5C
+RAL 350 30 30;Burlat red;#7A4A5E
+RAL 350 30 35;Bordeaux red;#7B465E
+RAL 350 30 40;Dried flower purple;#804360
+RAL 350 40 10;Aubergine grey;#77656C
+RAL 350 40 15;Opium mauve;#7D626D
+RAL 350 40 20;Grey carmine;#835F6F
+RAL 350 40 25;Nectar red;#875C6F
+RAL 350 40 30;Dark rose;#8F5971
+RAL 350 40 35;Bonbon red;#945573
+RAL 350 40 40;Cyclamen red;#985374
+RAL 350 40 45;Powder red;#9D5075
+RAL 350 40 50;Madder red;#A24B76
+RAL 350 50 10;Innocent pink;#8D7981
+RAL 350 50 15;Blunt violet;#937682
+RAL 350 50 20;Corundum red;#9B7385
+RAL 350 50 25;Batik pink;#A27086
+RAL 350 50 30;Beryl red;#A76E88
+RAL 350 50 35;Crimson;#AF6888
+RAL 350 50 40;Madder rose;#B56589
+RAL 350 50 45;Signal pink;#B6618B
+RAL 350 50 50;Nail polish pink;#C25E8B
+RAL 350 60 10;Art Nouveau violet;#A59099
+RAL 350 60 15;Mohair pink;#AC8C9A
+RAL 350 60 20;Heather violet;#B58B9D
+RAL 350 60 25;Heather rose;#BC869D
+RAL 350 60 30;Venetian pink;#C4839F
+RAL 350 60 35;Dolomite red;#C87FA0
+RAL 350 60 40;Camellia pink;#D07CA1
+RAL 350 60 45;Persian pink;#D378A4
+RAL 350 70 10;Cold pink;#BFAAB1
+RAL 350 70 15;Shady pink;#C7A5B3
+RAL 350 70 20;Lady's cushions pink;#CB9FB3
+RAL 350 70 25;Coral pink;#D69FB6
+RAL 350 70 30;Techno pink;#DE9BB8
+RAL 350 70 35;Chewing gum pink;#E498B9
+RAL 350 80 10;Magnolia white;#D9C1CA
+RAL 350 80 15;Spring pink;#E0BFCB
+RAL 350 80 20;Light pink;#E9BCCF
+RAL 350 85 05;Fairy white;#DDD2D7
+RAL 350 85 10;Orchid rose;#E7CFD9
+RAL 350 85 15;Pale pink;#EECCD9
+RAL 350 90 05;Light rose;#EEE1E2
+RAL 350 90 10;Ranuncula white;#F4DBE5
+RAL 350 93 05;Clichy white;#F4E8EC
+RAL 360 20 15;Piermont stone red;#574247
+RAL 360 30 05;Soot red;#5D5456
+RAL 360 30 10;Peppercorn red;#635156
+RAL 360 30 15;Zinfandel red;#684E56
+RAL 360 30 20;Art deco red;#704D57
+RAL 360 30 25;Clinker red;#734956
+RAL 360 30 30;Cherry juice red;#784657
+RAL 360 30 35;Palace red;#814456
+RAL 360 30 40;Ember red;#834257
+RAL 360 40 05;Roasted black;#726769
+RAL 360 40 10;Mocha brown;#766369
+RAL 360 40 15;Ruby grey;#7D6069
+RAL 360 40 20;Baroque red;#845D69
+RAL 360 40 25;Frenzied red;#8A5A68
+RAL 360 40 30;Redcurrant;#91576A
+RAL 360 40 35;Orient pink;#97546B
+RAL 360 40 40;Aurora magenta;#9E506C
+RAL 360 40 45;Cardinal red;#A24D6A
+RAL 360 40 50;Parlour red;#A94669
+RAL 360 50 05;Pumice grey;#887C7E
+RAL 360 50 10;Pomace red;#8D787E
+RAL 360 50 15;Evening crimson;#95747E
+RAL 360 50 20;Copper pink;#9B727F
+RAL 360 50 25;Art Nouveau pink;#A46E7D
+RAL 360 50 30;Cosmetic red;#AA6B80
+RAL 360 50 35;Indian pink;#B26780
+RAL 360 50 40;Kir royale rose;#B96680
+RAL 360 50 45;Cockscomb red;#C06281
+RAL 360 50 50;Persian red;#C45D80
+RAL 360 60 05;Ash pink;#9F9497
+RAL 360 60 10;Majolica mauve;#A58F95
+RAL 360 60 15;Fig fruit mauve;#AE8D96
+RAL 360 60 20;Noble lilac;#B78A97
+RAL 360 60 25;Light red;#BD8597
+RAL 360 70 05;Tea blossom pink;#B9ADB0
+RAL 360 70 10;Quartz pink;#C0A7AE
+RAL 360 70 15;Opaline pink;#C9A5AF
+RAL 360 80 05;Mother-of-pearl pink;#D3C7C9
+RAL 360 80 10;Venetian pink;#DBC2C8
+RAL 360 80 15;Soap pink;#E4BFC9
+RAL 360 85 05;Theatre powder rose;#E0D2D4
+RAL 360 85 10;Lotus pink;#E8CFD5
+RAL 360 90 05;Ice pink;#F1E2E1
+RAL 360 90 10;Cake frosting;#F7DDE3
+RAL 360 93 05;Arrowhead white;#F6E8E9

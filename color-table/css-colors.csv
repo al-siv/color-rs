@@ -1,0 +1,150 @@
+Code;Name;Hex
+black;Black;#000000
+silver;Silver;#c0c0c0
+gray;Gray;#808080
+white;White;#ffffff
+maroon;Maroon;#800000
+red;Red;#ff0000
+purple;Purple;#800080
+fuchsia;Fuchsia;#ff00ff
+green;Green;#008000
+lime;Lime;#00ff00
+olive;Olive;#808000
+yellow;Yellow;#ffff00
+navy;Navy;#000080
+blue;Blue;#0000ff
+teal;Teal;#008080
+aqua;Aqua;#00ffff
+aliceblue;Alice Blue;#f0f8ff
+antiquewhite;Antique White;#faebd7
+aquamarine;Aquamarine;#7fffd4
+azure;Azure;#f0ffff
+beige;Beige;#f5f5dc
+bisque;Bisque;#ffe4c4
+blanchedalmond;Blanched Almond;#ffebcd
+blueviolet;Blue Violet;#8a2be2
+brown;Brown;#a52a2a
+burlywood;Burly Wood;#deb887
+cadetblue;Cadet Blue;#5f9ea0
+chartreuse;Chartreuse;#7fff00
+chocolate;Chocolate;#d2691e
+coral;Coral;#ff7f50
+cornflowerblue;Cornflower Blue;#6495ed
+cornsilk;Cornsilk;#fff8dc
+crimson;Crimson;#dc143c
+cyan;Cyan;#00ffff
+darkblue;Dark Blue;#00008b
+darkcyan;Dark Cyan;#008b8b
+darkgoldenrod;Dark Goldenrod;#b8860b
+darkgray;Dark Gray;#a9a9a9
+darkgreen;Dark Green;#006400
+darkgrey;Dark Grey;#a9a9a9
+darkkhaki;Dark Khaki;#bdb76b
+darkmagenta;Dark Magenta;#8b008b
+darkolivegreen;Dark Olive Green;#556b2f
+darkorange;Dark Orange;#ff8c00
+darkorchid;Dark Orchid;#9932cc
+darkred;Dark Red;#8b0000
+darksalmon;Dark Salmon;#e9967a
+darkseagreen;Dark Sea Green;#8fbc8f
+darkslateblue;Dark Slate Blue;#483d8b
+darkslategray;Dark Slate Gray;#2f4f4f
+darkslategrey;Dark Slate Grey;#2f4f4f
+darkturquoise;Dark Turquoise;#00ced1
+darkviolet;Dark Violet;#9400d3
+deeppink;Deep Pink;#ff1493
+deepskyblue;Deep Sky Blue;#00bfff
+dimgray;Dim Gray;#696969
+dimgrey;Dim Grey;#696969
+dodgerblue;Dodger Blue;#1e90ff
+firebrick;Firebrick;#b22222
+floralwhite;Floral White;#fffaf0
+forestgreen;Forest Green;#228b22
+gainsboro;Gainsboro;#dcdcdc
+ghostwhite;Ghost White;#f8f8ff
+gold;Gold;#ffd700
+goldenrod;Goldenrod;#daa520
+greenyellow;Green Yellow;#adff2f
+grey;Grey;#808080
+honeydew;Honeydew;#f0fff0
+hotpink;Hot Pink;#ff69b4
+indianred;Indian Red;#cd5c5c
+indigo;Indigo;#4b0082
+ivory;Ivory;#fffff0
+khaki;Khaki;#f0e68c
+lavender;Lavender;#e6e6fa
+lavenderblush;Lavender Blush;#fff0f5
+lawngreen;Lawn Green;#7cfc00
+lemonchiffon;Lemon Chiffon;#fffacd
+lightblue;Light Blue;#add8e6
+lightcoral;Light Coral;#f08080
+lightcyan;Light Cyan;#e0ffff
+lightgoldenrodyellow;Light Goldenrod Yellow;#fafad2
+lightgray;Light Gray;#d3d3d3
+lightgreen;Light Green;#90ee90
+lightgrey;Light Grey;#d3d3d3
+lightpink;Light Pink;#ffb6c1
+lightsalmon;Light Salmon;#ffa07a
+lightseagreen;Light Sea Green;#20b2aa
+lightskyblue;Light Sky Blue;#87cefa
+lightslategray;Light Slate Gray;#778899
+lightslategrey;Light Slate Grey;#778899
+lightsteelblue;Light Steel Blue;#b0c4de
+lightyellow;Light Yellow;#ffffe0
+limegreen;Lime Green;#32cd32
+linen;Linen;#faf0e6
+magenta;Magenta;#ff00ff
+mediumaquamarine;Medium Aquamarine;#66cdaa
+mediumblue;Medium Blue;#0000cd
+mediumorchid;Medium Orchid;#ba55d3
+mediumpurple;Medium Purple;#9370db
+mediumseagreen;Medium Sea Green;#3cb371
+mediumslateblue;Medium Slate Blue;#7b68ee
+mediumspringgreen;Medium Spring Green;#00fa9a
+mediumturquoise;Medium Turquoise;#48d1cc
+mediumvioletred;Medium Violet Red;#c71585
+midnightblue;Midnight Blue;#191970
+mintcream;Mint Cream;#f5fffa
+mistyrose;Misty Rose;#ffe4e1
+moccasin;Moccasin;#ffe4b5
+navajowhite;Navajo White;#ffdead
+oldlace;Old Lace;#fdf5e6
+olivedrab;Olive Drab;#6b8e23
+orange;Orange;#ffa500
+orangered;Orange Red;#ff4500
+orchid;Orchid;#da70d6
+palegoldenrod;Pale Goldenrod;#eee8aa
+palegreen;Pale Green;#98fb98
+paleturquoise;Pale Turquoise;#afeeee
+palevioletred;Pale Violet Red;#db7093
+papayawhip;Papaya Whip;#ffefd5
+peachpuff;Peach Puff;#ffdab9
+peru;Peru;#cd853f
+pink;Pink;#ffc0cb
+plum;Plum;#dda0dd
+powderblue;Powder Blue;#b0e0e6
+rebeccapurple;Rebecca Purple;#663399
+rosybrown;Rosy Brown;#bc8f8f
+royalblue;Royal Blue;#4169e1
+saddlebrown;Saddle Brown;#8b4513
+salmon;Salmon;#fa8072
+sandybrown;Sandy Brown;#f4a460
+seagreen;Sea Green;#2e8b57
+seashell;Seashell;#fff5ee
+sienna;Sienna;#a0522d
+skyblue;Sky Blue;#87ceeb
+slateblue;Slate Blue;#6a5acd
+slategray;Slate Gray;#708090
+slategrey;Slate Grey;#708090
+snow;Snow;#fffafa
+springgreen;Spring Green;#00ff7f
+steelblue;Steel Blue;#4682b4
+tan;Tan;#d2b48c
+thistle;Thistle;#d8bfd8
+tomato;Tomato;#ff6347
+transparent;Transparent;transparent
+turquoise;Turquoise;#40e0d0
+violet;Violet;#ee82ee
+wheat;Wheat;#f5deb3
+whitesmoke;White Smoke;#f5f5f5
+yellowgreen;Yellow Green;#9acd32
