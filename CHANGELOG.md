@@ -5,6 +5,34 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2025-07-16
+
+### Added
+- **Unified Color Collection System**: Complete architectural redesign for color collections
+  - **Universal Color Representation**: LAB-based internal storage for perceptually accurate comparisons
+  - **Trait-Based Architecture**: Extensible system supporting different native color spaces (RGB, HLC, CMYK)
+  - **Advanced Filtering**: Group-based filtering for RAL Classic (RAL 1000-9000) and RAL Design System+ (Hue, Lightness, Chromaticity)
+  - **Library-Friendly API**: Designed for external library usage with clean, consistent interfaces
+  - **Multiple Search Methods**: Closest match, exact name, luminance-based, and pattern-based searching
+  - **Future-Proof Design**: Easily extensible for Pantone and other color systems
+
+### Improved
+- **RAL Group Filtering**: Filter RAL Classic colors by groups (RAL 1000, 2000, 3000, etc.)
+- **RAL Design Filtering**: Filter by Hue groups (Red, Orange, Yellow, etc.), Lightness ranges, and Chromaticity ranges
+- **Search Performance**: Optimized color matching using unified LAB-based distance calculations
+- **Code Organization**: Separated color collection logic from CLI implementation
+
+### Maintained
+- **Backward Compatibility**: All existing APIs continue to work unchanged
+- **CLI Compatibility**: Existing command-line interface remains identical
+- **Test Coverage**: All existing functionality validated with 57+ passing tests
+
+### Library Features
+- **UnifiedColorManager**: High-level interface for multiple color collections
+- **ColorCollection Trait**: Standardized interface for all color systems
+- **SearchFilter**: Advanced filtering capabilities for precise color discovery
+- **ColorMatch Results**: Rich match information with distance and confidence metrics
+
 ## [0.9.1] - 2025-07-15
 
 ### Fixed

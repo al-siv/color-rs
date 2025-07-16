@@ -12,6 +12,7 @@ color-table/
 *.svg
 *.png
 *.html
+*.sh
 
 # System files
 .DS_Store

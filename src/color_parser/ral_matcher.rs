@@ -1,9 +1,13 @@
-//! RAL Color Matching
+//! RAL Color Matching with Unified Collections Backend
 //!
-//! Functions for finding closest RAL colors and parsing RAL codes
+//! This module provides RAL color matching functionality using the new unified
+//! color collection system. It maintains backward compatibility with the existing API
+//! while leveraging the improved architecture underneath.
 
-use super::ral_data::{RAL_CLASSIC_DATA, RAL_DESIGN_DATA};
-use crate::color_utils::ColorUtils;
+use super::compat::{
+    find_closest_ral_classic_compat, find_closest_ral_design_compat, 
+    find_closest_ral_colors_compat, find_ral_by_code_compat, find_ral_by_name_pattern_compat
+};
 use palette::{Lab, Srgb, IntoColor};
 use regex::Regex;
 use std::sync::OnceLock;
@@ -51,69 +55,17 @@ impl RgbColor {
 
 /// Find the two closest RAL Classic colors to the given RGB color
 pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
-    let target_lab = rgb.to_lab();
-    let mut matches = Vec::new();
-    
-    for &(code, name, hex, lab_l, lab_a, lab_b, _cmyk_c, _cmyk_m, _cmyk_y, _cmyk_k, _lrv) in RAL_CLASSIC_DATA {
-        let ral_lab = Lab::new(lab_l, lab_a, lab_b);
-        let distance = ColorUtils::lab_distance(target_lab, ral_lab);
-        
-        matches.push(RalMatch {
-            code: code.to_string(),
-            name: name.to_string(),
-            hex: hex.to_string(),
-            distance,
-            classification: RalClassification::Classic,
-        });
-    }
-    
-    // Sort by distance and return top results
-    matches.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
-    matches.truncate(max_results);
-    matches
+    find_closest_ral_classic_compat(rgb, max_results)
 }
 
 /// Find the two closest RAL Design System+ colors to the given RGB color
 pub fn find_closest_ral_design(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
-    let target_lab = rgb.to_lab();
-    let mut matches = Vec::new();
-    
-    for &(name, code, [r, g, b], _hue, _lightness, _chromaticity) in RAL_DESIGN_DATA {
-        // Convert RAL Design RGB to LAB for comparison
-        let ral_rgb = RgbColor::new(r, g, b);
-        let ral_lab = ral_rgb.to_lab();
-        let distance = ColorUtils::lab_distance(target_lab, ral_lab);
-        
-        // Generate hex color from RGB
-        let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
-        
-        matches.push(RalMatch {
-            code: code.to_string(),
-            name: name.to_string(),
-            hex,
-            distance,
-            classification: RalClassification::DesignSystem,
-        });
-    }
-    
-    // Sort by distance and return top results
-    matches.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
-    matches.truncate(max_results);
-    matches
+    find_closest_ral_design_compat(rgb, max_results)
 }
 
 /// Find closest colors from both RAL classifications
 pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
-    let mut all_matches = Vec::new();
-    
-    // Get matches from both classifications
-    all_matches.extend(find_closest_ral_classic(rgb, RAL_CLASSIC_DATA.len()));
-    all_matches.extend(find_closest_ral_design(rgb, RAL_DESIGN_DATA.len()));
-    
-    // Sort by distance and return top results
-    all_matches.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
-    all_matches.truncate(max_results);
-    all_matches
+    find_closest_ral_colors_compat(rgb, max_results)
 }
 
 /// Parse RAL Classic code (e.g., "RAL2013", "RAL 2013")
@@ -126,22 +78,10 @@ pub fn parse_ral_classic_code(input: &str) -> Option<RalMatch> {
     if let Some(caps) = regex.captures(input.trim()) {
         let number = caps.get(1).unwrap().as_str();
         let code = format!("RAL {}", number);
-        
-        // Search for the exact code in RAL Classic data
-        for &(ral_code, name, hex, _lab_l, _lab_a, _lab_b, _cmyk_c, _cmyk_m, _cmyk_y, _cmyk_k, _lrv) in RAL_CLASSIC_DATA {
-            if ral_code == code {
-                return Some(RalMatch {
-                    code: ral_code.to_string(),
-                    name: name.to_string(),
-                    hex: hex.to_string(),
-                    distance: 0.0, // Exact match
-                    classification: RalClassification::Classic,
-                });
-            }
-        }
+        find_ral_by_code_compat(&code)
+    } else {
+        None
     }
-    
-    None
 }
 
 /// Parse RAL Design System+ code (e.g., "H010L20C10")
@@ -153,58 +93,15 @@ pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
     
     if let Some(_caps) = regex.captures(input.trim()) {
         let search_code = input.trim().to_uppercase();
-        
-        // Search for the exact code in RAL Design data
-        for &(name, code, [r, g, b], _hue, _lightness, _chromaticity) in RAL_DESIGN_DATA {
-            if code == search_code {
-                let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
-                return Some(RalMatch {
-                    code: code.to_string(),
-                    name: name.to_string(),
-                    hex,
-                    distance: 0.0, // Exact match
-                    classification: RalClassification::DesignSystem,
-                });
-            }
-        }
+        find_ral_by_code_compat(&search_code)
+    } else {
+        None
     }
-    
-    None
 }
 
 /// Find RAL color by name (case-insensitive partial match)
 pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
-    let search_name = name.to_lowercase();
-    let mut matches = Vec::new();
-    
-    // Search RAL Classic colors
-    for &(code, ral_name, hex, _lab_l, _lab_a, _lab_b, _cmyk_c, _cmyk_m, _cmyk_y, _cmyk_k, _lrv) in RAL_CLASSIC_DATA {
-        if ral_name.to_lowercase().contains(&search_name) {
-            matches.push(RalMatch {
-                code: code.to_string(),
-                name: ral_name.to_string(),
-                hex: hex.to_string(),
-                distance: 0.0, // Name match, no distance
-                classification: RalClassification::Classic,
-            });
-        }
-    }
-    
-    // Search RAL Design System+ colors
-    for &(ral_name, code, [r, g, b], _hue, _lightness, _chromaticity) in RAL_DESIGN_DATA {
-        if ral_name.to_lowercase().contains(&search_name) {
-            let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
-            matches.push(RalMatch {
-                code: code.to_string(),
-                name: ral_name.to_string(),
-                hex,
-                distance: 0.0, // Name match, no distance
-                classification: RalClassification::DesignSystem,
-            });
-        }
-    }
-    
-    matches
+    find_ral_by_name_pattern_compat(name)
 }
 
 /// Main RAL color parsing function - tries all formats

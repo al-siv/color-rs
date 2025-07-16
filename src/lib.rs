@@ -18,6 +18,7 @@ pub mod utils;
 // Re-export main types for convenience
 pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
+pub use color_parser::{UnifiedColorManager, SearchFilter, ColorMatch, UniversalColor};
 pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};

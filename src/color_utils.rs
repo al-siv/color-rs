@@ -203,6 +203,45 @@ impl ColorUtils {
         let (r, g, b) = Self::lab_to_rgb(lab);
         format!("#{:02X}{:02X}{:02X}", r, g, b)
     }
+
+    /// Convert LAB color array to RGB array
+    ///
+    /// # Arguments
+    /// * `lab` - LAB values as [L, a, b]
+    ///
+    /// # Returns
+    /// * RGB values as [r, g, b] where each component is 0-255
+    pub fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
+        let lab_color = Lab::new(lab[0], lab[1], lab[2]);
+        let (r, g, b) = Self::lab_to_rgb(lab_color);
+        [r, g, b]
+    }
+
+    /// Convert RGB array to LAB array
+    ///
+    /// # Arguments
+    /// * `rgb` - RGB values as [r, g, b] where each component is 0-255
+    ///
+    /// # Returns
+    /// * LAB values as [L, a, b]
+    pub fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
+        let lab = Self::rgb_to_lab(rgb);
+        [lab.l, lab.a, lab.b]
+    }
+
+    /// Calculate LAB Delta E distance between two color arrays
+    ///
+    /// # Arguments
+    /// * `lab1` - First LAB color as [L, a, b]
+    /// * `lab2` - Second LAB color as [L, a, b]
+    ///
+    /// # Returns
+    /// * Improved Delta E distance (0.0 = identical, higher = more different)
+    pub fn lab_array_distance(lab1: [f32; 3], lab2: [f32; 3]) -> f32 {
+        let lab1_color = Lab::new(lab1[0], lab1[1], lab1[2]);
+        let lab2_color = Lab::new(lab2[0], lab2[1], lab2[2]);
+        Self::lab_distance(lab1_color, lab2_color)
+    }
 }
 
 #[cfg(test)]

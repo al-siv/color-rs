@@ -125,4 +125,54 @@ color-rs gradient "#EF4444" "#10B981" --ease-in 0.42 --ease-out 0.58
 color-rs gradient coral navy --png --width 4000 --no-legend
 ```
 
-Perfect for modern web development with accessibility in mind!
+## Unified Color Collection System
+
+### Advanced RAL Group Filtering
+
+```bash
+# Find red colors in RAL Classic groups
+color-rs color-match red --ral-classic-groups "RAL 3000"
+
+# Find colors by hue in RAL Design System+
+color-rs color-match red --ral-design-hue "Red,Orange"
+
+# Filter by lightness range in RAL Design System+
+color-rs color-match "#808080" --ral-design-lightness 40-60
+
+# Combine multiple filters
+color-rs color-match "#FF5733" --ral-classic-groups "RAL 2000,RAL 3000" --max-results 5
+```
+
+### Search by Color Codes and Names
+
+```bash
+# Exact code lookup (works across all collections)
+color-rs color-match "RAL 1000"          # RAL Classic: Green beige
+color-rs color-match "H010L20C10"        # RAL Design System+: Wenge Black
+
+# Pattern-based name search
+color-rs find-by-name "red"              # All colors containing "red"
+color-rs find-by-name "beige"            # All beige variations across collections
+color-rs find-by-name "blue" --collection "CSS"    # Only CSS colors
+```
+
+### Library Integration Examples
+
+```rust
+// Find colors across all collections
+let manager = UnifiedColorManager::new();
+let results = manager.find_closest_across_all([255, 0, 0], 2);
+
+// RAL-specific filtering
+let ral_groups = vec!["RAL 3000".to_string()];
+let red_rals = manager.find_ral_classic_in_groups([255, 0, 0], &ral_groups, 5);
+
+// Advanced search with multiple criteria
+let filter = SearchFilter {
+    groups: Some(vec!["Red".to_string()]),
+    luminance_range: Some([0.3, 0.7]),
+    max_distance: Some(25.0),
+    ..Default::default()
+};
+let filtered = manager.search_with_filter([200, 50, 50], &filter, 10);
+```

@@ -31,9 +31,7 @@ Color-rs can be used as a Rust library in your projects:
 
 ```toml
 [dependencies]
-color-rs = "0.9.1"
-```
-color-rs = "0.8.0"
+color-rs = "0.10.0"
 ```
 
 ### Basic Library Usage
@@ -576,4 +574,61 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 These improvements ensure color calculations match professional color management standards.
 
 ### Architecture
+- **Unified Color Collection System**: Advanced architecture for managing multiple color standards
+  - **Extensible Design**: Support for CSS Named Colors, RAL Classic, RAL Design System+, and future collections (Pantone, etc.)
+  - **Advanced Filtering**: Group-based filtering for RAL collections (by color families, lightness, chromaticity)
+  - **Multiple Search Methods**: Closest match, exact name/code, luminance-based, and pattern-based searching
+  - **Perceptually Accurate Matching**: LAB color space for consistent color distance calculations across all collections
+  - **Library-First Design**: Clean APIs suitable for integration into other Rust projects
+
+### Advanced Color Collection System
+
+```rust
+use color_rs::color_parser::{
+    UnifiedColorManager, UniversalColor, SearchFilter
+};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Create unified manager with all color collections
+    let manager = UnifiedColorManager::new();
+    
+    // Find closest colors across all collections (CSS, RAL Classic, RAL Design System+)
+    let red_rgb = [255, 0, 0];
+    let results = manager.find_closest_across_all(red_rgb, 2);
+    
+    for (collection_name, matches) in results {
+        println!("{} Collection:", collection_name);
+        for color_match in matches {
+            println!("  {} - Distance: {:.2}", 
+                color_match.entry.metadata.name,
+                color_match.distance
+            );
+        }
+    }
+    
+    // Advanced RAL filtering by groups
+    let ral_red_groups = vec!["RAL 3000".to_string()]; // Red group
+    let ral_reds = manager.find_ral_classic_in_groups(red_rgb, &ral_red_groups, 3);
+    
+    // Filter RAL Design System+ by hue
+    let red_hue_groups = vec!["Red".to_string()];
+    let design_reds = manager.find_ral_design_in_hue_groups(red_rgb, &red_hue_groups, 3);
+    
+    // Search by exact codes
+    if let Some((collection, entry)) = manager.find_by_code("RAL 1000") {
+        println!("Found {} in {}", entry.metadata.name, collection);
+    }
+    
+    // Advanced filtering with SearchFilter
+    let filter = SearchFilter {
+        luminance_range: Some([0.3, 0.8]), // Medium to high luminance
+        groups: Some(vec!["RAL 3000".to_string()]), // Red group only
+        ..Default::default()
+    };
+    
+    let filtered_results = manager.search_with_filter([200, 50, 50], &filter, 5);
+    
+    Ok(())
+}
+```
 

@@ -13,6 +13,14 @@ pub mod ral_data;
 pub mod ral_matcher;
 pub mod types;
 
+// New unified collection system
+pub mod collections;
+pub mod css_collection;
+pub mod ral_classic_collection;
+pub mod ral_design_collection;
+pub mod unified_manager;
+pub mod compat;
+
 pub use color_names::ColorNameResolver;
 pub use ral_matcher::{
     find_closest_ral_classic, find_closest_ral_design, find_closest_ral_colors,
@@ -21,6 +29,16 @@ pub use ral_matcher::{
 };
 pub use css_parser::CssColorParser;
 pub use types::{ColorFormat, ParsedColor};
+
+// New unified collection system exports
+pub use collections::{
+    UniversalColor, ColorEntry, ColorMetadata, ColorMatch, SearchFilter,
+    ColorCollection, ColorCollectionManager
+};
+pub use css_collection::CssColorCollection;
+pub use ral_classic_collection::RalClassicCollection;
+pub use ral_design_collection::RalDesignCollection;
+pub use unified_manager::UnifiedColorManager;
 
 use crate::error::{ColorError, Result};
 use palette::{IntoColor, Lab, Srgb};
