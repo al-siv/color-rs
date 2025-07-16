@@ -536,7 +536,7 @@ pub static RAL_CLASSIC_DATA: &[(&str, &str, &str, f32, f32, f32, f32, f32, f32, 
     (
         "RAL 2017",
         "RAL orange",
-        "",
+        "#DC5B00",
         0.000,
         56.548,
         66.621,

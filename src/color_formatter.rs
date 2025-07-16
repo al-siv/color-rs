@@ -64,6 +64,28 @@ impl ColorFormatter {
         Ok(output.trim_end().to_string())
     }
 
+    /// Format a color into a comprehensive analysis report with custom distance strategy
+    pub fn format_comprehensive_report_with_strategy(
+        lab_color: Lab,
+        original_input: &str,
+        color_name: &str,
+        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    ) -> Result<String> {
+        let mut output = String::new();
+
+        Self::write_header(&mut output, original_input)?;
+        Self::write_format_conversions(&mut output, lab_color)?;
+        Self::write_additional_info(&mut output, lab_color)?;
+        Self::write_unified_collection_matches_with_strategy(
+            &mut output,
+            lab_color,
+            color_name,
+            strategy,
+        )?;
+
+        Ok(output.trim_end().to_string())
+    }
+
     /// Write the report header
     fn write_header(output: &mut String, color_input: &str) -> Result<()> {
         writeln!(
@@ -351,7 +373,7 @@ impl ColorFormatter {
         let rgb_array = [r, g, b];
 
         // CSS Color Collection
-        let css_matches = Self::find_closest_css_colors(rgb_array, 2);
+        let css_matches = Self::find_closest_css_colors(rgb_array, 2)?;
         Self::write_css_collection(output, &css_matches)?;
 
         // RAL Classic Collection
@@ -361,6 +383,50 @@ impl ColorFormatter {
         // RAL Design Collection
         let design_matches = find_closest_ral_design(&rgb, 2);
         Self::write_ral_design_collection(output, &design_matches)?;
+
+        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        Ok(())
+    }
+
+    /// Write all collection matches together with closest colors using a custom strategy
+    fn write_unified_collection_matches_with_strategy(
+        output: &mut String,
+        lab_color: Lab,
+        _css_name: &str,
+        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    ) -> Result<()> {
+        use palette::IntoColor;
+
+        writeln!(
+            output,
+            "{:^width$}",
+            "Color Collections".to_uppercase().bold().on_white().black(),
+            width = COLUMN_WIDTH * 2
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        // Convert LAB to RGB for collection matching
+        let srgb: Srgb = lab_color.into_color();
+        let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
+        let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
+        let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
+        let rgb_array = [r, g, b];
+
+        // Use UnifiedColorManager with strategy
+        let manager = crate::color_parser::UnifiedColorManager::new()?;
+
+        // CSS Color Collection with strategy
+        let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
+        Self::write_color_matches("CSS Colors", output, &css_matches)?;
+
+        // RAL Classic Collection with strategy
+        let classic_matches =
+            manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
+        Self::write_color_matches("RAL Classic", output, &classic_matches)?;
+
+        // RAL Design Collection with strategy
+        let design_matches = manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
+        Self::write_color_matches("RAL Design System+", output, &design_matches)?;
 
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
@@ -441,6 +507,59 @@ impl ColorFormatter {
         Self::write_collection_search_results("RAL Design System+", output, matches)
     }
 
+    /// Write color matches for any collection type
+    fn write_color_matches(
+        collection_name: &str,
+        output: &mut String,
+        matches: &[crate::color_parser::ColorMatch],
+    ) -> Result<()> {
+        writeln!(
+            output,
+            "{}",
+            format!("{:^width$}", collection_name, width = COLUMN_WIDTH * 2)
+                .bold()
+                .on_bright_black()
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        for color_match in matches {
+            // Convert RGB to hex for display
+            let [r, g, b] = color_match.entry.color.rgb;
+            let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
+
+            writeln!(
+                output,
+                "{} {}",
+                format!(
+                    "{:>width$}",
+                    format!("{}:", color_match.entry.metadata.name),
+                    width = COLUMN_WIDTH
+                )
+                .bold()
+                .green(),
+                color_match
+                    .entry
+                    .metadata
+                    .code
+                    .as_ref()
+                    .unwrap_or(&"".to_string())
+                    .white()
+            )
+            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+            writeln!(
+                output,
+                "{:>width$} {}",
+                format!("[ΔE {:.2}] ", color_match.distance),
+                hex.to_uppercase().yellow(),
+                width = COLUMN_WIDTH
+            )
+            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        }
+
+        Ok(())
+    }
+
     /// Format a simple color info for table display
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
         let srgb: Srgb = lab_color.into_color();
@@ -471,13 +590,13 @@ impl ColorFormatter {
     fn find_closest_css_colors(
         rgb: [u8; 3],
         max_results: usize,
-    ) -> Vec<crate::color_parser::RalMatch> {
+    ) -> anyhow::Result<Vec<crate::color_parser::RalMatch>> {
         use crate::color_parser::{RalClassification, RalMatch, UnifiedColorManager};
 
-        let manager = UnifiedColorManager::new();
+        let manager = UnifiedColorManager::new()?;
         let css_matches = manager.find_closest_css_colors(rgb, max_results);
 
-        css_matches
+        let matches: Vec<_> = css_matches
             .into_iter()
             .map(|color_match| {
                 let entry = &color_match.entry;
@@ -499,7 +618,9 @@ impl ColorFormatter {
                     classification: RalClassification::Classic, // CSS doesn't have classification, using Classic as default
                 }
             })
-            .collect()
+            .collect();
+
+        Ok(matches)
     }
 }
 

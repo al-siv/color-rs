@@ -175,6 +175,18 @@ color-rs color-match "red"
 color-rs color-match "hsl(240, 100%, 50%)"
 ```
 
+### Color Distance Strategies
+
+```bash
+# Use different distance calculation methods
+color-rs color-match red --distance-method delta-e-76      # Fast CIE Delta E 1976
+color-rs color-match red --distance-method delta-e-2000    # Accurate CIE Delta E 2000
+color-rs color-match red --distance-method euclidean-lab   # Euclidean LAB distance
+
+# Compare different strategies
+color-rs color-match "#FF6B35" --distance-method delta-e-2000
+```
+
 ## Installation
 
 ### As a Library

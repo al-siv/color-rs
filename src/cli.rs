@@ -157,6 +157,15 @@ pub struct ColorMatchArgs {
     /// Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
     #[arg(value_name = "COLOR")]
     pub color: String,
+
+    /// Distance calculation method for color matching
+    #[arg(
+        long,
+        value_name = "METHOD",
+        default_value = "delta-e-2000",
+        help = "Distance calculation method: delta-e-76, delta-e-2000, euclidean-lab"
+    )]
+    pub distance_method: String,
 }
 
 impl ColorMatchArgs {

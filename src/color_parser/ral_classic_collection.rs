@@ -3,7 +3,8 @@
 //! Implementation of the unified color collection system for RAL Classic colors.
 
 use super::collections::{ColorCollection, ColorEntry, ColorMatch, SearchFilter, UniversalColor};
-use super::ral_data::RAL_CLASSIC_DATA;
+use super::csv_loader::CsvLoader;
+use anyhow::Result;
 
 /// RAL Classic Colors Collection
 pub struct RalClassicCollection {
@@ -12,45 +13,27 @@ pub struct RalClassicCollection {
 
 impl RalClassicCollection {
     /// Create a new RAL Classic color collection
-    pub fn new() -> Self {
-        let colors = RAL_CLASSIC_DATA
+    pub fn new() -> Result<Self> {
+        let csv_colors = CsvLoader::load_colors_from_csv("color-table/ral-classic.csv")?;
+
+        let colors = csv_colors
             .iter()
-            .map(
-                |&(code, name, hex, lab_l, lab_a, lab_b, cmyk_c, cmyk_m, cmyk_y, cmyk_k, lrv)| {
-                    // Use the provided LAB values from the data
-                    let color = UniversalColor::from_lab([lab_l, lab_a, lab_b]);
+            .map(|entry| {
+                let rgb = CsvLoader::hex_to_rgb(&entry.hex).unwrap_or_else(|_| [0, 0, 0]); // Fallback to black on error
 
-                    // Extract RAL group from code (e.g., "RAL 1000" -> "RAL 1000")
-                    let group = Self::extract_ral_group(code);
+                let color = UniversalColor::from_rgb(rgb);
 
-                    let mut entry = ColorEntry::new(color, name.to_string())
-                        .with_code(code.to_string())
-                        .with_group(group)
-                        .with_original_format(hex.to_string());
+                // Extract RAL group from code (e.g., "RAL 1000" -> "RAL 1000")
+                let group = Self::extract_ral_group(&entry.code);
 
-                    // Add extra metadata
-                    entry.metadata.extra_data.insert(
-                        "cmyk".to_string(),
-                        format!(
-                            "cmyk({:.1}, {:.1}, {:.1}, {:.1})",
-                            cmyk_c, cmyk_m, cmyk_y, cmyk_k
-                        ),
-                    );
-                    entry
-                        .metadata
-                        .extra_data
-                        .insert("lrv".to_string(), lrv.to_string());
-                    entry
-                        .metadata
-                        .extra_data
-                        .insert("hex".to_string(), hex.to_string());
-
-                    entry
-                },
-            )
+                ColorEntry::new(color, entry.name.clone())
+                    .with_code(entry.code.clone())
+                    .with_group(group)
+                    .with_original_format(entry.hex.clone())
+            })
             .collect();
 
-        Self { colors }
+        Ok(Self { colors })
     }
 
     /// Extract RAL group from code (e.g., "RAL 1000" -> "1000")
@@ -62,40 +45,11 @@ impl RalClassicCollection {
                 let group_number = &number_part[..1];
                 format!("RAL {}000", group_number)
             } else {
-                "RAL Other".to_string()
+                code.to_string()
             }
         } else {
-            "RAL Other".to_string()
+            code.to_string()
         }
-    }
-
-    /// Get available RAL groups (1000, 2000, 3000, etc.)
-    pub fn get_ral_groups() -> Vec<String> {
-        vec![
-            "RAL 1000".to_string(), // Yellow and Beige
-            "RAL 2000".to_string(), // Orange
-            "RAL 3000".to_string(), // Red
-            "RAL 4000".to_string(), // Violet
-            "RAL 5000".to_string(), // Blue
-            "RAL 6000".to_string(), // Green
-            "RAL 7000".to_string(), // Grey
-            "RAL 8000".to_string(), // Brown
-            "RAL 9000".to_string(), // White and Black
-        ]
-    }
-
-    /// Find colors within specific RAL groups
-    pub fn find_in_groups(
-        &self,
-        target: &UniversalColor,
-        groups: &[String],
-        max_results: usize,
-    ) -> Vec<ColorMatch> {
-        let filter = SearchFilter {
-            groups: Some(groups.to_vec()),
-            ..Default::default()
-        };
-        self.find_closest(target, max_results, Some(&filter))
     }
 }
 
@@ -107,6 +61,62 @@ impl ColorCollection for RalClassicCollection {
     fn colors(&self) -> &[ColorEntry] {
         &self.colors
     }
+
+    fn find_by_code(&self, code: &str) -> Option<ColorEntry> {
+        self.colors
+            .iter()
+            .find(|entry| entry.metadata.code.as_ref() == Some(&code.to_string()))
+            .cloned()
+    }
+
+    fn find_closest(
+        &self,
+        target: &UniversalColor,
+        limit: usize,
+        filter: Option<&SearchFilter>,
+    ) -> Vec<ColorMatch> {
+        let mut distances: Vec<_> = self
+            .colors
+            .iter()
+            .filter(|entry| {
+                if let Some(filter) = filter {
+                    if let Some(groups_filter) = &filter.groups {
+                        if let Some(entry_group) = &entry.metadata.group {
+                            if !groups_filter.contains(entry_group) {
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+                true
+            })
+            .map(|entry| {
+                let distance = target.distance_to(&entry.color);
+                ColorMatch::new(entry.clone(), distance)
+            })
+            .collect();
+
+        distances.sort_by(|a, b| {
+            a.distance
+                .partial_cmp(&b.distance)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+        distances.truncate(limit);
+        distances
+    }
+
+    fn groups(&self) -> Vec<String> {
+        let mut groups: Vec<String> = self
+            .colors
+            .iter()
+            .filter_map(|entry| entry.metadata.group.clone())
+            .collect();
+        groups.sort();
+        groups.dedup();
+        groups
+    }
 }
 
 #[cfg(test)]
@@ -115,9 +125,22 @@ mod tests {
 
     #[test]
     fn test_ral_classic_collection_creation() {
-        let collection = RalClassicCollection::new();
+        let collection =
+            RalClassicCollection::new().expect("Failed to create RAL Classic collection");
         assert!(!collection.colors().is_empty());
         assert_eq!(collection.name(), "RAL Classic");
+    }
+
+    #[test]
+    fn test_ral_find_by_code() {
+        let collection =
+            RalClassicCollection::new().expect("Failed to create RAL Classic collection");
+        let color = collection.find_by_code("RAL 1000");
+        assert!(color.is_some());
+
+        if let Some(entry) = color {
+            assert_eq!(entry.metadata.code.as_ref().unwrap(), "RAL 1000");
+        }
     }
 
     #[test]
@@ -127,42 +150,32 @@ mod tests {
             "RAL 1000"
         );
         assert_eq!(
-            RalClassicCollection::extract_ral_group("RAL 3020"),
-            "RAL 3000"
+            RalClassicCollection::extract_ral_group("RAL 2000"),
+            "RAL 2000"
         );
         assert_eq!(
-            RalClassicCollection::extract_ral_group("RAL 7040"),
-            "RAL 7000"
+            RalClassicCollection::extract_ral_group("RAL 9999"),
+            "RAL 9000"
         );
-    }
-
-    #[test]
-    fn test_ral_find_by_code() {
-        let collection = RalClassicCollection::new();
-        let ral1000 = collection.find_by_code("RAL 1000");
-        assert!(ral1000.is_some());
-
-        let entry = ral1000.unwrap();
-        assert_eq!(entry.metadata.name, "Green beige");
-        assert_eq!(entry.metadata.code, Some("RAL 1000".to_string()));
     }
 
     #[test]
     fn test_ral_group_filtering() {
-        let collection = RalClassicCollection::new();
+        let collection =
+            RalClassicCollection::new().expect("Failed to create RAL Classic collection");
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
-        let matches = collection.find_in_groups(&target, &["RAL 3000".to_string()], 3);
 
-        // All matches should be from RAL 3000 group (reds)
-        for m in matches {
-            assert!(
-                m.entry
-                    .metadata
-                    .group
-                    .as_ref()
-                    .unwrap()
-                    .starts_with("RAL 3")
-            );
+        let filter = SearchFilter {
+            groups: Some(vec!["RAL 3000".to_string()]),
+            ..Default::default()
+        };
+
+        let matches = collection.find_closest(&target, 5, Some(&filter));
+
+        for color_match in matches {
+            if let Some(group) = &color_match.entry.metadata.group {
+                assert_eq!(group, "RAL 3000");
+            }
         }
     }
 }

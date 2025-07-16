@@ -3,7 +3,9 @@
 //! A trait-based system for managing different color collections with unified search capabilities.
 //! Supports different native color spaces while using LAB for perceptually accurate comparisons.
 
+use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
 use crate::color_utils::ColorUtils;
+use palette::Lab;
 use std::collections::HashMap;
 
 /// Universal color representation using LAB color space for accurate comparisons
@@ -60,9 +62,21 @@ impl UniversalColor {
         self.luminance.unwrap()
     }
 
-    /// Calculate LAB distance to another color
+    /// Calculate LAB distance to another color using the specified strategy
     pub fn distance_to(&self, other: &UniversalColor) -> f32 {
-        ColorUtils::lab_array_distance(self.lab, other.lab)
+        // Use the default strategy (Delta E 2000) for backward compatibility
+        self.distance_to_with_strategy(other, &DeltaE2000Strategy)
+    }
+
+    /// Calculate LAB distance to another color using a specific strategy
+    pub fn distance_to_with_strategy(
+        &self,
+        other: &UniversalColor,
+        strategy: &dyn ColorDistanceStrategy,
+    ) -> f32 {
+        let lab1 = Lab::new(self.lab[0], self.lab[1], self.lab[2]);
+        let lab2 = Lab::new(other.lab[0], other.lab[1], other.lab[2]);
+        strategy.calculate_distance(lab1, lab2)
     }
 }
 
@@ -192,12 +206,24 @@ pub trait ColorCollection: Send + Sync {
         max_results: usize,
         filter: Option<&SearchFilter>,
     ) -> Vec<ColorMatch> {
+        // Use the default strategy for backward compatibility
+        self.find_closest_with_strategy(target, max_results, filter, &DeltaE2000Strategy)
+    }
+
+    /// Find the closest color matches to a target color using a specific strategy
+    fn find_closest_with_strategy(
+        &self,
+        target: &UniversalColor,
+        max_results: usize,
+        filter: Option<&SearchFilter>,
+        strategy: &dyn ColorDistanceStrategy,
+    ) -> Vec<ColorMatch> {
         let mut matches: Vec<ColorMatch> = self
             .colors()
             .iter()
             .filter(|entry| self.matches_filter(entry, filter))
             .map(|entry| {
-                let distance = target.distance_to(&entry.color);
+                let distance = target.distance_to_with_strategy(&entry.color, strategy);
                 ColorMatch::new(entry.clone(), distance)
             })
             .collect();
@@ -330,6 +356,28 @@ impl ColorCollectionManager {
             .iter()
             .map(|collection| {
                 let matches = collection.find_closest(target, max_results_per_collection, filter);
+                (collection.name().to_string(), matches)
+            })
+            .collect()
+    }
+
+    /// Find closest colors across all collections with custom distance strategy
+    pub fn find_closest_across_all_with_strategy(
+        &self,
+        target: &UniversalColor,
+        max_results_per_collection: usize,
+        filter: Option<&SearchFilter>,
+        strategy: &dyn ColorDistanceStrategy,
+    ) -> Vec<(String, Vec<ColorMatch>)> {
+        self.collections
+            .iter()
+            .map(|collection| {
+                let matches = collection.find_closest_with_strategy(
+                    target,
+                    max_results_per_collection,
+                    filter,
+                    strategy,
+                );
                 (collection.name().to_string(), matches)
             })
             .collect()

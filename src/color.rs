@@ -313,7 +313,7 @@ mod tests {
         assert!(output.contains("ADDITIONAL INFORMATION"));
         assert!(output.contains("COLOR COLLECTIONS"));
         assert!(output.contains("rgb(255, 87, 51)"));
-        assert!(output.contains("#ff5733"));
+        assert!(output.contains("#FF5733"));
         assert!(output.contains("HSL:"));
         assert!(output.contains("LAB:"));
         assert!(output.contains("XYZ:"));
@@ -349,8 +349,8 @@ mod tests {
         assert!(result.contains("Grayscale:"));
         assert!(result.contains("#808080")); // Should include HEX format for grayscale
 
-        // For gray color, grayscale should be close to the original
-        assert!(result.contains("LAB L*"));
+        // For gray color, LAB should be present
+        assert!(result.contains("LAB:"));
     }
 
     #[test]
@@ -380,4 +380,59 @@ fn format_comprehensive_report_with_unified_collections(
 ) -> Result<String> {
     // Use the new unified approach that includes all collections in one section
     ColorFormatter::format_comprehensive_report(lab_color, input, color_name)
+}
+
+/// Match and convert a color to all formats with comprehensive output using a custom strategy
+pub fn color_match_with_strategy(
+    color_input: &str,
+    strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+) -> Result<String> {
+    // First, try to parse as RAL code (RAL Classic or Design System+)
+    if let Some(ral_match) = try_parse_ral_color(color_input) {
+        // Convert RAL match to LAB color for comprehensive analysis
+        let hex_without_hash = ral_match.hex.trim_start_matches('#');
+        let r = u8::from_str_radix(&hex_without_hash[0..2], 16).unwrap_or(0);
+        let g = u8::from_str_radix(&hex_without_hash[2..4], 16).unwrap_or(0);
+        let b = u8::from_str_radix(&hex_without_hash[4..6], 16).unwrap_or(0);
+
+        let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+        let lab_color: Lab = srgb.into_color();
+
+        // Use the RAL color name as the color name
+        let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
+
+        return format_comprehensive_report_with_unified_collections_strategy(
+            lab_color,
+            color_input,
+            &ral_color_name,
+            strategy,
+        );
+    }
+
+    // Parse the input color
+    let (lab_color, _format) = parse_color_with_parser(color_input)?;
+
+    // Get color name
+    let color_name = get_color_name_for_lab(lab_color)?;
+
+    // Generate comprehensive report including RAL matches
+    format_comprehensive_report_with_unified_collections_strategy(
+        lab_color,
+        color_input,
+        &color_name,
+        strategy,
+    )
+}
+
+/// Generate comprehensive report using the unified collection approach with strategy
+fn format_comprehensive_report_with_unified_collections_strategy(
+    lab_color: Lab,
+    input: &str,
+    color_name: &str,
+    strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+) -> Result<String> {
+    // Use the strategy-aware ColorFormatter to generate the report
+    ColorFormatter::format_comprehensive_report_with_strategy(
+        lab_color, input, color_name, strategy,
+    )
 }

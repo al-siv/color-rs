@@ -1,130 +1,200 @@
-// Advanced Unified Color Collection System Demo
-// Demonstrates the complete capabilities of the v0.10.0 color-rs system
+//! Unified System Demo Example
+//!
+//! This example demonstrates comprehensive usage of the color collection system.
 
-use color_rs::UnifiedColorManager;
+use color_rs::color_parser::{
+    ColorCollection, CssColorCollection, RalClassicCollection, RalDesignCollection, SearchFilter,
+    UniversalColor,
+};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== Color-rs v0.10.0 Unified Collection System Demo ===\n");
+    println!("=== Unified Color System Comprehensive Demo ===\n");
 
-    // Initialize the unified manager
-    let manager = UnifiedColorManager::new();
+    // Create collections
+    let css_collection = CssColorCollection::new()?;
+    let ral_classic_collection = RalClassicCollection::new()?;
+    let ral_design_collection = RalDesignCollection::new()?;
 
-    // 1. Cross-collection search
-    println!("1. Finding closest colors across all collections:");
-    let target_color = [220, 40, 40]; // Deep red
-    let cross_results = manager.find_closest_across_all(target_color, 3);
+    // Demo 1: Color matching across different collections
+    println!("1. Color matching across different collections:");
+    demo_color_matching(
+        &css_collection,
+        &ral_classic_collection,
+        &ral_design_collection,
+    )?;
 
-    for (collection_name, matches) in &cross_results {
-        println!("  From {}:", collection_name);
-        for result in matches.iter().take(1) {
-            // Show just one per collection for brevity
-            println!(
-                "    {} - {} (distance: {:.2})",
-                result
-                    .entry
-                    .metadata
-                    .code
-                    .as_ref()
-                    .unwrap_or(&"N/A".to_string()),
-                result.entry.metadata.name,
-                result.distance
-            );
-        }
-    }
+    // Demo 2: Group-based filtering
+    println!("\n\n2. Group-based filtering:");
+    demo_group_filtering(&ral_classic_collection, &ral_design_collection)?;
 
-    // 2. RAL Classic group filtering
-    println!("\n2. RAL Classic red groups (RAL 3000):");
-    let ral_groups = vec!["RAL 3000".to_string()];
-    let ral_reds = manager.find_ral_classic_in_groups(target_color, &ral_groups, 3);
+    // Demo 3: Code-based lookups
+    println!("\n\n3. Code-based lookups:");
+    demo_code_lookups(
+        &css_collection,
+        &ral_classic_collection,
+        &ral_design_collection,
+    )?;
 
-    for result in &ral_reds {
-        println!(
-            "    {} - {} (group: {})",
-            result
-                .entry
-                .metadata
-                .code
-                .as_ref()
-                .unwrap_or(&"N/A".to_string()),
-            result.entry.metadata.name,
-            result
-                .entry
-                .metadata
-                .group
-                .as_ref()
-                .unwrap_or(&"N/A".to_string())
-        );
-    }
-
-    // 3. RAL Design System+ hue filtering
-    println!("\n3. RAL Design System+ red hues:");
-    let design_reds = manager.find_ral_design_in_hue_groups(target_color, &["Red".to_string()], 3);
-
-    for result in &design_reds {
-        println!(
-            "    {} - {} (hue group: {})",
-            result
-                .entry
-                .metadata
-                .code
-                .as_ref()
-                .unwrap_or(&"N/A".to_string()),
-            result.entry.metadata.name,
-            result
-                .entry
-                .metadata
-                .group
-                .as_ref()
-                .unwrap_or(&"N/A".to_string())
-        );
-    }
-
-    // 4. Lightness filtering for RAL Design System+
-    println!("\n4. RAL Design System+ medium lightness range:");
-    let lightness_results = manager.find_ral_design_in_lightness_range(target_color, 30.0, 70.0, 3);
-
-    for result in &lightness_results {
-        println!(
-            "    {} - {}",
-            result
-                .entry
-                .metadata
-                .code
-                .as_ref()
-                .unwrap_or(&"N/A".to_string()),
-            result.entry.metadata.name
-        );
-    }
-
-    // 5. Pattern-based name search for RAL colors
-    println!("\n5. Pattern search for 'red' in RAL colors:");
-    let red_patterns = manager.find_ral_by_name_pattern("red");
-
-    for (collection_name, entry) in red_patterns.iter().take(3) {
-        println!(
-            "    {} - {} (collection: {})",
-            entry.metadata.code.as_ref().unwrap_or(&"N/A".to_string()),
-            entry.metadata.name,
-            collection_name
-        );
-    }
-
-    // 6. Exact code lookup demonstration
-    println!("\n6. Exact code lookups:");
-
-    let test_codes = vec!["RAL 1000", "H010L20C10"];
-
-    for code in test_codes {
-        if let Some((collection_name, entry)) = manager.find_by_code(code) {
-            println!(
-                "    {} -> {} ({})",
-                code, entry.metadata.name, collection_name
-            );
-        } else {
-            println!("    {} -> Not found", code);
-        }
-    }
+    // Demo 4: Collection statistics
+    println!("\n\n4. Collection statistics:");
+    demo_collection_stats(
+        &css_collection,
+        &ral_classic_collection,
+        &ral_design_collection,
+    )?;
 
     println!("\n=== Demo Complete ===");
+    Ok(())
+}
+
+fn demo_color_matching(
+    css: &CssColorCollection,
+    ral_classic: &RalClassicCollection,
+    ral_design: &RalDesignCollection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let target_color = UniversalColor::from_rgb([255, 0, 0]); // Red
+
+    println!("   Target color: rgb(255, 0, 0) - Pure Red");
+
+    // Find closest in each collection
+    let css_matches = css.find_closest(&target_color, 2, None);
+    println!("\n   CSS Color matches:");
+    for (i, m) in css_matches.iter().enumerate() {
+        println!(
+            "     {}. {} (ΔE: {:.2})",
+            i + 1,
+            m.entry.metadata.name,
+            m.distance
+        );
+    }
+
+    let ral_classic_matches = ral_classic.find_closest(&target_color, 2, None);
+    println!("\n   RAL Classic matches:");
+    for (i, m) in ral_classic_matches.iter().enumerate() {
+        println!(
+            "     {}. {} ({}) (ΔE: {:.2})",
+            i + 1,
+            m.entry.metadata.name,
+            m.entry.metadata.code.as_ref().unwrap(),
+            m.distance
+        );
+    }
+
+    let ral_design_matches = ral_design.find_closest(&target_color, 2, None);
+    println!("\n   RAL Design System+ matches:");
+    for (i, m) in ral_design_matches.iter().enumerate() {
+        println!(
+            "     {}. {} ({}) (ΔE: {:.2})",
+            i + 1,
+            m.entry.metadata.name,
+            m.entry.metadata.code.as_ref().unwrap(),
+            m.distance
+        );
+    }
+
+    Ok(())
+}
+
+fn demo_group_filtering(
+    ral_classic: &RalClassicCollection,
+    ral_design: &RalDesignCollection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let target_color = UniversalColor::from_rgb([0, 0, 255]); // Blue
+
+    println!("   Target color: rgb(0, 0, 255) - Pure Blue");
+
+    // RAL Classic group filtering
+    let blue_groups = vec!["RAL 5000".to_string()];
+    let filter = SearchFilter {
+        groups: Some(blue_groups),
+        ..Default::default()
+    };
+
+    let filtered_matches = ral_classic.find_closest(&target_color, 3, Some(&filter));
+    println!("\n   RAL Classic blue group (RAL 5000) matches:");
+    for (i, m) in filtered_matches.iter().enumerate() {
+        println!(
+            "     {}. {} ({}) (ΔE: {:.2})",
+            i + 1,
+            m.entry.metadata.name,
+            m.entry.metadata.code.as_ref().unwrap(),
+            m.distance
+        );
+    }
+
+    // RAL Design System+ filtering example
+    let ral_design_matches = ral_design.find_closest(&target_color, 2, None);
+    println!("\n   RAL Design System+ blue matches:");
+    for (i, m) in ral_design_matches.iter().enumerate() {
+        println!(
+            "     {}. {} ({}) (ΔE: {:.2})",
+            i + 1,
+            m.entry.metadata.name,
+            m.entry.metadata.code.as_ref().unwrap(),
+            m.distance
+        );
+    }
+
+    Ok(())
+}
+
+fn demo_code_lookups(
+    css: &CssColorCollection,
+    ral_classic: &RalClassicCollection,
+    ral_design: &RalDesignCollection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // Test code lookups
+    let test_codes = vec![
+        ("red", "CSS"),
+        ("RAL 1000", "RAL Classic"),
+        ("RAL 010 20 20", "RAL Design System+"),
+    ];
+
+    for (code, collection_name) in test_codes {
+        print!("   Looking up '{}' in {}: ", code, collection_name);
+
+        let result = match collection_name {
+            "CSS" => css.find_by_code(code),
+            "RAL Classic" => ral_classic.find_by_code(code),
+            "RAL Design System+" => ral_design.find_by_code(code),
+            _ => None,
+        };
+
+        if let Some(entry) = result {
+            println!("Found - {}", entry.metadata.name);
+        } else {
+            println!("Not found");
+        }
+    }
+
+    Ok(())
+}
+
+fn demo_collection_stats(
+    css: &CssColorCollection,
+    ral_classic: &RalClassicCollection,
+    ral_design: &RalDesignCollection,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("   CSS Colors: {} colors", css.colors().len());
+    println!("   RAL Classic: {} colors", ral_classic.colors().len());
+    println!(
+        "   RAL Design System+: {} colors",
+        ral_design.colors().len()
+    );
+
+    let total_colors = css.colors().len() + ral_classic.colors().len() + ral_design.colors().len();
+    println!("   Total colors available: {}", total_colors);
+
+    // Group statistics
+    let ral_classic_groups = ral_classic.groups();
+    let ral_design_groups = ral_design.groups();
+
+    println!("\n   Group statistics:");
+    println!("     RAL Classic groups: {}", ral_classic_groups.len());
+    println!(
+        "     RAL Design System+ groups: {}",
+        ral_design_groups.len()
+    );
+
     Ok(())
 }

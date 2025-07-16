@@ -8,8 +8,9 @@ use super::ral_matcher::{RalClassification, RalMatch};
 use super::unified_manager::UnifiedColorManager;
 
 /// Lazy static unified manager for backward compatibility
-static UNIFIED_MANAGER: std::sync::LazyLock<UnifiedColorManager> =
-    std::sync::LazyLock::new(|| UnifiedColorManager::new());
+static UNIFIED_MANAGER: std::sync::LazyLock<UnifiedColorManager> = std::sync::LazyLock::new(|| {
+    UnifiedColorManager::new().expect("Failed to create UnifiedColorManager")
+});
 
 /// Convert new ColorMatch to old RalMatch for backward compatibility
 fn color_match_to_ral_match(
@@ -132,7 +133,9 @@ pub fn find_ral_by_code_compat(code: &str) -> Option<RalMatch> {
 
 /// Find RAL colors by name pattern (backward compatibility)  
 pub fn find_ral_by_name_pattern_compat(name_pattern: &str) -> Vec<RalMatch> {
-    let results = UNIFIED_MANAGER.find_ral_by_name_pattern(name_pattern);
+    // TODO: Implement after CSV migration is complete
+    // let results = UNIFIED_MANAGER.find_ral_by_name_pattern(name_pattern);
+    let results = UNIFIED_MANAGER.find_by_name(name_pattern);
     let mut matches = Vec::new();
 
     for (collection_name, entry) in results {
@@ -205,10 +208,10 @@ mod tests {
         assert_eq!(match_result.code, "RAL 1000");
         assert_eq!(match_result.classification, RalClassification::Classic);
 
-        let hlc_color = find_ral_by_code_compat("H010L20C10");
+        let hlc_color = find_ral_by_code_compat("RAL 010 20 10");
         assert!(hlc_color.is_some());
         let match_result = hlc_color.unwrap();
-        assert_eq!(match_result.code, "H010L20C10");
+        assert_eq!(match_result.code, "RAL 010 20 10");
         assert_eq!(match_result.classification, RalClassification::DesignSystem);
     }
 }

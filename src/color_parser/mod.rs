@@ -9,6 +9,7 @@
 
 pub mod color_names;
 pub mod css_parser;
+pub mod csv_loader;
 pub mod ral_data;
 pub mod ral_matcher;
 pub mod types;

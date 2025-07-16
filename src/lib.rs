@@ -6,6 +6,7 @@
 
 pub mod cli;
 pub mod color;
+pub mod color_distance_strategies;
 pub mod color_formatter;
 pub mod color_parser;
 pub mod color_utils;
@@ -18,6 +19,7 @@ pub mod utils;
 // Re-export main types for convenience
 pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
+pub use color_distance_strategies::{ColorDistanceStrategy, available_strategies, create_strategy};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
@@ -46,7 +48,8 @@ impl ColorRs {
 
     /// Match and convert color between different color spaces
     pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
-        color::color_match(&args.color)
+        let strategy = crate::color_distance_strategies::create_strategy(&args.distance_method);
+        color::color_match_with_strategy(&args.color, strategy.as_ref())
     }
 }
 

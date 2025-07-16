@@ -125,6 +125,52 @@ color-rs gradient "#EF4444" "#10B981" --ease-in 0.42 --ease-out 0.58
 color-rs gradient coral navy --png --width 4000 --no-legend
 ```
 
+## Color Distance Strategy Examples
+
+### Strategy Pattern - Different Distance Methods
+
+```bash
+# Use different color distance calculation methods
+color-rs color-match red --distance-method delta-e-76      # CIE Delta E 1976 (fast)
+color-rs color-match red --distance-method delta-e-2000    # CIE Delta E 2000 (most accurate)
+color-rs color-match red --distance-method euclidean-lab   # Euclidean distance in LAB space
+
+# Compare results between different strategies
+color-rs color-match "#FF6B35" --distance-method delta-e-76
+color-rs color-match "#FF6B35" --distance-method delta-e-2000
+
+# Use strategy in gradients for color selection
+color-rs gradient red blue --distance-method delta-e-2000
+```
+
+**Distance Method Details:**
+- **delta-e-76**: CIE Delta E 1976 - Fast, basic perceptual distance
+- **delta-e-2000**: CIE Delta E 2000 - Most accurate perceptual distance, industry standard
+- **euclidean-lab**: Euclidean distance in LAB color space - Mathematical distance
+
+### Library Integration with Strategies
+
+```rust
+use color_rs::color_distance_strategies::{ColorDistanceStrategy, create_strategy};
+
+// Create different strategies
+let delta_e_76 = create_strategy("delta-e-76");
+let delta_e_2000 = create_strategy("delta-e-2000");
+let euclidean = create_strategy("euclidean-lab");
+
+// Calculate distances with different methods
+let lab1 = [50.0, 20.0, -30.0];
+let lab2 = [60.0, 15.0, -20.0];
+
+let distance_76 = delta_e_76.calculate_distance(lab1, lab2);
+let distance_2000 = delta_e_2000.calculate_distance(lab1, lab2);
+let distance_euclidean = euclidean.calculate_distance(lab1, lab2);
+
+// Use strategies with UnifiedColorManager
+let manager = UnifiedColorManager::new();
+let results = manager.find_closest_with_strategy([255, 100, 50], &delta_e_2000, 5);
+```
+
 ## Unified Color Collection System
 
 ### Advanced RAL Group Filtering

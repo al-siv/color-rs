@@ -82,14 +82,17 @@ pub fn parse_ral_classic_code(input: &str) -> Option<RalMatch> {
     }
 }
 
-/// Parse RAL Design System+ code (e.g., "H010L20C10")
+/// Parse RAL Design System+ code (e.g., "RAL 010 20 10")
 pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
     static RAL_DESIGN_REGEX: OnceLock<Regex> = OnceLock::new();
-    let regex =
-        RAL_DESIGN_REGEX.get_or_init(|| Regex::new(r"(?i)^H(\d{3})L(\d{2})C(\d{2})$").unwrap());
+    let regex = RAL_DESIGN_REGEX
+        .get_or_init(|| Regex::new(r"(?i)^RAL\s*(\d{3})\s*(\d{2})\s*(\d{2})$").unwrap());
 
-    if let Some(_caps) = regex.captures(input.trim()) {
-        let search_code = input.trim().to_uppercase();
+    if let Some(caps) = regex.captures(input.trim()) {
+        let hue = caps.get(1).unwrap().as_str();
+        let lightness = caps.get(2).unwrap().as_str();
+        let chroma = caps.get(3).unwrap().as_str();
+        let search_code = format!("RAL {} {} {}", hue, lightness, chroma);
         find_ral_by_code_compat(&search_code)
     } else {
         None
@@ -149,9 +152,9 @@ mod tests {
 
     #[test]
     fn test_parse_ral_design_code() {
-        // Test RAL Design System+ code format
-        assert!(parse_ral_design_code("H000L15C00").is_some());
-        assert!(parse_ral_design_code("h000l15c00").is_some());
+        // Test RAL Design System+ code format (with spaces as in CSV)
+        assert!(parse_ral_design_code("RAL 000 15 00").is_some());
+        assert!(parse_ral_design_code("ral 000 15 00").is_some());
         assert!(parse_ral_design_code("invalid").is_none());
     }
 
@@ -176,5 +179,58 @@ mod tests {
         let matches = find_closest_ral_colors(&red, 2);
         assert_eq!(matches.len(), 2);
         assert!(matches[0].distance <= matches[1].distance);
+    }
+
+    #[test]
+    fn test_manual_distance_verification() {
+        // Manual verification of distance calculations
+        let input_lab = [60.52568f32, 5.942374f32, -61.562084f32];
+
+        // Green colors that are showing up first
+        let green_6038_lab = [35.69f32, 62.308f32, -84.293f32]; // Luminous green
+        let green_6018_lab = [41.37f32, 57.587f32, -35.153f32]; // Yellow green
+
+        // Blue colors that should be closer
+        let blue_5000_lab = [32.75f32, 32.585f32, -1.282f32]; // Violet blue  
+        let blue_5007_lab = [40.39f32, 42.93f32, -6.80f32]; // Brilliant blue
+
+        // Calculate distances manually
+        let green_6038_dist =
+            crate::color_utils::ColorUtils::lab_array_distance(input_lab, green_6038_lab);
+        let green_6018_dist =
+            crate::color_utils::ColorUtils::lab_array_distance(input_lab, green_6018_lab);
+        let blue_5000_dist =
+            crate::color_utils::ColorUtils::lab_array_distance(input_lab, blue_5000_lab);
+        let blue_5007_dist =
+            crate::color_utils::ColorUtils::lab_array_distance(input_lab, blue_5007_lab);
+
+        println!(
+            "Input: LAB({:.2}, {:.2}, {:.2})",
+            input_lab[0], input_lab[1], input_lab[2]
+        );
+        println!(
+            "Green 6038: LAB({:.2}, {:.2}, {:.2}) -> ΔE {:.2}",
+            green_6038_lab[0], green_6038_lab[1], green_6038_lab[2], green_6038_dist
+        );
+        println!(
+            "Green 6018: LAB({:.2}, {:.2}, {:.2}) -> ΔE {:.2}",
+            green_6018_lab[0], green_6018_lab[1], green_6018_lab[2], green_6018_dist
+        );
+        println!(
+            "Blue  5000: LAB({:.2}, {:.2}, {:.2}) -> ΔE {:.2}",
+            blue_5000_lab[0], blue_5000_lab[1], blue_5000_lab[2], blue_5000_dist
+        );
+        println!(
+            "Blue  5007: LAB({:.2}, {:.2}, {:.2}) -> ΔE {:.2}",
+            blue_5007_lab[0], blue_5007_lab[1], blue_5007_lab[2], blue_5007_dist
+        );
+
+        // The bug: green colors have lower ΔE than blue colors, which seems wrong
+        println!("\nAre green colors really closer than blue colors?");
+        println!(
+            "Green vs Blue: {} vs {}",
+            green_6038_dist < blue_5000_dist,
+            green_6038_dist < blue_5007_dist
+        );
     }
 }
