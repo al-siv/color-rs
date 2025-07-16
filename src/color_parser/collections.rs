@@ -51,7 +51,11 @@ impl UniversalColor {
     /// Get WCAG relative luminance (cached)
     pub fn luminance(&mut self) -> f32 {
         if self.luminance.is_none() {
-            self.luminance = Some(ColorUtils::wcag_relative_luminance(self.rgb[0], self.rgb[1], self.rgb[2]));
+            self.luminance = Some(ColorUtils::wcag_relative_luminance(
+                self.rgb[0],
+                self.rgb[1],
+                self.rgb[2],
+            ));
         }
         self.luminance.unwrap()
     }
@@ -182,7 +186,12 @@ pub trait ColorCollection: Send + Sync {
     }
 
     /// Find the closest color matches to a target color
-    fn find_closest(&self, target: &UniversalColor, max_results: usize, filter: Option<&SearchFilter>) -> Vec<ColorMatch> {
+    fn find_closest(
+        &self,
+        target: &UniversalColor,
+        max_results: usize,
+        filter: Option<&SearchFilter>,
+    ) -> Vec<ColorMatch> {
         let mut matches: Vec<ColorMatch> = self
             .colors()
             .iter()
@@ -273,7 +282,12 @@ pub trait ColorCollection: Send + Sync {
 
         // Check name pattern
         if let Some(ref pattern) = filter.name_pattern {
-            if !entry.metadata.name.to_lowercase().contains(&pattern.to_lowercase()) {
+            if !entry
+                .metadata
+                .name
+                .to_lowercase()
+                .contains(&pattern.to_lowercase())
+            {
                 return false;
             }
         }
@@ -374,7 +388,7 @@ mod tests {
         let entry = ColorEntry::new(color, "Red".to_string())
             .with_code("R001".to_string())
             .with_group("Primary".to_string());
-        
+
         assert_eq!(entry.metadata.name, "Red");
         assert_eq!(entry.metadata.code, Some("R001".to_string()));
         assert_eq!(entry.metadata.group, Some("Primary".to_string()));

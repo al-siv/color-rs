@@ -15,25 +15,25 @@ pub mod types;
 
 // New unified collection system
 pub mod collections;
+pub mod compat;
 pub mod css_collection;
 pub mod ral_classic_collection;
 pub mod ral_design_collection;
 pub mod unified_manager;
-pub mod compat;
 
 pub use color_names::ColorNameResolver;
-pub use ral_matcher::{
-    find_closest_ral_classic, find_closest_ral_design, find_closest_ral_colors,
-    find_ral_by_name, parse_ral_color, parse_ral_classic_code, parse_ral_design_code,
-    RalMatch, RalClassification, RgbColor
-};
 pub use css_parser::CssColorParser;
+pub use ral_matcher::{
+    RalClassification, RalMatch, RgbColor, find_closest_ral_classic, find_closest_ral_colors,
+    find_closest_ral_design, find_ral_by_name, parse_ral_classic_code, parse_ral_color,
+    parse_ral_design_code,
+};
 pub use types::{ColorFormat, ParsedColor};
 
 // New unified collection system exports
 pub use collections::{
-    UniversalColor, ColorEntry, ColorMetadata, ColorMatch, SearchFilter,
-    ColorCollection, ColorCollectionManager
+    ColorCollection, ColorCollectionManager, ColorEntry, ColorMatch, ColorMetadata, SearchFilter,
+    UniversalColor,
 };
 pub use css_collection::CssColorCollection;
 pub use ral_classic_collection::RalClassicCollection;

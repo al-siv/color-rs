@@ -310,7 +310,7 @@ impl GradientCalculator {
                 .bold()
                 .to_uppercase()
                 .black()
-                .on_bright_white()
+                .on_white()
         );
         let mut table = Table::new(values);
         table.with(Style::rounded());
@@ -355,7 +355,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
             println!(
                 "{} {}\n",
                 "SVG gradient saved to:".green().bold(),
-                args.svg_name.bright_white()
+                args.svg_name.white()
             );
         }
 
@@ -365,7 +365,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
             println!(
                 "{} {}\n",
                 "PNG gradient saved to:".green().bold(),
-                args.png_name.bright_white()
+                args.png_name.white()
             );
         }
     }

@@ -53,7 +53,7 @@ mod tests {
         let collection = CssColorCollection::new();
         let red = collection.find_by_name("red");
         assert!(red.is_some());
-        
+
         let red_entry = red.unwrap();
         assert_eq!(red_entry.metadata.name, "red");
         assert_eq!(red_entry.color.rgb, [255, 0, 0]);
@@ -64,7 +64,7 @@ mod tests {
         let collection = CssColorCollection::new();
         let target = UniversalColor::from_rgb([254, 1, 1]); // Almost red
         let matches = collection.find_closest(&target, 1, None);
-        
+
         assert!(!matches.is_empty());
         assert_eq!(matches[0].entry.metadata.name, "red");
     }

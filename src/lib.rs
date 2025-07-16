@@ -18,7 +18,7 @@ pub mod utils;
 // Re-export main types for convenience
 pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
-pub use color_parser::{UnifiedColorManager, SearchFilter, ColorMatch, UniversalColor};
+pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
@@ -26,6 +26,9 @@ pub use image::{ImageFormat, ImageGenerator};
 
 /// Current version of the color-rs library
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Formatting constant: width for formatted columns in the output
+pub const COLUMN_WIDTH: usize = 30;
 
 /// Main library interface for generating gradients
 pub struct ColorRs;

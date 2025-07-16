@@ -4,7 +4,7 @@
 //! Provides backward compatibility while enabling the new unified architecture.
 
 use super::collections::{
-    ColorCollection, ColorCollectionManager, UniversalColor, ColorMatch, SearchFilter
+    ColorCollection, ColorCollectionManager, ColorMatch, SearchFilter, UniversalColor,
 };
 use super::css_collection::CssColorCollection;
 use super::ral_classic_collection::RalClassicCollection;
@@ -22,16 +22,16 @@ impl UnifiedColorManager {
     /// Create a new unified color manager with all built-in collections
     pub fn new() -> Self {
         let mut manager = ColorCollectionManager::new();
-        
+
         let css_collection = CssColorCollection::new();
         let ral_classic_collection = RalClassicCollection::new();
         let ral_design_collection = RalDesignCollection::new();
-        
+
         // Add collections to manager
         manager.add_collection(Box::new(CssColorCollection::new()));
         manager.add_collection(Box::new(RalClassicCollection::new()));
         manager.add_collection(Box::new(RalDesignCollection::new()));
-        
+
         Self {
             manager,
             css_collection,
@@ -41,9 +41,14 @@ impl UnifiedColorManager {
     }
 
     /// Find closest colors across all collections (new unified API)
-    pub fn find_closest_across_all(&self, rgb: [u8; 3], max_results_per_collection: usize) -> Vec<(String, Vec<ColorMatch>)> {
+    pub fn find_closest_across_all(
+        &self,
+        rgb: [u8; 3],
+        max_results_per_collection: usize,
+    ) -> Vec<(String, Vec<ColorMatch>)> {
         let target = UniversalColor::from_rgb(rgb);
-        self.manager.find_closest_across_all(&target, max_results_per_collection, None)
+        self.manager
+            .find_closest_across_all(&target, max_results_per_collection, None)
     }
 
     /// Find closest CSS named colors (backward compatibility)
@@ -55,37 +60,73 @@ impl UnifiedColorManager {
     /// Find closest RAL Classic colors (backward compatibility)
     pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_classic_collection.find_closest(&target, max_results, None)
+        self.ral_classic_collection
+            .find_closest(&target, max_results, None)
     }
 
     /// Find closest RAL Design System+ colors (backward compatibility)
     pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_design_collection.find_closest(&target, max_results, None)
+        self.ral_design_collection
+            .find_closest(&target, max_results, None)
     }
 
     /// Find RAL Classic colors within specific groups
-    pub fn find_ral_classic_in_groups(&self, rgb: [u8; 3], groups: &[String], max_results: usize) -> Vec<ColorMatch> {
+    pub fn find_ral_classic_in_groups(
+        &self,
+        rgb: [u8; 3],
+        groups: &[String],
+        max_results: usize,
+    ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_classic_collection.find_in_groups(&target, groups, max_results)
+        self.ral_classic_collection
+            .find_in_groups(&target, groups, max_results)
     }
 
     /// Find RAL Design colors within specific hue groups
-    pub fn find_ral_design_in_hue_groups(&self, rgb: [u8; 3], hue_groups: &[String], max_results: usize) -> Vec<ColorMatch> {
+    pub fn find_ral_design_in_hue_groups(
+        &self,
+        rgb: [u8; 3],
+        hue_groups: &[String],
+        max_results: usize,
+    ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_design_collection.find_in_hue_groups(&target, hue_groups, max_results)
+        self.ral_design_collection
+            .find_in_hue_groups(&target, hue_groups, max_results)
     }
 
     /// Find RAL Design colors within lightness range
-    pub fn find_ral_design_in_lightness_range(&self, rgb: [u8; 3], min_lightness: f32, max_lightness: f32, max_results: usize) -> Vec<ColorMatch> {
+    pub fn find_ral_design_in_lightness_range(
+        &self,
+        rgb: [u8; 3],
+        min_lightness: f32,
+        max_lightness: f32,
+        max_results: usize,
+    ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_design_collection.find_in_lightness_range(&target, min_lightness, max_lightness, max_results)
+        self.ral_design_collection.find_in_lightness_range(
+            &target,
+            min_lightness,
+            max_lightness,
+            max_results,
+        )
     }
 
     /// Find RAL Design colors within chroma range
-    pub fn find_ral_design_in_chroma_range(&self, rgb: [u8; 3], min_chroma: f32, max_chroma: f32, max_results: usize) -> Vec<ColorMatch> {
+    pub fn find_ral_design_in_chroma_range(
+        &self,
+        rgb: [u8; 3],
+        min_chroma: f32,
+        max_chroma: f32,
+        max_results: usize,
+    ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_design_collection.find_in_chroma_range(&target, min_chroma, max_chroma, max_results)
+        self.ral_design_collection.find_in_chroma_range(
+            &target,
+            min_chroma,
+            max_chroma,
+            max_results,
+        )
     }
 
     /// Search by exact name across all collections
@@ -125,27 +166,36 @@ impl UnifiedColorManager {
     }
 
     /// Search with advanced filtering
-    pub fn search_with_filter(&self, rgb: [u8; 3], filter: &SearchFilter, max_results: usize) -> Vec<(String, Vec<ColorMatch>)> {
+    pub fn search_with_filter(
+        &self,
+        rgb: [u8; 3],
+        filter: &SearchFilter,
+        max_results: usize,
+    ) -> Vec<(String, Vec<ColorMatch>)> {
         let target = UniversalColor::from_rgb(rgb);
-        self.manager.find_closest_across_all(&target, max_results, Some(filter))
+        self.manager
+            .find_closest_across_all(&target, max_results, Some(filter))
     }
 
     /// Find RAL colors by name pattern (for backward compatibility)
-    pub fn find_ral_by_name_pattern(&self, pattern: &str) -> Vec<(String, super::collections::ColorEntry)> {
+    pub fn find_ral_by_name_pattern(
+        &self,
+        pattern: &str,
+    ) -> Vec<(String, super::collections::ColorEntry)> {
         let mut results = Vec::new();
-        
+
         // Search RAL Classic
         let classic_matches = self.ral_classic_collection.find_by_name_pattern(pattern);
         for entry in classic_matches {
             results.push(("RAL Classic".to_string(), entry));
         }
-        
+
         // Search RAL Design System+
         let design_matches = self.ral_design_collection.find_by_name_pattern(pattern);
         for entry in design_matches {
             results.push(("RAL Design System+".to_string(), entry));
         }
-        
+
         results
     }
 }
@@ -174,26 +224,29 @@ mod tests {
     fn test_find_closest_across_all() {
         let manager = UnifiedColorManager::new();
         let results = manager.find_closest_across_all([255, 0, 0], 2);
-        
+
         assert_eq!(results.len(), 3); // CSS, RAL Classic, RAL Design
-        
+
         for (collection_name, matches) in results {
             assert!(matches.len() <= 2);
-            assert!(["CSS Named Colors", "RAL Classic", "RAL Design System+"].contains(&collection_name.as_str()));
+            assert!(
+                ["CSS Named Colors", "RAL Classic", "RAL Design System+"]
+                    .contains(&collection_name.as_str())
+            );
         }
     }
 
     #[test]
     fn test_find_by_code() {
         let manager = UnifiedColorManager::new();
-        
+
         // Test RAL Classic code
         let ral1000 = manager.find_by_code("RAL 1000");
         assert!(ral1000.is_some());
         let (collection, entry) = ral1000.unwrap();
         assert_eq!(collection, "RAL Classic");
         assert_eq!(entry.metadata.name, "Green beige");
-        
+
         // Test RAL Design code
         let hlc_color = manager.find_by_code("H010L20C10");
         assert!(hlc_color.is_some());
@@ -208,7 +261,7 @@ mod tests {
         let groups = manager.get_ral_classic_groups();
         assert!(groups.contains(&"RAL 1000".to_string()));
         assert!(groups.contains(&"RAL 3000".to_string()));
-        
+
         let hue_groups = manager.get_ral_design_hue_groups();
         assert!(hue_groups.contains(&"Red".to_string()));
         assert!(hue_groups.contains(&"Blue".to_string()));

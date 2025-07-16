@@ -121,7 +121,7 @@ impl ColorProcessor {
                 .bold()
                 .to_uppercase()
                 .black()
-                .on_bright_white()
+                .on_white()
         );
         let mut table = Table::new(color_data);
         table.with(Style::rounded());
@@ -176,14 +176,18 @@ pub fn color_match(color_input: &str) -> Result<String> {
         let r = u8::from_str_radix(&hex_without_hash[0..2], 16).unwrap_or(0);
         let g = u8::from_str_radix(&hex_without_hash[2..4], 16).unwrap_or(0);
         let b = u8::from_str_radix(&hex_without_hash[4..6], 16).unwrap_or(0);
-        
+
         let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
         let lab_color: Lab = srgb.into_color();
-        
+
         // Use the RAL color name as the color name
         let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
-        
-        return format_comprehensive_report_with_ral(lab_color, color_input, &ral_color_name);
+
+        return format_comprehensive_report_with_unified_collections(
+            lab_color,
+            color_input,
+            &ral_color_name,
+        );
     }
 
     // Parse the input color
@@ -193,7 +197,7 @@ pub fn color_match(color_input: &str) -> Result<String> {
     let color_name = get_color_name_for_lab(lab_color)?;
 
     // Generate comprehensive report including RAL matches
-    format_comprehensive_report_with_ral(lab_color, color_input, &color_name)
+    format_comprehensive_report_with_unified_collections(lab_color, color_input, &color_name)
 }
 
 /// Parse color input using the integrated parser
@@ -302,20 +306,21 @@ mod tests {
 
     #[test]
     fn test_color_match() {
-        // Test comprehensive output (always detailed now)
+        // Test comprehensive output with new unified format
         let output = color_match("#FF5733").unwrap();
-        assert!(output.contains("Color Analysis for: #FF5733"));
-        assert!(output.contains("Format Conversions:"));
-        assert!(output.contains("Additional Information:"));
-        assert!(output.contains("• RGB:    rgb(255, 87, 51)"));
-        assert!(output.contains("• Hex:    #ff5733"));
-        assert!(output.contains("• HSL:"));
-        assert!(output.contains("• LAB:"));
-        assert!(output.contains("• XYZ:"));
-        assert!(output.contains("• OKLCH:"));
-        assert!(output.contains("• Grayscale:"));
-        assert!(output.contains("• WCAG Relative Luminance:"));
-        assert!(output.contains("• Brightness:"));
+        assert!(output.contains("COLOR ANALYSIS"));
+        assert!(output.contains("FORMAT CONVERSIONS"));
+        assert!(output.contains("ADDITIONAL INFORMATION"));
+        assert!(output.contains("COLOR COLLECTIONS"));
+        assert!(output.contains("rgb(255, 87, 51)"));
+        assert!(output.contains("#ff5733"));
+        assert!(output.contains("HSL:"));
+        assert!(output.contains("LAB:"));
+        assert!(output.contains("XYZ:"));
+        assert!(output.contains("OKLCH:"));
+        assert!(output.contains("Grayscale:"));
+        assert!(output.contains("WCAG Relative Luminance:"));
+        assert!(output.contains("Brightness:"));
     }
 
     #[test]
@@ -331,7 +336,7 @@ mod tests {
         // Test named color input
         let named_result = color_match("red").unwrap();
         assert!(named_result.contains("rgb(255, 0, 0)"));
-        assert!(named_result.contains("CSS-name: red"));
+        assert!(named_result.contains("CSS Colors") && named_result.contains("red"));
 
         // Test HSL input
         let hsl_result = color_match("hsl(240, 100%, 50%)").unwrap();
@@ -341,7 +346,7 @@ mod tests {
     #[test]
     fn test_color_match_grayscale() {
         let result = color_match("#808080").unwrap();
-        assert!(result.contains("Grayscale: rgb("));
+        assert!(result.contains("Grayscale:"));
         assert!(result.contains("#808080")); // Should include HEX format for grayscale
 
         // For gray color, grayscale should be close to the original
@@ -362,66 +367,17 @@ mod tests {
 /// Try to parse input as RAL color code or name
 fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
     use crate::color_parser::parse_ral_color;
-    
+
     // The parse_ral_color function now handles CSS color filtering internally
     parse_ral_color(input)
 }
 
-/// Generate comprehensive report including RAL color matches
-fn format_comprehensive_report_with_ral(lab_color: Lab, input: &str, color_name: &str) -> Result<String> {
-    use crate::color_parser::{find_closest_ral_classic, find_closest_ral_design, RgbColor};
-    use palette::IntoColor;
-    
-    // Get the base report
-    let base_report = ColorFormatter::format_comprehensive_report(lab_color, input, color_name)?;
-    
-    // Convert LAB to RGB for RAL matching
-    let srgb: Srgb = lab_color.into_color();
-    let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
-    let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
-    let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
-    
-    let rgb = RgbColor::new(r, g, b);
-    
-    // Find 2 closest from each classification separately
-    let classic_matches = find_closest_ral_classic(&rgb, 2);
-    let design_matches = find_closest_ral_design(&rgb, 2);
-    
-    if classic_matches.is_empty() && design_matches.is_empty() {
-        return Ok(base_report);
-    }
-    
-    let mut ral_section = String::from("\nClosest RAL Colors:\n");
-    
-    // Add RAL Classic results
-    if !classic_matches.is_empty() {
-        ral_section.push_str("RAL Classic:\n");
-        for (i, ral_match) in classic_matches.iter().enumerate() {
-            ral_section.push_str(&format!(
-                "  {}. {} ({})\n     Hex: {} | ΔE: {:.2}\n",
-                i + 1,
-                ral_match.name,
-                ral_match.code,
-                ral_match.hex,
-                ral_match.distance
-            ));
-        }
-    }
-    
-    // Add RAL Design System+ results
-    if !design_matches.is_empty() {
-        ral_section.push_str("RAL Design System+:\n");
-        for (i, ral_match) in design_matches.iter().enumerate() {
-            ral_section.push_str(&format!(
-                "  {}. {} ({})\n     Hex: {} | ΔE: {:.2}\n",
-                i + 1,
-                ral_match.name,
-                ral_match.code,
-                ral_match.hex,
-                ral_match.distance
-            ));
-        }
-    }
-    
-    Ok(format!("{}{}", base_report, ral_section))
+/// Generate comprehensive report using the unified collection approach
+fn format_comprehensive_report_with_unified_collections(
+    lab_color: Lab,
+    input: &str,
+    color_name: &str,
+) -> Result<String> {
+    // Use the new unified approach that includes all collections in one section
+    ColorFormatter::format_comprehensive_report(lab_color, input, color_name)
 }

@@ -5,6 +5,38 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3] - 2025-07-16
+
+### Fixed
+- **CSS Color Collection**: CSS colors now properly search for closest matches instead of just displaying the input name
+- **Unified Output Format**: All color collections (CSS, RAL Classic, RAL Design System+) now use the same display format
+- **Code Duplication**: Removed duplicate formatting code by unifying `write_ral_design_collection` with the shared `write_collection_search_results` function
+
+### Changed
+- **CSS Color Matching**: CSS colors now show closest color matches with distance (ΔE) values, matching the RAL collections format
+- **Function Unification**: Made `write_collection_search_results` more generic to accept collection name parameter
+- **Test Updates**: Updated tests to match the new consistent output format
+
+### Technical
+- Enhanced `find_closest_css_colors` function to convert ColorMatch to RalMatch format for unified display
+- Improved code organization and maintainability through unified formatting functions
+
+## [0.10.2] - 2025-07-16
+
+### Changed
+- **Unified Color Collections Output**: Reorganized color formatter to display all color collection information (CSS, RAL Classic, RAL Design) in a single organized section
+- **Modular Constants**: Moved `COLUMN_WIDTH` constant to `lib.rs` for cross-module accessibility
+- **Improved Architecture**: Created separate, configurable functions for each color collection output
+
+### Fixed
+- **Test Suite**: Updated all tests to match the new unified output format
+- **Code Organization**: Removed unused functions and improved code maintainability
+
+### Technical
+- Enhanced documentation for the color formatter module
+- Improved error handling and consistent formatting across all collection outputs
+- Made the system easily extensible for adding new color collections
+
 ## [0.10.0] - 2025-07-16
 
 ### Added

@@ -2,7 +2,7 @@
 //!
 //! Implementation of the unified color collection system for RAL Classic colors.
 
-use super::collections::{ColorCollection, ColorEntry, UniversalColor, SearchFilter, ColorMatch};
+use super::collections::{ColorCollection, ColorEntry, ColorMatch, SearchFilter, UniversalColor};
 use super::ral_data::RAL_CLASSIC_DATA;
 
 /// RAL Classic Colors Collection
@@ -15,26 +15,39 @@ impl RalClassicCollection {
     pub fn new() -> Self {
         let colors = RAL_CLASSIC_DATA
             .iter()
-            .map(|&(code, name, hex, lab_l, lab_a, lab_b, cmyk_c, cmyk_m, cmyk_y, cmyk_k, lrv)| {
-                // Use the provided LAB values from the data
-                let color = UniversalColor::from_lab([lab_l, lab_a, lab_b]);
-                
-                // Extract RAL group from code (e.g., "RAL 1000" -> "RAL 1000")
-                let group = Self::extract_ral_group(code);
-                
-                let mut entry = ColorEntry::new(color, name.to_string())
-                    .with_code(code.to_string())
-                    .with_group(group)
-                    .with_original_format(hex.to_string());
-                
-                // Add extra metadata
-                entry.metadata.extra_data.insert("cmyk".to_string(), 
-                    format!("cmyk({:.1}, {:.1}, {:.1}, {:.1})", cmyk_c, cmyk_m, cmyk_y, cmyk_k));
-                entry.metadata.extra_data.insert("lrv".to_string(), lrv.to_string());
-                entry.metadata.extra_data.insert("hex".to_string(), hex.to_string());
-                
-                entry
-            })
+            .map(
+                |&(code, name, hex, lab_l, lab_a, lab_b, cmyk_c, cmyk_m, cmyk_y, cmyk_k, lrv)| {
+                    // Use the provided LAB values from the data
+                    let color = UniversalColor::from_lab([lab_l, lab_a, lab_b]);
+
+                    // Extract RAL group from code (e.g., "RAL 1000" -> "RAL 1000")
+                    let group = Self::extract_ral_group(code);
+
+                    let mut entry = ColorEntry::new(color, name.to_string())
+                        .with_code(code.to_string())
+                        .with_group(group)
+                        .with_original_format(hex.to_string());
+
+                    // Add extra metadata
+                    entry.metadata.extra_data.insert(
+                        "cmyk".to_string(),
+                        format!(
+                            "cmyk({:.1}, {:.1}, {:.1}, {:.1})",
+                            cmyk_c, cmyk_m, cmyk_y, cmyk_k
+                        ),
+                    );
+                    entry
+                        .metadata
+                        .extra_data
+                        .insert("lrv".to_string(), lrv.to_string());
+                    entry
+                        .metadata
+                        .extra_data
+                        .insert("hex".to_string(), hex.to_string());
+
+                    entry
+                },
+            )
             .collect();
 
         Self { colors }
@@ -72,7 +85,12 @@ impl RalClassicCollection {
     }
 
     /// Find colors within specific RAL groups
-    pub fn find_in_groups(&self, target: &UniversalColor, groups: &[String], max_results: usize) -> Vec<ColorMatch> {
+    pub fn find_in_groups(
+        &self,
+        target: &UniversalColor,
+        groups: &[String],
+        max_results: usize,
+    ) -> Vec<ColorMatch> {
         let filter = SearchFilter {
             groups: Some(groups.to_vec()),
             ..Default::default()
@@ -104,9 +122,18 @@ mod tests {
 
     #[test]
     fn test_ral_group_extraction() {
-        assert_eq!(RalClassicCollection::extract_ral_group("RAL 1000"), "RAL 1000");
-        assert_eq!(RalClassicCollection::extract_ral_group("RAL 3020"), "RAL 3000");
-        assert_eq!(RalClassicCollection::extract_ral_group("RAL 7040"), "RAL 7000");
+        assert_eq!(
+            RalClassicCollection::extract_ral_group("RAL 1000"),
+            "RAL 1000"
+        );
+        assert_eq!(
+            RalClassicCollection::extract_ral_group("RAL 3020"),
+            "RAL 3000"
+        );
+        assert_eq!(
+            RalClassicCollection::extract_ral_group("RAL 7040"),
+            "RAL 7000"
+        );
     }
 
     #[test]
@@ -114,7 +141,7 @@ mod tests {
         let collection = RalClassicCollection::new();
         let ral1000 = collection.find_by_code("RAL 1000");
         assert!(ral1000.is_some());
-        
+
         let entry = ral1000.unwrap();
         assert_eq!(entry.metadata.name, "Green beige");
         assert_eq!(entry.metadata.code, Some("RAL 1000".to_string()));
@@ -125,10 +152,17 @@ mod tests {
         let collection = RalClassicCollection::new();
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
         let matches = collection.find_in_groups(&target, &["RAL 3000".to_string()], 3);
-        
+
         // All matches should be from RAL 3000 group (reds)
         for m in matches {
-            assert!(m.entry.metadata.group.as_ref().unwrap().starts_with("RAL 3"));
+            assert!(
+                m.entry
+                    .metadata
+                    .group
+                    .as_ref()
+                    .unwrap()
+                    .starts_with("RAL 3")
+            );
         }
     }
 }
