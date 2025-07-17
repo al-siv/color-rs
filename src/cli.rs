@@ -175,13 +175,76 @@ pub struct ColorMatchArgs {
         help = "Distance calculation method: delta-e-76, delta-e-2000, euclidean-lab"
     )]
     pub distance_method: String,
+
+    /// Replace input color with same hue but specified WCAG relative luminance
+    /// If used without value, color schemes will use luminance-matched variations
+    #[arg(
+        long,
+        value_name = "LUM_VALUE",
+        help = "Replace color with specified WCAG relative luminance (0.0-1.0)"
+    )]
+    pub relative_luminance: Option<f64>,
+
+    /// Replace input color with same hue but specified Lab luminance
+    /// If used without value, color schemes will use luminance-matched variations
+    #[arg(
+        long,
+        value_name = "LUM_VALUE",
+        help = "Replace color with specified Lab luminance value"
+    )]
+    pub luminance: Option<f64>,
+
+    /// Use Lab color space for color harmony calculations instead of HSV
+    #[arg(
+        long,
+        help = "Calculate color harmonies using Lab color space instead of default"
+    )]
+    pub schema_lab: bool,
+
+    /// Use HSL color space for color harmony calculations (default)
+    #[arg(
+        long,
+        help = "Calculate color harmonies using HSL color space (default behavior)"
+    )]
+    pub schema_hsl: bool,
 }
 
 impl ColorMatchArgs {
     /// Validate the color match arguments
     pub fn validate(&self) -> Result<()> {
-        // The color validation will be done by the color parser
-        // No specific validation needed for CLI args
+        // Validate relative luminance range
+        if let Some(relative_lum) = self.relative_luminance {
+            if relative_lum < 0.0 || relative_lum > 1.0 {
+                return Err(ColorError::InvalidArguments(
+                    "Relative luminance must be between 0.0 and 1.0".to_string(),
+                ));
+            }
+        }
+
+        // Validate Lab luminance range (typical range is 0-100, but can extend beyond)
+        if let Some(lab_lum) = self.luminance {
+            if lab_lum < 0.0 || lab_lum > 100.0 {
+                return Err(ColorError::InvalidArguments(
+                    "Lab luminance should typically be between 0.0 and 100.0".to_string(),
+                ));
+            }
+        }
+
+        // Ensure both luminance arguments are not provided simultaneously
+        if self.relative_luminance.is_some() && self.luminance.is_some() {
+            return Err(ColorError::InvalidArguments(
+                "Cannot specify both --relative-luminance and --luminance simultaneously"
+                    .to_string(),
+            ));
+        }
+
+        // Ensure both schema arguments are not provided simultaneously
+        if self.schema_lab && self.schema_hsl {
+            return Err(ColorError::InvalidArguments(
+                "Cannot specify both --schema-lab and --schema-hsl simultaneously".to_string(),
+            ));
+        }
+
         Ok(())
     }
 }

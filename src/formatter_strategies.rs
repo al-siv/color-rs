@@ -3,6 +3,7 @@
 //! This module implements the Strategy pattern for different color formatting approaches.
 //! It allows for pluggable formatting strategies while maintaining a consistent interface.
 
+use crate::config::*;
 use crate::error::Result;
 use palette::Lab;
 use std::collections::HashMap;
@@ -53,9 +54,9 @@ impl ColorFormattingStrategy for MinimalFormattingStrategy {
         let g = (srgb.green * 255.0).round() as u8;
         let b = (srgb.blue * 255.0).round() as u8;
 
-        writeln!(output, "Input: {}", input)?;
-        writeln!(output, "RGB: ({}, {}, {})", r, g, b)?;
-        writeln!(output, "HEX: #{:02X}{:02X}{:02X}", r, g, b)?;
+        writeln!(output, "{} {}", LABEL_INPUT_COLOR, input)?;
+        writeln!(output, "{} ({}, {}, {})", LABEL_RGB, r, g, b)?;
+        writeln!(output, "{} #{:02X}{:02X}{:02X}", LABEL_HEX, r, g, b)?;
 
         Ok(output)
     }
@@ -175,8 +176,8 @@ mod tests {
         assert!(result.is_ok());
 
         let output = result.unwrap();
-        assert!(output.contains("RGB:"));
-        assert!(output.contains("HEX:"));
+        assert!(output.contains(LABEL_RGB));
+        assert!(output.contains(LABEL_HEX));
         assert_eq!(strategy.strategy_name(), "minimal");
     }
 

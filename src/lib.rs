@@ -12,6 +12,7 @@ pub mod color_matching_template;
 pub mod color_operations_facade;
 pub mod color_parser;
 pub mod color_parser_factory;
+pub mod color_schemes;
 pub mod color_utils;
 pub mod config;
 pub mod error;
@@ -33,6 +34,9 @@ pub use color_operations_facade::{ColorAnalysis, ColorOperationsFacade};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 pub use color_parser_factory::{
     ColorParserConfig, ColorParserFactory, ColorParserTrait, ColorParserType,
+};
+pub use color_schemes::{
+    ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
 };
 pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
@@ -63,7 +67,9 @@ impl ColorRs {
     /// Match and convert color between different color spaces
     pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
         let strategy = crate::color_distance_strategies::create_strategy(&args.distance_method);
-        color::color_match_with_strategy(&args.color, strategy.as_ref())
+
+        // Always use enhanced color matching with schemes (new default behavior)
+        color::color_match_with_schemes(&args, strategy.as_ref())
     }
 }
 

@@ -66,10 +66,13 @@ pub const HEADER_FORMAT_CONVERSIONS: &str = "Format Conversions";
 pub const HEADER_ADDITIONAL_INFO: &str = "Additional Information";
 pub const HEADER_COLOR_COLLECTIONS: &str = "Color Collections";
 
+/// Input field labels
+pub const LABEL_INPUT_COLOR: &str = "Input Color:";
+
 /// Color formatter field labels
 pub const LABEL_COLOR: &str = "Color:";
 pub const LABEL_RGB: &str = "RGB:";
-pub const LABEL_HEX: &str = "Hex:";
+pub const LABEL_HEX: &str = "HEX:";
 pub const LABEL_HSL: &str = "HSL:";
 pub const LABEL_LAB: &str = "LAB:";
 pub const LABEL_XYZ: &str = "XYZ:";
