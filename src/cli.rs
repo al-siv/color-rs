@@ -189,7 +189,7 @@ pub struct ColorMatchArgs {
     /// If used without value, color schemes will use luminance-matched variations
     #[arg(
         long,
-        value_name = "LUM_VALUE",
+        value_name = "LUM_VALUE", 
         help = "Replace color with specified Lab luminance value"
     )]
     pub luminance: Option<f64>,
@@ -233,8 +233,7 @@ impl ColorMatchArgs {
         // Ensure both luminance arguments are not provided simultaneously
         if self.relative_luminance.is_some() && self.luminance.is_some() {
             return Err(ColorError::InvalidArguments(
-                "Cannot specify both --relative-luminance and --luminance simultaneously"
-                    .to_string(),
+                "Cannot specify both --relative-luminance and --luminance simultaneously".to_string(),
             ));
         }
 

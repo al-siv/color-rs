@@ -67,7 +67,7 @@ impl ColorRs {
     /// Match and convert color between different color spaces
     pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
         let strategy = crate::color_distance_strategies::create_strategy(&args.distance_method);
-
+        
         // Always use enhanced color matching with schemes (new default behavior)
         color::color_match_with_schemes(&args, strategy.as_ref())
     }
