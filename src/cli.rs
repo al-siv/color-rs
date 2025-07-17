@@ -193,20 +193,6 @@ pub struct ColorMatchArgs {
         help = "Replace color with specified Lab luminance value"
     )]
     pub luminance: Option<f64>,
-
-    /// Use Lab color space for color harmony calculations instead of HSV
-    #[arg(
-        long,
-        help = "Calculate color harmonies using Lab color space instead of default"
-    )]
-    pub schema_lab: bool,
-
-    /// Use HSL color space for color harmony calculations (default)
-    #[arg(
-        long,
-        help = "Calculate color harmonies using HSL color space (default behavior)"
-    )]
-    pub schema_hsl: bool,
 }
 
 impl ColorMatchArgs {
@@ -235,13 +221,6 @@ impl ColorMatchArgs {
             return Err(ColorError::InvalidArguments(
                 "Cannot specify both --relative-luminance and --luminance simultaneously"
                     .to_string(),
-            ));
-        }
-
-        // Ensure both schema arguments are not provided simultaneously
-        if self.schema_lab && self.schema_hsl {
-            return Err(ColorError::InvalidArguments(
-                "Cannot specify both --schema-lab and --schema-hsl simultaneously".to_string(),
             ));
         }
 

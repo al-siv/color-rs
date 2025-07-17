@@ -9,7 +9,7 @@ A professional CLI tool and Rust library for color gradient calculations using p
 - **RAL Color System**: Complete support for RAL Classic (213 colors) and RAL Design System+ (1825 colors) with precise color matching
 - **Perceptually Accurate Processing**: LAB color space for smooth gradients and ImprovedCiede2000 Delta E for precise color distance calculations
 - **WCAG Compliance**: Official WCAG 2.1 implementation for relative luminance and contrast ratio calculations using palette library
-- **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
+- **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
 - **Modular Architecture**: Clean separation of concerns with dedicated modules for color utilities, formatting, and parsing
 - **Library & CLI**: Use as a command-line tool or integrate as a Rust library
 - **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
@@ -452,7 +452,7 @@ color-rs color-match <COLOR>
 ARGUMENTS:
     <COLOR>    Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
 
-The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions, WCAG-compliant relative luminance calculations, contrast ratios, and accessibility information.
+The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH), WCAG-compliant relative luminance calculations, contrast ratios, accessibility information, and color harmony schemes calculated in both HSL and Lab color space strategies.
 
 #### RAL Color System Support
 The color-match command now includes comprehensive RAL color system support with:

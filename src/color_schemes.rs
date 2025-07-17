@@ -83,37 +83,21 @@ impl ColorSchemeStrategy for LabColorSchemeStrategy {
 
 /// Builder for configuring color scheme calculations
 pub struct ColorSchemeBuilder {
-    strategy: Box<dyn ColorSchemeStrategy>,
     preserve_relative_luminance: bool,
     preserve_lab_luminance: bool,
     target_relative_luminance: Option<f64>,
     target_lab_luminance: Option<f64>,
-    use_lab_output: bool,
 }
 
 impl ColorSchemeBuilder {
-    /// Create a new color scheme builder with HSL strategy (default)
+    /// Create a new color scheme builder
     pub fn new() -> Self {
         Self {
-            strategy: Box::new(HslColorSchemeStrategy),
             preserve_relative_luminance: false,
             preserve_lab_luminance: false,
             target_relative_luminance: None,
             target_lab_luminance: None,
-            use_lab_output: false,
         }
-    }
-
-    /// Use Lab color space for calculations
-    pub fn with_lab_strategy(mut self) -> Self {
-        self.strategy = Box::new(LabColorSchemeStrategy);
-        self
-    }
-
-    /// Use HSL color space for calculations (default)
-    pub fn with_hsl_strategy(mut self) -> Self {
-        self.strategy = Box::new(HslColorSchemeStrategy);
-        self
     }
 
     /// Preserve relative luminance for color scheme calculations
@@ -140,21 +124,13 @@ impl ColorSchemeBuilder {
         self
     }
 
-    /// Enable Lab output format for color display
-    pub fn with_lab_output(mut self) -> Self {
-        self.use_lab_output = true;
-        self
-    }
-
     /// Build the color scheme calculator
     pub fn build(self) -> ColorSchemeCalculator {
         ColorSchemeCalculator {
-            strategy: self.strategy,
             preserve_relative_luminance: self.preserve_relative_luminance,
             preserve_lab_luminance: self.preserve_lab_luminance,
             target_relative_luminance: self.target_relative_luminance,
             target_lab_luminance: self.target_lab_luminance,
-            use_lab_output: self.use_lab_output,
         }
     }
 }
@@ -167,31 +143,38 @@ impl Default for ColorSchemeBuilder {
 
 /// Calculator for color schemes with various options
 pub struct ColorSchemeCalculator {
-    strategy: Box<dyn ColorSchemeStrategy>,
     preserve_relative_luminance: bool,
     preserve_lab_luminance: bool,
     target_relative_luminance: Option<f64>,
     target_lab_luminance: Option<f64>,
-    use_lab_output: bool,
 }
 
-/// Result of color scheme calculations
+/// Result of color scheme calculations with both HSL and Lab strategies
 #[derive(Debug, Clone)]
 pub struct ColorSchemeResult {
     pub base_color: Lab,
-    pub complementary: Lab,
-    pub split_complementary: (Lab, Lab),
-    pub triadic: (Lab, Lab),
-    pub strategy_name: String,
-    pub luminance_matched_complementary: Option<Lab>,
-    pub luminance_matched_split_complementary: Option<(Lab, Lab)>,
-    pub luminance_matched_triadic: Option<(Lab, Lab)>,
-    /// Whether to use Lab color format in output (true) or HSL format (false)
-    pub use_lab_output: bool,
+    
+    // HSL strategy results
+    pub hsl_complementary: Lab,
+    pub hsl_split_complementary: (Lab, Lab),
+    pub hsl_triadic: (Lab, Lab),
+    
+    // Lab strategy results  
+    pub lab_complementary: Lab,
+    pub lab_split_complementary: (Lab, Lab),
+    pub lab_triadic: (Lab, Lab),
+    
+    // Luminance-matched variations (if requested)
+    pub luminance_matched_hsl_complementary: Option<Lab>,
+    pub luminance_matched_hsl_split_complementary: Option<(Lab, Lab)>,
+    pub luminance_matched_hsl_triadic: Option<(Lab, Lab)>,
+    pub luminance_matched_lab_complementary: Option<Lab>,
+    pub luminance_matched_lab_split_complementary: Option<(Lab, Lab)>,
+    pub luminance_matched_lab_triadic: Option<(Lab, Lab)>,
 }
 
 impl ColorSchemeCalculator {
-    /// Calculate color schemes for the given color
+    /// Calculate color schemes for the given color using both HSL and Lab strategies
     pub fn calculate(&self, mut base_color: Lab) -> Result<ColorSchemeResult> {
         // Apply color replacement if target luminance is specified
         if let Some(target_rel_lum) = self.target_relative_luminance {
@@ -200,39 +183,81 @@ impl ColorSchemeCalculator {
             base_color = adjust_color_lab_luminance(base_color, target_lab_lum)?;
         }
 
-        // Calculate base color schemes
-        let complementary = self.strategy.complementary(base_color);
-        let split_complementary = self.strategy.split_complementary(base_color);
-        let triadic = self.strategy.triadic(base_color);
+        // Create both strategies
+        let hsl_strategy = HslColorSchemeStrategy;
+        let lab_strategy = LabColorSchemeStrategy;
 
-        // Calculate luminance-matched variations if requested
-        let luminance_matched_complementary = if self.preserve_relative_luminance {
-            Some(preserve_wcag_relative_luminance(complementary, base_color)?)
+        // Calculate HSL-based color schemes
+        let hsl_complementary = hsl_strategy.complementary(base_color);
+        let hsl_split_complementary = hsl_strategy.split_complementary(base_color);
+        let hsl_triadic = hsl_strategy.triadic(base_color);
+
+        // Calculate Lab-based color schemes
+        let lab_complementary = lab_strategy.complementary(base_color);
+        let lab_split_complementary = lab_strategy.split_complementary(base_color);
+        let lab_triadic = lab_strategy.triadic(base_color);
+
+        // Calculate luminance-matched variations for HSL results if requested
+        let luminance_matched_hsl_complementary = if self.preserve_relative_luminance {
+            Some(preserve_wcag_relative_luminance(hsl_complementary, base_color)?)
         } else if self.preserve_lab_luminance {
-            Some(preserve_lab_luminance(complementary, base_color)?)
+            Some(preserve_lab_luminance(hsl_complementary, base_color)?)
         } else {
             None
         };
 
-        let luminance_matched_split_complementary = if self.preserve_relative_luminance {
-            let comp1 = preserve_wcag_relative_luminance(split_complementary.0, base_color)?;
-            let comp2 = preserve_wcag_relative_luminance(split_complementary.1, base_color)?;
+        let luminance_matched_hsl_split_complementary = if self.preserve_relative_luminance {
+            let comp1 = preserve_wcag_relative_luminance(hsl_split_complementary.0, base_color)?;
+            let comp2 = preserve_wcag_relative_luminance(hsl_split_complementary.1, base_color)?;
             Some((comp1, comp2))
         } else if self.preserve_lab_luminance {
-            let comp1 = preserve_lab_luminance(split_complementary.0, base_color)?;
-            let comp2 = preserve_lab_luminance(split_complementary.1, base_color)?;
+            let comp1 = preserve_lab_luminance(hsl_split_complementary.0, base_color)?;
+            let comp2 = preserve_lab_luminance(hsl_split_complementary.1, base_color)?;
             Some((comp1, comp2))
         } else {
             None
         };
 
-        let luminance_matched_triadic = if self.preserve_relative_luminance {
-            let tri1 = preserve_wcag_relative_luminance(triadic.0, base_color)?;
-            let tri2 = preserve_wcag_relative_luminance(triadic.1, base_color)?;
+        let luminance_matched_hsl_triadic = if self.preserve_relative_luminance {
+            let tri1 = preserve_wcag_relative_luminance(hsl_triadic.0, base_color)?;
+            let tri2 = preserve_wcag_relative_luminance(hsl_triadic.1, base_color)?;
             Some((tri1, tri2))
         } else if self.preserve_lab_luminance {
-            let tri1 = preserve_lab_luminance(triadic.0, base_color)?;
-            let tri2 = preserve_lab_luminance(triadic.1, base_color)?;
+            let tri1 = preserve_lab_luminance(hsl_triadic.0, base_color)?;
+            let tri2 = preserve_lab_luminance(hsl_triadic.1, base_color)?;
+            Some((tri1, tri2))
+        } else {
+            None
+        };
+
+        // Calculate luminance-matched variations for Lab results if requested
+        let luminance_matched_lab_complementary = if self.preserve_relative_luminance {
+            Some(preserve_wcag_relative_luminance(lab_complementary, base_color)?)
+        } else if self.preserve_lab_luminance {
+            Some(preserve_lab_luminance(lab_complementary, base_color)?)
+        } else {
+            None
+        };
+
+        let luminance_matched_lab_split_complementary = if self.preserve_relative_luminance {
+            let comp1 = preserve_wcag_relative_luminance(lab_split_complementary.0, base_color)?;
+            let comp2 = preserve_wcag_relative_luminance(lab_split_complementary.1, base_color)?;
+            Some((comp1, comp2))
+        } else if self.preserve_lab_luminance {
+            let comp1 = preserve_lab_luminance(lab_split_complementary.0, base_color)?;
+            let comp2 = preserve_lab_luminance(lab_split_complementary.1, base_color)?;
+            Some((comp1, comp2))
+        } else {
+            None
+        };
+
+        let luminance_matched_lab_triadic = if self.preserve_relative_luminance {
+            let tri1 = preserve_wcag_relative_luminance(lab_triadic.0, base_color)?;
+            let tri2 = preserve_wcag_relative_luminance(lab_triadic.1, base_color)?;
+            Some((tri1, tri2))
+        } else if self.preserve_lab_luminance {
+            let tri1 = preserve_lab_luminance(lab_triadic.0, base_color)?;
+            let tri2 = preserve_lab_luminance(lab_triadic.1, base_color)?;
             Some((tri1, tri2))
         } else {
             None
@@ -240,14 +265,18 @@ impl ColorSchemeCalculator {
 
         Ok(ColorSchemeResult {
             base_color,
-            complementary,
-            split_complementary,
-            triadic,
-            strategy_name: self.strategy.name().to_string(),
-            luminance_matched_complementary,
-            luminance_matched_split_complementary,
-            luminance_matched_triadic,
-            use_lab_output: self.use_lab_output,
+            hsl_complementary,
+            hsl_split_complementary,
+            hsl_triadic,
+            lab_complementary,
+            lab_split_complementary,
+            lab_triadic,
+            luminance_matched_hsl_complementary,
+            luminance_matched_hsl_split_complementary,
+            luminance_matched_hsl_triadic,
+            luminance_matched_lab_complementary,
+            luminance_matched_lab_split_complementary,
+            luminance_matched_lab_triadic,
         })
     }
 }
@@ -320,11 +349,9 @@ mod tests {
     #[test]
     fn test_color_scheme_builder() {
         let calculator = ColorSchemeBuilder::new()
-            .with_lab_strategy()
             .preserve_relative_luminance()
             .build();
 
-        assert_eq!(calculator.strategy.name(), "Lab");
         assert!(calculator.preserve_relative_luminance);
     }
 
@@ -335,10 +362,12 @@ mod tests {
 
         let result = calculator.calculate(red_lab).unwrap();
 
-        assert_eq!(result.strategy_name, "HSL");
-        // Result should have base color schemes calculated
-        assert!(result.complementary != red_lab);
-        assert!(result.split_complementary.0 != red_lab);
-        assert!(result.triadic.0 != red_lab);
+        // Result should have both HSL and Lab color schemes calculated
+        assert!(result.hsl_complementary != red_lab);
+        assert!(result.hsl_split_complementary.0 != red_lab);
+        assert!(result.hsl_triadic.0 != red_lab);
+        assert!(result.lab_complementary != red_lab);
+        assert!(result.lab_split_complementary.0 != red_lab);
+        assert!(result.lab_triadic.0 != red_lab);
     }
 }

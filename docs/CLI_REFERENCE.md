@@ -184,6 +184,8 @@ color-rs color-match <COLOR> [OPTIONS]
 color-rs color-match "#FF5722"
 ```
 
+Output includes comprehensive color format conversions (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH), WCAG compliance data, closest matches from CSS/RAL collections, and color harmony schemes calculated automatically in both HSL and Lab color space strategies.
+
 ```bash
 # Analyze RGB color with comprehensive output
 color-rs color-match "rgb(255, 87, 34)"
@@ -256,9 +258,10 @@ Future versions may support:
 
 All commands output beautiful terminal tables with:
 
-- Color information with RGB, HEX, HSL, LAB, XYZ, OKLCH values
+- Color information with RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH values
 - WCAG compliance data (relative luminance, contrast ratios)
 - RAL color matches with distance calculations
+- Color schemes calculated in both HSL and Lab color space strategies
 - Right-aligned numeric columns for easy reading
 
 ### Image Outputs

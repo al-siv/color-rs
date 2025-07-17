@@ -5,6 +5,25 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2025-01-XX
+
+### Added
+- **HSB Color Support**: Added HSB (Hue, Saturation, Brightness) color format to Color Analysis output
+- **CMYK Color Support**: Added CMYK (Cyan, Magenta, Yellow, Key) color format to Color Analysis output
+- **Enhanced Color Schemes**: Color schemes now automatically display both HSL and Lab color space strategy calculations
+
+### Changed
+- **Simplified Color Schemes Interface**: Removed the need for users to choose between HSL and Lab strategies - both are now calculated and displayed automatically
+- **Color Analysis Enhancement**: Color Analysis section now includes HSB and CMYK conversions alongside existing RGB, HEX, HSL, LAB, XYZ, OKLCH formats
+
+### Removed
+- **Obsolete CLI Arguments**: Removed `--schema-lab` and `--schema-hsl` command-line flags as they are no longer needed
+- **Schema Flag Logic**: Simplified color matching interface by removing schema selection complexity
+
+### Fixed
+- **Documentation Imports**: Fixed missing `FromColor` import in `color_utils.rs` doctest
+- **Code Quality**: Removed unused import warnings
+
 ## [0.11.1] - 2025-07-17
 
 ### Fixed

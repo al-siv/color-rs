@@ -25,8 +25,7 @@ use crate::config::*;
 use crate::error::{ColorError, Result};
 use crate::formatter_strategies::FormattingStrategyFactory;
 use colored::*;
-use palette::convert::IntoColorUnclamped;
-use palette::{Hsl, IntoColor, Lab, Oklch, Srgb, Xyz, lab};
+use palette::{Hsl, Hsv, IntoColor, Lab, Oklch, Srgb, Xyz};
 use std::fmt::Write;
 
 /// Color formatter for generating comprehensive color reports
@@ -195,6 +194,45 @@ impl ColorFormatter {
                 hsl.hue.into_positive_degrees(),
                 hsl.saturation * 100.0,
                 hsl.lightness * 100.0
+            )
+            .white()
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        // HSB (HSV) - Hue, Saturation, Brightness
+        let hsv: Hsv = srgb.into_color();
+
+        writeln!(
+            output,
+            "{} {}",
+            format!("{:>width$}", LABEL_HSB, width = COLUMN_WIDTH)
+                .bold()
+                .green(),
+            format!(
+                "hsb({:.0}, {:.1}%, {:.1}%)",
+                hsv.hue.into_positive_degrees(),
+                hsv.saturation * 100.0,
+                hsv.value * 100.0
+            )
+            .white()
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        // CMYK - Cyan, Magenta, Yellow, Key (Black)
+        let (c, m, y, k) = crate::color_utils::ColorUtils::rgb_to_cmyk(r, g, b);
+
+        writeln!(
+            output,
+            "{} {}",
+            format!("{:>width$}", LABEL_CMYK, width = COLUMN_WIDTH)
+                .bold()
+                .green(),
+            format!(
+                "cmyk({:.1}%, {:.1}%, {:.1}%, {:.1}%)",
+                c * 100.0,
+                m * 100.0,
+                y * 100.0,
+                k * 100.0
             )
             .white()
         )
@@ -607,7 +645,7 @@ impl ColorFormatter {
         Self::write_collection_search_results(COLLECTION_RAL_DESIGN, output, matches)
     }
 
-    /// Format color schemes section for comprehensive reports
+    /// Format color schemes section for comprehensive reports with both HSL and Lab strategies
     pub fn format_color_schemes(
         schemes: &crate::color_schemes::ColorSchemeResult,
     ) -> Result<String> {
@@ -627,58 +665,106 @@ impl ColorFormatter {
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
-        // Show which strategy was used
+        // HSL Strategy Results
         writeln!(
             output,
             "{}",
-            format!("Strategy: {} color space", schemes.strategy_name)
-                .bold()
-                .on_bright_black()
+            "HSL Color Space Strategy".bold().on_bright_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
-        // Complementary color section
+        // HSL Complementary color section
         Self::write_color_scheme_section(
             &mut output,
             HEADER_SCHEMA_COMPLIMENTARY,
-            &[schemes.complementary],
+            &[schemes.hsl_complementary],
             schemes
-                .luminance_matched_complementary
+                .luminance_matched_hsl_complementary
                 .as_ref()
                 .map(|c| vec![*c])
                 .as_deref(),
-            schemes.use_lab_output,
-            &schemes.strategy_name,
+            false, // Use HSL format
+            "HSL",
         )?;
 
-        // Split-complementary colors section
+        // HSL Split-complementary colors section
         Self::write_color_scheme_section(
             &mut output,
             HEADER_SCHEMA_SPLIT_COMPLIMENTARY,
-            &[schemes.split_complementary.0, schemes.split_complementary.1],
+            &[schemes.hsl_split_complementary.0, schemes.hsl_split_complementary.1],
             schemes
-                .luminance_matched_split_complementary
+                .luminance_matched_hsl_split_complementary
                 .as_ref()
                 .map(|c| vec![c.0, c.1])
                 .as_deref(),
-            schemes.use_lab_output,
-            &schemes.strategy_name,
+            false, // Use HSL format
+            "HSL",
         )?;
 
-        // Triadic colors section
+        // HSL Triadic colors section
         Self::write_color_scheme_section(
             &mut output,
             HEADER_SCHEMA_TRIADIC,
-            &[schemes.triadic.0, schemes.triadic.1],
+            &[schemes.hsl_triadic.0, schemes.hsl_triadic.1],
             schemes
-                .luminance_matched_triadic
+                .luminance_matched_hsl_triadic
                 .as_ref()
                 .map(|c| vec![c.0, c.1])
                 .as_deref(),
-            schemes.use_lab_output,
-            &schemes.strategy_name,
+            false, // Use HSL format
+            "HSL",
+        )?;
+
+        // Lab Strategy Results
+        writeln!(
+            output,
+            "{}",
+            "Lab Color Space Strategy".bold().on_bright_black()
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        // Lab Complementary color section
+        Self::write_color_scheme_section(
+            &mut output,
+            HEADER_SCHEMA_COMPLIMENTARY,
+            &[schemes.lab_complementary],
+            schemes
+                .luminance_matched_lab_complementary
+                .as_ref()
+                .map(|c| vec![*c])
+                .as_deref(),
+            true, // Use Lab format
+            "Lab",
+        )?;
+
+        // Lab Split-complementary colors section
+        Self::write_color_scheme_section(
+            &mut output,
+            HEADER_SCHEMA_SPLIT_COMPLIMENTARY,
+            &[schemes.lab_split_complementary.0, schemes.lab_split_complementary.1],
+            schemes
+                .luminance_matched_lab_split_complementary
+                .as_ref()
+                .map(|c| vec![c.0, c.1])
+                .as_deref(),
+            true, // Use Lab format
+            "Lab",
+        )?;
+
+        // Lab Triadic colors section
+        Self::write_color_scheme_section(
+            &mut output,
+            HEADER_SCHEMA_TRIADIC,
+            &[schemes.lab_triadic.0, schemes.lab_triadic.1],
+            schemes
+                .luminance_matched_lab_triadic
+                .as_ref()
+                .map(|c| vec![c.0, c.1])
+                .as_deref(),
+            true, // Use Lab format
+            "Lab",
         )?;
 
         Ok(output)

@@ -23,6 +23,8 @@ A comprehensive catalog of all features, capabilities, and functionality in colo
 - ✅ **Color Parsing**: HEX (#FF0000), RGB functions, HSL, CSS named colors
 - ✅ **Color Collections**: RAL Classic (213 colors), RAL Design (191 colors), CSS colors (147 colors)
 - ✅ **Color Matching**: Find closest color in any collection with multiple distance algorithms
+- ✅ **Color Analysis**: Complete format conversion (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH)
+- ✅ **Color Schemes**: Harmony calculations in both HSL and Lab color space strategies
 - ✅ **Gradient Generation**: Linear gradients with Bézier easing, custom color stops
 - ✅ **Image Export**: SVG and PNG gradient visualization with legends
 - ✅ **CLI Interface**: Intuitive subcommands for all major operations
@@ -41,7 +43,7 @@ A comprehensive catalog of all features, capabilities, and functionality in colo
 | Image Export | ✅ | ✅ | SVG + PNG |
 | Collection Loading | ✅ | ✅ | CSV + built-in |
 | Distance Calculations | ✅ | ✅ | 6 algorithms |
-| Color Analysis | ✅ | ✅ | Luminance, contrast |
+| Color Analysis | ✅ | ✅ | Luminance, contrast, HSB, CMYK |
 | Format Conversion | ✅ | ✅ | Between all formats |
 
 ## Compile-Time Features
@@ -178,6 +180,8 @@ let invalid_colors = vec![
 RGB: (255, 0, 0)
 HEX: #FF0000
 HSL: (0°, 100%, 50%)
+HSB: (0°, 100%, 100%)
+CMYK: (0%, 100%, 100%, 0%)
 Lab: (53.24, 80.09, 67.20)
 Name: Red (CSS Named)
 ```
@@ -188,6 +192,8 @@ Name: Red (CSS Named)
   "rgb": [255, 0, 0],
   "hex": "#FF0000",
   "hsl": [0, 100, 50],
+  "hsb": [0, 100, 100],
+  "cmyk": [0, 100, 100, 0],
   "lab": [53.24, 80.09, 67.20],
   "name": "Red",
   "collection": "CSS Named"

@@ -398,33 +398,18 @@ pub fn color_match_with_schemes(
     // Build color scheme calculator based on arguments
     let mut scheme_builder = crate::color_schemes::ColorSchemeBuilder::new();
 
-    // Configure strategy based on schema flags
-    if args.schema_lab {
-        scheme_builder = scheme_builder.with_lab_strategy();
-    } else if args.schema_hsl {
-        scheme_builder = scheme_builder.with_hsl_strategy();
-    } else {
-        // Default to HSL strategy
-        scheme_builder = scheme_builder.with_hsl_strategy();
-    }
-
-    // Configure output format (Lab if any lab-related flags are used)
-    if args.schema_lab || args.relative_luminance.is_some() || args.luminance.is_some() {
-        scheme_builder = scheme_builder.with_lab_output();
-    }
-
     // Configure luminance handling
     if let Some(relative_lum) = args.relative_luminance {
         scheme_builder = scheme_builder.with_target_relative_luminance(relative_lum);
-    } else if args.relative_luminance.is_none() && (args.luminance.is_some() || args.schema_lab) {
+    } else if args.relative_luminance.is_none() && args.luminance.is_some() {
         // When the flag is present without value, preserve luminance in color schemes
         scheme_builder = scheme_builder.preserve_relative_luminance();
     }
 
     if let Some(lab_lum) = args.luminance {
         scheme_builder = scheme_builder.with_target_lab_luminance(lab_lum);
-    } else if args.luminance.is_none() && args.schema_lab {
-        // When the flag is present without value, preserve luminance in color schemes
+    } else if args.luminance.is_none() {
+        // When no luminance is specified, preserve relative luminance for better visual results
         scheme_builder = scheme_builder.preserve_lab_luminance();
     }
 

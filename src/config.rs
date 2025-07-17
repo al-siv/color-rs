@@ -7,7 +7,7 @@ pub const APP_AUTHOR: &str = "https://github.com/al-siv";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Formatting constant: width for formatted columns in the output
-pub const COLUMN_WIDTH: usize = 30;
+pub const COLUMN_WIDTH: usize = 32;
 
 /// Image dimensions
 /// Height ratio: gradient height = width * HEIGHT_RATIO
@@ -78,9 +78,11 @@ pub const LABEL_BASE_COLOR: &str = "Base Color:";
 pub const LABEL_RGB: &str = "RGB:";
 pub const LABEL_HEX: &str = "HEX:";
 pub const LABEL_HSL: &str = "HSL:";
+pub const LABEL_HSB: &str = "HSB:";
 pub const LABEL_LAB: &str = "LAB:";
 pub const LABEL_XYZ: &str = "XYZ:";
 pub const LABEL_OKLCH: &str = "OKLCH:";
+pub const LABEL_CMYK: &str = "CMYK:";
 pub const LABEL_GRAYSCALE: &str = "Grayscale:";
 pub const LABEL_WCAG_LUMINANCE: &str = "WCAG Relative Luminance:";
 pub const LABEL_CONTRAST_WHITE: &str = "Contrast vs White:";

@@ -5,7 +5,6 @@
 //! color space conversions and calculations.
 
 use crate::error::{ColorError, Result};
-use colored::*;
 use palette::{
     FromColor, Hsl, IntoColor, Lab, Mix, Srgb,
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
@@ -285,7 +284,7 @@ impl ColorUtils {
     ///
     /// # Example
     /// ```rust
-    /// use palette::{Lab, Srgb, IntoColor};
+    /// use palette::{Lab, Srgb, IntoColor, FromColor};
     /// use color_rs::color_utils::ColorUtils;
     ///
     /// let red_lab = Lab::from_color(Srgb::new(1.0, 0.0, 0.0));
@@ -328,6 +327,46 @@ impl ColorUtils {
 
         // Convert the final sRGB back to Lab to get correct a* and b* components
         Ok(Lab::from_color(best_srgb))
+    }
+
+    /// Convert RGB to CMYK color space
+    ///
+    /// Uses the standard CMYK conversion formula for print color representation
+    ///
+    /// # Arguments
+    /// * `r` - Red component (0-255)
+    /// * `g` - Green component (0-255)
+    /// * `b` - Blue component (0-255)
+    ///
+    /// # Returns
+    /// * CMYK values as (c, m, y, k) where each component is 0.0-1.0
+    ///
+    /// # Example
+    /// ```rust
+    /// use color_rs::color_utils::ColorUtils;
+    /// let (c, m, y, k) = ColorUtils::rgb_to_cmyk(255, 87, 51);
+    /// // Returns CMYK values for #FF5733
+    /// ```
+    pub fn rgb_to_cmyk(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32) {
+        // Convert RGB to 0.0-1.0 range
+        let r_norm = r as f32 / 255.0;
+        let g_norm = g as f32 / 255.0;
+        let b_norm = b as f32 / 255.0;
+
+        // Find the maximum value for K calculation
+        let k = 1.0 - r_norm.max(g_norm).max(b_norm);
+
+        // Handle pure black case
+        if k >= 1.0 {
+            return (0.0, 0.0, 0.0, 1.0);
+        }
+
+        // Calculate CMY components
+        let c = (1.0 - r_norm - k) / (1.0 - k);
+        let m = (1.0 - g_norm - k) / (1.0 - k);
+        let y = (1.0 - b_norm - k) / (1.0 - k);
+
+        (c, m, y, k)
     }
 }
 
