@@ -202,6 +202,122 @@ color-rs find-by-name "beige"            # All beige variations across collectio
 color-rs find-by-name "blue" --collection "CSS"    # Only CSS colors
 ```
 
+## Design Patterns - Library Examples
+
+### Builder Pattern for Advanced Gradient Configuration
+
+```rust
+use color_rs::GradientBuilder;
+
+// Professional gradient with ease-in-out
+let professional = GradientBuilder::new()
+    .start_color("#2C3E50")           // Dark blue-gray
+    .end_color("#E74C3C")            // Red
+    .ease_in_out()                   // Smooth acceleration/deceleration
+    .intelligent_stops(8)            // AI-optimized stop placement
+    .svg()                          // Export to SVG
+    .svg_filename("professional-gradient.svg")
+    .width(1200)
+    .build()?;
+
+// Linear technical gradient
+let technical = GradientBuilder::new()
+    .start_color("hsl(200, 80%, 30%)")  // Dark blue
+    .end_color("hsl(200, 80%, 70%)")    // Light blue
+    .linear()                         // No easing - technical/data visualization
+    .equal_stops(10)                  // Evenly distributed
+    .steps(5)                         // 5% increments
+    .png()                           // Export to PNG
+    .build()?;
+
+// Custom brand gradient
+let brand = GradientBuilder::new()
+    .start_color("#FF6B35")          // Brand orange
+    .end_color("#004E89")            // Brand blue
+    .ease_in(0.25)                   // Subtle ease-in
+    .ease_out(0.85)                  // Strong ease-out
+    .start_position(15)              // Offset start
+    .end_position(85)                // Offset end
+    .images()                        // Both SVG and PNG
+    .no_legend()                     // Clean output
+    .build()?;
+```
+
+### Factory Pattern for Specialized Color Parsing
+
+```rust
+use color_rs::{ColorParserFactory, ColorParserType, ColorParserConfig};
+
+// Performance-optimized parser for web applications
+let web_parser = ColorParserFactory::create_fast()?;
+let (color, format) = web_parser.parse("#3498DB")?;
+
+// Comprehensive parser for design tools
+let design_parser = ColorParserFactory::create_comprehensive()?;
+let closest_name = design_parser.get_color_name(52, 152, 219); // "Dodger Blue"
+
+// Strict validation parser for data processing
+let validator = ColorParserFactory::create_strict()?;
+// Will fail on invalid input instead of fallback
+
+// Custom configuration for specific use cases
+let config = ColorParserConfig {
+    parser_type: ColorParserType::Full,
+    strict_validation: false,
+    enable_fallback_naming: true,
+    color_tolerance: 12.0,              // Slightly more permissive matching
+};
+let custom_parser = ColorParserFactory::create_with_config(config)?;
+
+// Check parser capabilities for dynamic UI
+let info = design_parser.get_info();
+match info.parser_type {
+    ColorParserType::Full => println!("Full feature parser with {} collections", info.collection_count),
+    ColorParserType::Css => println!("Basic CSS parser"),
+    _ => println!("Custom parser configuration"),
+}
+```
+
+### Strategy Pattern for Color Science Applications
+
+```rust
+use color_rs::{create_strategy, available_strategies, ColorUtils};
+
+// Scientific color analysis with different algorithms
+let algorithms = available_strategies();
+for algorithm in algorithms {
+    let strategy = create_strategy(algorithm);
+    println!("{}: {}", strategy.name(), strategy.description());
+}
+
+// Perceptual color matching (recommended for UI/design)
+let perceptual = create_strategy("delta-e-2000");
+let lab1 = ColorUtils::rgb_to_lab([255, 0, 0]);      // Red
+let lab2 = ColorUtils::rgb_to_lab([255, 50, 50]);    // Light red
+let perceptual_distance = perceptual.calculate_distance(lab1, lab2);
+
+// Fast matching for real-time applications
+let fast = create_strategy("euclidean-lab");
+let fast_distance = fast.calculate_distance(lab1, lab2);
+
+// Legacy compatibility
+let legacy = create_strategy("delta-e-76");
+let legacy_distance = legacy.calculate_distance(lab1, lab2);
+
+println!("Perceptual (ΔE 2000): {:.2}", perceptual_distance);  // Most accurate
+println!("Fast (Euclidean): {:.2}", fast_distance);           // Fastest
+println!("Legacy (ΔE 76): {:.2}", legacy_distance);           // Compatibility
+
+// Use in color palette generation
+fn find_complementary_color(base_rgb: [u8; 3]) -> String {
+    let strategy = create_strategy("delta-e-2000");
+    let base_lab = ColorUtils::rgb_to_lab(base_rgb);
+    
+    // ... complement finding logic using strategy
+    "Complementary color analysis result".to_string()
+}
+```
+
 ### Library Integration Examples
 
 ```rust

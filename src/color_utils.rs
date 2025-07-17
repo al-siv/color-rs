@@ -25,9 +25,9 @@ impl ColorUtils {
     /// * LAB color space representation
     pub fn rgb_to_lab(rgb: [u8; 3]) -> Lab {
         let srgb = Srgb::new(
-            rgb[0] as f32 / 255.0,
-            rgb[1] as f32 / 255.0,
-            rgb[2] as f32 / 255.0,
+            rgb[0] as f32 / crate::config::RGB_MAX_F32,
+            rgb[1] as f32 / crate::config::RGB_MAX_F32,
+            rgb[2] as f32 / crate::config::RGB_MAX_F32,
         );
         Lab::from_color(srgb)
     }
@@ -41,9 +41,9 @@ impl ColorUtils {
     /// * RGB values as (r, g, b) where each component is 0-255
     pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
         let srgb: Srgb = lab.into_color();
-        let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
-        let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
-        let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
+        let r = (srgb.red * crate::config::RGB_MAX_F32).round().clamp(0.0, crate::config::RGB_MAX_F32) as u8;
+        let g = (srgb.green * crate::config::RGB_MAX_F32).round().clamp(0.0, crate::config::RGB_MAX_F32) as u8;
+        let b = (srgb.blue * crate::config::RGB_MAX_F32).round().clamp(0.0, crate::config::RGB_MAX_F32) as u8;
         (r, g, b)
     }
 

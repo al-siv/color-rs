@@ -5,6 +5,46 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2025-07-17
+
+### Added
+- **GoF Design Patterns Implementation**: Implemented three Gang of Four design patterns for better architecture
+  - **Strategy Pattern**: Enhanced color distance calculation with pluggable algorithms (DeltaE76, DeltaE2000, Euclidean)
+  - **Builder Pattern**: Added `GradientBuilder` for fluent gradient configuration with method chaining
+  - **Factory Pattern**: Implemented `ColorParserFactory` for creating different types of color parsers with configurations
+- **Fluent Interface**: GradientBuilder provides intuitive method chaining: `.start_color("#FF0000").end_color("#0000FF").ease_in_out().build()`
+- **Parser Factory**: ColorParserFactory supports different parser types (Css, Full, Custom) with preset configurations
+- **Unified Error Handling**: Created `parse_utils.rs` module with standardized parsing functions
+- **Enhanced Documentation**: Updated README.md and EXAMPLES.md with comprehensive GoF pattern usage examples
+- **Constants Management**: Added RGB_MAX_F32, PERCENTAGE_MULTIPLIER constants to reduce magic numbers
+
+### Removed
+- **Massive Code Cleanup**: Removed 15,000+ lines of outdated hardcoded color arrays
+  - Eliminated unused `RAL_CLASSIC_DATA` and `RAL_DESIGN_DATA` arrays (15,387 lines)
+  - Removed outdated `CSS_COLOR_DATA` array in favor of CSV-based system
+  - Deleted obsolete `ral_data.rs` and `color_names.rs` modules
+- **Code Duplication**: Eliminated 50+ lines of duplicate formatting code in color_formatter.rs
+
+### Fixed
+- **Code Duplication**: Eliminated 18+ instances of duplicate error handling patterns
+- **Parser Efficiency**: CSS color parsing now uses CSV data instead of hardcoded arrays
+- **Unified Architecture**: All color data now consistently loads from CSV files
+- **Collection Formatting**: Unified all collection output to use consistent ColorMatch-based formatting
+
+### Changed
+- **Architecture**: Implemented professional design patterns for better maintainability and extensibility
+- **Code Quality**: Reduced color.rs parsing logic from 39 lines to 3 lines using unified utilities
+- **Constants**: Replaced magic numbers with named constants throughout color conversion functions
+
+### Technical
+- **Pattern Applications**:
+  - Strategy: `create_strategy()` factory method with multiple distance algorithms
+  - Builder: Validation and preset methods (`.linear()`, `.ease_in_out()`, etc.)
+  - Factory: `create_fast()`, `create_comprehensive()`, `create_strict()` preset parsers
+- **Refactoring**: Major code cleanup with unified functions replacing duplicated implementations
+- **Testing**: Added comprehensive tests for all GoF pattern implementations (14 new tests)
+- **Documentation**: Complete coverage of new features with practical examples
+
 ## [0.10.3] - 2025-07-16
 
 ### Fixed

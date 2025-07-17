@@ -71,6 +71,89 @@ fn main() -> color_rs::Result<()> {
 }
 ```
 
+### Design Patterns and Advanced Usage
+
+Color-rs implements several Gang of Four design patterns for improved flexibility and maintainability:
+
+#### Builder Pattern for Gradient Configuration
+
+```rust
+use color_rs::GradientBuilder;
+
+// Fluent interface for gradient configuration
+let gradient_args = GradientBuilder::new()
+    .start_color("#FF0000")
+    .end_color("#0000FF")
+    .ease_in_out()                    // CSS ease-in-out preset
+    .steps(10)                        // 10% increments
+    .svg()                           // Enable SVG output
+    .width(800)                      // Custom width
+    .build()?;
+
+// Alternative presets
+let linear_gradient = GradientBuilder::new()
+    .start_color("red")
+    .end_color("blue")
+    .linear()                        // No easing
+    .equal_stops(5)                  // 5 equally spaced stops
+    .build()?;
+
+// Custom easing with validation
+let custom_gradient = GradientBuilder::new()
+    .start_color("hsl(0, 100%, 50%)")
+    .end_color("hsl(240, 100%, 50%)")
+    .ease_in(0.42)                   // Custom control points
+    .ease_out(0.58)
+    .intelligent_stops(12)           // AI-placed stops based on curve analysis
+    .images()                        // Enable both SVG and PNG
+    .build()?;
+```
+
+#### Factory Pattern for Color Parser Creation
+
+```rust
+use color_rs::{ColorParserFactory, ColorParserType};
+
+// Create different types of parsers
+let basic_parser = ColorParserFactory::create_parser(ColorParserType::Css)?;
+let full_parser = ColorParserFactory::create_parser(ColorParserType::Full)?;
+
+// Use preset configurations
+let fast_parser = ColorParserFactory::create_fast()?;        // Optimized for speed
+let comprehensive_parser = ColorParserFactory::create_comprehensive()?; // All features
+let strict_parser = ColorParserFactory::create_strict()?;    // Strict validation
+
+// Parse colors with different capabilities
+let (lab_color, format) = comprehensive_parser.parse("#FF5722")?;
+let color_name = comprehensive_parser.get_color_name(255, 87, 34); // "Deep Orange"
+
+// Check parser capabilities
+let info = comprehensive_parser.get_info();
+println!("Parser supports: {:?}", info.supported_formats);
+println!("Collections: {}, Colors: {}", info.collection_count, info.color_count);
+```
+
+#### Strategy Pattern for Color Distance Algorithms
+
+```rust
+use color_rs::{create_strategy, ColorUtils};
+
+// Choose from different distance calculation strategies
+let delta_e_2000 = create_strategy("delta-e-2000");      // Industry standard (default)
+let delta_e_76 = create_strategy("delta-e-76");          // Fast CIE76 formula
+let euclidean = create_strategy("euclidean-lab");        // Simple Euclidean distance
+
+// Use strategies for color matching
+let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
+let orange_lab = ColorUtils::rgb_to_lab([255, 165, 0]);
+
+let distance_2000 = delta_e_2000.calculate_distance(red_lab, orange_lab);
+let distance_76 = delta_e_76.calculate_distance(red_lab, orange_lab);
+
+println!("ΔE 2000: {:.2}", distance_2000);  // More perceptually accurate
+println!("ΔE 76: {:.2}", distance_76);      // Faster computation
+```
+
 ### Using Individual Modules
 
 ```rust

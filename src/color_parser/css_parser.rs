@@ -4,11 +4,11 @@
 //! Original: https://github.com/7thSigil/css-color-parser-rs
 //! Authors: Dean McNamee, Katkov Oleksandr
 
-use super::color_names::CSS_COLOR_DATA;
+use super::csv_loader::CsvLoader;
+use super::parse_utils::ParseUtils;
 use super::types::{ColorFormat, ParsedColor};
 use crate::error::{ColorError, Result};
 use std::collections::HashMap;
-use std::str::FromStr;
 
 /// CSS color parser that handles various CSS color formats
 pub struct CssColorParser {
@@ -70,23 +70,17 @@ impl CssColorParser {
                 let g_hex = &hex_part[1..2];
                 let b_hex = &hex_part[2..3];
 
-                let r = u8::from_str_radix(&format!("{}{}", r_hex, r_hex), 16)
-                    .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-                let g = u8::from_str_radix(&format!("{}{}", g_hex, g_hex), 16)
-                    .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-                let b = u8::from_str_radix(&format!("{}{}", b_hex, b_hex), 16)
-                    .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
+                let r = ParseUtils::parse_hex_component(&format!("{}{}", r_hex, r_hex))?;
+                let g = ParseUtils::parse_hex_component(&format!("{}{}", g_hex, g_hex))?;
+                let b = ParseUtils::parse_hex_component(&format!("{}{}", b_hex, b_hex))?;
 
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Hex))
             }
             6 => {
                 // #rrggbb format
-                let r = u8::from_str_radix(&hex_part[0..2], 16)
-                    .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-                let g = u8::from_str_radix(&hex_part[2..4], 16)
-                    .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-                let b = u8::from_str_radix(&hex_part[4..6], 16)
-                    .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
+                let r = ParseUtils::parse_hex_component(&hex_part[0..2])?;
+                let g = ParseUtils::parse_hex_component(&hex_part[2..4])?;
+                let b = ParseUtils::parse_hex_component(&hex_part[4..6])?;
 
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Hex))
             }
@@ -123,8 +117,8 @@ impl CssColorParser {
                         "RGBA requires 4 parameters".to_string(),
                     ));
                 }
-                let (r, g, b) = self.parse_rgb_params(&params[..3])?;
-                let a = self.parse_alpha(params[3])?;
+                let (r, g, b) = self.parse_rgb_params(&params)?;
+                let a = ParseUtils::parse_alpha(params[3])?;
                 Ok(ParsedColor::new(r, g, b, a, ColorFormat::Rgba))
             }
             "hsl" => {
@@ -143,7 +137,7 @@ impl CssColorParser {
                     ));
                 }
                 let (r, g, b) = self.parse_hsl_params(&params[..3])?;
-                let a = self.parse_alpha(params[3])?;
+                let a = ParseUtils::parse_alpha(params[3])?;
                 Ok(ParsedColor::new(r, g, b, a, ColorFormat::Hsla))
             }
             _ => Err(ColorError::InvalidColor(format!(
@@ -161,9 +155,9 @@ impl CssColorParser {
             ));
         }
 
-        let r = self.parse_color_component(params[0])?;
-        let g = self.parse_color_component(params[1])?;
-        let b = self.parse_color_component(params[2])?;
+        let r = ParseUtils::parse_color_component(params[0])?;
+        let g = ParseUtils::parse_color_component(params[1])?;
+        let b = ParseUtils::parse_color_component(params[2])?;
 
         Ok((r, g, b))
     }
@@ -176,10 +170,9 @@ impl CssColorParser {
             ));
         }
 
-        let h = f32::from_str(params[0].trim())
-            .map_err(|_| ColorError::InvalidColor("Invalid hue value".to_string()))?;
-        let s = self.parse_percentage(params[1])?;
-        let l = self.parse_percentage(params[2])?;
+        let h = ParseUtils::parse_hue(params[0])?;
+        let s = ParseUtils::parse_percentage(params[1])?;
+        let l = ParseUtils::parse_percentage(params[2])?;
 
         // Normalize hue to 0-1 range
         let h_norm = (((h % 360.0) + 360.0) % 360.0) / 360.0;
@@ -190,54 +183,18 @@ impl CssColorParser {
         Ok((r, g, b))
     }
 
-    /// Parse color component (0-255 or percentage)
-    fn parse_color_component(&self, value: &str) -> Result<u8> {
-        let value = value.trim();
-
-        if value.ends_with('%') {
-            let percentage_str = &value[..value.len() - 1];
-            let percentage = f32::from_str(percentage_str)
-                .map_err(|_| ColorError::InvalidColor("Invalid percentage".to_string()))?;
-            Ok(((percentage / 100.0 * 255.0).round().clamp(0.0, 255.0)) as u8)
-        } else {
-            let int_val = u32::from_str(value)
-                .map_err(|_| ColorError::InvalidColor("Invalid color component".to_string()))?;
-            Ok((int_val.clamp(0, 255)) as u8)
-        }
-    }
-
-    /// Parse percentage value (returns 0.0-1.0)
-    fn parse_percentage(&self, value: &str) -> Result<f32> {
-        let value = value.trim();
-
-        if value.ends_with('%') {
-            let percentage_str = &value[..value.len() - 1];
-            let percentage = f32::from_str(percentage_str)
-                .map_err(|_| ColorError::InvalidColor("Invalid percentage".to_string()))?;
-            Ok((percentage / 100.0).clamp(0.0, 1.0))
-        } else {
-            // Allow float values without % for convenience
-            let float_val = f32::from_str(value)
-                .map_err(|_| ColorError::InvalidColor("Invalid percentage".to_string()))?;
-            Ok(float_val.clamp(0.0, 1.0))
-        }
-    }
-
-    /// Parse alpha value (0.0-1.0)
-    fn parse_alpha(&self, value: &str) -> Result<f32> {
-        let value = value.trim();
-        let alpha = f32::from_str(value)
-            .map_err(|_| ColorError::InvalidColor("Invalid alpha value".to_string()))?;
-        Ok(alpha.clamp(0.0, 1.0))
-    }
-
-    /// Create named colors map from unified CSS_COLOR_DATA
+    /// Create named colors map from CSS colors CSV file
     fn create_named_css_colors_from_data() -> HashMap<String, (u8, u8, u8)> {
         let mut css_colors = HashMap::new();
 
-        // Use CSS_COLOR_DATA as single source of truth, converting to lowercase for CSS compatibility
-        for &(name, [r, g, b]) in CSS_COLOR_DATA {
-            css_colors.insert(name.to_lowercase(), (r, g, b));
+        // Load from CSV file, fallback to empty map on error
+        if let Ok(csv_colors) = CsvLoader::load_colors_from_csv("color-table/css-colors.csv") {
+            for entry in csv_colors {
+                if let Ok(rgb) = CsvLoader::hex_to_rgb(&entry.hex) {
+                    // Use the lowercase code as the key for CSS compatibility
+                    css_colors.insert(entry.code.to_lowercase(), (rgb[0], rgb[1], rgb[2]));
+                }
+            }
         }
 
         css_colors

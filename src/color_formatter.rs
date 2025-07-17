@@ -91,14 +91,14 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            "Color Analysis".to_uppercase().bold().black().on_white(),
+            crate::config::HEADER_COLOR_ANALYSIS.to_uppercase().bold().black().on_white(),
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         writeln!(
             output,
             "{} {}\n",
-            format!("{:>width$}", "Color:", width = COLUMN_WIDTH)
+            format!("{:>width$}", crate::config::LABEL_COLOR, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             color_input
@@ -112,7 +112,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            "Format Conversions"
+            crate::config::HEADER_FORMAT_CONVERSIONS
                 .to_uppercase()
                 .bold()
                 .black()
@@ -131,7 +131,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "RGB:", width = COLUMN_WIDTH)
+            format!("{:>width$}", crate::config::LABEL_RGB, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("rgb({}, {}, {})", r, g, b).white()
@@ -142,7 +142,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "Hex:", width = COLUMN_WIDTH)
+            format!("{:>width$}", crate::config::LABEL_HEX, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("#{:02x}{:02x}{:02x}", r, g, b)
@@ -223,7 +223,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            "Additional Information"
+            crate::config::HEADER_ADDITIONAL_INFO
                 .to_uppercase()
                 .bold()
                 .black()
@@ -359,7 +359,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            "Color Collections".to_uppercase().bold().on_white().black(),
+            crate::config::HEADER_COLOR_COLLECTIONS.to_uppercase().bold().on_white().black(),
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -372,8 +372,9 @@ impl ColorFormatter {
         let rgb = RgbColor::new(r, g, b);
         let rgb_array = [r, g, b];
 
-        // CSS Color Collection
-        let css_matches = Self::find_closest_css_colors(rgb_array, 2)?;
+        // CSS Color Collection - use direct ColorMatch without conversion
+        let manager = crate::color_parser::UnifiedColorManager::new()?;
+        let css_matches = manager.find_closest_css_colors(rgb_array, 2);
         Self::write_css_collection(output, &css_matches)?;
 
         // RAL Classic Collection
@@ -417,27 +418,88 @@ impl ColorFormatter {
 
         // CSS Color Collection with strategy
         let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
-        Self::write_color_matches("CSS Colors", output, &css_matches)?;
+        Self::write_unified_collection_results("CSS Colors", output, &css_matches)?;
 
         // RAL Classic Collection with strategy
         let classic_matches =
             manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
-        Self::write_color_matches("RAL Classic", output, &classic_matches)?;
+        Self::write_unified_collection_results("RAL Classic", output, &classic_matches)?;
 
         // RAL Design Collection with strategy
         let design_matches = manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
-        Self::write_color_matches("RAL Design System+", output, &design_matches)?;
+        Self::write_unified_collection_results("RAL Design System+", output, &design_matches)?;
 
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
     }
 
-    /// Write CSS color collection with closest matches
+    /// Write CSS color collection with closest matches (unified with other collections)
     fn write_css_collection(
         output: &mut String,
-        css_matches: &[crate::color_parser::RalMatch],
+        css_matches: &[crate::color_parser::ColorMatch],
     ) -> Result<()> {
-        Self::write_collection_search_results("CSS Colors", output, css_matches)
+        Self::write_unified_collection_results("CSS Colors", output, css_matches)
+    }
+
+    /// Write unified collection search results that works with both ColorMatch and RalMatch
+    fn write_unified_collection_results(
+        collection_name: &str,
+        output: &mut String,
+        matches: &[crate::color_parser::ColorMatch],
+    ) -> Result<()> {
+        writeln!(
+            output,
+            "{}",
+            format!("{:^width$}", collection_name, width = COLUMN_WIDTH * 2)
+                .bold()
+                .on_bright_black()
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        if matches.is_empty() {
+            writeln!(
+                output,
+                "{:>width$}",
+                "No close matches".bold(),
+                width = COLUMN_WIDTH * 2
+            )
+            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        } else {
+            for color_match in matches.iter() {
+                let [r, g, b] = color_match.entry.color.rgb;
+                let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
+                let code_default = "CSS".to_string();
+                let code = color_match.entry.metadata.code
+                    .as_ref()
+                    .unwrap_or(&code_default);
+
+                writeln!(
+                    output,
+                    "{} {}",
+                    format!(
+                        "{:>width$}",
+                        format!("{}:", color_match.entry.metadata.name),
+                        width = COLUMN_WIDTH
+                    )
+                    .bold()
+                    .green(),
+                    code.white()
+                )
+                .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+                
+                writeln!(
+                    output,
+                    "{:>width$} {}",
+                    format!("[ΔE {:.2}] ", color_match.distance),
+                    hex.to_uppercase().yellow(),
+                    width = COLUMN_WIDTH
+                )
+                .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+            }
+        }
+
+        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        Ok(())
     }
 
     /// Write collection search results with closest matches
@@ -507,59 +569,6 @@ impl ColorFormatter {
         Self::write_collection_search_results("RAL Design System+", output, matches)
     }
 
-    /// Write color matches for any collection type
-    fn write_color_matches(
-        collection_name: &str,
-        output: &mut String,
-        matches: &[crate::color_parser::ColorMatch],
-    ) -> Result<()> {
-        writeln!(
-            output,
-            "{}",
-            format!("{:^width$}", collection_name, width = COLUMN_WIDTH * 2)
-                .bold()
-                .on_bright_black()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-        for color_match in matches {
-            // Convert RGB to hex for display
-            let [r, g, b] = color_match.entry.color.rgb;
-            let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
-
-            writeln!(
-                output,
-                "{} {}",
-                format!(
-                    "{:>width$}",
-                    format!("{}:", color_match.entry.metadata.name),
-                    width = COLUMN_WIDTH
-                )
-                .bold()
-                .green(),
-                color_match
-                    .entry
-                    .metadata
-                    .code
-                    .as_ref()
-                    .unwrap_or(&"".to_string())
-                    .white()
-            )
-            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-            writeln!(
-                output,
-                "{:>width$} {}",
-                format!("[ΔE {:.2}] ", color_match.distance),
-                hex.to_uppercase().yellow(),
-                width = COLUMN_WIDTH
-            )
-            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        }
-
-        Ok(())
-    }
-
     /// Format a simple color info for table display
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
         let srgb: Srgb = lab_color.into_color();
@@ -586,42 +595,6 @@ impl ColorFormatter {
         }
     }
 
-    /// Find closest CSS colors and convert to RalMatch format for unified display
-    fn find_closest_css_colors(
-        rgb: [u8; 3],
-        max_results: usize,
-    ) -> anyhow::Result<Vec<crate::color_parser::RalMatch>> {
-        use crate::color_parser::{RalClassification, RalMatch, UnifiedColorManager};
-
-        let manager = UnifiedColorManager::new()?;
-        let css_matches = manager.find_closest_css_colors(rgb, max_results);
-
-        let matches: Vec<_> = css_matches
-            .into_iter()
-            .map(|color_match| {
-                let entry = &color_match.entry;
-                let code = entry
-                    .metadata
-                    .code
-                    .clone()
-                    .unwrap_or_else(|| "CSS".to_string());
-                let hex = format!(
-                    "#{:02x}{:02x}{:02x}",
-                    entry.color.rgb[0], entry.color.rgb[1], entry.color.rgb[2]
-                );
-
-                RalMatch {
-                    code,
-                    name: entry.metadata.name.clone(),
-                    hex,
-                    distance: color_match.distance,
-                    classification: RalClassification::Classic, // CSS doesn't have classification, using Classic as default
-                }
-            })
-            .collect();
-
-        Ok(matches)
-    }
 }
 
 #[cfg(test)]

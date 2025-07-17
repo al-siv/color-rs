@@ -226,48 +226,8 @@ fn get_color_name_for_lab(lab_color: Lab) -> Result<String> {
 
 /// Parse color input from various formats
 pub fn parse_color_input(input: &str) -> Result<Lab> {
-    let input = input.trim();
-
-    // Try hex format first
-    if input.starts_with('#') {
-        let hex = &input[1..];
-        if hex.len() == 6 {
-            let r = u8::from_str_radix(&hex[0..2], 16)
-                .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-            let g = u8::from_str_radix(&hex[2..4], 16)
-                .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-            let b = u8::from_str_radix(&hex[4..6], 16)
-                .map_err(|_| ColorError::InvalidColor("Invalid hex color".to_string()))?;
-
-            let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-            return Ok(srgb.into_color());
-        }
-    }
-
-    // Try rgb format
-    if input.starts_with("rgb(") && input.ends_with(')') {
-        let content = &input[4..input.len() - 1];
-        let parts: Vec<&str> = content.split(',').map(|s| s.trim()).collect();
-        if parts.len() == 3 {
-            let r: u8 = parts[0]
-                .parse()
-                .map_err(|_| ColorError::InvalidColor("Invalid RGB value".to_string()))?;
-            let g: u8 = parts[1]
-                .parse()
-                .map_err(|_| ColorError::InvalidColor("Invalid RGB value".to_string()))?;
-            let b: u8 = parts[2]
-                .parse()
-                .map_err(|_| ColorError::InvalidColor("Invalid RGB value".to_string()))?;
-
-            let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-            return Ok(srgb.into_color());
-        }
-    }
-
-    Err(ColorError::InvalidColor(format!(
-        "Unrecognized color format: {}",
-        input
-    )))
+    let (lab, _format) = parse_color_with_parser(input)?;
+    Ok(lab)
 }
 
 #[cfg(test)]

@@ -9,10 +9,12 @@ pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
 pub mod color_parser;
+pub mod color_parser_factory;
 pub mod color_utils;
 pub mod config;
 pub mod error;
 pub mod gradient;
+pub mod gradient_builder;
 pub mod image;
 pub mod utils;
 
@@ -21,9 +23,11 @@ pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
 pub use color_distance_strategies::{ColorDistanceStrategy, available_strategies, create_strategy};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
+pub use color_parser_factory::{ColorParserFactory, ColorParserType, ColorParserConfig, ColorParserTrait};
 pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
+pub use gradient_builder::GradientBuilder;
 pub use image::{ImageFormat, ImageGenerator};
 
 /// Current version of the color-rs library

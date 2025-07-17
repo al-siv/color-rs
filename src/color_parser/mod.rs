@@ -7,10 +7,9 @@
 //! We are heavily inspired by these libraries and have integrated and modernized
 //! their functionality for our use case.
 
-pub mod color_names;
 pub mod css_parser;
 pub mod csv_loader;
-pub mod ral_data;
+pub mod parse_utils;
 pub mod ral_matcher;
 pub mod types;
 
@@ -22,7 +21,6 @@ pub mod ral_classic_collection;
 pub mod ral_design_collection;
 pub mod unified_manager;
 
-pub use color_names::ColorNameResolver;
 pub use css_parser::CssColorParser;
 pub use ral_matcher::{
     RalClassification, RalMatch, RgbColor, find_closest_ral_classic, find_closest_ral_colors,
@@ -47,7 +45,7 @@ use palette::{IntoColor, Lab, Srgb};
 /// Unified color parser that can handle various input formats
 pub struct ColorParser {
     css_parser: CssColorParser,
-    name_resolver: ColorNameResolver,
+    css_collection: CssColorCollection,
 }
 
 impl ColorParser {
@@ -55,7 +53,10 @@ impl ColorParser {
     pub fn new() -> Self {
         Self {
             css_parser: CssColorParser::new(),
-            name_resolver: ColorNameResolver::new(),
+            css_collection: CssColorCollection::new().unwrap_or_else(|_| {
+                // Fallback: create empty collection if CSV loading fails
+                CssColorCollection::new().unwrap()
+            }),
         }
     }
 
@@ -76,7 +77,14 @@ impl ColorParser {
 
     /// Get the closest color name for given RGB values
     pub fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
-        self.name_resolver.find_closest_name([r, g, b])
+        let target = UniversalColor::from_rgb([r, g, b]);
+        let matches = self.css_collection.find_closest(&target, 1, None);
+        
+        if let Some(closest) = matches.first() {
+            closest.entry.metadata.name.clone()
+        } else {
+            format!("rgb({}, {}, {})", r, g, b) // Fallback to RGB notation
+        }
     }
 
     /// Convert sRGB values to LAB color space

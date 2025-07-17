@@ -36,6 +36,11 @@ pub const HEX_COLOR_LENGTH: usize = 6;
 pub const RGB_MAX: u8 = 255;
 pub const RGB_MIN: u8 = 0;
 
+/// Color conversion constants
+pub const RGB_MAX_F32: f32 = 255.0;
+pub const PERCENTAGE_MULTIPLIER: f32 = 100.0;
+pub const PERCENTAGE_DIVISOR: f32 = 100.0;
+
 /// Cubic-bezier control point limits
 pub const BEZIER_MIN: f64 = 0.0;
 pub const BEZIER_MAX: f64 = 1.0;
@@ -54,3 +59,53 @@ pub const COLOR_PRECISION: usize = 1;
 /// Default image quality settings
 pub const DEFAULT_IMAGE_DPI: f64 = 96.0;
 pub const DEFAULT_IMAGE_QUALITY: u8 = 90;
+
+/// Color formatter section headers
+pub const HEADER_COLOR_ANALYSIS: &str = "Color Analysis";
+pub const HEADER_FORMAT_CONVERSIONS: &str = "Format Conversions";
+pub const HEADER_ADDITIONAL_INFO: &str = "Additional Information";
+pub const HEADER_COLOR_COLLECTIONS: &str = "Color Collections";
+
+/// Color formatter field labels
+pub const LABEL_COLOR: &str = "Color:";
+pub const LABEL_RGB: &str = "RGB:";
+pub const LABEL_HEX: &str = "Hex:";
+pub const LABEL_HSL: &str = "HSL:";
+pub const LABEL_LAB: &str = "LAB:";
+pub const LABEL_XYZ: &str = "XYZ:";
+pub const LABEL_OKLCH: &str = "OKLCH:";
+pub const LABEL_GRAYSCALE: &str = "Grayscale:";
+pub const LABEL_WCAG_LUMINANCE: &str = "WCAG Relative Luminance:";
+pub const LABEL_CONTRAST_WHITE: &str = "Contrast vs White:";
+pub const LABEL_CONTRAST_BLACK: &str = "Contrast vs Black:";
+pub const LABEL_BRIGHTNESS: &str = "Brightness:";
+
+/// Collection names
+pub const COLLECTION_CSS: &str = "CSS Colors";
+pub const COLLECTION_RAL_CLASSIC: &str = "RAL Classic";
+pub const COLLECTION_RAL_DESIGN: &str = "RAL Design System+";
+
+/// Status indicators
+pub const STATUS_PASS: &str = "✓";
+pub const STATUS_WARNING: &str = "~";
+pub const STATUS_FAIL: &str = "✗";
+
+/// Brightness levels
+pub const BRIGHTNESS_DARK: &str = "Dark";
+pub const BRIGHTNESS_LIGHT: &str = "Light";
+
+/// Default fallback values
+pub const DEFAULT_CODE_CSS: &str = "CSS";
+pub const DEFAULT_COLOR_UNKNOWN: &str = "Unknown";
+pub const NO_MATCHES_MESSAGE: &str = "No close matches";
+
+/// Format strings
+pub const FORMAT_RGB: &str = "rgb({}, {}, {})";
+pub const FORMAT_HEX: &str = "#{:02x}{:02x}{:02x}";
+pub const FORMAT_HEX_UPPER: &str = "#{:02X}{:02X}{:02X}";
+pub const FORMAT_HSL: &str = "hsl({:.0}, {:.1}%, {:.1}%)";
+pub const FORMAT_LAB: &str = "lab({:.2}, {:.2}, {:.2})";
+pub const FORMAT_XYZ: &str = "xyz({:.3}, {:.3}, {:.3})";
+pub const FORMAT_OKLCH: &str = "oklch({:.3}, {:.3}, {:.1})";
+pub const FORMAT_DELTA_E: &str = "[ΔE {:.2}] ";
+pub const FORMAT_CONTRAST_RATIO: &str = "{:.2}:1";
