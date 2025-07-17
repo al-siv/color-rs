@@ -79,7 +79,7 @@ impl ColorParser {
     pub fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
         let target = UniversalColor::from_rgb([r, g, b]);
         let matches = self.css_collection.find_closest(&target, 1, None);
-        
+
         if let Some(closest) = matches.first() {
             closest.entry.metadata.name.clone()
         } else {

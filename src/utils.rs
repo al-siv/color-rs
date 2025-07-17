@@ -37,7 +37,7 @@ impl Utils {
 
     /// Validate a cubic-bezier control point (0.0-1.0)
     pub fn validate_bezier_point(value: f64) -> Result<()> {
-        if value < BEZIER_MIN || value > BEZIER_MAX {
+        if !(BEZIER_MIN..=BEZIER_MAX).contains(&value) {
             return Err(ColorError::InvalidArguments(format!(
                 "Cubic-bezier control point {} must be between {} and {}",
                 value, BEZIER_MIN, BEZIER_MAX
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn test_round_to_decimals() {
-        assert_eq!(Utils::round_to_decimals(3.14159, 2), 3.14);
+        assert_eq!(Utils::round_to_decimals(std::f64::consts::PI, 2), 3.14);
         assert_eq!(Utils::round_to_decimals(2.5, 0), 3.0);
     }
 

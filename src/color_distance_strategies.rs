@@ -3,7 +3,10 @@
 //! This module provides different algorithms for calculating color distances,
 //! allowing users to choose the most appropriate method for their needs.
 
-use palette::{Lab, color_difference::{EuclideanDistance, ImprovedCiede2000, ImprovedDeltaE}};
+use palette::{
+    Lab,
+    color_difference::{EuclideanDistance, ImprovedCiede2000, ImprovedDeltaE},
+};
 
 /// Trait defining the strategy interface for color distance calculations
 pub trait ColorDistanceStrategy {

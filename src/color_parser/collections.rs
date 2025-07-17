@@ -327,6 +327,12 @@ pub struct ColorCollectionManager {
     collections: Vec<Box<dyn ColorCollection>>,
 }
 
+impl Default for ColorCollectionManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ColorCollectionManager {
     /// Create a new collection manager
     pub fn new() -> Self {

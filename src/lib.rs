@@ -8,6 +8,8 @@ pub mod cli;
 pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
+pub mod color_matching_template;
+pub mod color_operations_facade;
 pub mod color_parser;
 pub mod color_parser_factory;
 pub mod color_utils;
@@ -22,8 +24,12 @@ pub mod utils;
 pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
 pub use color_distance_strategies::{ColorDistanceStrategy, available_strategies, create_strategy};
+pub use color_matching_template::{ColorMatchingTemplate, UnifiedColorMatcher};
+pub use color_operations_facade::{ColorAnalysis, ColorOperationsFacade};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
-pub use color_parser_factory::{ColorParserFactory, ColorParserType, ColorParserConfig, ColorParserTrait};
+pub use color_parser_factory::{
+    ColorParserConfig, ColorParserFactory, ColorParserTrait, ColorParserType,
+};
 pub use color_utils::ColorUtils;
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};

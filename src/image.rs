@@ -119,7 +119,7 @@ impl ImageGenerator {
         // Calculate dynamic number of stops based on gradient span to prevent banding
         let gradient_span = args.end_position - args.start_position;
         let base_stops = (gradient_span as usize).saturating_mul(2);
-        let num_stops = base_stops.max(10).min(1000);
+        let num_stops = base_stops.clamp(10, 1000);
 
         for i in 0..=num_stops {
             let t = i as f64 / num_stops as f64;

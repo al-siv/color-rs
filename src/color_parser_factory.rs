@@ -49,11 +49,11 @@ impl Default for ColorParserConfig {
 /// # Example
 /// ```rust
 /// use color_rs::color_parser_factory::{ColorParserFactory, ColorParserType};
-/// 
+///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// // Create a basic CSS parser
 /// let css_parser = ColorParserFactory::create_parser(ColorParserType::Css)?;
-/// 
+///
 /// // Create a full parser with all collections
 /// let full_parser = ColorParserFactory::create_parser(ColorParserType::Full)?;
 /// # Ok(())
@@ -74,15 +74,9 @@ impl ColorParserFactory {
     /// Create a color parser with custom configuration
     pub fn create_with_config(config: ColorParserConfig) -> Result<Box<dyn ColorParserTrait>> {
         match config.parser_type {
-            ColorParserType::Css => {
-                Ok(Box::new(BasicColorParser::new(config)?))
-            }
-            ColorParserType::Full => {
-                Ok(Box::new(FullColorParser::new(config)?))
-            }
-            ColorParserType::Custom => {
-                Ok(Box::new(CustomColorParser::new(config)?))
-            }
+            ColorParserType::Css => Ok(Box::new(BasicColorParser::new(config)?)),
+            ColorParserType::Full => Ok(Box::new(FullColorParser::new(config)?)),
+            ColorParserType::Custom => Ok(Box::new(CustomColorParser::new(config)?)),
         }
     }
 
@@ -127,10 +121,10 @@ impl ColorParserFactory {
 pub trait ColorParserTrait {
     /// Parse a color string and return LAB color with format information
     fn parse(&self, input: &str) -> Result<(palette::Lab, crate::color_parser::ColorFormat)>;
-    
+
     /// Get the closest color name for given RGB values
     fn get_color_name(&self, r: u8, g: u8, b: u8) -> String;
-    
+
     /// Get parser capabilities/information
     fn get_info(&self) -> ColorParserInfo;
 }
@@ -147,6 +141,7 @@ pub struct ColorParserInfo {
 /// Basic CSS-only color parser
 pub struct BasicColorParser {
     color_parser: ColorParser,
+    #[allow(dead_code)]
     config: ColorParserConfig,
 }
 
@@ -210,14 +205,14 @@ impl ColorParserTrait for FullColorParser {
     fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
         // Use unified manager for comprehensive color matching
         let matches = self.unified_manager.find_closest_across_all([r, g, b], 1);
-        
+
         // Find the best match across all collections
         for (_, collection_matches) in &matches {
             if let Some(color_match) = collection_matches.first() {
                 return color_match.entry.metadata.name.clone();
             }
         }
-        
+
         if self.config.enable_fallback_naming {
             format!("rgb({}, {}, {})", r, g, b)
         } else {
@@ -239,7 +234,7 @@ impl ColorParserTrait for FullColorParser {
                 "RAL Design".to_string(),
             ],
             collection_count: 3, // CSS, RAL Classic, RAL Design
-            color_count: 1500, // Approximate total
+            color_count: 1500,   // Approximate total
         }
     }
 }
@@ -286,11 +281,7 @@ impl ColorParserTrait for CustomColorParser {
     fn get_info(&self) -> ColorParserInfo {
         ColorParserInfo {
             parser_type: ColorParserType::Custom,
-            supported_formats: vec![
-                "HEX".to_string(),
-                "RGB".to_string(),
-                "Named".to_string(),
-            ],
+            supported_formats: vec!["HEX".to_string(), "RGB".to_string(), "Named".to_string()],
             collection_count: 1,
             color_count: 147,
         }
@@ -305,7 +296,7 @@ mod tests {
     fn test_factory_create_basic_parser() {
         let parser = ColorParserFactory::create_parser(ColorParserType::Css);
         assert!(parser.is_ok());
-        
+
         let info = parser.unwrap().get_info();
         assert_eq!(info.parser_type, ColorParserType::Css);
         assert_eq!(info.collection_count, 1);
@@ -319,7 +310,7 @@ mod tests {
             color_tolerance: 5.0,
             ..Default::default()
         };
-        
+
         let parser = ColorParserFactory::create_with_config(config);
         assert!(parser.is_ok());
     }
@@ -339,6 +330,10 @@ mod tests {
 
         let full_parser = ColorParserFactory::create_parser(ColorParserType::Full).unwrap();
         let full_info = full_parser.get_info();
-        assert!(full_info.supported_formats.contains(&"RAL Classic".to_string()));
+        assert!(
+            full_info
+                .supported_formats
+                .contains(&"RAL Classic".to_string())
+        );
     }
 }

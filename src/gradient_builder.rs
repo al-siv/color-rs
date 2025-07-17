@@ -4,8 +4,8 @@
 //! allowing for more flexible and readable gradient creation.
 
 use crate::cli::GradientArgs;
-use crate::error::{ColorError, Result};
 use crate::config::*;
+use crate::error::{ColorError, Result};
 
 /// Builder for gradient configuration using the Builder pattern
 ///
@@ -15,7 +15,7 @@ use crate::config::*;
 /// # Example
 /// ```rust
 /// use color_rs::GradientBuilder;
-/// 
+///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let gradient = GradientBuilder::new()
 ///     .start_color("#FF0000")
@@ -351,10 +351,8 @@ mod tests {
     fn test_gradient_builder_validation_missing_colors() {
         let result = GradientBuilder::new().build();
         assert!(result.is_err());
-        
-        let result = GradientBuilder::new()
-            .start_color("#FF0000")
-            .build();
+
+        let result = GradientBuilder::new().start_color("#FF0000").build();
         assert!(result.is_err());
     }
 

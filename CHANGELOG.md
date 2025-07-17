@@ -5,13 +5,31 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.1] - 2025-07-17
+
+### Fixed
+- **Code Quality**: Fixed all Clippy warnings for better code quality
+  - Used `strip_suffix()` instead of manual string manipulation
+  - Used `unwrap_or()` instead of unnecessary closures
+  - Applied `clamp()` method for range constraints
+  - Used range contains for boundary checks
+  - Used PI constant instead of hardcoded values
+- **Dead Code**: Removed unused imports and added appropriate attributes
+- **Default Implementation**: Added `Default` trait for `ColorCollectionManager`
+- **Code Formatting**: Applied consistent formatting with `cargo fmt`
+
+### Changed
+- **Version**: Incremented patch version to 0.11.1
+
 ## [0.11.0] - 2025-07-17
 
 ### Added
-- **GoF Design Patterns Implementation**: Implemented three Gang of Four design patterns for better architecture
+- **GoF Design Patterns Implementation**: Implemented five Gang of Four design patterns for better architecture
   - **Strategy Pattern**: Enhanced color distance calculation with pluggable algorithms (DeltaE76, DeltaE2000, Euclidean)
   - **Builder Pattern**: Added `GradientBuilder` for fluent gradient configuration with method chaining
   - **Factory Pattern**: Implemented `ColorParserFactory` for creating different types of color parsers with configurations
+  - **Facade Pattern**: Added `ColorOperationsFacade` for simplified color operation interface
+  - **Template Method Pattern**: Implemented `ColorMatchingTemplate` for standardized color matching algorithms
 - **Fluent Interface**: GradientBuilder provides intuitive method chaining: `.start_color("#FF0000").end_color("#0000FF").ease_in_out().build()`
 - **Parser Factory**: ColorParserFactory supports different parser types (Css, Full, Custom) with preset configurations
 - **Unified Error Handling**: Created `parse_utils.rs` module with standardized parsing functions

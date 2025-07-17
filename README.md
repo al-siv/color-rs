@@ -154,6 +154,50 @@ println!("ΔE 2000: {:.2}", distance_2000);  // More perceptually accurate
 println!("ΔE 76: {:.2}", distance_76);      // Faster computation
 ```
 
+### Facade Pattern
+
+The Facade pattern provides a simplified interface for complex color operations:
+
+```rust
+use color_rs::ColorOperationsFacade;
+
+let facade = ColorOperationsFacade::new();
+
+// Simple hex to RGB conversion
+let rgb = facade.hex_to_rgb("#FF5733")?;
+println!("RGB: {:?}", rgb);
+
+// Calculate contrast ratio
+let contrast = facade.calculate_contrast("#FFFFFF", "#000000")?;
+println!("Contrast ratio: {:.2}", contrast);
+
+// Comprehensive color analysis
+let analysis = facade.analyze_color("#3498DB")?;
+println!("Color analysis: {:?}", analysis);
+
+// Mix colors with specified ratio
+let mixed = facade.mix_colors("#FF0000", "#0000FF", 0.3)?;
+println!("Mixed color: {}", mixed);
+```
+
+### Template Method Pattern
+
+The Template Method pattern provides a standardized approach to color matching:
+
+```rust
+use color_rs::{ColorMatchingTemplate, CssColorMatcher, RalClassicMatcher};
+
+// CSS color matching
+let css_matcher = CssColorMatcher::new()?;
+let css_result = css_matcher.find_closest_color("#FF6B6B");
+println!("Closest CSS color: {:?}", css_result);
+
+// RAL Classic color matching
+let ral_matcher = RalClassicMatcher::new()?;
+let ral_result = ral_matcher.find_closest_color("#D32F2F");
+println!("Closest RAL color: {:?}", ral_result);
+```
+
 ### Using Individual Modules
 
 ```rust

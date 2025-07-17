@@ -91,16 +91,24 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            crate::config::HEADER_COLOR_ANALYSIS.to_uppercase().bold().black().on_white(),
+            crate::config::HEADER_COLOR_ANALYSIS
+                .to_uppercase()
+                .bold()
+                .black()
+                .on_white(),
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         writeln!(
             output,
             "{} {}\n",
-            format!("{:>width$}", crate::config::LABEL_COLOR, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
+            format!(
+                "{:>width$}",
+                crate::config::LABEL_COLOR,
+                width = COLUMN_WIDTH
+            )
+            .bold()
+            .green(),
             color_input
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -359,7 +367,11 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            crate::config::HEADER_COLOR_COLLECTIONS.to_uppercase().bold().on_white().black(),
+            crate::config::HEADER_COLOR_COLLECTIONS
+                .to_uppercase()
+                .bold()
+                .on_white()
+                .black(),
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -469,7 +481,10 @@ impl ColorFormatter {
                 let [r, g, b] = color_match.entry.color.rgb;
                 let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
                 let code_default = "CSS".to_string();
-                let code = color_match.entry.metadata.code
+                let code = color_match
+                    .entry
+                    .metadata
+                    .code
                     .as_ref()
                     .unwrap_or(&code_default);
 
@@ -486,7 +501,7 @@ impl ColorFormatter {
                     code.white()
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-                
+
                 writeln!(
                     output,
                     "{:>width$} {}",
@@ -594,7 +609,6 @@ impl ColorFormatter {
             ),
         }
     }
-
 }
 
 #[cfg(test)]

@@ -19,14 +19,14 @@ impl ParseUtils {
     pub fn parse_color_component(value: &str) -> Result<u8> {
         let value = value.trim();
 
-        if value.ends_with('%') {
-            let percentage_str = &value[..value.len() - 1];
+        if let Some(percentage_str) = value.strip_suffix('%') {
             let percentage = f32::from_str(percentage_str)
                 .map_err(|_| ColorError::InvalidColor("Invalid percentage value".to_string()))?;
             Ok(((percentage / 100.0 * 255.0).round().clamp(0.0, 255.0)) as u8)
         } else {
-            let int_val = u32::from_str(value)
-                .map_err(|_| ColorError::InvalidColor("Invalid color component value".to_string()))?;
+            let int_val = u32::from_str(value).map_err(|_| {
+                ColorError::InvalidColor("Invalid color component value".to_string())
+            })?;
             Ok((int_val.clamp(0, 255)) as u8)
         }
     }
@@ -35,8 +35,7 @@ impl ParseUtils {
     pub fn parse_percentage(value: &str) -> Result<f32> {
         let value = value.trim();
 
-        if value.ends_with('%') {
-            let percentage_str = &value[..value.len() - 1];
+        if let Some(percentage_str) = value.strip_suffix('%') {
             let percentage = f32::from_str(percentage_str)
                 .map_err(|_| ColorError::InvalidColor("Invalid percentage value".to_string()))?;
             Ok((percentage / 100.0).clamp(0.0, 1.0))

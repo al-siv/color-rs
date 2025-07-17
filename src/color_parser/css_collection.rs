@@ -19,7 +19,7 @@ impl CssColorCollection {
         let colors = csv_colors
             .iter()
             .map(|entry| {
-                let rgb = CsvLoader::hex_to_rgb(&entry.hex).unwrap_or_else(|_| [0, 0, 0]); // Fallback to black on error
+                let rgb = CsvLoader::hex_to_rgb(&entry.hex).unwrap_or([0, 0, 0]); // Fallback to black on error
 
                 let color = UniversalColor::from_rgb(rgb);
                 ColorEntry::new(color, entry.name.clone())

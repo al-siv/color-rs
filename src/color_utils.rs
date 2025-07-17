@@ -41,9 +41,15 @@ impl ColorUtils {
     /// * RGB values as (r, g, b) where each component is 0-255
     pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
         let srgb: Srgb = lab.into_color();
-        let r = (srgb.red * crate::config::RGB_MAX_F32).round().clamp(0.0, crate::config::RGB_MAX_F32) as u8;
-        let g = (srgb.green * crate::config::RGB_MAX_F32).round().clamp(0.0, crate::config::RGB_MAX_F32) as u8;
-        let b = (srgb.blue * crate::config::RGB_MAX_F32).round().clamp(0.0, crate::config::RGB_MAX_F32) as u8;
+        let r = (srgb.red * crate::config::RGB_MAX_F32)
+            .round()
+            .clamp(0.0, crate::config::RGB_MAX_F32) as u8;
+        let g = (srgb.green * crate::config::RGB_MAX_F32)
+            .round()
+            .clamp(0.0, crate::config::RGB_MAX_F32) as u8;
+        let b = (srgb.blue * crate::config::RGB_MAX_F32)
+            .round()
+            .clamp(0.0, crate::config::RGB_MAX_F32) as u8;
         (r, g, b)
     }
 
