@@ -86,9 +86,9 @@ pub const COLLECTION_RAL_CLASSIC: &str = "RAL Classic";
 pub const COLLECTION_RAL_DESIGN: &str = "RAL Design System+";
 
 /// Status indicators
-pub const STATUS_PASS: &str = "✓";
-pub const STATUS_WARNING: &str = "~";
-pub const STATUS_FAIL: &str = "✗";
+pub const STATUS_PASS: &str = "PASS";
+pub const STATUS_WARNING: &str = "WARN";
+pub const STATUS_FAIL: &str = "FAIL";
 
 /// Brightness levels
 pub const BRIGHTNESS_DARK: &str = "Dark";

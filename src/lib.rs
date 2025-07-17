@@ -18,7 +18,11 @@ pub mod error;
 pub mod gradient;
 pub mod gradient_builder;
 pub mod image;
-pub mod utils;
+
+// New GoF Pattern Implementations
+pub mod command_pattern;
+pub mod formatter_strategies;
+pub mod parsing_chain;
 
 // Re-export main types for convenience
 pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};

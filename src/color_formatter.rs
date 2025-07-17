@@ -6,15 +6,16 @@
 //!
 //! # Features
 //!
-//! - Comprehensive color analysis reports with format conversions
+//! - Comprehensive color analysis reports with format conversions using Strategy Pattern
 //! - Support for multiple color collections (CSS, RAL Classic, RAL Design)
 //! - WCAG accessibility information (contrast ratios, luminance)
 //! - Organized output with consistent formatting using shared constants
+//! - Pluggable formatting strategies for different output types
 //!
 //! # Usage
 //!
-//! The main entry point is `ColorFormatter::format_comprehensive_report()` which generates
-//! a complete analysis including:
+//! The main entry point is `ColorFormatter::format_with_strategy()` which generates
+//! a complete analysis using the specified formatting strategy:
 //! - Color format conversions (RGB, Hex, HSL, LAB, XYZ, OKLCH)
 //! - Additional information (grayscale, WCAG metrics, brightness)
 //! - Color collection matches (CSS names, RAL Classic, RAL Design)
@@ -22,6 +23,7 @@
 use crate::COLUMN_WIDTH;
 use crate::color_utils::ColorUtils;
 use crate::error::{ColorError, Result};
+use crate::formatter_strategies::FormattingStrategyFactory;
 use colored::*;
 use palette::{Hsl, IntoColor, Lab, Oklch, Srgb, Xyz};
 use std::fmt::Write;
@@ -30,6 +32,17 @@ use std::fmt::Write;
 pub struct ColorFormatter;
 
 impl ColorFormatter {
+    /// Format a color using the specified formatting strategy (NEW STRATEGY PATTERN APPROACH)
+    pub fn format_with_strategy(
+        lab_color: Lab,
+        original_input: &str,
+        color_name: &str,
+        strategy_name: &str,
+    ) -> Result<String> {
+        let strategy = FormattingStrategyFactory::create_strategy(strategy_name);
+        strategy.format_color(lab_color, original_input, color_name)
+    }
+
     /// Format a color into a comprehensive analysis report
     pub fn format_comprehensive_report(
         lab_color: Lab,
@@ -298,19 +311,19 @@ impl ColorFormatter {
 
         // Color-coded contrast ratios
         let white_contrast_color = if contrast_white >= 7.0 {
-            "✓".bold().green()
+            crate::config::STATUS_PASS.bold().green()
         } else if contrast_white >= 4.5 {
-            "~".bold().yellow()
+            crate::config::STATUS_WARNING.bold().yellow()
         } else {
-            "✗".bold().red()
+            crate::config::STATUS_FAIL.bold().red()
         };
 
         let black_contrast_color = if contrast_black >= 7.0 {
-            "✓".bold().green()
+            crate::config::STATUS_PASS.bold().green()
         } else if contrast_black >= 4.5 {
-            "~".bold().yellow()
+            crate::config::STATUS_WARNING.bold().yellow()
         } else {
-            "✗".bold().red()
+            crate::config::STATUS_FAIL.bold().red()
         };
 
         writeln!(
@@ -635,6 +648,32 @@ mod tests {
         assert!(output.contains("RGB"));
         assert!(output.contains("HSL"));
         assert!(output.contains("LAB"));
+    }
+
+    #[test]
+    fn test_format_with_strategy() {
+        let lab_color = Lab::new(50.0, 20.0, -30.0);
+
+        // Test comprehensive strategy (default)
+        let result =
+            ColorFormatter::format_with_strategy(lab_color, "#008080", "teal", "comprehensive");
+        assert!(result.is_ok());
+        let output = result.unwrap();
+        assert!(output.contains("FORMAT CONVERSIONS"));
+
+        // Test minimal strategy
+        let result = ColorFormatter::format_with_strategy(lab_color, "#008080", "teal", "minimal");
+        assert!(result.is_ok());
+        let output = result.unwrap();
+        assert!(output.contains("RGB"));
+        assert!(output.contains("HEX"));
+
+        // Test JSON strategy
+        let result = ColorFormatter::format_with_strategy(lab_color, "#008080", "teal", "json");
+        assert!(result.is_ok());
+        let output = result.unwrap();
+        assert!(output.contains("{"));
+        assert!(output.contains("\"rgb\""));
     }
 
     #[test]

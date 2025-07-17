@@ -20,6 +20,10 @@ pub enum ColorError {
     SvgError(String),
     /// Invalid CLI arguments
     InvalidArguments(String),
+    /// Color parsing error
+    ParseError(String),
+    /// Invalid operation error
+    InvalidOperation(String),
     /// General error
     General(String),
 }
@@ -33,6 +37,8 @@ impl fmt::Display for ColorError {
             ColorError::IoError(err) => write!(f, "I/O error: {}", err),
             ColorError::SvgError(msg) => write!(f, "SVG error: {}", msg),
             ColorError::InvalidArguments(msg) => write!(f, "Invalid arguments: {}", msg),
+            ColorError::ParseError(msg) => write!(f, "Color parse error: {}", msg),
+            ColorError::InvalidOperation(msg) => write!(f, "Invalid operation: {}", msg),
             ColorError::General(msg) => write!(f, "Error: {}", msg),
         }
     }
@@ -69,5 +75,12 @@ impl From<image::ImageError> for ColorError {
 impl From<anyhow::Error> for ColorError {
     fn from(err: anyhow::Error) -> Self {
         ColorError::General(err.to_string())
+    }
+}
+
+// For formatting errors
+impl From<std::fmt::Error> for ColorError {
+    fn from(err: std::fmt::Error) -> Self {
+        ColorError::General(format!("Formatting error: {}", err))
     }
 }
