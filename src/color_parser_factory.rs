@@ -4,6 +4,7 @@
 //! with various configurations and capabilities.
 
 use crate::color_parser::{ColorParser, UnifiedColorManager};
+use crate::config::*;
 use crate::error::Result;
 
 /// Enum defining different types of color parsers available
@@ -216,7 +217,7 @@ impl ColorParserTrait for FullColorParser {
         if self.config.enable_fallback_naming {
             format!("rgb({}, {}, {})", r, g, b)
         } else {
-            "Unknown".to_string()
+            DEFAULT_COLOR_UNKNOWN.to_string()
         }
     }
 
@@ -271,7 +272,7 @@ impl ColorParserTrait for CustomColorParser {
             // More conservative naming
             let name = self.color_parser.get_color_name(r, g, b);
             if name.starts_with("rgb(") {
-                "Unknown".to_string()
+                DEFAULT_COLOR_UNKNOWN.to_string()
             } else {
                 name
             }

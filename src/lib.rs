@@ -44,12 +44,6 @@ pub use gradient::{GradientCalculator, GradientValue};
 pub use gradient_builder::GradientBuilder;
 pub use image::{ImageFormat, ImageGenerator};
 
-/// Current version of the color-rs library
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-
-/// Formatting constant: width for formatted columns in the output
-pub const COLUMN_WIDTH: usize = 30;
-
 /// Main library interface for generating gradients
 pub struct ColorRs;
 
@@ -67,7 +61,7 @@ impl ColorRs {
     /// Match and convert color between different color spaces
     pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
         let strategy = crate::color_distance_strategies::create_strategy(&args.distance_method);
-        
+
         // Always use enhanced color matching with schemes (new default behavior)
         color::color_match_with_schemes(&args, strategy.as_ref())
     }

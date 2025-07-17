@@ -5,6 +5,7 @@
 //! color space conversions and calculations.
 
 use crate::error::{ColorError, Result};
+use colored::*;
 use palette::{
     FromColor, Hsl, IntoColor, Lab, Mix, Srgb,
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
@@ -270,7 +271,7 @@ impl ColorUtils {
     }
 
     /// Adjust a color to have the specified WCAG relative luminance while preserving hue
-    /// 
+    ///
     /// This function works entirely in Lab color space for better perceptual accuracy.
     /// It uses binary search in the Lab L component to find the closest approximation
     /// to the target WCAG relative luminance while preserving the a* and b* components.
@@ -286,7 +287,7 @@ impl ColorUtils {
     /// ```rust
     /// use palette::{Lab, Srgb, IntoColor};
     /// use color_rs::color_utils::ColorUtils;
-    /// 
+    ///
     /// let red_lab = Lab::from_color(Srgb::new(1.0, 0.0, 0.0));
     /// let adjusted = ColorUtils::adjust_color_relative_luminance(red_lab, 0.5).unwrap();
     /// ```
@@ -296,33 +297,37 @@ impl ColorUtils {
                 "Relative luminance must be between 0.0 and 1.0".to_string(),
             ));
         }
-        
+
         // Use binary search in Lab L component to find target relative luminance
         let mut low = 0.0f32;
         let mut high = 100.0f32;
         let tolerance = 0.00049;
         let max_iterations = 50;
-        
+        let mut best_srgb = Srgb::new(0.0, 0.0, 0.0);
+
         for _ in 0..max_iterations {
             let mid = (low + high) / 2.0;
             let test_lab = Lab::new(mid, color.a, color.b);
             let test_srgb: Srgb = test_lab.into_color();
             let test_relative_lum = Self::wcag_relative_luminance_from_srgb(test_srgb);
-            
+
             if (test_relative_lum - target_luminance).abs() < tolerance {
-                return Ok(test_lab);
+                best_srgb = test_srgb;
+                break;
             }
-            
+
             if test_relative_lum < target_luminance {
                 low = mid;
             } else {
                 high = mid;
             }
+
+            // Keep track of best approximation
+            best_srgb = test_srgb;
         }
-        
-        // If we couldn't converge, use the closest approximation
-        let result_l = (low + high) / 2.0;
-        Ok(Lab::new(result_l, color.a, color.b))
+
+        // Convert the final sRGB back to Lab to get correct a* and b* components
+        Ok(Lab::from_color(best_srgb))
     }
 }
 

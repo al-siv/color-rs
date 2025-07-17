@@ -20,12 +20,13 @@
 //! - Additional information (grayscale, WCAG metrics, brightness)
 //! - Color collection matches (CSS names, RAL Classic, RAL Design)
 
-use crate::COLUMN_WIDTH;
 use crate::color_utils::ColorUtils;
+use crate::config::*;
 use crate::error::{ColorError, Result};
 use crate::formatter_strategies::FormattingStrategyFactory;
 use colored::*;
-use palette::{Hsl, IntoColor, Lab, Oklch, Srgb, Xyz};
+use palette::convert::IntoColorUnclamped;
+use palette::{Hsl, IntoColor, Lab, Oklch, Srgb, Xyz, lab};
 use std::fmt::Write;
 
 /// Color formatter for generating comprehensive color reports
@@ -51,7 +52,7 @@ impl ColorFormatter {
     ) -> Result<String> {
         let mut output = String::new();
 
-        Self::write_header(&mut output, original_input)?;
+        Self::write_header(&mut output, original_input, lab_color)?;
         Self::write_format_conversions(&mut output, lab_color)?;
         Self::write_additional_info(&mut output, lab_color)?;
         Self::write_unified_collection_matches(&mut output, lab_color, color_name)?;
@@ -69,7 +70,7 @@ impl ColorFormatter {
     ) -> Result<String> {
         let mut output = String::new();
 
-        Self::write_header(&mut output, original_input)?;
+        Self::write_header(&mut output, original_input, lab_color)?;
         Self::write_format_conversions(&mut output, lab_color)?;
         Self::write_additional_info(&mut output, lab_color)?;
         Self::write_unified_collection_matches(&mut output, lab_color, css_name)?;
@@ -86,7 +87,7 @@ impl ColorFormatter {
     ) -> Result<String> {
         let mut output = String::new();
 
-        Self::write_header(&mut output, original_input)?;
+        Self::write_header(&mut output, original_input, lab_color)?;
         Self::write_format_conversions(&mut output, lab_color)?;
         Self::write_additional_info(&mut output, lab_color)?;
         Self::write_unified_collection_matches_with_strategy(
@@ -100,7 +101,7 @@ impl ColorFormatter {
     }
 
     /// Write the report header
-    fn write_header(output: &mut String, color_input: &str) -> Result<()> {
+    fn write_header(output: &mut String, color_input: &str, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
             "{:^width$}",
@@ -114,15 +115,23 @@ impl ColorFormatter {
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         writeln!(
             output,
-            "{} {}\n",
-            format!(
-                "{:>width$}",
-                crate::config::LABEL_COLOR,
-                width = COLUMN_WIDTH
-            )
-            .bold()
-            .green(),
+            "{} {}",
+            format!("{:>width$}", LABEL_INPUT_COLOR, width = COLUMN_WIDTH)
+                .bold()
+                .green(),
             color_input
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        let srgb: Srgb = lab_color.into_color();
+        writeln!(
+            output,
+            "{} #{:02x}{:02x}{:02x}\n",
+            format!("{:>width$}", LABEL_BASE_COLOR, width = COLUMN_WIDTH)
+                .bold()
+                .green(),
+            (srgb.red * 255.0).round() as u8,
+            (srgb.green * 255.0).round() as u8,
+            (srgb.blue * 255.0).round() as u8
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
@@ -152,7 +161,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", crate::config::LABEL_RGB, width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_RGB, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("rgb({}, {}, {})", r, g, b).white()
@@ -163,7 +172,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", crate::config::LABEL_HEX, width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_HEX, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("#{:02x}{:02x}{:02x}", r, g, b)
@@ -172,12 +181,13 @@ impl ColorFormatter {
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
-        // HSL
-        let hsl: Hsl = lab_color.into_color();
+        // HSL - convert through sRGB for better accuracy
+        let hsl: Hsl = srgb.into_color();
+
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "HSL:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_HSL, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!(
@@ -194,7 +204,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "LAB:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_LAB, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!(
@@ -210,7 +220,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "XYZ:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_XYZ, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("xyz({:.3}, {:.3}, {:.3})", xyz.x, xyz.y, xyz.z).white()
@@ -222,7 +232,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "OKLCH:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_OKLCH, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!(
@@ -266,7 +276,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "Grayscale:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_GRAYSCALE, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!(
@@ -295,13 +305,9 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!(
-                "{:>width$}",
-                "WCAG Relative Luminance:",
-                width = COLUMN_WIDTH
-            )
-            .bold()
-            .green(),
+            format!("{:>width$}", LABEL_WCAG_LUMINANCE, width = COLUMN_WIDTH)
+                .bold()
+                .green(),
             format!("{:.3}", wcag_luminance).white()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -329,7 +335,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {} [{}]",
-            format!("{:>width$}", "Contrast vs White:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_CONTRAST_WHITE, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("{:.2}:1", contrast_white).white(),
@@ -340,7 +346,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {} [{}]",
-            format!("{:>width$}", "Contrast vs Black:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_CONTRAST_BLACK, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             format!("{:.2}:1", contrast_black).white(),
@@ -356,7 +362,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{} {}",
-            format!("{:>width$}", "Brightness:", width = COLUMN_WIDTH)
+            format!("{:>width$}", LABEL_BRIGHTNESS, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
             brightness
@@ -426,7 +432,11 @@ impl ColorFormatter {
         writeln!(
             output,
             "{:^width$}",
-            "Color Collections".to_uppercase().bold().on_white().black(),
+            HEADER_COLOR_COLLECTIONS
+                .to_uppercase()
+                .bold()
+                .on_white()
+                .black(),
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -443,16 +453,16 @@ impl ColorFormatter {
 
         // CSS Color Collection with strategy
         let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
-        Self::write_unified_collection_results("CSS Colors", output, &css_matches)?;
+        Self::write_unified_collection_results(COLLECTION_CSS, output, &css_matches)?;
 
         // RAL Classic Collection with strategy
         let classic_matches =
             manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
-        Self::write_unified_collection_results("RAL Classic", output, &classic_matches)?;
+        Self::write_unified_collection_results(COLLECTION_RAL_CLASSIC, output, &classic_matches)?;
 
         // RAL Design Collection with strategy
         let design_matches = manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
-        Self::write_unified_collection_results("RAL Design System+", output, &design_matches)?;
+        Self::write_unified_collection_results(COLLECTION_RAL_DESIGN, output, &design_matches)?;
 
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
@@ -463,7 +473,7 @@ impl ColorFormatter {
         output: &mut String,
         css_matches: &[crate::color_parser::ColorMatch],
     ) -> Result<()> {
-        Self::write_unified_collection_results("CSS Colors", output, css_matches)
+        Self::write_unified_collection_results(COLLECTION_CSS, output, css_matches)
     }
 
     /// Write unified collection search results that works with both ColorMatch and RalMatch
@@ -485,7 +495,7 @@ impl ColorFormatter {
             writeln!(
                 output,
                 "{:>width$}",
-                "No close matches".bold(),
+                NO_MATCHES_MESSAGE.bold(),
                 width = COLUMN_WIDTH * 2
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -549,7 +559,7 @@ impl ColorFormatter {
             writeln!(
                 output,
                 "{:>width$}",
-                "No close matches".bold(),
+                NO_MATCHES_MESSAGE.bold(),
                 width = COLUMN_WIDTH * 2
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -586,7 +596,7 @@ impl ColorFormatter {
         output: &mut String,
         matches: &[crate::color_parser::RalMatch],
     ) -> Result<()> {
-        Self::write_collection_search_results("RAL Classic", output, matches)
+        Self::write_collection_search_results(COLLECTION_RAL_CLASSIC, output, matches)
     }
 
     /// Write RAL Design collection with closest matches
@@ -594,24 +604,30 @@ impl ColorFormatter {
         output: &mut String,
         matches: &[crate::color_parser::RalMatch],
     ) -> Result<()> {
-        Self::write_collection_search_results("RAL Design System+", output, matches)
+        Self::write_collection_search_results(COLLECTION_RAL_DESIGN, output, matches)
     }
 
     /// Format color schemes section for comprehensive reports
-    pub fn format_color_schemes(schemes: &crate::color_schemes::ColorSchemeResult) -> Result<String> {
+    pub fn format_color_schemes(
+        schemes: &crate::color_schemes::ColorSchemeResult,
+    ) -> Result<String> {
         use colored::Colorize;
-        
+
         let mut output = String::new();
-        
-        // Header for color schemes section  
+
+        // Header for color schemes section
         writeln!(
             output,
             "{:^width$}",
-            "Color Schemes".to_uppercase().bold().on_white().black(),
+            HEADER_COLOR_SCHEMES
+                .to_uppercase()
+                .bold()
+                .on_white()
+                .black(),
             width = COLUMN_WIDTH * 2
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
+
         // Show which strategy was used
         writeln!(
             output,
@@ -622,40 +638,52 @@ impl ColorFormatter {
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
+
         // Complementary color section
         Self::write_color_scheme_section(
             &mut output,
-            "Complementary Color",
+            HEADER_SCHEMA_COMPLIMENTARY,
             &[schemes.complementary],
-            schemes.luminance_matched_complementary.as_ref().map(|c| vec![*c]).as_deref(),
+            schemes
+                .luminance_matched_complementary
+                .as_ref()
+                .map(|c| vec![*c])
+                .as_deref(),
             schemes.use_lab_output,
             &schemes.strategy_name,
         )?;
-        
+
         // Split-complementary colors section
         Self::write_color_scheme_section(
             &mut output,
-            "Split-Complementary Colors",
+            HEADER_SCHEMA_SPLIT_COMPLIMENTARY,
             &[schemes.split_complementary.0, schemes.split_complementary.1],
-            schemes.luminance_matched_split_complementary.as_ref().map(|c| vec![c.0, c.1]).as_deref(),
+            schemes
+                .luminance_matched_split_complementary
+                .as_ref()
+                .map(|c| vec![c.0, c.1])
+                .as_deref(),
             schemes.use_lab_output,
             &schemes.strategy_name,
         )?;
-        
+
         // Triadic colors section
         Self::write_color_scheme_section(
             &mut output,
-            "Triadic Colors",
+            HEADER_SCHEMA_TRIADIC,
             &[schemes.triadic.0, schemes.triadic.1],
-            schemes.luminance_matched_triadic.as_ref().map(|c| vec![c.0, c.1]).as_deref(),
+            schemes
+                .luminance_matched_triadic
+                .as_ref()
+                .map(|c| vec![c.0, c.1])
+                .as_deref(),
             schemes.use_lab_output,
             &schemes.strategy_name,
         )?;
-        
+
         Ok(output)
     }
-    
+
     /// Write a specific color scheme section
     fn write_color_scheme_section(
         output: &mut String,
@@ -666,7 +694,7 @@ impl ColorFormatter {
         strategy_name: &str,
     ) -> Result<()> {
         use colored::Colorize;
-        
+
         // Section header similar to collection format
         writeln!(
             output,
@@ -676,18 +704,22 @@ impl ColorFormatter {
                 .on_bright_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        
+
         // Basic colors with names like "Complementary", "Split 1", etc.
         for (i, color) in colors.iter().enumerate() {
             let color_name = match title {
-                "Complementary Color" => "Complementary".to_string(),
-                "Split-Complementary Colors" => format!("Split {}", i + 1),
-                "Triadic Colors" => format!("Triadic {}", i + 1),
-                _ => format!("Color {}", i + 1),
+                HEADER_SCHEMA_COMPLIMENTARY => LABEL_SCHEMA_COMPLIMENTARY_COLOR.to_string(),
+                HEADER_SCHEMA_SPLIT_COMPLIMENTARY => {
+                    format!("{} {}", LABEL_SCHEMA_SPLIT_COMPLIMENTARY_COLOR, i + 1)
+                }
+                HEADER_SCHEMA_TRIADIC => {
+                    format!("{} {}", LABEL_SCHEMA_TRIADIC_COLOR, i + 1)
+                }
+                _ => format!("{} {}", LABEL_SCHEMA_OTHER_COLOR, i + 1),
             };
-            
+
             let (color_value, hex) = Self::format_color_for_output(*color, use_lab_output);
-            
+
             writeln!(
                 output,
                 "{} {}",
@@ -701,7 +733,7 @@ impl ColorFormatter {
                 color_value.white()
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-            
+
             writeln!(
                 output,
                 "{:>width$} {}",
@@ -711,7 +743,7 @@ impl ColorFormatter {
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         }
-        
+
         // Luminance-matched variations if available
         if let Some(matched_colors) = luminance_matched {
             let header_text = format!("Luminance-matched variations ({})", strategy_name);
@@ -723,17 +755,19 @@ impl ColorFormatter {
                     .on_bright_black()
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-            
+
             for (i, color) in matched_colors.iter().enumerate() {
                 let color_name = match title {
-                    "Complementary Color" => "Complementary".to_string(),
-                    "Split-Complementary Colors" => format!("Split {}", i + 1),
-                    "Triadic Colors" => format!("Triadic {}", i + 1),
-                    _ => format!("Color {}", i + 1),
+                    HEADER_SCHEMA_COMPLIMENTARY => HEADER_SCHEMA_COMPLIMENTARY.to_string(),
+                    HEADER_SCHEMA_SPLIT_COMPLIMENTARY => {
+                        format!("{} {}", LABEL_SCHEMA_SPLIT_COMPLIMENTARY_COLOR, i + 1)
+                    }
+                    HEADER_SCHEMA_TRIADIC => format!("{} {}", LABEL_SCHEMA_TRIADIC_COLOR, i + 1),
+                    _ => format!("{} {}", LABEL_SCHEMA_OTHER_COLOR, i + 1),
                 };
-                
+
                 let (color_value, hex) = Self::format_color_for_output(*color, use_lab_output);
-                
+
                 writeln!(
                     output,
                     "{} {}",
@@ -747,7 +781,7 @@ impl ColorFormatter {
                     color_value.white()
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-                
+
                 writeln!(
                     output,
                     "{:>width$} {}",
@@ -758,22 +792,22 @@ impl ColorFormatter {
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
             }
         }
-        
+
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
     }
-    
+
     /// Format a color for output as either HSL or Lab based on flag
     fn format_color_for_output(color: Lab, use_lab_output: bool) -> (String, String) {
         use palette::IntoColor;
-        
+
         // Always generate hex
         let srgb: Srgb = color.into_color();
         let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
         let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
         let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
         let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
-        
+
         // Generate either HSL or Lab format
         let color_value = if use_lab_output {
             format!("lab({:.2}, {:.2}, {:.2})", color.l, color.a, color.b)
@@ -786,7 +820,7 @@ impl ColorFormatter {
                 hsl.lightness * 100.0
             )
         };
-        
+
         (color_value, hex)
     }
 

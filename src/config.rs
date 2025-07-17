@@ -6,6 +6,9 @@ pub const APP_ABOUT: &str = "A CLI tool for color gradient calculations using LA
 pub const APP_AUTHOR: &str = "https://github.com/al-siv";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Formatting constant: width for formatted columns in the output
+pub const COLUMN_WIDTH: usize = 30;
+
 /// Image dimensions
 /// Height ratio: gradient height = width * HEIGHT_RATIO
 pub const HEIGHT_RATIO: f64 = 0.2; // 1/5 of width
@@ -65,12 +68,13 @@ pub const HEADER_COLOR_ANALYSIS: &str = "Color Analysis";
 pub const HEADER_FORMAT_CONVERSIONS: &str = "Format Conversions";
 pub const HEADER_ADDITIONAL_INFO: &str = "Additional Information";
 pub const HEADER_COLOR_COLLECTIONS: &str = "Color Collections";
+pub const HEADER_COLOR_SCHEMES: &str = "Color Schemes";
 
 /// Input field labels
 pub const LABEL_INPUT_COLOR: &str = "Input Color:";
+pub const LABEL_BASE_COLOR: &str = "Base Color:";
 
 /// Color formatter field labels
-pub const LABEL_COLOR: &str = "Color:";
 pub const LABEL_RGB: &str = "RGB:";
 pub const LABEL_HEX: &str = "HEX:";
 pub const LABEL_HSL: &str = "HSL:";
@@ -102,13 +106,14 @@ pub const DEFAULT_CODE_CSS: &str = "CSS";
 pub const DEFAULT_COLOR_UNKNOWN: &str = "Unknown";
 pub const NO_MATCHES_MESSAGE: &str = "No close matches";
 
-/// Format strings
-pub const FORMAT_RGB: &str = "rgb({}, {}, {})";
-pub const FORMAT_HEX: &str = "#{:02x}{:02x}{:02x}";
-pub const FORMAT_HEX_UPPER: &str = "#{:02X}{:02X}{:02X}";
-pub const FORMAT_HSL: &str = "hsl({:.0}, {:.1}%, {:.1}%)";
-pub const FORMAT_LAB: &str = "lab({:.2}, {:.2}, {:.2})";
-pub const FORMAT_XYZ: &str = "xyz({:.3}, {:.3}, {:.3})";
-pub const FORMAT_OKLCH: &str = "oklch({:.3}, {:.3}, {:.1})";
-pub const FORMAT_DELTA_E: &str = "[ΔE {:.2}] ";
-pub const FORMAT_CONTRAST_RATIO: &str = "{:.2}:1";
+/// Color schemes names
+pub const HEADER_SCHEMA_COMPLIMENTARY: &str = "Complementary Color";
+pub const HEADER_SCHEMA_SPLIT_COMPLIMENTARY: &str = "Split-Complementary Colors";
+pub const HEADER_SCHEMA_TRIADIC: &str = "Triadic Colors";
+pub const HEADER_SCHEMA_TETRADIC: &str = "Tetradic Colors";
+
+/// Color schemes color names
+pub const LABEL_SCHEMA_COMPLIMENTARY_COLOR: &str = "Complementary";
+pub const LABEL_SCHEMA_SPLIT_COMPLIMENTARY_COLOR: &str = "Split";
+pub const LABEL_SCHEMA_TRIADIC_COLOR: &str = "Triadic";
+pub const LABEL_SCHEMA_OTHER_COLOR: &str = "Other Colors";

@@ -391,13 +391,13 @@ pub fn color_match_with_schemes(
 ) -> Result<String> {
     // Parse the input color
     let (lab_color, _format) = parse_color_with_parser(&args.color)?;
-    
+
     // Get color name
     let color_name = get_color_name_for_lab(lab_color)?;
-    
+
     // Build color scheme calculator based on arguments
     let mut scheme_builder = crate::color_schemes::ColorSchemeBuilder::new();
-    
+
     // Configure strategy based on schema flags
     if args.schema_lab {
         scheme_builder = scheme_builder.with_lab_strategy();
@@ -407,39 +407,33 @@ pub fn color_match_with_schemes(
         // Default to HSL strategy
         scheme_builder = scheme_builder.with_hsl_strategy();
     }
-    
+
     // Configure output format (Lab if any lab-related flags are used)
     if args.schema_lab || args.relative_luminance.is_some() || args.luminance.is_some() {
         scheme_builder = scheme_builder.with_lab_output();
     }
-    
+
     // Configure luminance handling
     if let Some(relative_lum) = args.relative_luminance {
         scheme_builder = scheme_builder.with_target_relative_luminance(relative_lum);
-    } else if args.relative_luminance.is_none() && 
-              (args.luminance.is_some() || args.schema_lab) {
+    } else if args.relative_luminance.is_none() && (args.luminance.is_some() || args.schema_lab) {
         // When the flag is present without value, preserve luminance in color schemes
         scheme_builder = scheme_builder.preserve_relative_luminance();
     }
-    
+
     if let Some(lab_lum) = args.luminance {
         scheme_builder = scheme_builder.with_target_lab_luminance(lab_lum);
     } else if args.luminance.is_none() && args.schema_lab {
         // When the flag is present without value, preserve luminance in color schemes
         scheme_builder = scheme_builder.preserve_lab_luminance();
     }
-    
+
     // Calculate color schemes
     let calculator = scheme_builder.build();
     let schemes = calculator.calculate(lab_color)?;
-    
+
     // Generate comprehensive report with color schemes
-    format_comprehensive_report_with_schemes(
-        schemes,
-        &args.color,
-        &color_name,
-        strategy,
-    )
+    format_comprehensive_report_with_schemes(schemes, &args.color, &color_name, strategy)
 }
 
 /// Generate comprehensive report with color schemes included
@@ -456,10 +450,10 @@ fn format_comprehensive_report_with_schemes(
         color_name,
         strategy,
     )?;
-    
+
     // Now add the color schemes section
     let scheme_section = crate::color_formatter::ColorFormatter::format_color_schemes(&schemes)?;
-    
+
     // Combine both reports
     Ok(format!("{}\n{}", base_report, scheme_section))
 }
