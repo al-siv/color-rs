@@ -206,19 +206,15 @@ impl GradientCalculator {
     ) -> Result<Vec<GradientValue>> {
         let mut gradient_values = Vec::new();
 
-        if let Some(num_stops) = args.grad_stops {
-            // Intelligent stop placement with integer percentages
-            let stop_positions = Self::calculate_intelligent_stops_integer(
-                num_stops,
-                args.ease_in,
-                args.ease_out,
-                args.start_position,
-                args.end_position,
-            );
-
-            for &position in stop_positions.iter() {
+        // Default behavior is now intelligent stops (grad_stops)
+        // First check if grad_step is explicitly provided
+        if let Some(step) = args.grad_step {
+            // Use step-based generation when explicitly requested
+            let mut position = args.start_position;
+            while position <= args.end_position {
                 let normalized_t = (position - args.start_position) as f64
                     / (args.end_position - args.start_position) as f64;
+
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
                 let interpolated_lab =
                     ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
@@ -230,6 +226,14 @@ impl GradientCalculator {
                     hex: hex_color,
                     rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
                 });
+
+                position += step;
+                if position > args.end_position && position - step < args.end_position {
+                    // Ensure we always include the end position
+                    position = args.end_position;
+                } else if position > args.end_position {
+                    break;
+                }
             }
         } else if let Some(num_stops) = args.grad_stops_simple {
             // Simple equal spacing with integer percentages
@@ -261,12 +265,18 @@ impl GradientCalculator {
             // Remove duplicates based on position
             gradient_values.dedup_by(|a, b| a.position == b.position);
         } else {
-            // Default behavior: every grad_step percent (already integer)
-            let mut position = args.start_position;
-            while position <= args.end_position {
+            // Default behavior: intelligent stop placement (grad_stops)
+            let stop_positions = Self::calculate_intelligent_stops_integer(
+                args.grad_stops,
+                args.ease_in,
+                args.ease_out,
+                args.start_position,
+                args.end_position,
+            );
+
+            for &position in stop_positions.iter() {
                 let normalized_t = (position - args.start_position) as f64
                     / (args.end_position - args.start_position) as f64;
-
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
                 let interpolated_lab =
                     ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
@@ -278,14 +288,6 @@ impl GradientCalculator {
                     hex: hex_color,
                     rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
                 });
-
-                position += args.grad_step;
-                if position > args.end_position && position - args.grad_step < args.end_position {
-                    // Ensure we always include the end position
-                    position = args.end_position;
-                } else if position > args.end_position {
-                    break;
-                }
             }
         }
 

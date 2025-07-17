@@ -255,8 +255,8 @@ mod tests {
             width: 1000,
             svg_name: "test.svg".to_string(),
             png_name: "test.png".to_string(),
-            grad_step: 5,
-            grad_stops: None,
+            grad_step: None,
+            grad_stops: 5,
             grad_stops_simple: None,
         }
     }

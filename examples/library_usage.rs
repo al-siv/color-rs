@@ -58,8 +58,8 @@ fn main() -> Result<()> {
         width: 800,
         svg_name: "example-gradient.svg".to_string(),
         png_name: "example-gradient.png".to_string(),
-        grad_step: 10,
-        grad_stops: None,
+        grad_step: Some(10),
+        grad_stops: 5, // Default value
         grad_stops_simple: Some(7),
     };
 

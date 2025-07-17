@@ -83,13 +83,13 @@ pub struct GradientArgs {
     #[arg(long, default_value = DEFAULT_PNG_NAME)]
     pub png_name: String,
 
-    /// Output gradient values every X percent (default: 5%)
-    #[arg(long, default_value = DEFAULT_GRAD_STEP, conflicts_with_all = ["grad_stops", "grad_stops_simple"], help = "Output gradient values every X percent (default: 5%)")]
-    pub grad_step: u8,
+    /// Output gradient values every X percent
+    #[arg(long, conflicts_with_all = ["grad_stops", "grad_stops_simple"], help = "Output gradient values every X percent")]
+    pub grad_step: Option<u8>,
 
-    /// Number of intelligently placed gradient stops to output
-    #[arg(long, conflicts_with_all = ["grad_step", "grad_stops_simple"], help = "Number of intelligently placed gradient stops using curve derivatives")]
-    pub grad_stops: Option<usize>,
+    /// Number of intelligently placed gradient stops to output (default: 5)
+    #[arg(long, default_value = "5", conflicts_with_all = ["grad_step", "grad_stops_simple"], help = "Number of intelligently placed gradient stops using curve derivatives (default: 5)")]
+    pub grad_stops: usize,
 
     /// Number of equally spaced gradient stops to output
     #[arg(long, conflicts_with_all = ["grad_step", "grad_stops"], help = "Number of equally spaced gradient stops")]
@@ -140,10 +140,19 @@ impl GradientArgs {
             ));
         }
 
-        // Validate grad_step
-        if self.grad_step == 0 {
+        // Validate grad_step (if provided)
+        if let Some(step) = self.grad_step {
+            if step == 0 {
+                return Err(ColorError::InvalidArguments(
+                    "Gradient step must be greater than 0".to_string(),
+                ));
+            }
+        }
+
+        // Validate grad_stops
+        if self.grad_stops == 0 {
             return Err(ColorError::InvalidArguments(
-                "Gradient step must be greater than 0".to_string(),
+                "Number of gradient stops must be greater than 0".to_string(),
             ));
         }
 

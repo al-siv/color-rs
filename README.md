@@ -56,8 +56,8 @@ fn main() -> color_rs::Result<()> {
         width: 1000,
         svg_name: "my-gradient.svg".to_string(),
         png_name: "gradient.png".to_string(),
-        grad_step: 5,
-        grad_stops: None,
+        grad_step: None,
+        grad_stops: 5, // Default: intelligent stops
         grad_stops_simple: None,
     };
     
@@ -440,8 +440,8 @@ OPTIONS:
     --width <WIDTH>                  Image width in pixels [default: 1000]
     --svg-name <SVG_NAME>            SVG filename [default: gradient.svg]
     --png-name <PNG_NAME>            PNG filename [default: gradient.png]
-    --grad-step <GRAD_STEP>          Output every X percent [default: 5]
-    --grad-stops <GRAD_STOPS>        Number of intelligent stops
+    --grad-step <GRAD_STEP>          Output every X percent
+    --grad-stops <GRAD_STOPS>        Number of intelligent stops [default: 5]
     --grad-stops-simple <GRAD_STOPS> Number of equal stops
 ```
 

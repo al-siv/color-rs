@@ -42,7 +42,7 @@ pub struct GradientBuilder {
     svg_name: String,
     png_name: String,
     grad_step: Option<u8>,
-    grad_stops: Option<usize>,
+    grad_stops: usize,
     grad_stops_simple: Option<usize>,
 }
 
@@ -68,8 +68,8 @@ impl GradientBuilder {
             width: 1000,
             svg_name: DEFAULT_SVG_NAME.to_string(),
             png_name: DEFAULT_PNG_NAME.to_string(),
-            grad_step: Some(5),
-            grad_stops: None,
+            grad_step: None,
+            grad_stops: 5,
             grad_stops_simple: None,
         }
     }
@@ -191,14 +191,14 @@ impl GradientBuilder {
     /// Set gradient step percentage (conflicts with stops methods)
     pub fn steps(mut self, step: u8) -> Self {
         self.grad_step = Some(step);
-        self.grad_stops = None;
+        self.grad_stops = 5; // Reset to default
         self.grad_stops_simple = None;
         self
     }
 
     /// Set number of intelligent gradient stops (conflicts with other stop methods)
     pub fn intelligent_stops(mut self, stops: usize) -> Self {
-        self.grad_stops = Some(stops);
+        self.grad_stops = stops;
         self.grad_step = None;
         self.grad_stops_simple = None;
         self
@@ -208,7 +208,7 @@ impl GradientBuilder {
     pub fn equal_stops(mut self, stops: usize) -> Self {
         self.grad_stops_simple = Some(stops);
         self.grad_step = None;
-        self.grad_stops = None;
+        self.grad_stops = 5; // Reset to default
         self
     }
 
@@ -299,7 +299,7 @@ impl GradientBuilder {
             width: self.width,
             svg_name: self.svg_name,
             png_name: self.png_name,
-            grad_step: self.grad_step.unwrap_or(5),
+            grad_step: self.grad_step,
             grad_stops: self.grad_stops,
             grad_stops_simple: self.grad_stops_simple,
         })
@@ -344,7 +344,7 @@ mod tests {
         assert_eq!(args.ease_out, 0.58);
         assert!(args.svg);
         assert_eq!(args.width, 500);
-        assert_eq!(args.grad_step, 10);
+        assert_eq!(args.grad_step, Some(10));
     }
 
     #[test]
@@ -415,8 +415,8 @@ mod tests {
             .intelligent_stops(10);
 
         let args = builder.build().unwrap();
-        assert_eq!(args.grad_stops, Some(10));
-        assert_eq!(args.grad_step, 5); // Should be default when cleared
+        assert_eq!(args.grad_stops, 10);
+        assert_eq!(args.grad_step, None); // Should be None when cleared
         assert_eq!(args.grad_stops_simple, None);
     }
 }
