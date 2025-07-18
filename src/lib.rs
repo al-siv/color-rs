@@ -26,7 +26,7 @@ pub mod formatter_strategies;
 pub mod parsing_chain;
 
 // Re-export main types for convenience
-pub use cli::{Cli, ColorMatchArgs, Commands, GradientArgs};
+pub use cli::{Cli, ColorArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
 pub use color_distance_strategies::{ColorDistanceStrategy, available_strategies, create_strategy};
 pub use color_matching_template::{ColorMatchingTemplate, UnifiedColorMatcher};
@@ -59,7 +59,7 @@ impl ColorRs {
     }
 
     /// Match and convert color between different color spaces
-    pub fn color_match(&self, args: ColorMatchArgs) -> Result<String> {
+    pub fn color_match(&self, args: ColorArgs) -> Result<String> {
         let strategy = crate::color_distance_strategies::create_strategy(&args.distance_method);
 
         // Always use enhanced color matching with schemes (new default behavior)

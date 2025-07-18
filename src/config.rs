@@ -7,7 +7,9 @@ pub const APP_AUTHOR: &str = "https://github.com/al-siv";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Formatting constant: width for formatted columns in the output
-pub const COLUMN_WIDTH: usize = 32;
+pub const COLUMN_WIDTH: usize = 26;
+pub const COLUMN_MULTIPLIER: usize = 3; // For double-width columns
+pub const COLUMN_HEADER_WIDTH: usize = COLUMN_WIDTH * COLUMN_MULTIPLIER; // For header columns
 
 /// Image dimensions
 /// Height ratio: gradient height = width * HEIGHT_RATIO
@@ -64,11 +66,11 @@ pub const DEFAULT_IMAGE_DPI: f64 = 96.0;
 pub const DEFAULT_IMAGE_QUALITY: u8 = 90;
 
 /// Color formatter section headers
-pub const HEADER_COLOR_ANALYSIS: &str = "Color Analysis";
-pub const HEADER_FORMAT_CONVERSIONS: &str = "Format Conversions";
-pub const HEADER_ADDITIONAL_INFO: &str = "Additional Information";
-pub const HEADER_COLOR_COLLECTIONS: &str = "Color Collections";
-pub const HEADER_COLOR_SCHEMES: &str = "Color Schemes";
+pub const HEADER_COLOR_ANALYSIS: &str = "# Color Analysis";
+pub const HEADER_FORMAT_CONVERSIONS: &str = "# Format Conversions";
+pub const HEADER_ADDITIONAL_INFO: &str = "# Additional Information";
+pub const HEADER_COLOR_COLLECTIONS: &str = "# Color Collections";
+pub const HEADER_COLOR_SCHEMES: &str = "# Color Schemes";
 
 /// Input field labels
 pub const LABEL_INPUT_COLOR: &str = "Input Color:";
@@ -83,16 +85,17 @@ pub const LABEL_LAB: &str = "LAB:";
 pub const LABEL_XYZ: &str = "XYZ:";
 pub const LABEL_OKLCH: &str = "OKLCH:";
 pub const LABEL_CMYK: &str = "CMYK:";
-pub const LABEL_GRAYSCALE: &str = "Grayscale:";
-pub const LABEL_WCAG_LUMINANCE: &str = "WCAG Relative Luminance:";
+pub const LABEL_GRAYSCALE: &str = "Grayscale (Lab):";
+pub const LABEL_WCAG_LUMINANCE: &str = "Relative Luminance:";
+pub const LABEL_WCAG_COMPARTIBLE: &str = "WCAG 2.1 Compatible";
 pub const LABEL_CONTRAST_WHITE: &str = "Contrast vs White:";
 pub const LABEL_CONTRAST_BLACK: &str = "Contrast vs Black:";
 pub const LABEL_BRIGHTNESS: &str = "Brightness:";
 
 /// Collection names
-pub const COLLECTION_CSS: &str = "CSS Colors";
-pub const COLLECTION_RAL_CLASSIC: &str = "RAL Classic";
-pub const COLLECTION_RAL_DESIGN: &str = "RAL Design System+";
+pub const COLLECTION_CSS: &str = "## CSS Colors";
+pub const COLLECTION_RAL_CLASSIC: &str = "## RAL Classic";
+pub const COLLECTION_RAL_DESIGN: &str = "## RAL Design System+";
 
 /// Status indicators
 pub const STATUS_PASS: &str = "PASS";
@@ -109,10 +112,10 @@ pub const DEFAULT_COLOR_UNKNOWN: &str = "Unknown";
 pub const NO_MATCHES_MESSAGE: &str = "No close matches";
 
 /// Color schemes names
-pub const HEADER_SCHEMA_COMPLIMENTARY: &str = "Complementary Color";
-pub const HEADER_SCHEMA_SPLIT_COMPLIMENTARY: &str = "Split-Complementary Colors";
-pub const HEADER_SCHEMA_TRIADIC: &str = "Triadic Colors";
-pub const HEADER_SCHEMA_TETRADIC: &str = "Tetradic Colors";
+pub const HEADER_SCHEMA_COMPLIMENTARY: &str = "## Complementary Color";
+pub const HEADER_SCHEMA_SPLIT_COMPLIMENTARY: &str = "## Split-Complementary Colors";
+pub const HEADER_SCHEMA_TRIADIC: &str = "## Triadic Colors";
+pub const HEADER_SCHEMA_TETRADIC: &str = "## Tetradic Colors";
 
 /// Color schemes color names
 pub const LABEL_SCHEMA_COMPLIMENTARY_COLOR: &str = "Complementary";

@@ -103,13 +103,13 @@ impl ColorFormatter {
     fn write_header(output: &mut String, color_input: &str, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
-            "{:^width$}",
-            crate::config::HEADER_COLOR_ANALYSIS
+            "{:<width$}",
+            HEADER_COLOR_ANALYSIS
                 .to_uppercase()
                 .bold()
-                .black()
-                .on_white(),
-            width = COLUMN_WIDTH * 2
+                .bright_white()
+                .on_black(),
+            width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         writeln!(
@@ -124,13 +124,18 @@ impl ColorFormatter {
         let srgb: Srgb = lab_color.into_color();
         writeln!(
             output,
-            "{} #{:02x}{:02x}{:02x}\n",
+            "{} {}\n",
             format!("{:>width$}", LABEL_BASE_COLOR, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            (srgb.red * 255.0).round() as u8,
-            (srgb.green * 255.0).round() as u8,
-            (srgb.blue * 255.0).round() as u8
+            format!(
+                "#{:02X}{:02X}{:02X}",
+                (srgb.red * 255.0).round() as u8,
+                (srgb.green * 255.0).round() as u8,
+                (srgb.blue * 255.0).round() as u8
+            )
+            .yellow()
+            .on_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
@@ -140,13 +145,13 @@ impl ColorFormatter {
     fn write_format_conversions(output: &mut String, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
-            "{:^width$}",
-            crate::config::HEADER_FORMAT_CONVERSIONS
+            "{:<width$}",
+            HEADER_FORMAT_CONVERSIONS
                 .to_uppercase()
                 .bold()
-                .black()
-                .on_white(),
-            width = COLUMN_WIDTH * 2
+                .bright_white()
+                .on_black(),
+            width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -156,27 +161,15 @@ impl ColorFormatter {
         let g = (srgb.green * 255.0).round() as u8;
         let b = (srgb.blue * 255.0).round() as u8;
 
-        // RGB
-        writeln!(
-            output,
-            "{} {}",
-            format!("{:>width$}", LABEL_RGB, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            format!("rgb({}, {}, {})", r, g, b).white()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
         // Hex
         writeln!(
             output,
-            "{} {}",
+            "{} {} | {}",
             format!("{:>width$}", LABEL_HEX, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            format!("#{:02x}{:02x}{:02x}", r, g, b)
-                .to_uppercase()
-                .white()
+            format!("#{:02X}{:02X}{:02X}", r, g, b).yellow().on_black(),
+            format!("rgb({}, {}, {})", r, g, b)
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -195,7 +188,6 @@ impl ColorFormatter {
                 hsl.saturation * 100.0,
                 hsl.lightness * 100.0
             )
-            .white()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -214,7 +206,6 @@ impl ColorFormatter {
                 hsv.saturation * 100.0,
                 hsv.value * 100.0
             )
-            .white()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -234,7 +225,6 @@ impl ColorFormatter {
                 y * 100.0,
                 k * 100.0
             )
-            .white()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -249,7 +239,6 @@ impl ColorFormatter {
                 "lab({:.2}, {:.2}, {:.2})",
                 lab_color.l, lab_color.a, lab_color.b
             )
-            .white()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -261,7 +250,7 @@ impl ColorFormatter {
             format!("{:>width$}", LABEL_XYZ, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            format!("xyz({:.3}, {:.3}, {:.3})", xyz.x, xyz.y, xyz.z).white()
+            format!("xyz({:.3}, {:.3}, {:.3})", xyz.x, xyz.y, xyz.z)
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -279,7 +268,6 @@ impl ColorFormatter {
                 oklch.chroma,
                 oklch.hue.into_positive_degrees()
             )
-            .white()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -287,17 +275,35 @@ impl ColorFormatter {
         Ok(())
     }
 
+    /// Get color contrast assessment based on WCAG guidelines
+    fn get_contrast_assessment(
+        color1_rgb: (u8, u8, u8),
+        color2_rgb: (u8, u8, u8),
+    ) -> (f32, ColoredString) {
+        let contrast = ColorUtils::wcag_contrast_ratio(color1_rgb, color2_rgb);
+        if contrast >= 7.0 {
+            (contrast, crate::config::STATUS_PASS.bold().green())
+        } else if contrast >= 4.5 {
+            (
+                contrast,
+                crate::config::STATUS_WARNING.bold().yellow().on_black(),
+            )
+        } else {
+            (contrast, crate::config::STATUS_FAIL.bold().red())
+        }
+    }
+
     /// Write additional color information
     fn write_additional_info(output: &mut String, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
-            "{:^width$}",
-            crate::config::HEADER_ADDITIONAL_INFO
+            "{:<width$}",
+            HEADER_ADDITIONAL_INFO
                 .to_uppercase()
                 .bold()
-                .black()
-                .on_white(),
-            width = COLUMN_WIDTH * 2
+                .bright_white()
+                .on_black(),
+            width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -308,8 +314,12 @@ impl ColorFormatter {
         let b = (srgb.blue * 255.0).round() as u8;
 
         // Grayscale equivalent using LAB L* component
-        let grayscale_l = lab_color.l;
-        let grayscale_rgb = (grayscale_l / 100.0 * 255.0).round() as u8;
+        let grayscale_lab = Lab::new(
+            lab_color.l,
+            0.0, // a component is not used for grayscale
+            0.0, // b component is not used for grayscale
+        );
+        let grayscale_rgb: Srgb = grayscale_lab.into_color();
 
         writeln!(
             output,
@@ -318,23 +328,13 @@ impl ColorFormatter {
                 .bold()
                 .green(),
             format!(
-                "rgb({}, {}, {})",
-                grayscale_rgb, grayscale_rgb, grayscale_rgb
+                "#{:02X}{:02X}{:02X}",
+                (grayscale_rgb.red * 255.0).round() as u8,
+                (grayscale_rgb.green * 255.0).round() as u8,
+                (grayscale_rgb.blue * 255.0).round() as u8
             )
-            .white()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-        writeln!(
-            output,
-            "{} {}",
-            format!("{:>width$}", "", width = COLUMN_WIDTH),
-            format!(
-                "#{:02x}{:02x}{:02x}",
-                grayscale_rgb, grayscale_rgb, grayscale_rgb
-            )
-            .to_uppercase()
-            .white()
+            .yellow()
+            .on_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -342,33 +342,20 @@ impl ColorFormatter {
         let wcag_luminance = ColorUtils::wcag_relative_luminance(r, g, b);
         writeln!(
             output,
-            "{} {}",
+            "{} {} {}",
             format!("{:>width$}", LABEL_WCAG_LUMINANCE, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            format!("{:.3}", wcag_luminance).white()
+            format!("{:<width$.3}", wcag_luminance, width = COLUMN_WIDTH),
+            format!("{:<width$}", LABEL_WCAG_COMPARTIBLE, width = COLUMN_WIDTH)
+                .bold()
+                .green()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
-        let contrast_white = ColorUtils::wcag_contrast_ratio((r, g, b), (255, 255, 255));
-        let contrast_black = ColorUtils::wcag_contrast_ratio((r, g, b), (0, 0, 0));
-
         // Color-coded contrast ratios
-        let white_contrast_color = if contrast_white >= 7.0 {
-            crate::config::STATUS_PASS.bold().green()
-        } else if contrast_white >= 4.5 {
-            crate::config::STATUS_WARNING.bold().yellow()
-        } else {
-            crate::config::STATUS_FAIL.bold().red()
-        };
-
-        let black_contrast_color = if contrast_black >= 7.0 {
-            crate::config::STATUS_PASS.bold().green()
-        } else if contrast_black >= 4.5 {
-            crate::config::STATUS_WARNING.bold().yellow()
-        } else {
-            crate::config::STATUS_FAIL.bold().red()
-        };
+        let (contrast_white, white_contrast_color) =
+            Self::get_contrast_assessment((r, g, b), (255, 255, 255));
 
         writeln!(
             output,
@@ -376,10 +363,13 @@ impl ColorFormatter {
             format!("{:>width$}", LABEL_CONTRAST_WHITE, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            format!("{:.2}:1", contrast_white).white(),
+            format!("{:.2}:1", contrast_white),
             white_contrast_color
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+
+        let (contrast_black, black_contrast_color) =
+            Self::get_contrast_assessment((r, g, b), (0, 0, 0));
 
         writeln!(
             output,
@@ -387,95 +377,84 @@ impl ColorFormatter {
             format!("{:>width$}", LABEL_CONTRAST_BLACK, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            format!("{:.2}:1", contrast_black).white(),
+            format!("{:.2}:1", contrast_black),
             black_contrast_color
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
-        let brightness = if wcag_luminance > 0.18 {
-            "Light".bold()
-        } else {
-            "Dark".bold()
-        };
         writeln!(
             output,
-            "{} {}",
+            "{} {} [{}] | {} [{}]",
             format!("{:>width$}", LABEL_BRIGHTNESS, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            brightness
+            Self::get_brightness_asssessment_lab(lab_color),
+            "Lab".bold().green(),
+            Self::get_brightness_asssessment_wcag(wcag_luminance),
+            "WCAG".bold().green()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
         Ok(())
+    }
+
+    fn get_brightness_asssessment_lab(lab_color: Lab) -> String {
+        // Calculate brightness based on L* value
+        if lab_color.l > 50.0 {
+            "Light".to_string()
+        } else {
+            "Dark".to_string()
+        }
+    }
+
+    fn get_brightness_asssessment_wcag(wcag_luminance: f32) -> String {
+        // Calculate brightness based on WCAG luminance
+        if wcag_luminance > 0.18 {
+            "Light".to_string()
+        } else {
+            "Dark".to_string()
+        }
     }
 
     /// Write all collection matches together with closest colors
     fn write_unified_collection_matches(
         output: &mut String,
         lab_color: Lab,
-        _css_name: &str,
+        css_name: &str,
     ) -> Result<()> {
-        use crate::color_parser::{RgbColor, find_closest_ral_classic, find_closest_ral_design};
-        use palette::IntoColor;
-
-        writeln!(
-            output,
-            "{:^width$}",
-            crate::config::HEADER_COLOR_COLLECTIONS
-                .to_uppercase()
-                .bold()
-                .on_white()
-                .black(),
-            width = COLUMN_WIDTH * 2
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-        // Convert LAB to RGB for collection matching
-        let srgb: Srgb = lab_color.into_color();
-        let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
-        let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
-        let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
-        let rgb = RgbColor::new(r, g, b);
-        let rgb_array = [r, g, b];
-
-        // CSS Color Collection - use direct ColorMatch without conversion
-        let manager = crate::color_parser::UnifiedColorManager::new()?;
-        let css_matches = manager.find_closest_css_colors(rgb_array, 2);
-        Self::write_css_collection(output, &css_matches)?;
-
-        // RAL Classic Collection
-        let classic_matches = find_closest_ral_classic(&rgb, 2);
-        Self::write_ral_classic_collection(output, &classic_matches)?;
-
-        // RAL Design Collection
-        let design_matches = find_closest_ral_design(&rgb, 2);
-        Self::write_ral_design_collection(output, &design_matches)?;
-
-        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        Ok(())
+        Self::write_unified_collection_matches_impl(output, lab_color, css_name, None)
     }
 
     /// Write all collection matches together with closest colors using a custom strategy
     fn write_unified_collection_matches_with_strategy(
         output: &mut String,
         lab_color: Lab,
-        _css_name: &str,
+        css_name: &str,
         strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    ) -> Result<()> {
+        Self::write_unified_collection_matches_impl(output, lab_color, css_name, Some(strategy))
+    }
+
+    /// Implementation for writing unified collection matches with optional strategy
+    fn write_unified_collection_matches_impl(
+        output: &mut String,
+        lab_color: Lab,
+        _css_name: &str,
+        strategy: Option<&dyn crate::color_distance_strategies::ColorDistanceStrategy>,
     ) -> Result<()> {
         use palette::IntoColor;
 
         writeln!(
             output,
-            "{:^width$}",
+            "{:<width$}",
             HEADER_COLOR_COLLECTIONS
                 .to_uppercase()
                 .bold()
-                .on_white()
-                .black(),
-            width = COLUMN_WIDTH * 2
+                .bright_white()
+                .on_black(),
+            width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -486,21 +465,41 @@ impl ColorFormatter {
         let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
         let rgb_array = [r, g, b];
 
-        // Use UnifiedColorManager with strategy
         let manager = crate::color_parser::UnifiedColorManager::new()?;
 
-        // CSS Color Collection with strategy
-        let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
-        Self::write_unified_collection_results(COLLECTION_CSS, output, &css_matches)?;
+        // Choose appropriate matching method based on strategy
+        if let Some(strategy) = strategy {
+            // Use strategy-based matching
+            let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
+            Self::write_unified_collection_results(COLLECTION_CSS, output, &css_matches)?;
 
-        // RAL Classic Collection with strategy
-        let classic_matches =
-            manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
-        Self::write_unified_collection_results(COLLECTION_RAL_CLASSIC, output, &classic_matches)?;
+            let classic_matches =
+                manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
+            Self::write_unified_collection_results(
+                COLLECTION_RAL_CLASSIC,
+                output,
+                &classic_matches,
+            )?;
 
-        // RAL Design Collection with strategy
-        let design_matches = manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
-        Self::write_unified_collection_results(COLLECTION_RAL_DESIGN, output, &design_matches)?;
+            let design_matches =
+                manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
+            Self::write_unified_collection_results(COLLECTION_RAL_DESIGN, output, &design_matches)?;
+        } else {
+            // Use default matching (backward compatibility)
+            use crate::color_parser::{
+                RgbColor, find_closest_ral_classic, find_closest_ral_design,
+            };
+
+            let css_matches = manager.find_closest_css_colors(rgb_array, 2);
+            Self::write_css_collection(output, &css_matches)?;
+
+            let rgb = RgbColor::new(r, g, b);
+            let classic_matches = find_closest_ral_classic(&rgb, 2);
+            Self::write_ral_classic_collection(output, &classic_matches)?;
+
+            let design_matches = find_closest_ral_design(&rgb, 2);
+            Self::write_ral_design_collection(output, &design_matches)?;
+        }
 
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
@@ -523,9 +522,9 @@ impl ColorFormatter {
         writeln!(
             output,
             "{}",
-            format!("{:^width$}", collection_name, width = COLUMN_WIDTH * 2)
+            format!("{:<width$}", collection_name, width = COLUMN_HEADER_WIDTH)
                 .bold()
-                .on_bright_black()
+                .on_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -534,7 +533,7 @@ impl ColorFormatter {
                 output,
                 "{:>width$}",
                 NO_MATCHES_MESSAGE.bold(),
-                width = COLUMN_WIDTH * 2
+                width = COLUMN_HEADER_WIDTH
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         } else {
@@ -551,7 +550,7 @@ impl ColorFormatter {
 
                 writeln!(
                     output,
-                    "{} {}",
+                    "{} {} | {} [ΔE {:.2}]",
                     format!(
                         "{:>width$}",
                         format!("{}:", color_match.entry.metadata.name),
@@ -559,16 +558,9 @@ impl ColorFormatter {
                     )
                     .bold()
                     .green(),
-                    code.white()
-                )
-                .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-                writeln!(
-                    output,
-                    "{:>width$} {}",
-                    format!("[ΔE {:.2}] ", color_match.distance),
-                    hex.to_uppercase().yellow(),
-                    width = COLUMN_WIDTH
+                    hex.to_uppercase().yellow().on_black(),
+                    code,
+                    color_match.distance
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
             }
@@ -587,7 +579,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{}",
-            format!("{:^width$}", collection_name, width = COLUMN_WIDTH * 2)
+            format!("{:<width$}", collection_name, width = COLUMN_HEADER_WIDTH)
                 .bold()
                 .on_bright_black()
         )
@@ -598,7 +590,7 @@ impl ColorFormatter {
                 output,
                 "{:>width$}",
                 NO_MATCHES_MESSAGE.bold(),
-                width = COLUMN_WIDTH * 2
+                width = COLUMN_HEADER_WIDTH
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         } else {
@@ -613,14 +605,14 @@ impl ColorFormatter {
                     )
                     .bold()
                     .green(),
-                    ral_match.code.white()
+                    ral_match.code
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
                 writeln!(
                     output,
                     "{:>width$} {}",
                     format!("[ΔE {:.2}] ", ral_match.distance),
-                    ral_match.hex.to_uppercase().yellow(),
+                    ral_match.hex.to_uppercase().yellow().on_black(),
                     width = COLUMN_WIDTH
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -656,13 +648,13 @@ impl ColorFormatter {
         // Header for color schemes section
         writeln!(
             output,
-            "{:^width$}",
+            "{:<width$}",
             HEADER_COLOR_SCHEMES
                 .to_uppercase()
                 .bold()
-                .on_white()
-                .black(),
-            width = COLUMN_WIDTH * 2
+                .bright_white()
+                .on_black(),
+            width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -680,11 +672,7 @@ impl ColorFormatter {
             &mut output,
             HEADER_SCHEMA_COMPLIMENTARY,
             &[schemes.hsl_complementary],
-            schemes
-                .luminance_matched_hsl_complementary
-                .as_ref()
-                .map(|c| vec![*c])
-                .as_deref(),
+            None,
             false, // Use HSL format
             "HSL",
         )?;
@@ -693,12 +681,11 @@ impl ColorFormatter {
         Self::write_color_scheme_section(
             &mut output,
             HEADER_SCHEMA_SPLIT_COMPLIMENTARY,
-            &[schemes.hsl_split_complementary.0, schemes.hsl_split_complementary.1],
-            schemes
-                .luminance_matched_hsl_split_complementary
-                .as_ref()
-                .map(|c| vec![c.0, c.1])
-                .as_deref(),
+            &[
+                schemes.hsl_split_complementary.0,
+                schemes.hsl_split_complementary.1,
+            ],
+            None,
             false, // Use HSL format
             "HSL",
         )?;
@@ -708,11 +695,7 @@ impl ColorFormatter {
             &mut output,
             HEADER_SCHEMA_TRIADIC,
             &[schemes.hsl_triadic.0, schemes.hsl_triadic.1],
-            schemes
-                .luminance_matched_hsl_triadic
-                .as_ref()
-                .map(|c| vec![c.0, c.1])
-                .as_deref(),
+            None,
             false, // Use HSL format
             "HSL",
         )?;
@@ -730,11 +713,7 @@ impl ColorFormatter {
             &mut output,
             HEADER_SCHEMA_COMPLIMENTARY,
             &[schemes.lab_complementary],
-            schemes
-                .luminance_matched_lab_complementary
-                .as_ref()
-                .map(|c| vec![*c])
-                .as_deref(),
+            None,
             true, // Use Lab format
             "Lab",
         )?;
@@ -743,12 +722,11 @@ impl ColorFormatter {
         Self::write_color_scheme_section(
             &mut output,
             HEADER_SCHEMA_SPLIT_COMPLIMENTARY,
-            &[schemes.lab_split_complementary.0, schemes.lab_split_complementary.1],
-            schemes
-                .luminance_matched_lab_split_complementary
-                .as_ref()
-                .map(|c| vec![c.0, c.1])
-                .as_deref(),
+            &[
+                schemes.lab_split_complementary.0,
+                schemes.lab_split_complementary.1,
+            ],
+            None,
             true, // Use Lab format
             "Lab",
         )?;
@@ -758,11 +736,7 @@ impl ColorFormatter {
             &mut output,
             HEADER_SCHEMA_TRIADIC,
             &[schemes.lab_triadic.0, schemes.lab_triadic.1],
-            schemes
-                .luminance_matched_lab_triadic
-                .as_ref()
-                .map(|c| vec![c.0, c.1])
-                .as_deref(),
+            None,
             true, // Use Lab format
             "Lab",
         )?;
@@ -785,7 +759,7 @@ impl ColorFormatter {
         writeln!(
             output,
             "{}",
-            format!("{:^width$}", title, width = COLUMN_WIDTH * 2)
+            format!("{:<width$}", title, width = COLUMN_HEADER_WIDTH)
                 .bold()
                 .on_bright_black()
         )
@@ -816,7 +790,7 @@ impl ColorFormatter {
                 )
                 .bold()
                 .green(),
-                color_value.white()
+                color_value
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -824,7 +798,7 @@ impl ColorFormatter {
                 output,
                 "{:>width$} {}",
                 "",
-                hex.to_uppercase().yellow(),
+                hex.to_uppercase().yellow().on_black(),
                 width = COLUMN_WIDTH
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -836,7 +810,7 @@ impl ColorFormatter {
             writeln!(
                 output,
                 "{}",
-                format!("{:^width$}", header_text, width = COLUMN_WIDTH * 2)
+                format!("{:<width$}", header_text, width = COLUMN_HEADER_WIDTH)
                     .bold()
                     .on_bright_black()
             )
@@ -864,7 +838,7 @@ impl ColorFormatter {
                     )
                     .bold()
                     .green(),
-                    color_value.white()
+                    color_value
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
@@ -872,7 +846,7 @@ impl ColorFormatter {
                     output,
                     "{:>width$} {}",
                     "",
-                    hex.to_uppercase().yellow(),
+                    hex.yellow().on_black(),
                     width = COLUMN_WIDTH
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -921,7 +895,7 @@ impl ColorFormatter {
 
         crate::color::ColorInfo {
             label: label.to_string(),
-            hex: format!("#{:02x}{:02x}{:02x}", r, g, b),
+            hex: format!("#{:02X}{:02X}{:02X}", r, g, b),
             rgb: format!("rgb({}, {}, {})", r, g, b),
             hsl: format!(
                 "hsl({:.0}, {:.1}%, {:.1}%)",
@@ -958,7 +932,7 @@ mod tests {
         assert!(output.contains("CSS Colors"));
         assert!(output.contains("RAL Classic"));
         assert!(output.contains("RAL Design System+"));
-        assert!(output.contains("RGB"));
+        assert!(output.contains("rgb(")); // RGB is now embedded in HEX line as "rgb(r, g, b)"
         assert!(output.contains("HSL"));
         assert!(output.contains("LAB"));
     }

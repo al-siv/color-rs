@@ -31,7 +31,7 @@ color-rs [SUBCOMMAND] [OPTIONS]
 color-rs provides two main subcommands:
 
 1. **`gradient`** - Generate color gradients using LAB color space with cubic-bezier timing
-2. **`color-match`** - Match and convert colors between different color spaces
+2. **`color`** - Analyze and convert colors between different color spaces
 
 ---
 
@@ -151,21 +151,21 @@ color-rs gradient "signal yellow" "pure blue" --grad-stops 6
 
 ---
 
-## Color-Match Command
+## Color Command
 
-Match and analyze colors with comprehensive format conversion and WCAG compliance data.
+Analyze colors with comprehensive format conversion and WCAG compliance data.
 
 ### Basic Syntax
 
 ```bash
-color-rs color-match <COLOR> [OPTIONS]
+color-rs color <COLOR> [OPTIONS]
 ```
 
 ### Positional Arguments
 
 - `<COLOR>` - Input color value (required)
-  - **Formats**: HEX, RGB, RGBA, HSL, HSLA, named colors, RAL colors
-  - **Examples**: #FF5722, rgb(255,87,34), hsl(14,100%,57%), "deep orange", "RAL 3020"
+  - **Formats**: HEX, RGB, RGBA, HSL, HSLA, LAB, named colors, RAL colors
+  - **Examples**: #FF5722, 457FB3, rgb(255,87,34), hsl(14,100%,57%), lab(60.18, 62.06, 54.34), "deep orange", "RAL 3020", "luminous orange"
 
 ### Options
 
@@ -181,60 +181,77 @@ color-rs color-match <COLOR> [OPTIONS]
 
 ```bash
 # Analyze a HEX color
-color-rs color-match "#FF5722"
+color-rs color "#FF5722"
 ```
 
 Output includes comprehensive color format conversions (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH), WCAG compliance data, closest matches from CSS/RAL collections, and color harmony schemes calculated automatically in both HSL and Lab color space strategies.
 
 ```bash
 # Analyze RGB color with comprehensive output
-color-rs color-match "rgb(255, 87, 34)"
+color-rs color "rgb(255, 87, 34)"
 ```
 
 ```bash
 # Named color analysis
-color-rs color-match "deep orange"
+color-rs color "deep orange"
 ```
 
 #### RAL Color Matching
 
 ```bash
 # RAL Classic color analysis
-color-rs color-match "RAL 3020"
+color-rs color "RAL 3020"
 ```
 
 ```bash
 # RAL Design System+ color
-color-rs color-match "H040L50C70"  
+color-rs color "RAL 010 40 30"  
 ```
 
 ```bash
 # Search by RAL color name
-color-rs color-match "traffic red"
+color-rs color "luminous orange"
 ```
 
 #### Advanced Distance Calculations
 
 ```bash
 # Use fast Delta E 76 algorithm
-color-rs color-match "#3498DB" --distance-method delta-e-76
+color-rs color "#3498DB" --distance-method delta-e-76
 ```
 
 ```bash
 # Use Euclidean distance for rapid matching
-color-rs color-match "rgb(52, 152, 219)" --distance-method euclidean-lab
+color-rs color "rgb(52, 152, 219)" --distance-method euclidean-lab
+```
+
+#### Enhanced Color Format Support
+
+```bash
+# Hex color without # symbol
+color-rs color 457FB3
+```
+
+```bash
+# LAB color format
+color-rs color "lab(60.18, 62.06, 54.34)"
+```
+
+```bash
+# Case-insensitive named colors
+color-rs color "Light Blue"
 ```
 
 #### Complex Color Formats
 
 ```bash
 # HSL color with alpha
-color-rs color-match "hsla(207, 74%, 53%, 0.8)"
+color-rs color "hsla(207, 74%, 53%, 0.8)"
 ```
 
 ```bash
 # RGBA format
-color-rs color-match "rgba(52, 152, 219, 0.9)"
+color-rs color "rgba(52, 152, 219, 0.9)"
 ```
 
 ---

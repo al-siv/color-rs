@@ -5,16 +5,25 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.0] - 2025-01-XX
+## [0.12.0] - 2025-01-18
 
 ### Added
 - **HSB Color Support**: Added HSB (Hue, Saturation, Brightness) color format to Color Analysis output
 - **CMYK Color Support**: Added CMYK (Cyan, Magenta, Yellow, Key) color format to Color Analysis output
 - **Enhanced Color Schemes**: Color schemes now automatically display both HSL and Lab color space strategy calculations
+- **Enhanced Color Parsing**: Added support for multiple new color input formats:
+  - Hex colors without # symbol (e.g., `457FB3`)
+  - LAB colors (e.g., `lab(83.81, 10.89, 11.48)`)
+  - RAL Classic codes (e.g., `RAL 5012`)
+  - RAL Design System+ codes (e.g., `RAL 010 40 30`)
+  - RAL named colors (e.g., `luminous orange`)
+  - Case-insensitive CSS named colors (e.g., `Light Blue`)
 
 ### Changed
+- **CLI Command Simplification**: Renamed `color-match` command to `color` for easier usage
 - **Simplified Color Schemes Interface**: Removed the need for users to choose between HSL and Lab strategies - both are now calculated and displayed automatically
 - **Color Analysis Enhancement**: Color Analysis section now includes HSB and CMYK conversions alongside existing RGB, HEX, HSL, LAB, XYZ, OKLCH formats
+- **Unified Color Parsing**: Both `gradient` and `color` commands now use the same enhanced parsing logic for consistent color format support
 
 ### Removed
 - **Obsolete CLI Arguments**: Removed `--schema-lab` and `--schema-hsl` command-line flags as they are no longer needed
@@ -23,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Documentation Imports**: Fixed missing `FromColor` import in `color_utils.rs` doctest
 - **Code Quality**: Removed unused import warnings
+- **Test Compatibility**: Updated tests to match new output format labels
 
 ## [0.11.1] - 2025-07-17
 

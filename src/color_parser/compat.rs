@@ -28,7 +28,7 @@ fn color_match_to_ral_match(
             .cloned()
             .unwrap_or_else(|| {
                 format!(
-                    "#{:02x}{:02x}{:02x}",
+                    "#{:02X}{:02X}{:02X}",
                     color_match.entry.color.rgb[0],
                     color_match.entry.color.rgb[1],
                     color_match.entry.color.rgb[2]
@@ -119,7 +119,7 @@ pub fn find_ral_by_code_compat(code: &str) -> Option<RalMatch> {
                 .cloned()
                 .unwrap_or_else(|| {
                     format!(
-                        "#{:02x}{:02x}{:02x}",
+                        "#{:02X}{:02X}{:02X}",
                         entry.color.rgb[0], entry.color.rgb[1], entry.color.rgb[2]
                     )
                 }),
@@ -155,7 +155,7 @@ pub fn find_ral_by_name_pattern_compat(name_pattern: &str) -> Vec<RalMatch> {
                 .cloned()
                 .unwrap_or_else(|| {
                     format!(
-                        "#{:02x}{:02x}{:02x}",
+                        "#{:02X}{:02X}{:02X}",
                         entry.color.rgb[0], entry.color.rgb[1], entry.color.rgb[2]
                     )
                 }),

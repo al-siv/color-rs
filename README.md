@@ -296,22 +296,23 @@ color-rs gradient FF0000 0000FF --start-position 20 --end-position 80
 
 ```bash
 # Color analysis with WCAG compliance data
-color-rs color-match "#FF5733"
-color-rs color-match "rgb(255, 87, 51)"
-color-rs color-match "red"
-color-rs color-match "hsl(240, 100%, 50%)"
+color-rs color "#FF5733"
+color-rs color "rgb(255, 87, 51)"
+color-rs color "red"
+color-rs color "hsl(240, 100%, 50%)"
 ```
 
 ### Color Distance Strategies
 
 ```bash
 # Use different distance calculation methods
-color-rs color-match red --distance-method delta-e-76      # Fast CIE Delta E 1976
-color-rs color-match red --distance-method delta-e-2000    # Accurate CIE Delta E 2000
-color-rs color-match red --distance-method euclidean-lab   # Euclidean LAB distance
+color-rs color red --distance-method delta-e-76      # Fast CIE Delta E 1976
+color-rs color red --distance-method delta-e-2000    # Accurate CIE Delta E 2000
+color-rs color red --distance-method euclidean-lab   # Euclidean LAB distance
+```
 
 # Compare different strategies
-color-rs color-match "#FF6B35" --distance-method delta-e-2000
+color-rs color "#FF6B35" --distance-method delta-e-2000
 ```
 
 ## Installation
@@ -396,7 +397,7 @@ GRADIENT VALUES:
 ╰──────────┴─────────┴──────────────────╯
 ```
 
-### Color-Match Enhanced Output with WCAG Compliance
+### Color Analysis Enhanced Output with WCAG Compliance
 ```
 Color Analysis for: #FF5733
 ──────────────────────────────────────────────────
@@ -445,29 +446,30 @@ OPTIONS:
     --grad-stops-simple <GRAD_STOPS> Number of equal stops
 ```
 
-### Color-Match Command
+### Color Command
 ```
-color-rs color-match <COLOR>
+color-rs color <COLOR>
 
 ARGUMENTS:
-    <COLOR>    Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
+    <COLOR>    Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), lab(), or color name)
 
-The color-match command automatically detects the input format and provides comprehensive color analysis with all color format conversions (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH), WCAG-compliant relative luminance calculations, contrast ratios, accessibility information, and color harmony schemes calculated in both HSL and Lab color space strategies.
+The color command automatically detects the input format and provides comprehensive color analysis with all color format conversions (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH), WCAG-compliant relative luminance calculations, contrast ratios, accessibility information, and color harmony schemes calculated in both HSL and Lab color space strategies.
 
 #### RAL Color System Support
-The color-match command now includes comprehensive RAL color system support with:
+The color command now includes comprehensive RAL color system support with:
 - **RAL Classic**: 213 standardized colors (e.g., "RAL 1000", "RAL1000")
-- **RAL Design System+**: 1825 colors in hue/lightness/chromaticity format (e.g., "H010L20C10")
-- **Name-based lookup**: Search by RAL color names (e.g., "signal yellow", "traffic red")
+- **RAL Design System+**: 1825 colors in hue/lightness/chromaticity format (e.g., "RAL 010 40 30")
+- **Name-based lookup**: Search by RAL color names (e.g., "luminous orange", "light blue")
 - **Closest matches**: Shows 2 closest colors from each classification separately
 - **Complete Analysis**: RAL colors receive the same comprehensive analysis as all other color inputs
 
 Examples:
 ```bash
-color-rs color-match "RAL 1000"          # RAL Classic with space
-color-rs color-match "RAL1000"           # RAL Classic without space  
-color-rs color-match "H010L20C10"        # RAL Design System+
-color-rs color-match "signal yellow"     # RAL name search
+color-rs color "RAL 1000"          # RAL Classic with space
+color-rs color "RAL1000"           # RAL Classic without space  
+color-rs color "RAL 010 40 30"     # RAL Design System+
+color-rs color "luminous orange"   # RAL name search
+```
 ```
 
 All color inputs (including RAL colors) receive comprehensive analysis including:
@@ -666,7 +668,7 @@ color-rs gradient "FF6B35" "7209B7" --svg --png --width 3000 --no-legend
 ### Color Analysis for Accessibility
 ```bash
 # Check WCAG compliance
-color-rs color-match "#FF5733"
+color-rs color "#FF5733"
 # Output includes contrast ratios: 3.15:1 vs white, 6.66:1 vs black
 # Helps determine if color meets WCAG AA (4.5:1) requirements
 ```

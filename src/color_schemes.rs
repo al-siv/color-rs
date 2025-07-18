@@ -153,17 +153,17 @@ pub struct ColorSchemeCalculator {
 #[derive(Debug, Clone)]
 pub struct ColorSchemeResult {
     pub base_color: Lab,
-    
+
     // HSL strategy results
     pub hsl_complementary: Lab,
     pub hsl_split_complementary: (Lab, Lab),
     pub hsl_triadic: (Lab, Lab),
-    
-    // Lab strategy results  
+
+    // Lab strategy results
     pub lab_complementary: Lab,
     pub lab_split_complementary: (Lab, Lab),
     pub lab_triadic: (Lab, Lab),
-    
+
     // Luminance-matched variations (if requested)
     pub luminance_matched_hsl_complementary: Option<Lab>,
     pub luminance_matched_hsl_split_complementary: Option<(Lab, Lab)>,
@@ -199,7 +199,10 @@ impl ColorSchemeCalculator {
 
         // Calculate luminance-matched variations for HSL results if requested
         let luminance_matched_hsl_complementary = if self.preserve_relative_luminance {
-            Some(preserve_wcag_relative_luminance(hsl_complementary, base_color)?)
+            Some(preserve_wcag_relative_luminance(
+                hsl_complementary,
+                base_color,
+            )?)
         } else if self.preserve_lab_luminance {
             Some(preserve_lab_luminance(hsl_complementary, base_color)?)
         } else {
@@ -232,7 +235,10 @@ impl ColorSchemeCalculator {
 
         // Calculate luminance-matched variations for Lab results if requested
         let luminance_matched_lab_complementary = if self.preserve_relative_luminance {
-            Some(preserve_wcag_relative_luminance(lab_complementary, base_color)?)
+            Some(preserve_wcag_relative_luminance(
+                lab_complementary,
+                base_color,
+            )?)
         } else if self.preserve_lab_luminance {
             Some(preserve_lab_luminance(lab_complementary, base_color)?)
         } else {

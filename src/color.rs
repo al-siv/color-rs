@@ -1,6 +1,9 @@
 //! Color operations and conversions for color-rs
 
 use crate::color_formatter::ColorFormatter;
+
+#[cfg(test)]
+use crate::config::*;
 use crate::config::{HEX_COLOR_LENGTH, RGB_MAX};
 use crate::error::{ColorError, Result};
 use palette::{FromColor, Hsl, IntoColor, Lab, Srgb};
@@ -120,8 +123,8 @@ impl ColorProcessor {
             " GRADIENT VALUES:  "
                 .bold()
                 .to_uppercase()
-                .black()
-                .on_white()
+                .bright_white()
+                .on_black()
         );
         let mut table = Table::new(color_data);
         table.with(Style::rounded());
@@ -268,18 +271,18 @@ mod tests {
     fn test_color_match() {
         // Test comprehensive output with new unified format
         let output = color_match("#FF5733").unwrap();
-        assert!(output.contains("COLOR ANALYSIS"));
-        assert!(output.contains("FORMAT CONVERSIONS"));
-        assert!(output.contains("ADDITIONAL INFORMATION"));
-        assert!(output.contains("COLOR COLLECTIONS"));
+        assert!(output.contains(&HEADER_COLOR_ANALYSIS.to_uppercase()));
+        assert!(output.contains(&HEADER_FORMAT_CONVERSIONS.to_uppercase()));
+        assert!(output.contains(&HEADER_ADDITIONAL_INFO.to_uppercase()));
+        assert!(output.contains(&HEADER_COLOR_COLLECTIONS.to_uppercase()));
         assert!(output.contains("rgb(255, 87, 51)"));
         assert!(output.contains("#FF5733"));
-        assert!(output.contains("HSL:"));
-        assert!(output.contains("LAB:"));
-        assert!(output.contains("XYZ:"));
-        assert!(output.contains("OKLCH:"));
-        assert!(output.contains("Grayscale:"));
-        assert!(output.contains("WCAG Relative Luminance:"));
+        assert!(output.contains(&LABEL_HSL));
+        assert!(output.contains(&LABEL_LAB));
+        assert!(output.contains(&LABEL_XYZ));
+        assert!(output.contains(&LABEL_OKLCH));
+        assert!(output.contains(&LABEL_GRAYSCALE));
+        assert!(output.contains(&LABEL_WCAG_LUMINANCE));
         assert!(output.contains("Brightness:"));
     }
 
@@ -306,7 +309,7 @@ mod tests {
     #[test]
     fn test_color_match_grayscale() {
         let result = color_match("#808080").unwrap();
-        assert!(result.contains("Grayscale:"));
+        assert!(result.contains("Grayscale (Lab):"));
         assert!(result.contains("#808080")); // Should include HEX format for grayscale
 
         // For gray color, LAB should be present
@@ -386,7 +389,7 @@ pub fn color_match_with_strategy(
 
 /// Enhanced color matching with color schemes and luminance adjustments
 pub fn color_match_with_schemes(
-    args: &crate::cli::ColorMatchArgs,
+    args: &crate::cli::ColorArgs,
     strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
 ) -> Result<String> {
     // Parse the input color

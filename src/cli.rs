@@ -28,8 +28,8 @@ pub struct Cli {
 pub enum Commands {
     /// Generate a gradient between two colors using LAB color space with cubic-bezier timing
     Gradient(GradientArgs),
-    /// Match and convert a color between different color spaces
-    ColorMatch(ColorMatchArgs),
+    /// Analyze and convert a color between different color spaces
+    Color(ColorArgs),
 }
 
 /// Arguments for gradient generation
@@ -160,9 +160,9 @@ impl GradientArgs {
     }
 }
 
-/// Arguments for color matching and conversion
+/// Arguments for color analysis and conversion
 #[derive(Args, Clone)]
-pub struct ColorMatchArgs {
+pub struct ColorArgs {
     /// Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
     #[arg(value_name = "COLOR")]
     pub color: String,
@@ -195,8 +195,8 @@ pub struct ColorMatchArgs {
     pub luminance: Option<f64>,
 }
 
-impl ColorMatchArgs {
-    /// Validate the color match arguments
+impl ColorArgs {
+    /// Validate the color arguments
     pub fn validate(&self) -> Result<()> {
         // Validate relative luminance range
         if let Some(relative_lum) = self.relative_luminance {

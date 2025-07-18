@@ -296,8 +296,6 @@ impl ColorUtils {
                 "Relative luminance must be between 0.0 and 1.0".to_string(),
             ));
         }
-
-        // Use binary search in Lab L component to find target relative luminance
         let mut low = 0.0f32;
         let mut high = 100.0f32;
         let tolerance = 0.00049;

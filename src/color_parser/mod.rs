@@ -62,17 +62,88 @@ impl ColorParser {
 
     /// Parse any color input and return LAB color with format information
     pub fn parse(&self, input: &str) -> Result<(Lab, ColorFormat)> {
+        let input = input.trim();
+
         // Try CSS parsing first (handles hex, rgb, rgba, hsl, hsla, named colors)
         if let Ok(parsed) = self.css_parser.parse(input) {
             let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
             return Ok((lab, parsed.format));
         }
 
-        // If CSS parsing failed, return error
+        // Try RAL color parsing (RAL codes and RAL named colors)
+        if let Some(ral_match) = ral_matcher::parse_ral_color(input) {
+            // Parse hex color from RAL match
+            if let Ok(parsed) = self.css_parser.parse(&ral_match.hex) {
+                let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+                return Ok((lab, ColorFormat::Named)); // Treat RAL colors as named colors
+            }
+        }
+
+        // Try RAL named color search (for colors like "luminous orange")
+        let ral_matches = ral_matcher::find_ral_by_name(input);
+        if !ral_matches.is_empty() {
+            let best_match = &ral_matches[0];
+            if let Ok(parsed) = self.css_parser.parse(&best_match.hex) {
+                let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+                return Ok((lab, ColorFormat::Named));
+            }
+        }
+
+        // Try hex color without # symbol
+        if self.is_hex_without_hash(input) {
+            let hex_with_hash = format!("#{}", input);
+            if let Ok(parsed) = self.css_parser.parse(&hex_with_hash) {
+                let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+                return Ok((lab, ColorFormat::Hex));
+            }
+        }
+
+        // Try LAB color parsing (lab(L, a, b))
+        if let Ok(lab) = self.parse_lab_color(input) {
+            return Ok((lab, ColorFormat::Lab));
+        }
+
+        // If all parsing methods failed, return error
         Err(ColorError::InvalidColor(format!(
             "Unable to parse color: {}",
             input
         )))
+    }
+
+    /// Check if input looks like a hex color without # symbol
+    fn is_hex_without_hash(&self, input: &str) -> bool {
+        input.len() == 6 && input.chars().all(|c| c.is_ascii_hexdigit())
+    }
+
+    /// Parse LAB color in the format lab(L, a, b)
+    fn parse_lab_color(&self, input: &str) -> Result<Lab> {
+        let input = input.trim().to_lowercase();
+
+        if input.starts_with("lab(") && input.ends_with(')') {
+            let content = &input[4..input.len() - 1]; // Remove "lab(" and ")"
+            let parts: Vec<&str> = content.split(',').collect();
+
+            if parts.len() == 3 {
+                let l: f32 = parts[0]
+                    .trim()
+                    .parse()
+                    .map_err(|_| ColorError::InvalidColor("Invalid LAB L value".to_string()))?;
+                let a: f32 = parts[1]
+                    .trim()
+                    .parse()
+                    .map_err(|_| ColorError::InvalidColor("Invalid LAB a value".to_string()))?;
+                let b: f32 = parts[2]
+                    .trim()
+                    .parse()
+                    .map_err(|_| ColorError::InvalidColor("Invalid LAB b value".to_string()))?;
+
+                return Ok(Lab::new(l, a, b));
+            }
+        }
+
+        Err(ColorError::InvalidColor(
+            "Invalid LAB color format".to_string(),
+        ))
     }
 
     /// Get the closest color name for given RGB values

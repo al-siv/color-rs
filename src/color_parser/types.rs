@@ -30,6 +30,8 @@ pub enum ColorFormat {
     Hsla,
     /// Named color (red, blue, etc.)
     Named,
+    /// LAB format (lab(L,a,b))
+    Lab,
 }
 
 impl ParsedColor {
