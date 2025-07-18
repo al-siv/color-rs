@@ -557,7 +557,7 @@ color-rs analyze "#FF0000" --harmony triadic
 ```rust
 pub struct Color {
     pub rgb: [u8; 3],
-    pub lab: [f32; 3],
+    pub lab: [f64; 3],
     pub hex: String,
     pub name: Option<String>,
     pub collection: Option<String>,

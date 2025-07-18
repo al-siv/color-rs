@@ -79,6 +79,21 @@ color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
 - `--png-name <FILENAME>` - Output filename for PNG image (default: gradient.png)
 - `--no-legend` - Disable legend/caption on gradient images (only valid with --svg or --png)
 
+### Output Format
+
+The gradient command outputs a comprehensive table with the following information:
+
+#### Gradient Values Table
+- **Position**: Percentage position in the gradient (0% to 100%)
+- **Hex**: Hexadecimal color representation
+- **RGB**: RGB color values
+- **WCAG Luminance**: Relative luminance value for accessibility calculations
+
+#### Contrast Information
+Below the table, two contrast values are displayed:
+- **Contrast (WCAG)**: WCAG contrast ratio between start and end colors
+- **Contrast (Lab)**: Lab Delta E color difference for perceptual accuracy
+
 ### Usage Examples
 
 #### Basic Gradient Generation

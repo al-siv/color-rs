@@ -233,7 +233,7 @@ mod tests {
 mod test_helpers {
     use super::*;
     
-    pub fn assert_lab_near(actual: [f32; 3], expected: [f32; 3], tolerance: f32) {
+    pub fn assert_lab_near(actual: [f64; 3], expected: [f64; 3], tolerance: f64) {
         for i in 0..3 {
             assert!(
                 (actual[i] - expected[i]).abs() < tolerance,

@@ -2,8 +2,8 @@
 
 use crate::cli::GradientArgs;
 use crate::color::ColorProcessor;
-use crate::config::*;
 use crate::error::{ColorError, Result};
+use crate::{ColorUtils, config::*};
 use kurbo::{CubicBez, ParamCurve, Point};
 use palette::Lab;
 use tabled::Tabled;
@@ -17,6 +17,8 @@ pub struct GradientValue {
     pub hex: String,
     #[tabled(rename = "RGB")]
     pub rgb: String,
+    #[tabled(rename = "WCAG Luminance")]
+    pub wcag_luminance: String,
 }
 
 /// Gradient calculation and generation
@@ -41,10 +43,10 @@ impl GradientCalculator {
         // Create cubic bezier curve with control points (0,0), (x1,0), (x2,1), (1,1)
         // This matches cubic-bezier specification
         let curve = CubicBez::new(
-            Point::new(0.0, 0.0), // Start point
-            Point::new(x1, 0.0),  // First control point (x1, 0)
-            Point::new(x2, 1.0),  // Second control point (x2, 1)
-            Point::new(1.0, 1.0), // End point
+            Point::new(0.0, 0.0),       // Start point
+            Point::new(x1 as f64, 0.0), // First control point (x1, 0)
+            Point::new(x2 as f64, 1.0), // Second control point (x2, 1)
+            Point::new(1.0, 1.0),       // End point
         );
 
         // Use binary search to find parameter where x-coordinate equals target
@@ -54,19 +56,20 @@ impl GradientCalculator {
     /// Binary search to find parameter t where curve.eval(t).x == target_x
     /// This replaces custom Newton-Raphson implementation with a robust binary search
     fn solve_cubic_bezier_for_x(curve: &CubicBez, target_x: f64) -> f64 {
-        let mut low = 0.0;
-        let mut high = 1.0;
+        let mut low: f64 = 0.0;
+        let mut high: f64 = 1.0;
+        let tgt: f64 = target_x as f64;
 
         for _ in 0..MAX_ITERATIONS {
             let mid = (low + high) * 0.5;
             let point = curve.eval(mid);
             let current_x = point.x;
 
-            if (current_x - target_x).abs() < EPSILON {
+            if (current_x - tgt).abs() < EPSILON {
                 return point.y.clamp(0.0, 1.0);
             }
 
-            if current_x < target_x {
+            if current_x < tgt {
                 low = mid;
             } else {
                 high = mid;
@@ -216,15 +219,20 @@ impl GradientCalculator {
                     / (args.end_position - args.start_position) as f64;
 
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-                let interpolated_lab =
-                    ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
-                let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
-                let rgb_values = ColorProcessor::lab_to_rgb_values(interpolated_lab);
+                let interpolated_lab = ColorUtils::interpolate_lab(start_lab, end_lab, smooth_t);
+                let hex_color = ColorUtils::lab_to_hex(interpolated_lab);
+                let rgb_values = ColorUtils::lab_to_rgb(interpolated_lab);
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    rgb_values.0,
+                    rgb_values.1,
+                    rgb_values.2,
+                ));
 
                 gradient_values.push(GradientValue {
                     position: format!("{}%", position),
                     hex: hex_color,
                     rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+                    wcag_luminance: format!("{:.3}", wcag_luminance),
                 });
 
                 position += step;
@@ -250,15 +258,20 @@ impl GradientCalculator {
                 let normalized_t = (position - args.start_position) as f64
                     / (args.end_position - args.start_position) as f64;
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-                let interpolated_lab =
-                    ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
-                let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
-                let rgb_values = ColorProcessor::lab_to_rgb_values(interpolated_lab);
+                let interpolated_lab = ColorUtils::interpolate_lab(start_lab, end_lab, smooth_t);
+                let hex_color = ColorUtils::lab_to_hex(interpolated_lab);
+                let rgb_values = ColorUtils::lab_to_rgb(interpolated_lab);
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    rgb_values.0,
+                    rgb_values.1,
+                    rgb_values.2,
+                ));
 
                 gradient_values.push(GradientValue {
                     position: format!("{}%", position),
                     hex: hex_color,
                     rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+                    wcag_luminance: format!("{:.3}", wcag_luminance),
                 });
             }
 
@@ -278,15 +291,20 @@ impl GradientCalculator {
                 let normalized_t = (position - args.start_position) as f64
                     / (args.end_position - args.start_position) as f64;
                 let smooth_t = Self::cubic_bezier_ease(normalized_t, args.ease_in, args.ease_out);
-                let interpolated_lab =
-                    ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
-                let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
-                let rgb_values = ColorProcessor::lab_to_rgb_values(interpolated_lab);
+                let interpolated_lab = ColorUtils::interpolate_lab(start_lab, end_lab, smooth_t);
+                let hex_color = ColorUtils::lab_to_hex(interpolated_lab);
+                let rgb_values = ColorUtils::lab_to_rgb(interpolated_lab);
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    rgb_values.0,
+                    rgb_values.1,
+                    rgb_values.2,
+                ));
 
                 gradient_values.push(GradientValue {
                     position: format!("{}%", position),
                     hex: hex_color,
                     rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+                    wcag_luminance: format!("{:.3}", wcag_luminance),
                 });
             }
         }
@@ -294,7 +312,7 @@ impl GradientCalculator {
         Ok(gradient_values)
     }
 
-    /// Print gradient table
+    /// Print gradient table with contrast information
     pub fn print_gradient_table(values: Vec<GradientValue>) {
         if values.is_empty() {
             return;
@@ -306,15 +324,8 @@ impl GradientCalculator {
             settings::{Alignment, Style, object::Columns},
         };
 
-        println!(
-            "{}",
-            " Gradient Values: "
-                .bold()
-                .to_uppercase()
-                .bright_white()
-                .on_black()
-        );
-        let mut table = Table::new(values);
+        println!("{}", HEADER_GRADIENT_VALUES.bold().to_uppercase());
+        let mut table = Table::new(&values);
         table.with(Style::rounded());
         table.modify(Columns::first(), Alignment::right()); // Right-align Position column
         println!("{}", table);

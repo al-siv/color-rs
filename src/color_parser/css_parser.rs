@@ -7,7 +7,9 @@
 use super::csv_loader::CsvLoader;
 use super::parse_utils::ParseUtils;
 use super::types::{ColorFormat, ParsedColor};
+use crate::color_utils::*;
 use crate::error::{ColorError, Result};
+use palette::*;
 use std::collections::HashMap;
 
 /// CSS color parser that handles various CSS color formats
@@ -176,10 +178,10 @@ impl CssColorParser {
 
         // Normalize hue to 0-1 range
         let h_norm = (((h % 360.0) + 360.0) % 360.0) / 360.0;
+        let hsl: Hsl = Hsl::new(h_norm as f32, s as f32, l as f32);
 
         // Convert HSL to RGB using the reliable color_utils implementation
-        use crate::color_utils::ColorUtils;
-        let (r, g, b) = ColorUtils::hsl_to_rgb(h_norm, s, l);
+        let (r, g, b) = ColorUtils::srgb_to_rgb(hsl.into_color());
         Ok((r, g, b))
     }
 

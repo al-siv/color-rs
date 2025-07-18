@@ -104,8 +104,8 @@ impl UnifiedColorManager {
     // pub fn find_ral_design_in_lightness_range(
     //     &self,
     //     rgb: [u8; 3],
-    //     min_lightness: f32,
-    //     max_lightness: f32,
+    //     min_lightness: f64,
+    //     max_lightness: f64,
     //     max_results: usize,
     // ) -> Vec<ColorMatch> {
     //     let target = UniversalColor::from_rgb(rgb);
@@ -122,8 +122,8 @@ impl UnifiedColorManager {
     // pub fn find_ral_design_in_chroma_range(
     //     &self,
     //     rgb: [u8; 3],
-    //     min_chroma: f32,
-    //     max_chroma: f32,
+    //     min_chroma: f64,
+    //     max_chroma: f64,
     //     max_results: usize,
     // ) -> Vec<ColorMatch> {
     //     let target = UniversalColor::from_rgb(rgb);

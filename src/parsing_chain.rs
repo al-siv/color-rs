@@ -4,7 +4,7 @@
 //! different color input formats. Each handler in the chain attempts to parse
 //! the input and either handles it or passes it to the next handler.
 
-use crate::error::ColorError;
+use crate::{ColorUtils, error::ColorError};
 use palette::Lab;
 use std::sync::Arc;
 
@@ -76,7 +76,7 @@ impl ColorParsingHandler for HexColorParsingHandler {
         };
 
         // Try to parse using the existing color processor
-        match crate::color::ColorProcessor::parse_hex_color(&expanded_hex) {
+        match ColorUtils::parse_hex_color(&expanded_hex) {
             Ok(lab) => Ok(Some(ParseResult {
                 lab_color: lab,
                 format_name: "HEX".to_string(),
@@ -144,11 +144,7 @@ impl ColorParsingHandler for CssNamedColorParsingHandler {
         match parser.parse(&trimmed) {
             Ok(parsed_color) => {
                 // Convert RGB to LAB
-                let lab = crate::color_utils::ColorUtils::rgb_to_lab([
-                    parsed_color.r,
-                    parsed_color.g,
-                    parsed_color.b,
-                ]);
+                let lab = ColorUtils::rgb_to_lab((parsed_color.r, parsed_color.g, parsed_color.b));
                 Ok(Some(ParseResult {
                     lab_color: lab,
                     format_name: "CSS Named".to_string(),

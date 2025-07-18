@@ -6,7 +6,8 @@
 //! - Create SVG and PNG outputs programmatically
 
 use color_rs::{
-    ColorRs, Result, cli::GradientArgs, color::ColorProcessor, gradient::GradientCalculator,
+    ColorRs, ColorUtils, Result, cli::GradientArgs, color::ColorProcessor,
+    gradient::GradientCalculator,
 };
 
 fn main() -> Result<()> {
@@ -15,8 +16,8 @@ fn main() -> Result<()> {
 
     // Example 1: Basic color parsing and conversion
     println!("1. Color Parsing and Conversion:");
-    let red_lab = ColorProcessor::parse_hex_color("#FF0000")?;
-    let blue_lab = ColorProcessor::parse_hex_color("#0000FF")?;
+    let red_lab = ColorUtils::parse_hex_color("#FF0000")?;
+    let blue_lab = ColorUtils::parse_hex_color("#0000FF")?;
 
     println!(
         "Red in LAB: Lab({:.1}, {:.1}, {:.1})",
@@ -35,8 +36,8 @@ fn main() -> Result<()> {
     for i in 0..=10 {
         let t = i as f64 / 10.0;
         let eased_t = GradientCalculator::cubic_bezier_ease(t, ease_in, ease_out);
-        let interpolated = ColorProcessor::interpolate_lab(red_lab, blue_lab, eased_t);
-        let hex = ColorProcessor::lab_to_hex(interpolated);
+        let interpolated = ColorUtils::interpolate_lab(red_lab, blue_lab, eased_t);
+        let hex = ColorUtils::lab_to_hex(interpolated);
 
         println!("t={:.1} -> eased_t={:.3} -> color={}", t, eased_t, hex);
     }

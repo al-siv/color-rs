@@ -28,7 +28,7 @@ pub struct ColorParserConfig {
     /// Whether to enable fallback color naming
     pub enable_fallback_naming: bool,
     /// Custom color tolerance for matching (0.0-100.0)
-    pub color_tolerance: f32,
+    pub color_tolerance: f64,
 }
 
 impl Default for ColorParserConfig {

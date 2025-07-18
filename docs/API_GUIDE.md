@@ -76,10 +76,10 @@ Represents comprehensive color information across multiple color spaces.
 pub struct ColorInfo {
     pub rgb: [u8; 3],
     pub hex: String,
-    pub hsl: [f32; 3],
-    pub lab: [f32; 3],
-    pub xyz: [f32; 3],
-    pub oklch: [f32; 3],
+    pub hsl: [f64; 3],
+    pub lab: [f64; 3],
+    pub xyz: [f64; 3],
+    pub oklch: [f64; 3],
     pub luminance: f64,
     pub name: Option<String>,
 }
@@ -110,7 +110,7 @@ pub struct GradientValue {
     pub position: u8,           // Percentage position (0-100)
     pub rgb: [u8; 3],          // RGB values
     pub hex: String,           // HEX representation
-    pub lab: [f32; 3],         // LAB color space values
+    pub lab: [f64; 3],         // LAB color space values
     pub css_percentage: String, // CSS-compatible percentage
 }
 ```
@@ -154,22 +154,22 @@ pub struct ColorUtils;
 
 impl ColorUtils {
     /// Convert RGB to LAB color space
-    pub fn rgb_to_lab(rgb: [u8; 3]) -> [f32; 3];
+    pub fn rgb_to_lab(rgb: [u8; 3]) -> [f64; 3];
     
     /// Convert LAB to RGB color space
-    pub fn lab_to_rgb(lab: [f32; 3]) -> [u8; 3];
+    pub fn lab_to_rgb(lab: [f64; 3]) -> [u8; 3];
     
     /// Convert RGB to HSL color space
-    pub fn rgb_to_hsl(rgb: [u8; 3]) -> [f32; 3];
+    pub fn rgb_to_hsl(rgb: [u8; 3]) -> [f64; 3];
     
     /// Convert HSL to RGB color space
-    pub fn hsl_to_rgb(hsl: [f32; 3]) -> [u8; 3];
+    pub fn hsl_to_rgb(hsl: [f64; 3]) -> [u8; 3];
     
     /// Convert RGB to XYZ color space
-    pub fn rgb_to_xyz(rgb: [u8; 3]) -> [f32; 3];
+    pub fn rgb_to_xyz(rgb: [u8; 3]) -> [f64; 3];
     
     /// Convert RGB to OKLCH color space
-    pub fn rgb_to_oklch(rgb: [u8; 3]) -> [f32; 3];
+    pub fn rgb_to_oklch(rgb: [u8; 3]) -> [f64; 3];
     
     /// Calculate relative luminance for WCAG compliance
     pub fn calculate_luminance(rgb: [u8; 3]) -> f64;
@@ -220,10 +220,10 @@ pub struct ColorAnalysis {
     pub input: String,
     pub rgb: [u8; 3],
     pub hex: String,
-    pub hsl: [f32; 3],
-    pub lab: [f32; 3],
-    pub xyz: [f32; 3],
-    pub oklch: [f32; 3],
+    pub hsl: [f64; 3],
+    pub lab: [f64; 3],
+    pub xyz: [f64; 3],
+    pub oklch: [f64; 3],
     pub luminance: f64,
     pub wcag_aa_normal: bool,     // WCAG AA compliance for normal text
     pub wcag_aa_large: bool,      // WCAG AA compliance for large text
@@ -251,8 +251,8 @@ impl GradientCalculator {
     /// Calculate gradient values between two colors
     pub fn calculate(
         &self,
-        start_color: [f32; 3],  // LAB color space
-        end_color: [f32; 3],    // LAB color space
+        start_color: [f64; 3],  // LAB color space
+        end_color: [f64; 3],    // LAB color space
         steps: Vec<f64>,        // Position values (0.0-1.0)
         ease_in: f64,           // Cubic-bezier control point
         ease_out: f64,          // Cubic-bezier control point
@@ -261,8 +261,8 @@ impl GradientCalculator {
     /// Generate equally spaced gradient stops
     pub fn equal_stops(
         &self,
-        start_color: [f32; 3],
-        end_color: [f32; 3],
+        start_color: [f64; 3],
+        end_color: [f64; 3],
         count: usize,
         ease_in: f64,
         ease_out: f64,
@@ -271,8 +271,8 @@ impl GradientCalculator {
     /// Generate intelligently placed stops based on curve analysis
     pub fn intelligent_stops(
         &self,
-        start_color: [f32; 3],
-        end_color: [f32; 3],
+        start_color: [f64; 3],
+        end_color: [f64; 3],
         count: usize,
         ease_in: f64,
         ease_out: f64,
@@ -402,7 +402,7 @@ Trait defining the interface for color parsers.
 ```rust
 pub trait ColorParserTrait: Send + Sync {
     /// Parse a color string to LAB color space and format
-    fn parse(&self, input: &str) -> Result<([f32; 3], String)>;
+    fn parse(&self, input: &str) -> Result<([f64; 3], String)>;
     
     /// Get color name from RGB values
     fn get_color_name(&self, r: u8, g: u8, b: u8) -> Option<String>;
@@ -494,7 +494,7 @@ Strategy pattern for pluggable color distance algorithms.
 ```rust
 pub trait ColorDistanceStrategy: Send + Sync {
     /// Calculate distance between two LAB colors
-    fn calculate_distance(&self, color1: [f32; 3], color2: [f32; 3]) -> f64;
+    fn calculate_distance(&self, color1: [f64; 3], color2: [f64; 3]) -> f64;
     
     /// Get strategy name
     fn name(&self) -> &str;

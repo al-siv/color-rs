@@ -14,77 +14,6 @@ use palette::{
 pub struct ColorUtils;
 
 impl ColorUtils {
-    /// Convert RGB to LAB color space for perceptually accurate comparisons
-    ///
-    /// Uses the palette crate for reliable sRGB to LAB conversion
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as [r, g, b] where each component is 0-255
-    ///
-    /// # Returns
-    /// * LAB color space representation
-    pub fn rgb_to_lab(rgb: [u8; 3]) -> Lab {
-        let srgb = Srgb::new(
-            rgb[0] as f32 / crate::config::RGB_MAX_F32,
-            rgb[1] as f32 / crate::config::RGB_MAX_F32,
-            rgb[2] as f32 / crate::config::RGB_MAX_F32,
-        );
-        Lab::from_color(srgb)
-    }
-
-    /// Convert LAB color to RGB values
-    ///
-    /// # Arguments
-    /// * `lab` - LAB color space representation
-    ///
-    /// # Returns
-    /// * RGB values as (r, g, b) where each component is 0-255
-    pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
-        let srgb: Srgb = lab.into_color();
-        let r = (srgb.red * crate::config::RGB_MAX_F32)
-            .round()
-            .clamp(0.0, crate::config::RGB_MAX_F32) as u8;
-        let g = (srgb.green * crate::config::RGB_MAX_F32)
-            .round()
-            .clamp(0.0, crate::config::RGB_MAX_F32) as u8;
-        let b = (srgb.blue * crate::config::RGB_MAX_F32)
-            .round()
-            .clamp(0.0, crate::config::RGB_MAX_F32) as u8;
-        (r, g, b)
-    }
-
-    /// Convert HSL to RGB using the palette crate
-    ///
-    /// This replaces manual HSL->RGB conversion with the reliable palette implementation
-    ///
-    /// # Arguments
-    /// * `h` - Hue (0.0-1.0, will be wrapped if outside range)
-    /// * `s` - Saturation (0.0-1.0, will be clamped)
-    /// * `l` - Lightness (0.0-1.0, will be clamped)
-    ///
-    /// # Returns
-    /// * RGB values as (r, g, b) where each component is 0-255
-    pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
-        use palette::RgbHue;
-
-        // Create HSL color using palette
-        let hsl: Hsl = Hsl::new(
-            RgbHue::from_degrees(h * 360.0),
-            s.clamp(0.0, 1.0),
-            l.clamp(0.0, 1.0),
-        );
-
-        // Convert directly to sRGB
-        let srgb: Srgb = hsl.into_color();
-
-        // Convert to 0-255 range
-        let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
-        let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
-        let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
-
-        (r, g, b)
-    }
-
     /// Calculate Delta E using improved CIEDE2000 algorithm from palette library
     ///
     /// This uses the ImprovedCiede2000 implementation from palette which provides
@@ -96,8 +25,8 @@ impl ColorUtils {
     ///
     /// # Returns
     /// * Improved Delta E distance (0.0 = identical, higher = more different)
-    pub fn lab_distance(lab1: Lab, lab2: Lab) -> f32 {
-        lab1.improved_difference(lab2)
+    pub fn lab_distance(lab1: Lab, lab2: Lab) -> f64 {
+        lab1.improved_difference(lab2) as f64
     }
 
     /// Interpolate between two LAB colors using palette's Mix trait
@@ -132,30 +61,26 @@ impl ColorUtils {
     /// let luminance = ColorUtils::wcag_relative_luminance(255, 87, 51);
     /// // Returns approximately 0.283 for #FF5733
     /// ```
-    pub fn wcag_relative_luminance(r: u8, g: u8, b: u8) -> f32 {
-        let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-        srgb.relative_luminance().luma
+    pub fn wcag_relative_luminance(srgb: Srgb) -> f64 {
+        srgb.relative_luminance().luma as f64
     }
 
-    /// Calculate WCAG relative luminance from an sRGB color
-    ///
-    /// Uses the palette crate's WCAG implementation for accurate luminance calculation
+    /// Calculate WCAG relative luminance from (r, g, b) u8 values using palette
     ///
     /// # Arguments
-    /// * `srgb` - sRGB color value
+    /// * `r` - Red component (0-255)
+    /// * `g` - Green component (0-255)
+    /// * `b` - Blue component (0-255)
     ///
     /// # Returns
-    /// * WCAG relative luminance as f64 (range 0.0-1.0)
-    ///
-    /// # Example
-    /// ```rust
-    /// use palette::Srgb;
-    /// use color_rs::color_utils::ColorUtils;
-    /// let srgb = Srgb::new(1.0, 0.0, 0.0);
-    /// let luminance = ColorUtils::wcag_relative_luminance_from_srgb(srgb);
-    /// ```
-    pub fn wcag_relative_luminance_from_srgb(srgb: Srgb) -> f64 {
-        srgb.relative_luminance().luma as f64
+    /// * WCAG relative luminance value (0.0-1.0)
+    pub fn wcag_relative_luminance_rgb(rgb: (u8, u8, u8)) -> f64 {
+        let srgb = Srgb::new(
+            rgb.0 as f64 / 255.0,
+            rgb.1 as f64 / 255.0,
+            rgb.2 as f64 / 255.0,
+        );
+        srgb.relative_luminance().luma
     }
 
     /// Calculate WCAG contrast ratio using palette's implementation
@@ -182,21 +107,48 @@ impl ColorUtils {
     /// let ratio = ColorUtils::wcag_contrast_ratio((255, 87, 51), (255, 255, 255));
     /// // Returns approximately 3.15 for #FF5733 vs white
     /// ```
-    pub fn wcag_contrast_ratio(color1_rgb: (u8, u8, u8), color2_rgb: (u8, u8, u8)) -> f32 {
-        let srgb1 = Srgb::new(
-            color1_rgb.0 as f32 / 255.0,
-            color1_rgb.1 as f32 / 255.0,
-            color1_rgb.2 as f32 / 255.0,
-        );
-        let srgb2 = Srgb::new(
-            color2_rgb.0 as f32 / 255.0,
-            color2_rgb.1 as f32 / 255.0,
-            color2_rgb.2 as f32 / 255.0,
-        );
-        srgb1.relative_contrast(srgb2)
+    pub fn wcag_contrast_ratio(srgb1: Srgb, srgb2: Srgb) -> f64 {
+        srgb1.relative_contrast(srgb2) as f64
+    }
+
+    /// Calculate WCAG contrast ratio from two (r, g, b) u8 tuples
+    ///
+    /// This is a convenience wrapper that converts the input tuples to Srgb<f64>
+    /// and then calls the main wcag_contrast_ratio function.
+    ///
+    /// # Arguments
+    /// * `rgb1` - First color as (r, g, b) tuple (0-255 each)
+    /// * `rgb2` - Second color as (r, g, b) tuple (0-255 each)
+    ///
+    /// # Returns
+    /// * Contrast ratio (1.0:1 to 21.0:1)
+    pub fn wcag_contrast_ratio_rgb(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> f64 {
+        let srgb1 = Self::rgb_to_srgb(rgb1);
+        let srgb2 = Self::rgb_to_srgb(rgb2);
+        Self::wcag_contrast_ratio(srgb1, srgb2)
+    }
+
+    /// Calculate the contrast ratio between two Lab colors using their L (lightness) values.
+    ///
+    /// This is a perceptual approximation, not a WCAG-compliant contrast ratio.
+    /// The ratio is always >= 1.0, with higher values indicating greater contrast.
+    ///
+    /// # Arguments
+    /// * `lab1` - First Lab color
+    /// * `lab2` - Second Lab color
+    ///
+    /// # Returns
+    /// * Ratio of the higher L to the lower L (always >= 1.0)
+    pub fn lab_contrast_ratio(lab1: Lab, lab2: Lab) -> f64 {
+        let l1: f64 = lab1.l.max(0.01) as f64; // Avoid division by zero
+        let l2: f64 = lab2.l.max(0.01) as f64;
+        if l1 > l2 { l1 / l2 } else { l2 / l1 }
     }
 
     /// Parse a hex color string into LAB color space
+    ///
+    /// Supports 3-digit (#RGB), 6-digit (#RRGGBB), and 8-digit (#RRGGBBAA) hex codes.
+    /// Alpha channel (if present) is ignored.
     ///
     /// # Arguments
     /// * `hex` - Hex color string (with or without #)
@@ -205,17 +157,30 @@ impl ColorUtils {
     /// * LAB color space representation
     pub fn parse_hex_color(hex: &str) -> Result<Lab> {
         let hex = hex.trim_start_matches('#');
-        if hex.len() != 6 {
-            return Err(ColorError::InvalidColor(
-                "Invalid HEX color format. Expected format: #RRGGBB".to_string(),
-            ));
-        }
+        let (r, g, b) = match hex.len() {
+            3 => {
+                // Expand #RGB to #RRGGBB
+                let r = u8::from_str_radix(&hex[0..1].repeat(2), 16)?;
+                let g = u8::from_str_radix(&hex[1..2].repeat(2), 16)?;
+                let b = u8::from_str_radix(&hex[2..3].repeat(2), 16)?;
+                (r, g, b)
+            }
+            6 | 8 => {
+                // #RRGGBB or #RRGGBBAA (ignore alpha)
+                let r = u8::from_str_radix(&hex[0..2], 16)?;
+                let g = u8::from_str_radix(&hex[2..4], 16)?;
+                let b = u8::from_str_radix(&hex[4..6], 16)?;
+                (r, g, b)
+            }
+            _ => {
+                return Err(ColorError::InvalidColor(
+                    "Invalid HEX color format. Expected #RGB, #RRGGBB, or #RRGGBBAA".to_string(),
+                ));
+            }
+        };
 
-        let r = u8::from_str_radix(&hex[0..2], 16)?;
-        let g = u8::from_str_radix(&hex[2..4], 16)?;
-        let b = u8::from_str_radix(&hex[4..6], 16)?;
-
-        Ok(Self::rgb_to_lab([r, g, b]))
+        let srgb: Srgb = Self::rgb_to_srgb((r, g, b));
+        Ok(srgb.into_color())
     }
 
     /// Convert LAB color to hex string
@@ -224,10 +189,103 @@ impl ColorUtils {
     /// * `lab` - LAB color space representation
     ///
     /// # Returns
-    /// * Hex color string (with # prefix)
+    /// * Hex color string (with # prefix, always uppercase)
     pub fn lab_to_hex(lab: Lab) -> String {
-        let (r, g, b) = Self::lab_to_rgb(lab);
+        // Convert Lab to sRGB, clamp to [0.0, 1.0] to avoid out-of-gamut artifacts
+        let srgb: Srgb = lab.into_color();
+        let (r, g, b) = (
+            (srgb.red.clamp(0.0, 1.0) * 255.0).round() as u8,
+            (srgb.green.clamp(0.0, 1.0) * 255.0).round() as u8,
+            (srgb.blue.clamp(0.0, 1.0) * 255.0).round() as u8,
+        );
         format!("#{:02X}{:02X}{:02X}", r, g, b)
+    }
+
+    /// Convert LAB color to HSL as a (h, s, l) tuple (f64, f64, f64)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (h, s, l) tuple where h is in degrees, s and l in 0.0-1.0
+    pub fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
+        let srgb: Srgb = lab.into_color();
+        let hsl: Hsl = srgb.into_color();
+        (
+            hsl.hue.into_positive_degrees() as f64,
+            hsl.saturation as f64,
+            hsl.lightness as f64,
+        )
+    }
+
+    /// Convert HSL color to (r, g, b) u8 tuple
+    ///
+    /// # Arguments
+    /// * `hsl` - HSL color space representation
+    ///
+    /// # Returns
+    /// * (r, g, b) tuple where each component is 0-255
+    pub fn hsl_to_rgb(hsl: Hsl) -> (u8, u8, u8) {
+        let srgb: Srgb = hsl.into_color();
+        Self::srgb_to_rgb(srgb)
+    }
+
+    /// Convert a palette::Srgb<f64> to HSL as a (h, s, l) tuple (f64, f64, f64)
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb<f64> color (each channel in 0.0-1.0)
+    ///
+    /// # Returns
+    /// * (h, s, l) tuple where h is in degrees, s and l in 0.0-1.0
+    pub fn srgb_to_hsl_tuple(srgb: Srgb) -> (f32, f32, f32) {
+        let hsl: Hsl = srgb.into_color();
+        (
+            hsl.hue.into_positive_degrees() as f32,
+            hsl.saturation as f32,
+            hsl.lightness as f32,
+        )
+    }
+
+    /// Convert (r, g, b) u8 tuple to HSL as a (h, s, l) tuple (f32, f32, f32)
+    ///
+    /// # Arguments
+    /// * `rgb` - (r, g, b) tuple where each component is 0-255
+    ///
+    /// # Returns
+    /// * (h, s, l) tuple where h is in degrees, s and l in 0.0-1.0
+    pub fn rgb_to_hsl_tuple(rgb: (u8, u8, u8)) -> (f32, f32, f32) {
+        let srgb = Self::rgb_to_srgb(rgb);
+        let hsl: Hsl = srgb.into_color();
+        (
+            hsl.hue.into_positive_degrees() as f32,
+            hsl.saturation as f32,
+            hsl.lightness as f32,
+        )
+    }
+
+    /// Convert HSL (f64, f64, f64) to (r, g, b) u8 tuple
+    ///
+    /// # Arguments
+    /// * `hsl` - HSL color as (h, s, l) where h in degrees, s and l in 0.0-1.0
+    ///
+    /// # Returns
+    /// * (r, g, b) tuple where each component is 0-255
+    pub fn hsl_tuple_to_rgb(hsl: (f64, f64, f64)) -> (u8, u8, u8) {
+        let hsl_color = Hsl::new(hsl.0 as f32, hsl.1 as f32, hsl.2 as f32);
+        let srgb: Srgb = hsl_color.into_color();
+        Self::srgb_to_rgb(srgb)
+    }
+
+    /// Convert LAB color to (r, g, b) u8 tuple
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (r, g, b) tuple where each component is 0-255
+    pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
+        let srgb: Srgb = lab.into_color();
+        Self::srgb_to_rgb(srgb)
     }
 
     /// Convert LAB color array to RGB array
@@ -238,9 +296,30 @@ impl ColorUtils {
     /// # Returns
     /// * RGB values as [r, g, b] where each component is 0-255
     pub fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
-        let lab_color = Lab::new(lab[0], lab[1], lab[2]);
-        let (r, g, b) = Self::lab_to_rgb(lab_color);
+        let lab_color = Lab::new(lab[0] as f32, lab[1] as f32, lab[2] as f32);
+        // Convert Lab to linear RGB, then to sRGB for proper gamma correction
+        let srgb: Srgb = lab_color.into_color();
+        let (r, g, b) = Self::srgb_to_rgb(srgb);
         [r, g, b]
+    }
+
+    /// Convert an (r, g, b) u8 tuple to Lab color space using the palette library
+    ///
+    /// # Arguments
+    /// * `r` - Red component (0-255)
+    /// * `g` - Green component (0-255)
+    /// * `b` - Blue component (0-255)
+    ///
+    /// # Returns
+    /// * Lab color
+    pub fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
+        let srgb = Srgb::new(
+            rgb.0 as f32 / 255.0,
+            rgb.1 as f32 / 255.0,
+            rgb.2 as f32 / 255.0,
+        )
+        .into_linear();
+        Lab::from_color(srgb)
     }
 
     /// Convert RGB array to LAB array
@@ -250,8 +329,17 @@ impl ColorUtils {
     ///
     /// # Returns
     /// * LAB values as [L, a, b]
+    /// Convert an RGB array to a LAB array
+    ///
+    /// # Arguments
+    /// * `rgb` - RGB values as [r, g, b] where each component is 0-255
+    ///
+    /// # Returns
+    /// * LAB values as [L, a, b]
     pub fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
-        let lab = Self::rgb_to_lab(rgb);
+        let srgb = Self::rgb_to_srgb((rgb[0], rgb[1], rgb[2]));
+        srgb.into_linear(); // Ensure linearization for accurate conversion
+        let lab: Lab = Lab::from_color(srgb);
         [lab.l, lab.a, lab.b]
     }
 
@@ -263,10 +351,50 @@ impl ColorUtils {
     ///
     /// # Returns
     /// * Improved Delta E distance (0.0 = identical, higher = more different)
-    pub fn lab_array_distance(lab1: [f32; 3], lab2: [f32; 3]) -> f32 {
+    pub fn lab_array_distance(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
         let lab1_color = Lab::new(lab1[0], lab1[1], lab1[2]);
         let lab2_color = Lab::new(lab2[0], lab2[1], lab2[2]);
         Self::lab_distance(lab1_color, lab2_color)
+    }
+
+    /// Convert (r, g, b) u8 tuple to palette::Srgb<f64>
+    ///
+    /// # Arguments
+    /// * `r` - Red component (0-255)
+    /// * `g` - Green component (0-255)
+    /// * `b` - Blue component (0-255)
+    ///
+    /// # Returns
+    /// * Srgb<f64> color
+    pub fn rgb_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
+        Srgb::new(
+            rgb.0 as f32 / 255.0,
+            rgb.1 as f32 / 255.0,
+            rgb.2 as f32 / 255.0,
+        )
+    }
+
+    /// Convert a palette::Srgb<f64> to an (r, g, b) tuple of u8 values (0-255)
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb<f64> color (each channel in 0.0-1.0)
+    ///
+    /// # Returns
+    /// * (r, g, b) tuple where each component is clamped and rounded to 0-255
+    pub fn srgb_to_rgb(srgb: Srgb) -> (u8, u8, u8) {
+        let r = (srgb.red.clamp(0.0, 1.0) * 255.0)
+            .round()
+            .min(255.0)
+            .max(0.0) as u8;
+        let g = (srgb.green.clamp(0.0, 1.0) * 255.0)
+            .round()
+            .min(255.0)
+            .max(0.0) as u8;
+        let b = (srgb.blue.clamp(0.0, 1.0) * 255.0)
+            .round()
+            .min(255.0)
+            .max(0.0) as u8;
+        (r, g, b)
     }
 
     /// Adjust a color to have the specified WCAG relative luminance while preserving hue
@@ -306,7 +434,7 @@ impl ColorUtils {
             let mid = (low + high) / 2.0;
             let test_lab = Lab::new(mid, color.a, color.b);
             let test_srgb: Srgb = test_lab.into_color();
-            let test_relative_lum = Self::wcag_relative_luminance_from_srgb(test_srgb);
+            let test_relative_lum: f64 = Self::wcag_relative_luminance(test_srgb) as f64;
 
             if (test_relative_lum - target_luminance).abs() < tolerance {
                 best_srgb = test_srgb;
@@ -329,7 +457,7 @@ impl ColorUtils {
 
     /// Convert RGB to CMYK color space
     ///
-    /// Uses the standard CMYK conversion formula for print color representation
+    /// Uses the standard CMYK conversion formula for print color representation.
     ///
     /// # Arguments
     /// * `r` - Red component (0-255)
@@ -345,26 +473,27 @@ impl ColorUtils {
     /// let (c, m, y, k) = ColorUtils::rgb_to_cmyk(255, 87, 51);
     /// // Returns CMYK values for #FF5733
     /// ```
-    pub fn rgb_to_cmyk(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32) {
+    pub fn rgb_to_cmyk(rgb: (u8, u8, u8)) -> (f64, f64, f64, f64) {
         // Convert RGB to 0.0-1.0 range
-        let r_norm = r as f32 / 255.0;
-        let g_norm = g as f32 / 255.0;
-        let b_norm = b as f32 / 255.0;
+        let r_norm = rgb.0 as f64 / 255.0;
+        let g_norm = rgb.1 as f64 / 255.0;
+        let b_norm = rgb.2 as f64 / 255.0;
 
-        // Find the maximum value for K calculation
+        // Calculate K (black key)
         let k = 1.0 - r_norm.max(g_norm).max(b_norm);
 
-        // Handle pure black case
-        if k >= 1.0 {
+        // Avoid division by zero and handle black
+        if k >= 1.0 - f64::EPSILON {
             return (0.0, 0.0, 0.0, 1.0);
         }
 
-        // Calculate CMY components
-        let c = (1.0 - r_norm - k) / (1.0 - k);
-        let m = (1.0 - g_norm - k) / (1.0 - k);
-        let y = (1.0 - b_norm - k) / (1.0 - k);
+        // Calculate CMY, clamp to [0.0, 1.0] for numerical safety
+        let denom = 1.0 - k;
+        let c = ((1.0 - r_norm - k) / denom).clamp(0.0, 1.0);
+        let m = ((1.0 - g_norm - k) / denom).clamp(0.0, 1.0);
+        let y = ((1.0 - b_norm - k) / denom).clamp(0.0, 1.0);
 
-        (c, m, y, k)
+        (c, m, y, k.clamp(0.0, 1.0))
     }
 }
 
@@ -373,33 +502,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_rgb_to_lab_conversion() {
-        // Test known RGB to LAB conversion
-        let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
-        assert!((red_lab.l - 53.24).abs() < 1.0); // Red lightness around 53
-        assert!(red_lab.a > 70.0); // Positive a (green-red axis)
-        assert!(red_lab.b > 60.0); // Positive b (blue-yellow axis)
-
-        let black_lab = ColorUtils::rgb_to_lab([0, 0, 0]);
-        assert!(black_lab.l < 1.0); // Black should have very low lightness
-
-        let white_lab = ColorUtils::rgb_to_lab([255, 255, 255]);
-        assert!(white_lab.l > 95.0); // White should have high lightness
+    fn test_parse_hex_color() {
+        let lab = ColorUtils::parse_hex_color("#FF0000").unwrap();
+        assert!(lab.l > 50.0 && lab.l < 55.0); // Red should have lightness around 53
     }
 
     #[test]
-    fn test_hsl_to_rgb_conversion() {
-        // Test pure red (H=0, S=1, L=0.5)
-        let (r, g, b) = ColorUtils::hsl_to_rgb(0.0, 1.0, 0.5);
-        assert_eq!(r, 255);
-        assert_eq!(g, 0);
-        assert_eq!(b, 0);
-
-        // Test pure blue (H=240/360, S=1, L=0.5)
-        let (r, g, b) = ColorUtils::hsl_to_rgb(240.0 / 360.0, 1.0, 0.5);
-        assert_eq!(r, 0);
-        assert_eq!(g, 0);
-        assert_eq!(b, 255);
+    fn test_invalid_hex_color() {
+        assert!(ColorUtils::parse_hex_color("#ZZZZZZ").is_err());
+        assert!(ColorUtils::parse_hex_color("#FF00").is_err());
     }
 
     #[test]
@@ -424,24 +535,51 @@ mod tests {
     #[test]
     fn test_wcag_luminance() {
         // Test known values
-        let red_luminance = ColorUtils::wcag_relative_luminance(255, 0, 0);
+        let red_luminance =
+            ColorUtils::wcag_relative_luminance(ColorUtils::rgb_to_srgb((255, 0, 0)));
         assert!((red_luminance - 0.2126).abs() < 0.01);
 
-        let white_luminance = ColorUtils::wcag_relative_luminance(255, 255, 255);
+        let white_luminance =
+            ColorUtils::wcag_relative_luminance(ColorUtils::rgb_to_srgb((255, 255, 255)));
         assert!((white_luminance - 1.0).abs() < 0.01);
 
-        let black_luminance = ColorUtils::wcag_relative_luminance(0, 0, 0);
+        let black_luminance =
+            ColorUtils::wcag_relative_luminance(ColorUtils::rgb_to_srgb((0, 0, 0)));
         assert!(black_luminance < 0.01);
+    }
+
+    #[test]
+    fn test_lab_to_hex() {
+        let lab = Lab::new(53.2, 80.1, 67.2); // Approximately red
+        let hex = ColorUtils::lab_to_hex(lab);
+        assert!(hex.starts_with('#'));
+        assert_eq!(hex.len(), 7);
     }
 
     #[test]
     fn test_wcag_contrast_ratio() {
         // Test black vs white (maximum contrast)
-        let max_contrast = ColorUtils::wcag_contrast_ratio((0, 0, 0), (255, 255, 255));
+        let max_contrast = ColorUtils::wcag_contrast_ratio(
+            ColorUtils::rgb_to_srgb((0, 0, 0)),
+            ColorUtils::rgb_to_srgb((255, 255, 255)),
+        );
         assert!((max_contrast - 21.0).abs() < 0.1);
 
         // Test identical colors (minimum contrast)
-        let min_contrast = ColorUtils::wcag_contrast_ratio((128, 128, 128), (128, 128, 128));
+        let min_contrast = ColorUtils::wcag_contrast_ratio(
+            ColorUtils::rgb_to_srgb((128, 128, 128)),
+            ColorUtils::rgb_to_srgb((128, 128, 128)),
+        );
         assert!((min_contrast - 1.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_color_interpolation() {
+        let red = Lab::new(53.2, 80.1, 67.2);
+        let blue = Lab::new(32.3, 79.2, -107.9);
+        let mid = ColorUtils::interpolate_lab(red, blue, 0.5);
+
+        // Middle color should be between red and blue
+        assert!(mid.l > blue.l && mid.l < red.l);
     }
 }

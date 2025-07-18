@@ -84,3 +84,54 @@ impl From<std::fmt::Error> for ColorError {
         ColorError::General(format!("Formatting error: {}", err))
     }
 }
+
+/// Extension trait for converting `std::io::Result` to `crate::error::Result`
+pub trait IoResultExt<T> {
+    /// Convert `std::io::Result<T>` to `crate::error::Result<T>`
+    ///
+    /// This provides a convenient way to convert IO errors to ColorError
+    /// without the verbose `.map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))`
+    ///
+    /// # Example
+    /// ```rust
+    /// use crate::error::IoResultExt;
+    ///
+    /// // Instead of:
+    /// // some_io_operation().map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))?;
+    ///
+    /// // You can write:
+    /// some_io_operation().to_err()?;
+    /// ```
+    fn to_err(self) -> Result<T>;
+}
+
+impl<T> IoResultExt<T> for std::io::Result<T> {
+    fn to_err(self) -> Result<T> {
+        self.map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))
+    }
+}
+
+/// Extension trait for converting `Result<String, FromUtf8Error>` to `crate::error::Result<String>`
+pub trait Utf8ResultExt {
+    /// Convert `Result<String, FromUtf8Error>` to `crate::error::Result<String>`
+    ///
+    /// This provides a convenient way to convert UTF-8 conversion errors to ColorError
+    ///
+    /// # Example
+    /// ```rust
+    /// use crate::error::Utf8ResultExt;
+    ///
+    /// // Instead of:
+    /// // String::from_utf8(bytes).map_err(|e| ColorError::InvalidColor(format!("UTF-8 error: {}", e)))?;
+    ///
+    /// // You can write:
+    /// String::from_utf8(bytes).to_err()?;
+    /// ```
+    fn to_err(self) -> Result<String>;
+}
+
+impl Utf8ResultExt for std::result::Result<String, std::string::FromUtf8Error> {
+    fn to_err(self) -> Result<String> {
+        self.map_err(|e| ColorError::InvalidColor(format!("UTF-8 conversion error: {}", e)))
+    }
+}

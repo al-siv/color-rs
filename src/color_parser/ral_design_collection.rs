@@ -48,19 +48,19 @@ impl RalDesignCollection {
     }
 
     /// Extract hue group from hue value (for compatibility)
-    pub fn extract_hue_group(hue: f32) -> String {
+    pub fn extract_hue_group(hue: f64) -> String {
         let hue_range = ((hue / 10.0).floor() * 10.0) as u32;
         format!("H{:03}", hue_range)
     }
 
     /// Extract lightness group from lightness value (for compatibility)
-    pub fn extract_lightness_group(lightness: f32) -> String {
+    pub fn extract_lightness_group(lightness: f64) -> String {
         let lightness_range = ((lightness / 10.0).floor() * 10.0) as u32;
         format!("L{:02}", lightness_range)
     }
 
     /// Extract chroma group from chromaticity value (for compatibility)
-    pub fn extract_chroma_group(chromaticity: f32) -> String {
+    pub fn extract_chroma_group(chromaticity: f64) -> String {
         let chroma_range = ((chromaticity / 10.0).floor() * 10.0) as u32;
         format!("C{:02}", chroma_range)
     }

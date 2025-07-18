@@ -122,7 +122,7 @@ pub struct ParsedColor {
     pub r: u8,           // Red component (0-255)
     pub g: u8,           // Green component (0-255) 
     pub b: u8,           // Blue component (0-255)
-    pub a: f32,          // Alpha component (0.0-1.0)
+    pub a: f64,          // Alpha component (0.0-1.0)
     pub format: ColorFormat,
 }
 ```
@@ -137,7 +137,7 @@ pub struct ParsedColor {
 **Constructors**:
 ```rust
 impl ParsedColor {
-    pub fn new(r: u8, g: u8, b: u8, a: f32, format: ColorFormat) -> Self;
+    pub fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self;
     pub fn from_rgb(r: u8, g: u8, b: u8, format: ColorFormat) -> Self;
     pub fn rgb(&self) -> (u8, u8, u8);
 }
@@ -175,7 +175,7 @@ pub struct GradientValue {
     pub position: u8,           // Percentage position (0-100)
     pub rgb: [u8; 3],          // RGB values
     pub hex: String,           // HEX representation
-    pub lab: [f32; 3],         // LAB color space values
+    pub lab: [f64; 3],         // LAB color space values
     pub css_percentage: String, // CSS-compatible percentage
 }
 ```
@@ -352,7 +352,7 @@ The type system enforces several important constraints:
 
 1. **RGB Values**: `u8` type automatically constrains to 0-255 range
 2. **Percentages**: `u8` type constrains positions to 0-100 (validated semantically)
-3. **Alpha Values**: `f32` allows 0.0-1.0 range (validated in constructors)
+3. **Alpha Values**: `f64` allows 0.0-1.0 range (validated in constructors)
 
 ### Validation Patterns
 
@@ -436,7 +436,7 @@ Provide convenience constructors for common use cases:
 
 ```rust
 impl ParsedColor {
-    pub fn new(r: u8, g: u8, b: u8, a: f32, format: ColorFormat) -> Self;
+    pub fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self;
     
     /// Convenience constructor for opaque colors
     pub fn from_rgb(r: u8, g: u8, b: u8, format: ColorFormat) -> Self {

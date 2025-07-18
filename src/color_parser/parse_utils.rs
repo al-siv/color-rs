@@ -20,7 +20,7 @@ impl ParseUtils {
         let value = value.trim();
 
         if let Some(percentage_str) = value.strip_suffix('%') {
-            let percentage = f32::from_str(percentage_str)
+            let percentage = f64::from_str(percentage_str)
                 .map_err(|_| ColorError::InvalidColor("Invalid percentage value".to_string()))?;
             Ok(((percentage / 100.0 * 255.0).round().clamp(0.0, 255.0)) as u8)
         } else {
@@ -32,32 +32,32 @@ impl ParseUtils {
     }
 
     /// Parse a percentage value (0.0-1.0) with consistent error handling
-    pub fn parse_percentage(value: &str) -> Result<f32> {
+    pub fn parse_percentage(value: &str) -> Result<f64> {
         let value = value.trim();
 
         if let Some(percentage_str) = value.strip_suffix('%') {
-            let percentage = f32::from_str(percentage_str)
+            let percentage = f64::from_str(percentage_str)
                 .map_err(|_| ColorError::InvalidColor("Invalid percentage value".to_string()))?;
             Ok((percentage / 100.0).clamp(0.0, 1.0))
         } else {
             // Allow float values without % for convenience
-            let float_val = f32::from_str(value)
+            let float_val = f64::from_str(value)
                 .map_err(|_| ColorError::InvalidColor("Invalid percentage value".to_string()))?;
             Ok(float_val.clamp(0.0, 1.0))
         }
     }
 
     /// Parse an alpha value (0.0-1.0) with consistent error handling
-    pub fn parse_alpha(value: &str) -> Result<f32> {
+    pub fn parse_alpha(value: &str) -> Result<f64> {
         let value = value.trim();
-        let alpha = f32::from_str(value)
+        let alpha = f64::from_str(value)
             .map_err(|_| ColorError::InvalidColor("Invalid alpha value".to_string()))?;
         Ok(alpha.clamp(0.0, 1.0))
     }
 
     /// Parse a hue value with consistent error handling
-    pub fn parse_hue(value: &str) -> Result<f32> {
-        f32::from_str(value.trim())
+    pub fn parse_hue(value: &str) -> Result<f64> {
+        f64::from_str(value.trim())
             .map_err(|_| ColorError::InvalidColor("Invalid hue value".to_string()))
     }
 

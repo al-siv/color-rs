@@ -41,8 +41,8 @@ pub const BEZIER_MIN: f64 = 0.0;
 pub const BEZIER_MAX: f64 = 1.0;
 pub const HEX_COLOR_LENGTH: usize = 6;
 pub const RGB_MAX: u8 = 255;
-pub const RGB_MAX_F32: f32 = 255.0;
-pub const PERCENTAGE_MULTIPLIER: f32 = 100.0;
+pub const RGB_MAX_F32: f64 = 255.0;
+pub const PERCENTAGE_MULTIPLIER: f64 = 100.0;
 ```
 
 ### Color Collection Configuration

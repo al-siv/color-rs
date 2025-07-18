@@ -23,7 +23,7 @@ This document catalogs the Gang of Four design patterns used in the color-rs cod
 **How it's expressed in Rust**:
 ```rust
 pub trait ColorDistanceStrategy: Send + Sync {
-    fn calculate_distance(&self, color1: [f32; 3], color2: [f32; 3]) -> f64;
+    fn calculate_distance(&self, color1: [f64; 3], color2: [f64; 3]) -> f64;
     fn name(&self) -> &str;
     fn description(&self) -> &str;
 }
@@ -269,7 +269,7 @@ trait ColorAdapter {
 
 struct HexColorAdapter(String);
 struct RgbColorAdapter([u8; 3]);
-struct HslColorAdapter([f32; 3]);
+struct HslColorAdapter([f64; 3]);
 
 impl ColorAdapter for HexColorAdapter {
     fn to_universal(&self) -> UniversalColor { /* ... */ }
@@ -292,7 +292,7 @@ impl ColorAdapter for HexColorAdapter {
 **Potential Application**:
 ```rust
 trait GradientComponent {
-    fn render(&self, position: f64) -> [f32; 3];
+    fn render(&self, position: f64) -> [f64; 3];
 }
 
 struct SimpleGradient { /* ... */ }

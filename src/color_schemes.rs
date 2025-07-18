@@ -287,22 +287,22 @@ impl ColorSchemeCalculator {
     }
 }
 
-/// Adjust a color to have the specified Lab luminance while preserving hue
+/// Adjust a color to have the specified Lab luminance while preserving a and b components.
+/// Clamps the luminance to [0.0, 100.0] and returns an error if out of range.
 pub fn adjust_color_lab_luminance(color: Lab, target_luminance: f64) -> Result<Lab> {
-    if target_luminance < 0.0 || target_luminance > 100.0 {
-        return Err(ColorError::InvalidArguments(
-            "Lab luminance should typically be between 0.0 and 100.0".to_string(),
-        ));
+    if !(0.0..=100.0).contains(&target_luminance) {
+        return Err(ColorError::InvalidArguments(format!(
+            "Lab luminance must be in [0.0, 100.0], got {}",
+            target_luminance
+        )));
     }
-
-    // Simply adjust the L component while preserving a and b
     Ok(Lab::new(target_luminance as f32, color.a, color.b))
 }
 
 /// Preserve WCAG relative luminance from reference color in target color
 pub fn preserve_wcag_relative_luminance(color: Lab, reference: Lab) -> Result<Lab> {
     let reference_srgb: Srgb = reference.into_color();
-    let target_luminance = ColorUtils::wcag_relative_luminance_from_srgb(reference_srgb);
+    let target_luminance = ColorUtils::wcag_relative_luminance(reference_srgb);
     ColorUtils::adjust_color_relative_luminance(color, target_luminance)
 }
 
@@ -334,7 +334,7 @@ mod tests {
         let adjusted = ColorUtils::adjust_color_relative_luminance(red_lab, 0.5).unwrap();
 
         let adjusted_srgb: Srgb = adjusted.into_color();
-        let actual_luminance = ColorUtils::wcag_relative_luminance_from_srgb(adjusted_srgb);
+        let actual_luminance = ColorUtils::wcag_relative_luminance(adjusted_srgb);
 
         // Should be close to target luminance
         assert!((actual_luminance - 0.5).abs() < 0.01);

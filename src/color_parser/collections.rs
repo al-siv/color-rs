@@ -6,6 +6,7 @@
 use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
 use crate::color_utils::ColorUtils;
 use palette::Lab;
+use palette::encoding::Srgb;
 use std::collections::HashMap;
 
 /// Universal color representation using LAB color space for accurate comparisons
@@ -16,7 +17,7 @@ pub struct UniversalColor {
     /// RGB representation (derived from LAB or original if RGB-native)
     pub rgb: [u8; 3],
     /// Optional WCAG relative luminance (calculated on demand)
-    pub luminance: Option<f32>,
+    pub luminance: Option<f64>,
 }
 
 impl UniversalColor {
@@ -41,29 +42,26 @@ impl UniversalColor {
     }
 
     /// Create from HLC values (for RAL Design System+)
-    pub fn from_hlc(hue: f32, lightness: f32, chroma: f32) -> Self {
+    pub fn from_hlc(hue: f64, lightness: f64, chroma: f64) -> Self {
         // Convert HLC to LAB (HLC is similar to LCH but with different scaling)
         let h_rad = hue.to_radians();
         let a = chroma * h_rad.cos();
         let b = chroma * h_rad.sin();
-        let lab = [lightness, a, b];
+        let lab: [f32; 3] = [lightness as f32, a as f32, b as f32];
         Self::from_lab(lab)
     }
 
     /// Get WCAG relative luminance (cached)
-    pub fn luminance(&mut self) -> f32 {
+    pub fn luminance(&mut self) -> f64 {
         if self.luminance.is_none() {
-            self.luminance = Some(ColorUtils::wcag_relative_luminance(
-                self.rgb[0],
-                self.rgb[1],
-                self.rgb[2],
-            ));
+            let srgb = ColorUtils::rgb_to_srgb((self.rgb[0], self.rgb[1], self.rgb[2]));
+            self.luminance = Some(ColorUtils::wcag_relative_luminance(srgb));
         }
         self.luminance.unwrap()
     }
 
     /// Calculate LAB distance to another color using the specified strategy
-    pub fn distance_to(&self, other: &UniversalColor) -> f32 {
+    pub fn distance_to(&self, other: &UniversalColor) -> f64 {
         // Use the default strategy (Delta E 2000) for backward compatibility
         self.distance_to_with_strategy(other, &DeltaE2000Strategy)
     }
@@ -73,7 +71,7 @@ impl UniversalColor {
         &self,
         other: &UniversalColor,
         strategy: &dyn ColorDistanceStrategy,
-    ) -> f32 {
+    ) -> f64 {
         let lab1 = Lab::new(self.lab[0], self.lab[1], self.lab[2]);
         let lab2 = Lab::new(other.lab[0], other.lab[1], other.lab[2]);
         strategy.calculate_distance(lab1, lab2)
@@ -150,9 +148,9 @@ pub struct SearchFilter {
     /// Limit to specific groups
     pub groups: Option<Vec<String>>,
     /// Luminance range filter [min, max]
-    pub luminance_range: Option<[f32; 2]>,
+    pub luminance_range: Option<[f64; 2]>,
     /// Maximum color distance for "close enough" matches
-    pub max_distance: Option<f32>,
+    pub max_distance: Option<f64>,
     /// Name pattern matching
     pub name_pattern: Option<String>,
 }
@@ -163,14 +161,14 @@ pub struct ColorMatch {
     /// The matched color entry
     pub entry: ColorEntry,
     /// Distance from the search target
-    pub distance: f32,
+    pub distance: f64,
     /// Confidence score (0.0 to 1.0)
-    pub confidence: f32,
+    pub confidence: f64,
 }
 
 impl ColorMatch {
     /// Create a new color match
-    pub fn new(entry: ColorEntry, distance: f32) -> Self {
+    pub fn new(entry: ColorEntry, distance: f64) -> Self {
         // Calculate confidence based on distance (closer = higher confidence)
         let confidence = (50.0 - distance.min(50.0)) / 50.0;
         Self {
@@ -268,7 +266,7 @@ pub trait ColorCollection: Send + Sync {
     }
 
     /// Find colors by luminance range
-    fn find_by_luminance_range(&self, min_luminance: f32, max_luminance: f32) -> Vec<ColorEntry> {
+    fn find_by_luminance_range(&self, min_luminance: f64, max_luminance: f64) -> Vec<ColorEntry> {
         self.colors()
             .iter()
             .filter(|entry| {

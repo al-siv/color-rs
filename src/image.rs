@@ -8,10 +8,9 @@ use tiny_skia::*;
 use usvg::{Options, Tree, fontdb};
 
 use crate::cli::GradientArgs;
-use crate::color::ColorProcessor;
-use crate::config::*;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
+use crate::{ColorUtils, config::*};
 
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]
@@ -96,8 +95,8 @@ impl ImageGenerator {
         };
         let total_height = gradient_height + legend_height;
 
-        let start_hex = ColorProcessor::lab_to_hex(start_lab);
-        let end_hex = ColorProcessor::lab_to_hex(end_lab);
+        let start_hex = ColorUtils::lab_to_hex(start_lab);
+        let end_hex = ColorUtils::lab_to_hex(end_lab);
 
         // Calculate positions as pixels
         let start_pixel = (args.start_position as f64 / 100.0 * width as f64) as u32;
@@ -124,8 +123,8 @@ impl ImageGenerator {
         for i in 0..=num_stops {
             let t = i as f64 / num_stops as f64;
             let bezier_t = GradientCalculator::cubic_bezier_ease(t, args.ease_in, args.ease_out);
-            let interpolated_lab = ColorProcessor::interpolate_lab(start_lab, end_lab, bezier_t);
-            let hex_color = ColorProcessor::lab_to_hex(interpolated_lab);
+            let interpolated_lab = ColorUtils::interpolate_lab(start_lab, end_lab, bezier_t);
+            let hex_color = ColorUtils::lab_to_hex(interpolated_lab);
             let offset = t * 100.0;
 
             svg.push_str(&format!(
@@ -265,8 +264,8 @@ mod tests {
     fn test_svg_content_creation() {
         let generator = ImageGenerator::new();
         let args = create_test_args();
-        let start_lab = ColorProcessor::parse_hex_color(&args.start_color).unwrap();
-        let end_lab = ColorProcessor::parse_hex_color(&args.end_color).unwrap();
+        let start_lab = ColorUtils::parse_hex_color(&args.start_color).unwrap();
+        let end_lab = ColorUtils::parse_hex_color(&args.end_color).unwrap();
 
         let svg_content = generator
             .create_svg_content(&args, start_lab, end_lab)

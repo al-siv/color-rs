@@ -18,7 +18,7 @@ pub trait ColorDistanceStrategy {
     ///
     /// # Returns
     /// * Distance value (0.0 = identical, higher = more different)
-    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f32;
+    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64;
 
     /// Get a human-readable name for this strategy
     fn name(&self) -> &'static str;
@@ -36,8 +36,8 @@ pub trait ColorDistanceStrategy {
 pub struct DeltaE76Strategy;
 
 impl ColorDistanceStrategy for DeltaE76Strategy {
-    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f32 {
-        lab1.improved_delta_e(lab2)
+    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
+        lab1.improved_delta_e(lab2) as f64
     }
 
     fn name(&self) -> &'static str {
@@ -59,9 +59,9 @@ impl ColorDistanceStrategy for DeltaE76Strategy {
 pub struct DeltaE2000Strategy;
 
 impl ColorDistanceStrategy for DeltaE2000Strategy {
-    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f32 {
+    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
         // Use the improved CIEDE2000 implementation from palette
-        lab1.improved_difference(lab2)
+        lab1.improved_difference(lab2) as f64
     }
 
     fn name(&self) -> &'static str {
@@ -80,8 +80,8 @@ impl ColorDistanceStrategy for DeltaE2000Strategy {
 pub struct EuclideanLabStrategy;
 
 impl ColorDistanceStrategy for EuclideanLabStrategy {
-    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f32 {
-        lab1.distance_squared(lab2).sqrt()
+    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
+        lab1.distance_squared(lab2).sqrt() as f64
     }
 
     fn name(&self) -> &'static str {
@@ -139,8 +139,8 @@ mod tests {
 
     #[test]
     fn test_strategy_distance_calculations() {
-        let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
-        let blue_lab = ColorUtils::rgb_to_lab([0, 0, 255]);
+        let red_lab = ColorUtils::rgb_to_lab((255, 0, 0));
+        let blue_lab = ColorUtils::rgb_to_lab((0, 0, 255));
 
         let delta_e_76 = DeltaE76Strategy;
         let delta_e_2000 = DeltaE2000Strategy;
@@ -163,8 +163,8 @@ mod tests {
 
     #[test]
     fn test_strategy_symmetry() {
-        let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
-        let blue_lab = ColorUtils::rgb_to_lab([0, 0, 255]);
+        let red_lab = ColorUtils::rgb_to_lab((255, 0, 0));
+        let blue_lab = ColorUtils::rgb_to_lab((0, 0, 255));
 
         let strategies: Vec<Box<dyn ColorDistanceStrategy>> = vec![
             Box::new(DeltaE76Strategy),

@@ -42,9 +42,9 @@ pub const RGB_MAX: u8 = 255;
 pub const RGB_MIN: u8 = 0;
 
 /// Color conversion constants
-pub const RGB_MAX_F32: f32 = 255.0;
-pub const PERCENTAGE_MULTIPLIER: f32 = 100.0;
-pub const PERCENTAGE_DIVISOR: f32 = 100.0;
+pub const RGB_MAX_F32: f64 = 255.0;
+pub const PERCENTAGE_MULTIPLIER: f64 = 100.0;
+pub const PERCENTAGE_DIVISOR: f64 = 100.0;
 
 /// Cubic-bezier control point limits
 pub const BEZIER_MIN: f64 = 0.0;
@@ -66,11 +66,11 @@ pub const DEFAULT_IMAGE_DPI: f64 = 96.0;
 pub const DEFAULT_IMAGE_QUALITY: u8 = 90;
 
 /// Color formatter section headers
-pub const HEADER_COLOR_ANALYSIS: &str = "# Color Analysis";
-pub const HEADER_FORMAT_CONVERSIONS: &str = "# Format Conversions";
-pub const HEADER_ADDITIONAL_INFO: &str = "# Additional Information";
-pub const HEADER_COLOR_COLLECTIONS: &str = "# Color Collections";
-pub const HEADER_COLOR_SCHEMES: &str = "# Color Schemes";
+pub const HEADER_COLOR_ANALYSIS: &str = "# Color Analysis ";
+pub const HEADER_FORMAT_CONVERSIONS: &str = "# Format Conversions ";
+pub const HEADER_ADDITIONAL_INFO: &str = "# Additional Information ";
+pub const HEADER_COLOR_COLLECTIONS: &str = "# Color Collections ";
+pub const HEADER_COLOR_SCHEMES: &str = "# Color Schemes ";
 
 /// Input field labels
 pub const LABEL_INPUT_COLOR: &str = "Input Color:";
@@ -122,3 +122,11 @@ pub const LABEL_SCHEMA_COMPLIMENTARY_COLOR: &str = "Complementary";
 pub const LABEL_SCHEMA_SPLIT_COMPLIMENTARY_COLOR: &str = "Split";
 pub const LABEL_SCHEMA_TRIADIC_COLOR: &str = "Triadic";
 pub const LABEL_SCHEMA_OTHER_COLOR: &str = "Other Colors";
+
+/// Section headers for color analysis and gradient values
+pub const HEADER_BASE_COLORS: &str = " # Base colors";
+pub const HEADER_GRADIENT_VALUES: &str = " # Gradient Values";
+
+/// Labels for gradient start and end colors
+pub const LABEL_GRADIENT_START_COLOR: &str = "Start Color";
+pub const LABEL_GRADIENT_END_COLOR: &str = "End Color";

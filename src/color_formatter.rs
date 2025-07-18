@@ -22,11 +22,12 @@
 
 use crate::color_utils::ColorUtils;
 use crate::config::*;
-use crate::error::{ColorError, Result};
+use crate::error::{ColorError, Result, IoResultExt, Utf8ResultExt};
 use crate::formatter_strategies::FormattingStrategyFactory;
 use colored::*;
 use palette::{Hsl, Hsv, IntoColor, Lab, Oklch, Srgb, Xyz};
 use std::fmt::Write;
+use crate::output_utils::*;
 
 /// Color formatter for generating comprehensive color reports
 pub struct ColorFormatter;
@@ -103,12 +104,8 @@ impl ColorFormatter {
     fn write_header(output: &mut String, color_input: &str, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
-            "{:<width$}",
-            HEADER_COLOR_ANALYSIS
-                .to_uppercase()
-                .bold()
-                .bright_white()
-                .on_black(),
+            "{:#<width$}",
+            HEADER_COLOR_ANALYSIS.to_uppercase().bold(),
             width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -135,7 +132,6 @@ impl ColorFormatter {
                 (srgb.blue * 255.0).round() as u8
             )
             .yellow()
-            .on_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
@@ -145,12 +141,8 @@ impl ColorFormatter {
     fn write_format_conversions(output: &mut String, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
-            "{:<width$}",
-            HEADER_FORMAT_CONVERSIONS
-                .to_uppercase()
-                .bold()
-                .bright_white()
-                .on_black(),
+            "{:#<width$}",
+            HEADER_FORMAT_CONVERSIONS.to_uppercase().bold(),
             width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -168,7 +160,7 @@ impl ColorFormatter {
             format!("{:>width$}", LABEL_HEX, width = COLUMN_WIDTH)
                 .bold()
                 .green(),
-            format!("#{:02X}{:02X}{:02X}", r, g, b).yellow().on_black(),
+            format!("#{:02X}{:02X}{:02X}", r, g, b).yellow(),
             format!("rgb({}, {}, {})", r, g, b)
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -210,7 +202,7 @@ impl ColorFormatter {
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
         // CMYK - Cyan, Magenta, Yellow, Key (Black)
-        let (c, m, y, k) = crate::color_utils::ColorUtils::rgb_to_cmyk(r, g, b);
+        let (c, m, y, k) = crate::color_utils::ColorUtils::rgb_to_cmyk((r, g, b));
 
         writeln!(
             output,
@@ -279,15 +271,12 @@ impl ColorFormatter {
     fn get_contrast_assessment(
         color1_rgb: (u8, u8, u8),
         color2_rgb: (u8, u8, u8),
-    ) -> (f32, ColoredString) {
-        let contrast = ColorUtils::wcag_contrast_ratio(color1_rgb, color2_rgb);
+    ) -> (f64, ColoredString) {
+        let contrast = ColorUtils::wcag_contrast_ratio_rgb(color1_rgb, color2_rgb);
         if contrast >= 7.0 {
             (contrast, crate::config::STATUS_PASS.bold().green())
         } else if contrast >= 4.5 {
-            (
-                contrast,
-                crate::config::STATUS_WARNING.bold().yellow().on_black(),
-            )
+            (contrast, crate::config::STATUS_WARNING.bold().yellow())
         } else {
             (contrast, crate::config::STATUS_FAIL.bold().red())
         }
@@ -297,12 +286,8 @@ impl ColorFormatter {
     fn write_additional_info(output: &mut String, lab_color: Lab) -> Result<()> {
         writeln!(
             output,
-            "{:<width$}",
-            HEADER_ADDITIONAL_INFO
-                .to_uppercase()
-                .bold()
-                .bright_white()
-                .on_black(),
+            "{:#<width$}",
+            HEADER_ADDITIONAL_INFO.to_uppercase().bold(),
             width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -334,12 +319,11 @@ impl ColorFormatter {
                 (grayscale_rgb.blue * 255.0).round() as u8
             )
             .yellow()
-            .on_black()
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
         // WCAG calculations
-        let wcag_luminance = ColorUtils::wcag_relative_luminance(r, g, b);
+        let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((r, g, b));
         writeln!(
             output,
             "{} {} {}",
@@ -409,7 +393,7 @@ impl ColorFormatter {
         }
     }
 
-    fn get_brightness_asssessment_wcag(wcag_luminance: f32) -> String {
+    fn get_brightness_asssessment_wcag(wcag_luminance: f64) -> String {
         // Calculate brightness based on WCAG luminance
         if wcag_luminance > 0.18 {
             "Light".to_string()
@@ -448,12 +432,8 @@ impl ColorFormatter {
 
         writeln!(
             output,
-            "{:<width$}",
-            HEADER_COLOR_COLLECTIONS
-                .to_uppercase()
-                .bold()
-                .bright_white()
-                .on_black(),
+            "{:#<width$}",
+            HEADER_COLOR_COLLECTIONS.to_uppercase().bold(),
             width = COLUMN_HEADER_WIDTH
         )
         .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -519,23 +499,12 @@ impl ColorFormatter {
         output: &mut String,
         matches: &[crate::color_parser::ColorMatch],
     ) -> Result<()> {
-        writeln!(
-            output,
-            "{}",
-            format!("{:<width$}", collection_name, width = COLUMN_HEADER_WIDTH)
-                .bold()
-                .on_black()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        writeln!(output, "{}", format!("{}", collection_name).bold())
+            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
         if matches.is_empty() {
-            writeln!(
-                output,
-                "{:>width$}",
-                NO_MATCHES_MESSAGE.bold(),
-                width = COLUMN_HEADER_WIDTH
-            )
-            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+            writeln!(output, "{}", NO_MATCHES_MESSAGE.bold())
+                .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         } else {
             for color_match in matches.iter() {
                 let [r, g, b] = color_match.entry.color.rgb;
@@ -558,7 +527,7 @@ impl ColorFormatter {
                     )
                     .bold()
                     .green(),
-                    hex.to_uppercase().yellow().on_black(),
+                    hex.to_uppercase().yellow(),
                     code,
                     color_match.distance
                 )
@@ -576,23 +545,12 @@ impl ColorFormatter {
         output: &mut String,
         matches: &[crate::color_parser::RalMatch],
     ) -> Result<()> {
-        writeln!(
-            output,
-            "{}",
-            format!("{:<width$}", collection_name, width = COLUMN_HEADER_WIDTH)
-                .bold()
-                .on_bright_black()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        writeln!(output, "{}", format!("{}", collection_name).bold())
+            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
         if matches.is_empty() {
-            writeln!(
-                output,
-                "{:>width$}",
-                NO_MATCHES_MESSAGE.bold(),
-                width = COLUMN_HEADER_WIDTH
-            )
-            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+            writeln!(output, "{}", NO_MATCHES_MESSAGE.bold())
+                .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         } else {
             for ral_match in matches.iter() {
                 writeln!(
@@ -612,7 +570,7 @@ impl ColorFormatter {
                     output,
                     "{:>width$} {}",
                     format!("[ΔE {:.2}] ", ral_match.distance),
-                    ral_match.hex.to_uppercase().yellow().on_black(),
+                    ral_match.hex.to_uppercase().yellow(),
                     width = COLUMN_WIDTH
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
@@ -637,35 +595,31 @@ impl ColorFormatter {
         Self::write_collection_search_results(COLLECTION_RAL_DESIGN, output, matches)
     }
 
+    /// Write header for color schemes section
+    fn write_color_scheme_header(output: &mut String, section_title: &str) -> Result<()> {
+        // Header for color schemes section
+        writeln!(
+            output,
+            "\n{:#<width$}",
+            format!(
+                "{} | {} ",
+                HEADER_COLOR_SCHEMES.to_uppercase(),
+                section_title
+            )
+            .bold(),
+            width = COLUMN_HEADER_WIDTH
+        )
+        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        Ok(())
+    }
+
     /// Format color schemes section for comprehensive reports with both HSL and Lab strategies
     pub fn format_color_schemes(
         schemes: &crate::color_schemes::ColorSchemeResult,
     ) -> Result<String> {
-        use colored::Colorize;
-
         let mut output = String::new();
 
-        // Header for color schemes section
-        writeln!(
-            output,
-            "{:<width$}",
-            HEADER_COLOR_SCHEMES
-                .to_uppercase()
-                .bold()
-                .bright_white()
-                .on_black(),
-            width = COLUMN_HEADER_WIDTH
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-        // HSL Strategy Results
-        writeln!(
-            output,
-            "{}",
-            "HSL Color Space Strategy".bold().on_bright_black()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        Self::write_color_scheme_header(&mut output, "HSL Color Space Strategy")?;
 
         // HSL Complementary color section
         Self::write_color_scheme_section(
@@ -700,13 +654,7 @@ impl ColorFormatter {
             "HSL",
         )?;
 
-        // Lab Strategy Results
-        writeln!(
-            output,
-            "{}",
-            "Lab Color Space Strategy".bold().on_bright_black()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+        Self::write_color_scheme_header(&mut output, "Lab Color Space Strategy")?;
 
         // Lab Complementary color section
         Self::write_color_scheme_section(
@@ -755,16 +703,6 @@ impl ColorFormatter {
     ) -> Result<()> {
         use colored::Colorize;
 
-        // Section header similar to collection format
-        writeln!(
-            output,
-            "{}",
-            format!("{:<width$}", title, width = COLUMN_HEADER_WIDTH)
-                .bold()
-                .on_bright_black()
-        )
-        .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
         // Basic colors with names like "Complementary", "Split 1", etc.
         for (i, color) in colors.iter().enumerate() {
             let color_name = match title {
@@ -782,7 +720,7 @@ impl ColorFormatter {
 
             writeln!(
                 output,
-                "{} {}",
+                "{} {} | {}",
                 format!(
                     "{:>width$}",
                     format!("{}:", color_name),
@@ -790,16 +728,8 @@ impl ColorFormatter {
                 )
                 .bold()
                 .green(),
+                hex.yellow(),
                 color_value
-            )
-            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
-
-            writeln!(
-                output,
-                "{:>width$} {}",
-                "",
-                hex.to_uppercase().yellow().on_black(),
-                width = COLUMN_WIDTH
             )
             .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         }
@@ -807,14 +737,8 @@ impl ColorFormatter {
         // Luminance-matched variations if available
         if let Some(matched_colors) = luminance_matched {
             let header_text = format!("Luminance-matched variations ({})", strategy_name);
-            writeln!(
-                output,
-                "{}",
-                format!("{:<width$}", header_text, width = COLUMN_HEADER_WIDTH)
-                    .bold()
-                    .on_bright_black()
-            )
-            .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
+            writeln!(output, "{}", format!("{}", header_text).bold())
+                .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
 
             for (i, color) in matched_colors.iter().enumerate() {
                 let color_name = match title {
@@ -846,14 +770,12 @@ impl ColorFormatter {
                     output,
                     "{:>width$} {}",
                     "",
-                    hex.yellow().on_black(),
+                    hex.yellow(),
                     width = COLUMN_WIDTH
                 )
                 .map_err(|e| ColorError::InvalidColor(e.to_string()))?;
             }
         }
-
-        writeln!(output, "").map_err(|e| ColorError::InvalidColor(e.to_string()))?;
         Ok(())
     }
 
@@ -909,6 +831,76 @@ impl ColorFormatter {
             ),
         }
     }
+
+    /// Example function showing how to use OutputUtils with compact error handling
+    /// 
+    /// This demonstrates the integration between color_formatter and output_utils
+    /// using the IoResultExt and Utf8ResultExt traits for clean error handling.
+    /// 
+    /// Before:
+    /// ```rust
+    /// OutputUtils::write_header(&mut output, "Color Information", 40)
+    ///     .map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))?;
+    /// ```
+    /// 
+    /// After:
+    /// ```rust
+    /// OutputUtils::write_header(&mut output, "Color Information", 40).to_err()?;
+    /// ```
+    pub fn format_color_with_output_utils(
+        lab_color: Lab,
+        color_name: &str,
+    ) -> Result<String> {
+        let mut output = Vec::new();
+        
+        // Using OutputUtils functions with compact error handling
+        OutputUtils::write_header(&mut output, "Color Information", 40).to_err()?;
+        
+        // Convert Lab to RGB for display
+        let srgb: Srgb = lab_color.into_color();
+        let r = (srgb.red * 255.0).round() as u8;
+        let g = (srgb.green * 255.0).round() as u8;
+        let b = (srgb.blue * 255.0).round() as u8;
+        
+        // Format color values
+        let hex_value = format!("#{:02X}{:02X}{:02X}", r, g, b);
+        let rgb_value = format!("rgb({}, {}, {})", r, g, b);
+        
+        OutputUtils::write_label_value(&mut output, "Color Name", color_name, 15).to_err()?;
+        OutputUtils::write_label_value(&mut output, "Hex", &hex_value, 15).to_err()?;
+        OutputUtils::write_label_value(&mut output, "RGB", &rgb_value, 15).to_err()?;
+        
+        OutputUtils::write_separator(&mut output, 40).to_err()?;
+        
+        // Convert Vec<u8> to String
+        String::from_utf8(output).to_err()
+    }
+
+    /// Another example showing the power of extension traits for error handling
+    /// This function demonstrates multiple types of error conversions
+    pub fn format_color_report_compact(
+        lab_color: Lab,
+        title: &str,
+    ) -> Result<String> {
+        let mut output = Vec::new();
+        
+        // All these calls are now very clean!
+        OutputUtils::write_header(&mut output, title, 50).to_err()?;
+        
+        let srgb: Srgb = lab_color.into_color();
+        let r = (srgb.red * 255.0).round() as u8;
+        let g = (srgb.green * 255.0).round() as u8;
+        let b = (srgb.blue * 255.0).round() as u8;
+        
+        OutputUtils::write_label_value(&mut output, "RGB", &format!("({}, {}, {})", r, g, b), 10).to_err()?;
+        OutputUtils::write_label_value(&mut output, "Lab", &format!("({:.1}, {:.1}, {:.1})", lab_color.l, lab_color.a, lab_color.b), 10).to_err()?;
+        OutputUtils::write_separator(&mut output, 50).to_err()?;
+        
+        // Even the UTF-8 conversion is clean!
+        String::from_utf8(output).to_err()
+    }
+
+    // ...existing code...
 }
 
 #[cfg(test)]
@@ -973,5 +965,42 @@ mod tests {
         assert!(info.rgb.starts_with("rgb("));
         assert!(info.hsl.starts_with("hsl("));
         assert!(info.lab.starts_with("lab("));
+    }
+
+    #[test]
+    fn test_format_color_with_output_utils() {
+        let lab_color = Lab::new(50.0, 20.0, -30.0);
+        let result = ColorFormatter::format_color_with_output_utils(lab_color, "Test Color");
+        
+        assert!(result.is_ok());
+        let output = result.unwrap();
+        
+        // Print the actual output for demonstration
+        println!("\n=== OutputUtils Integration Demo ===");
+        println!("{}", output);
+        
+        assert!(output.contains("COLOR INFORMATION"));
+        assert!(output.contains("Test Color"));
+        assert!(output.contains("Hex"));
+        assert!(output.contains("RGB"));
+        assert!(output.contains("#"));
+    }
+
+    #[test]
+    fn test_format_color_report_compact() {
+        let lab_color = Lab::new(60.0, 25.0, -40.0);
+        let result = ColorFormatter::format_color_report_compact(lab_color, "Compact Report");
+        
+        assert!(result.is_ok());
+        let output = result.unwrap();
+        
+        // Print the actual output for demonstration
+        println!("\n=== Compact Report Demo ===");
+        println!("{}", output);
+        
+        assert!(output.contains("COMPACT REPORT"));
+        assert!(output.contains("RGB"));
+        assert!(output.contains("Lab"));
+        assert!(output.contains("60.0"));
     }
 }

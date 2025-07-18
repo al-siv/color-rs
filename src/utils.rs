@@ -52,12 +52,12 @@ impl Utils {
     }
 
     /// Convert HSL values to string representation
-    pub fn hsl_to_string(h: f32, s: f32, l: f32) -> String {
+    pub fn hsl_to_string(h: f64, s: f64, l: f64) -> String {
         format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0)
     }
 
     /// Convert Lab values to string representation
-    pub fn lab_to_string(l: f32, a: f32, b: f32) -> String {
+    pub fn lab_to_string(l: f64, a: f64, b: f64) -> String {
         format!("Lab({:.1}, {:.1}, {:.1})", l, a, b)
     }
 

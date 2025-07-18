@@ -22,23 +22,17 @@ pub mod ral_design_collection;
 pub mod unified_manager;
 
 pub use css_parser::CssColorParser;
-pub use ral_matcher::{
-    RalClassification, RalMatch, RgbColor, find_closest_ral_classic, find_closest_ral_colors,
-    find_closest_ral_design, find_ral_by_name, parse_ral_classic_code, parse_ral_color,
-    parse_ral_design_code,
-};
+pub use ral_matcher::*;
 pub use types::{ColorFormat, ParsedColor};
 
 // New unified collection system exports
-pub use collections::{
-    ColorCollection, ColorCollectionManager, ColorEntry, ColorMatch, ColorMetadata, SearchFilter,
-    UniversalColor,
-};
+pub use collections::*;
 pub use css_collection::CssColorCollection;
 pub use ral_classic_collection::RalClassicCollection;
 pub use ral_design_collection::RalDesignCollection;
 pub use unified_manager::UnifiedColorManager;
 
+use crate::color_utils::*;
 use crate::error::{ColorError, Result};
 use palette::{IntoColor, Lab, Srgb};
 
@@ -66,7 +60,7 @@ impl ColorParser {
 
         // Try CSS parsing first (handles hex, rgb, rgba, hsl, hsla, named colors)
         if let Ok(parsed) = self.css_parser.parse(input) {
-            let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+            let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
             return Ok((lab, parsed.format));
         }
 
@@ -74,7 +68,7 @@ impl ColorParser {
         if let Some(ral_match) = ral_matcher::parse_ral_color(input) {
             // Parse hex color from RAL match
             if let Ok(parsed) = self.css_parser.parse(&ral_match.hex) {
-                let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+                let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Named)); // Treat RAL colors as named colors
             }
         }
@@ -84,7 +78,7 @@ impl ColorParser {
         if !ral_matches.is_empty() {
             let best_match = &ral_matches[0];
             if let Ok(parsed) = self.css_parser.parse(&best_match.hex) {
-                let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+                let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Named));
             }
         }
@@ -93,7 +87,7 @@ impl ColorParser {
         if self.is_hex_without_hash(input) {
             let hex_with_hash = format!("#{}", input);
             if let Ok(parsed) = self.css_parser.parse(&hex_with_hash) {
-                let lab = self.srgb_to_lab(parsed.r, parsed.g, parsed.b);
+                let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Hex));
             }
         }
@@ -156,12 +150,6 @@ impl ColorParser {
         } else {
             format!("rgb({}, {}, {})", r, g, b) // Fallback to RGB notation
         }
-    }
-
-    /// Convert sRGB values to LAB color space
-    fn srgb_to_lab(&self, r: u8, g: u8, b: u8) -> Lab {
-        let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-        srgb.into_color()
     }
 }
 

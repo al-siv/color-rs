@@ -10,7 +10,7 @@ pub struct ParsedColor {
     /// Blue component (0-255)
     pub b: u8,
     /// Alpha component (0.0-1.0)
-    pub a: f32,
+    pub a: f64,
     /// Original format detected
     pub format: ColorFormat,
 }
@@ -36,7 +36,7 @@ pub enum ColorFormat {
 
 impl ParsedColor {
     /// Create a new parsed color
-    pub fn new(r: u8, g: u8, b: u8, a: f32, format: ColorFormat) -> Self {
+    pub fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self {
         Self { r, g, b, a, format }
     }
 
@@ -51,7 +51,7 @@ impl ParsedColor {
     }
 
     /// Get RGBA tuple
-    pub fn rgba(&self) -> (u8, u8, u8, f32) {
+    pub fn rgba(&self) -> (u8, u8, u8, f64) {
         (self.r, self.g, self.b, self.a)
     }
 

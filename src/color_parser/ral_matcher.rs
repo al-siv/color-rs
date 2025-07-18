@@ -8,6 +8,7 @@ use super::compat::{
     find_closest_ral_classic_compat, find_closest_ral_colors_compat,
     find_closest_ral_design_compat, find_ral_by_code_compat, find_ral_by_name_pattern_compat,
 };
+use crate::color_utils::*;
 use palette::{IntoColor, Lab, Srgb};
 use regex::Regex;
 use std::sync::OnceLock;
@@ -18,7 +19,7 @@ pub struct RalMatch {
     pub code: String,
     pub name: String,
     pub hex: String,
-    pub distance: f32,
+    pub distance: f64,
     pub classification: RalClassification,
 }
 
@@ -44,11 +45,7 @@ impl RgbColor {
 
     /// Convert RGB to LAB color space for accurate distance calculation
     pub fn to_lab(&self) -> Lab {
-        let srgb = Srgb::new(
-            self.r as f32 / 255.0,
-            self.g as f32 / 255.0,
-            self.b as f32 / 255.0,
-        );
+        let srgb = ColorUtils::rgb_to_srgb((self.r, self.g, self.b));
         srgb.into_color()
     }
 }

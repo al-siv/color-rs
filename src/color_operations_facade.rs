@@ -3,7 +3,7 @@
 //! This module implements the Facade pattern to provide a simplified interface
 //! for complex color operations, making the library easier to use for common tasks.
 
-use crate::color_utils::ColorUtils;
+use crate::color_utils::*;
 use crate::error::Result;
 use palette::{Hsl, IntoColor, Lab, Srgb};
 
@@ -47,6 +47,23 @@ impl ColorOperationsFacade {
         Ok(ColorUtils::lab_to_rgb(lab))
     }
 
+    pub fn hex_to_srgb(&self, hex: &str) -> Result<Srgb> {
+        let lab = ColorUtils::parse_hex_color(hex)?;
+        let srgb: Srgb = lab.into_color();
+        Ok(srgb)
+    }
+
+    /// Convert RGB values to LAB color space
+    ///
+    /// # Arguments
+    /// * `rgb` - RGB values as (r, g, b) tuple
+    ///
+    /// # Returns
+    /// * LAB color space representation
+    pub fn srgb_to_lab(&self, srgb: Srgb) -> Result<Lab> {
+        Ok(srgb.into_color())
+    }
+
     /// Convert RGB values to LAB color space
     ///
     /// # Arguments
@@ -55,7 +72,7 @@ impl ColorOperationsFacade {
     /// # Returns
     /// * LAB color space representation
     pub fn rgb_to_lab(&self, rgb: (u8, u8, u8)) -> Result<Lab> {
-        Ok(ColorUtils::rgb_to_lab([rgb.0, rgb.1, rgb.2]))
+        Ok(ColorUtils::rgb_to_lab(rgb))
     }
 
     /// Convert LAB to hex color string
@@ -77,17 +94,18 @@ impl ColorOperationsFacade {
     /// # Returns
     /// * HSL values as (hue, saturation, lightness) where hue is in degrees
     pub fn rgb_to_hsl(&self, rgb: (u8, u8, u8)) -> Result<(f32, f32, f32)> {
-        let srgb = Srgb::new(
-            rgb.0 as f32 / 255.0,
-            rgb.1 as f32 / 255.0,
-            rgb.2 as f32 / 255.0,
-        );
-        let hsl: Hsl = srgb.into_color();
-        Ok((
-            hsl.hue.into_positive_degrees(),
-            hsl.saturation,
-            hsl.lightness,
-        ))
+        Ok(ColorUtils::rgb_to_hsl_tuple(rgb))
+    }
+
+    /// Convert Srgb to HSL values as (hue, saturation, lightness)
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb color
+    ///
+    /// # Returns
+    /// * HSL values as (hue, saturation, lightness) where hue is in degrees
+    pub fn srgb_to_hsl_tuple(&self, srgb: Srgb) -> Result<(f32, f32, f32)> {
+        Ok(ColorUtils::srgb_to_hsl_tuple(srgb))
     }
 
     /// Convert HSL to RGB values
@@ -99,9 +117,8 @@ impl ColorOperationsFacade {
     ///
     /// # Returns
     /// * RGB values as (r, g, b) tuple
-    pub fn hsl_to_rgb(&self, hue: f32, saturation: f32, lightness: f32) -> Result<(u8, u8, u8)> {
-        let h_normalized = hue / 360.0;
-        Ok(ColorUtils::hsl_to_rgb(h_normalized, saturation, lightness))
+    pub fn hsl_to_rgb(&self, hsl: (f64, f64, f64)) -> Result<(u8, u8, u8)> {
+        Ok(ColorUtils::hsl_tuple_to_rgb(hsl))
     }
 
     /// Calculate WCAG contrast ratio between two colors
@@ -112,8 +129,22 @@ impl ColorOperationsFacade {
     ///
     /// # Returns
     /// * Contrast ratio (1.0:1 to 21.0:1)
-    pub fn calculate_contrast(&self, color1: (u8, u8, u8), color2: (u8, u8, u8)) -> Result<f32> {
-        Ok(ColorUtils::wcag_contrast_ratio(color1, color2))
+    pub fn calculate_contrast(&self, srgb1: Srgb, srgb2: Srgb) -> Result<f64> {
+        Ok(ColorUtils::wcag_contrast_ratio(srgb1, srgb2))
+    }
+
+    /// Calculate WCAG contrast ratio between two colors given as RGB tuples
+    ///
+    /// # Arguments
+    /// * `color1` - First color as RGB tuple
+    /// * `color2` - Second color as RGB tuple
+    ///
+    /// # Returns
+    /// * Contrast ratio (1.0:1 to 21.0:1)
+    pub fn calculate_contrast_rgb(&self, rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> Result<f64> {
+        let srgb1 = ColorUtils::rgb_to_srgb(rgb1);
+        let srgb2 = ColorUtils::rgb_to_srgb(rgb2);
+        Ok(ColorUtils::wcag_contrast_ratio(srgb1, srgb2))
     }
 
     /// Calculate relative luminance for WCAG compliance
@@ -123,8 +154,41 @@ impl ColorOperationsFacade {
     ///
     /// # Returns
     /// * Relative luminance (0.0-1.0)
-    pub fn calculate_luminance(&self, rgb: (u8, u8, u8)) -> Result<f32> {
-        Ok(ColorUtils::wcag_relative_luminance(rgb.0, rgb.1, rgb.2))
+    pub fn calculate_luminance_rgb(&self, rgb: (u8, u8, u8)) -> Result<f64> {
+        Ok(ColorUtils::wcag_relative_luminance_rgb(rgb))
+    }
+
+    /// Convert Srgb to RGB tuple (u8, u8, u8)
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb color
+    ///
+    /// # Returns
+    /// * RGB values as (r, g, b) tuple
+    pub fn srgb_to_rgb(&self, srgb: Srgb) -> Result<(u8, u8, u8)> {
+        Ok(ColorUtils::srgb_to_rgb(srgb))
+    }
+
+    /// Convert RGB tuple (u8, u8, u8) to Srgb
+    ///
+    /// # Arguments
+    /// * `rgb` - RGB values as (r, g, b) tuple
+    ///
+    /// # Returns
+    /// * Srgb color
+    pub fn rgb_to_srgb(&self, rgb: (u8, u8, u8)) -> Result<Srgb> {
+        Ok(ColorUtils::rgb_to_srgb(rgb))
+    }
+
+    /// Calculate relative luminance for WCAG compliance
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb color
+    ///
+    /// # Returns
+    /// * Relative luminance (0.0-1.0)
+    pub fn calculate_luminance(&self, srgb: Srgb) -> Result<f64> {
+        Ok(ColorUtils::wcag_relative_luminance(srgb))
     }
 
     /// Calculate perceptual distance between two colors using Delta E
@@ -135,9 +199,9 @@ impl ColorOperationsFacade {
     ///
     /// # Returns
     /// * Delta E distance (0.0 = identical, higher = more different)
-    pub fn calculate_distance(&self, color1: (u8, u8, u8), color2: (u8, u8, u8)) -> Result<f32> {
-        let lab1 = self.rgb_to_lab(color1)?;
-        let lab2 = self.rgb_to_lab(color2)?;
+    pub fn calculate_distance(&self, srgb1: Srgb, srgb2: Srgb) -> Result<f64> {
+        let lab1: Lab = srgb1.into_color();
+        let lab2: Lab = srgb2.into_color();
         Ok(ColorUtils::lab_distance(lab1, lab2))
     }
 
@@ -148,11 +212,11 @@ impl ColorOperationsFacade {
     ///
     /// # Returns
     /// * Grayscale color as RGB tuple
-    pub fn to_grayscale(&self, rgb: (u8, u8, u8)) -> Result<(u8, u8, u8)> {
-        let lab = self.rgb_to_lab(rgb)?;
+    pub fn to_grayscale(&self, srgb: Srgb) -> Result<Srgb> {
+        let lab: Lab = srgb.into_color();
         // Create grayscale using LAB L* component (a=0, b=0)
         let gray_lab = Lab::new(lab.l, 0.0, 0.0);
-        Ok(ColorUtils::lab_to_rgb(gray_lab))
+        Ok(gray_lab.into_color())
     }
 
     /// Mix two colors in LAB color space
@@ -168,7 +232,7 @@ impl ColorOperationsFacade {
         &self,
         color1: (u8, u8, u8),
         color2: (u8, u8, u8),
-        ratio: f32,
+        ratio: f64,
     ) -> Result<(u8, u8, u8)> {
         let lab1 = self.rgb_to_lab(color1)?;
         let lab2 = self.rgb_to_lab(color2)?;
@@ -184,16 +248,17 @@ impl ColorOperationsFacade {
     /// # Returns
     /// * ColorAnalysis struct with all calculated values
     pub fn analyze_color(&self, hex: &str) -> Result<ColorAnalysis> {
-        let rgb = self.hex_to_rgb(hex)?;
-        let lab = self.rgb_to_lab(rgb)?;
-        let hsl = self.rgb_to_hsl(rgb)?;
-        let luminance = self.calculate_luminance(rgb)?;
-        let contrast_white = self.calculate_contrast(rgb, (255, 255, 255))?;
-        let contrast_black = self.calculate_contrast(rgb, (0, 0, 0))?;
-        let grayscale = self.to_grayscale(rgb)?;
+        let srgb1: Srgb = self.hex_to_srgb(hex)?;
+        let lab = self.srgb_to_lab(srgb1)?;
+        let hsl = self.srgb_to_hsl_tuple(srgb1)?;
+        let luminance = self.calculate_luminance(srgb1)?;
+        let contrast_white =
+            self.calculate_contrast_rgb(self.srgb_to_rgb(srgb1)?, (255, 255, 255))?;
+        let contrast_black = self.calculate_contrast_rgb(self.srgb_to_rgb(srgb1)?, (0, 0, 0))?;
+        let grayscale = self.to_grayscale(srgb1)?;
 
         Ok(ColorAnalysis {
-            rgb,
+            srgb: srgb1,
             hex: self.lab_to_hex(lab)?,
             lab,
             hsl,
@@ -215,7 +280,7 @@ impl Default for ColorOperationsFacade {
 #[derive(Debug, Clone)]
 pub struct ColorAnalysis {
     /// RGB values
-    pub rgb: (u8, u8, u8),
+    pub srgb: Srgb,
     /// Hex color string
     pub hex: String,
     /// LAB color space values
@@ -223,13 +288,13 @@ pub struct ColorAnalysis {
     /// HSL values (hue in degrees, saturation and lightness 0.0-1.0)
     pub hsl: (f32, f32, f32),
     /// WCAG relative luminance
-    pub luminance: f32,
+    pub luminance: f64,
     /// Contrast ratio against white
-    pub contrast_white: f32,
+    pub contrast_white: f64,
     /// Contrast ratio against black
-    pub contrast_black: f32,
+    pub contrast_black: f64,
     /// Grayscale equivalent
-    pub grayscale: (u8, u8, u8),
+    pub grayscale: Srgb,
 }
 
 #[cfg(test)]
@@ -255,9 +320,9 @@ mod tests {
     #[test]
     fn test_facade_contrast_calculation() {
         let facade = ColorOperationsFacade::new();
-        let contrast = facade
-            .calculate_contrast((255, 87, 51), (255, 255, 255))
-            .unwrap();
+        let srgb1 = Srgb::new(255.0 / 255.0, 87.0 / 255.0, 51.0 / 255.0);
+        let srgb2 = Srgb::new(1.0, 1.0, 1.0);
+        let contrast = facade.calculate_contrast(srgb1, srgb2).unwrap();
         assert!(contrast > 3.0 && contrast < 4.0); // Should be around 3.15
     }
 
@@ -266,7 +331,7 @@ mod tests {
         let facade = ColorOperationsFacade::new();
         let analysis = facade.analyze_color("#FF5733").unwrap();
 
-        assert_eq!(analysis.rgb, (255, 87, 51));
+        assert_eq!(analysis.srgb, facade.rgb_to_srgb((255, 87, 51)).unwrap());
         assert!(analysis.hex.to_uppercase().contains("FF5733"));
         assert!(analysis.luminance > 0.2 && analysis.luminance < 0.4);
         assert!(analysis.contrast_white > 3.0);
@@ -276,10 +341,12 @@ mod tests {
     #[test]
     fn test_facade_grayscale() {
         let facade = ColorOperationsFacade::new();
-        let gray = facade.to_grayscale((255, 87, 51)).unwrap();
+        let gray: Srgb = facade
+            .to_grayscale(facade.rgb_to_srgb((255, 87, 51)).unwrap())
+            .unwrap();
 
         // Grayscale should have similar R, G, B values
-        let (r, g, b) = gray;
+        let (r, g, b) = facade.srgb_to_rgb(gray).unwrap();
         assert!((r as i16 - g as i16).abs() < 5);
         assert!((g as i16 - b as i16).abs() < 5);
     }
