@@ -6,7 +6,6 @@
 use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
 use crate::color_utils::ColorUtils;
 use palette::Lab;
-use palette::encoding::Srgb;
 use std::collections::HashMap;
 
 /// Universal color representation using LAB color space for accurate comparisons

@@ -5,7 +5,7 @@
 
 use crate::color_utils::*;
 use crate::error::Result;
-use palette::{Hsl, IntoColor, Lab, Srgb};
+use palette::{IntoColor, Lab, Srgb};
 
 /// Facade for complex color operations
 ///

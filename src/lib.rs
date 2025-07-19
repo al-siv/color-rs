@@ -23,7 +23,6 @@ pub mod output_utils;
 
 // New GoF Pattern Implementations
 pub mod command_pattern;
-pub mod formatter_strategies;
 pub mod parsing_chain;
 
 // Re-export main types for convenience

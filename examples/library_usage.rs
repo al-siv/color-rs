@@ -5,10 +5,7 @@
 //! - Generate gradients with cubic-bezier easing
 //! - Create SVG and PNG outputs programmatically
 
-use color_rs::{
-    ColorRs, ColorUtils, Result, cli::GradientArgs, color::ColorProcessor,
-    gradient::GradientCalculator,
-};
+use color_rs::{ColorRs, ColorUtils, Result, cli::GradientArgs, gradient::GradientCalculator};
 
 fn main() -> Result<()> {
     println!("Color-rs Library Example");

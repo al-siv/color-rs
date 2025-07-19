@@ -9,7 +9,7 @@ use super::compat::{
     find_closest_ral_design_compat, find_ral_by_code_compat, find_ral_by_name_pattern_compat,
 };
 use crate::color_utils::*;
-use palette::{IntoColor, Lab, Srgb};
+use palette::{IntoColor, Lab};
 use regex::Regex;
 use std::sync::OnceLock;
 

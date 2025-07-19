@@ -195,70 +195,6 @@ impl GenerateGradientCommand {
     }
 }
 
-/// Command for color analysis
-pub struct AnalyzeColorCommand {
-    color_input: String,
-    include_collections: bool,
-}
-
-impl AnalyzeColorCommand {
-    pub fn new(color_input: String) -> Self {
-        Self {
-            color_input,
-            include_collections: false,
-        }
-    }
-
-    pub fn with_collections(mut self) -> Self {
-        self.include_collections = true;
-        self
-    }
-}
-
-impl Command for AnalyzeColorCommand {
-    fn execute(&self) -> Result<CommandResult> {
-        // Parse the color
-        let lab_color = match crate::color::parse_color_input(&self.color_input) {
-            Ok(lab) => lab,
-            Err(e) => {
-                return Ok(CommandResult::failure(format!(
-                    "Failed to parse color: {}",
-                    e
-                )));
-            }
-        };
-
-        // Use formatting strategy for output
-        let formatter = crate::formatter_strategies::FormattingStrategyFactory::create_strategy(
-            "comprehensive",
-        );
-
-        match formatter.format_color(lab_color, &self.color_input, "") {
-            Ok(output) => {
-                let mut metadata = HashMap::new();
-                metadata.insert("input_color".to_string(), self.color_input.clone());
-                metadata.insert("lab_l".to_string(), lab_color.l.to_string());
-                metadata.insert("lab_a".to_string(), lab_color.a.to_string());
-                metadata.insert("lab_b".to_string(), lab_color.b.to_string());
-
-                Ok(CommandResult::success_with_metadata(output, metadata))
-            }
-            Err(e) => Ok(CommandResult::failure(format!(
-                "Failed to format color: {}",
-                e
-            ))),
-        }
-    }
-
-    fn name(&self) -> &str {
-        "analyze_color"
-    }
-
-    fn description(&self) -> &str {
-        "Analyze a color and provide comprehensive information"
-    }
-}
-
 /// Command for finding closest color matches
 pub struct FindClosestColorCommand {
     color_input: String,
@@ -427,17 +363,6 @@ mod tests {
         let failure = CommandResult::failure("test error".to_string());
         assert!(!failure.success);
         assert_eq!(failure.error_message.unwrap(), "test error");
-    }
-
-    #[test]
-    fn test_analyze_color_command() {
-        let command = AnalyzeColorCommand::new("#FF0000".to_string());
-        assert_eq!(command.name(), "analyze_color");
-        assert!(!command.supports_undo());
-
-        // Note: This test would need mock color processor to work properly
-        // let result = command.execute();
-        // assert!(result.is_ok());
     }
 
     #[test]

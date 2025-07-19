@@ -124,7 +124,7 @@ pub trait ColorParserTrait {
     fn parse(&self, input: &str) -> Result<(palette::Lab, crate::color_parser::ColorFormat)>;
 
     /// Get the closest color name for given RGB values
-    fn get_color_name(&self, r: u8, g: u8, b: u8) -> String;
+    fn get_color_name(&self, rgb: (u8, u8, u8)) -> String;
 
     /// Get parser capabilities/information
     fn get_info(&self) -> ColorParserInfo;
@@ -160,8 +160,8 @@ impl ColorParserTrait for BasicColorParser {
         self.color_parser.parse(input)
     }
 
-    fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
-        self.color_parser.get_color_name(r, g, b)
+    fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
+        self.color_parser.get_color_name(rgb)
     }
 
     fn get_info(&self) -> ColorParserInfo {
@@ -203,9 +203,9 @@ impl ColorParserTrait for FullColorParser {
         self.color_parser.parse(input)
     }
 
-    fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
+    fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
         // Use unified manager for comprehensive color matching
-        let matches = self.unified_manager.find_closest_across_all([r, g, b], 1);
+        let matches = self.unified_manager.find_closest_across_all([rgb.0, rgb.1, rgb.2], 1);
 
         // Find the best match across all collections
         for (_, collection_matches) in &matches {
@@ -215,7 +215,7 @@ impl ColorParserTrait for FullColorParser {
         }
 
         if self.config.enable_fallback_naming {
-            format!("rgb({}, {}, {})", r, g, b)
+            format!("rgb({}, {}, {})", rgb.0, rgb.1, rgb.2)
         } else {
             DEFAULT_COLOR_UNKNOWN.to_string()
         }
@@ -265,12 +265,12 @@ impl ColorParserTrait for CustomColorParser {
         }
     }
 
-    fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
+    fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
         if self.config.enable_fallback_naming {
-            self.color_parser.get_color_name(r, g, b)
+            self.color_parser.get_color_name(rgb)
         } else {
             // More conservative naming
-            let name = self.color_parser.get_color_name(r, g, b);
+            let name = self.color_parser.get_color_name(rgb);
             if name.starts_with("rgb(") {
                 DEFAULT_COLOR_UNKNOWN.to_string()
             } else {

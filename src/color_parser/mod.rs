@@ -34,7 +34,7 @@ pub use unified_manager::UnifiedColorManager;
 
 use crate::color_utils::*;
 use crate::error::{ColorError, Result};
-use palette::{IntoColor, Lab, Srgb};
+use palette::Lab;
 
 /// Unified color parser that can handle various input formats
 pub struct ColorParser {
@@ -141,14 +141,14 @@ impl ColorParser {
     }
 
     /// Get the closest color name for given RGB values
-    pub fn get_color_name(&self, r: u8, g: u8, b: u8) -> String {
-        let target = UniversalColor::from_rgb([r, g, b]);
+    pub fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
+        let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
         let matches = self.css_collection.find_closest(&target, 1, None);
 
         if let Some(closest) = matches.first() {
             closest.entry.metadata.name.clone()
         } else {
-            format!("rgb({}, {}, {})", r, g, b) // Fallback to RGB notation
+            format!("rgb({}, {}, {})", rgb.0, rgb.1, rgb.2) // Fallback to RGB notation
         }
     }
 }

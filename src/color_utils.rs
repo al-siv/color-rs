@@ -6,7 +6,7 @@
 
 use crate::error::{ColorError, Result};
 use palette::{
-    FromColor, Hsl, IntoColor, Lab, Mix, Srgb,
+    FromColor, Hsl, Hsv, IntoColor, Lab, Mix, Srgb,
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
 };
 
@@ -192,12 +192,18 @@ impl ColorUtils {
     /// * Hex color string (with # prefix, always uppercase)
     pub fn lab_to_hex(lab: Lab) -> String {
         // Convert Lab to sRGB, clamp to [0.0, 1.0] to avoid out-of-gamut artifacts
-        let srgb: Srgb = lab.into_color();
-        let (r, g, b) = (
-            (srgb.red.clamp(0.0, 1.0) * 255.0).round() as u8,
-            (srgb.green.clamp(0.0, 1.0) * 255.0).round() as u8,
-            (srgb.blue.clamp(0.0, 1.0) * 255.0).round() as u8,
-        );
+        Self::srgb_to_hex(lab.into_color())
+    }
+
+    /// Convert a palette::Srgb<f64> to a hex string (with # prefix, always uppercase)
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb<f64> color (each channel in 0.0-1.0)
+    ///
+    /// # Returns
+    /// * Hex color string (with # prefix, always uppercase)
+    pub fn srgb_to_hex(srgb: Srgb) -> String {
+        let (r, g, b) = Self::srgb_to_rgb(srgb);
         format!("#{:02X}{:02X}{:02X}", r, g, b)
     }
 
@@ -208,13 +214,124 @@ impl ColorUtils {
     ///
     /// # Returns
     /// * (h, s, l) tuple where h is in degrees, s and l in 0.0-1.0
-    pub fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
+    pub fn lab_to_hsl_tuple(lab: Lab) -> (f32, f32, f32) {
         let srgb: Srgb = lab.into_color();
         let hsl: Hsl = srgb.into_color();
         (
-            hsl.hue.into_positive_degrees() as f64,
-            hsl.saturation as f64,
-            hsl.lightness as f64,
+            hsl.hue.into_positive_degrees() as f32,
+            hsl.saturation as f32,
+            hsl.lightness as f32,
+        )
+    }
+
+    /// Convert LAB color to sRGB (palette::Srgb<f64>)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * Srgb<f64> color (each channel in 0.0-1.0)
+    pub fn lab_to_srgb(lab: Lab) -> Srgb {
+        lab.into_color()
+    }
+
+    /// Convert LAB color to XYZ as a (x, y, z) tuple (f32, f32, f32)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (x, y, z) tuple where each component is in the D65 reference white space
+    pub fn lab_to_xyz_tuple(lab: Lab) -> (f32, f32, f32) {
+        let xyz = palette::Xyz::from_color(lab);
+        (xyz.x, xyz.y, xyz.z)
+    }
+
+    /// Convert LAB color to OKLCH as a (l, c, h) tuple (f32, f32, f32)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (l, c, h) tuple where l is lightness (0.0-1.0), c is chroma, h is hue in degrees
+    pub fn lab_to_oklch_tuple(lab: Lab) -> (f32, f32, f32) {
+        let oklch = palette::Oklch::from_color(lab);
+        (
+            oklch.l as f32,
+            oklch.chroma as f32,
+            oklch.hue.into_positive_degrees() as f32,
+        )
+    }
+
+    /// Convert a palette::Srgb<f64> to Lab color space
+    ///
+    /// # Arguments
+    /// * `srgb` - Srgb<f64> color (each channel in 0.0-1.0)
+    ///
+    /// # Returns
+    /// * Lab color space representation
+    pub fn srgb_to_lab(srgb: Srgb) -> Lab {
+        // Ensure input is clamped to [0.0, 1.0] to avoid out-of-gamut artifacts
+        let clamped: Srgb = Srgb::new(
+            srgb.red.clamp(0.0, 1.0),
+            srgb.green.clamp(0.0, 1.0),
+            srgb.blue.clamp(0.0, 1.0),
+        );
+        Lab::from_color(clamped.into_linear())
+    }
+
+    /// Convert LAB color to LCH (CIE L*C*h) color space
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * Lch color space representation
+    pub fn lab_to_lch(lab: Lab) -> palette::Lch {
+        palette::Lch::from_color(lab)
+    }
+
+    /// Convert LAB color to LCH as a (l, c, h) tuple (f32, f32, f32)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (l, c, h) tuple where l is lightness, c is chroma, h is hue in degrees
+    pub fn lab_to_lch_tuple(lab: Lab) -> (f32, f32, f32) {
+        let lch: palette::Lch = palette::Lch::from_color(lab);
+        (
+            lch.l as f32,
+            lch.chroma as f32,
+            lch.hue.into_positive_degrees() as f32,
+        )
+    }
+
+    /// Convert LCH (CIE L*C*h) color space to LAB color space
+    ///
+    /// # Arguments
+    /// * `lch` - Lch color space representation
+    ///
+    /// # Returns
+    /// * Lab color space representation
+    pub fn lch_to_lab(lch: palette::Lch) -> Lab {
+        Lab::from_color(lch)
+    }
+
+    /// Convert LAB color to HSV as a (h, s, v) tuple (f32, f32, f32)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (h, s, v) tuple where h is in degrees, s and v in 0.0-1.0
+    pub fn lab_to_hsv_tuple(lab: Lab) -> (f32, f32, f32) {
+        let srgb: Srgb = lab.into_color();
+        let hsv: Hsv = srgb.into_color();
+        (
+            hsv.hue.into_positive_degrees() as f32,
+            hsv.saturation as f32,
+            hsv.value as f32,
         )
     }
 
@@ -337,9 +454,7 @@ impl ColorUtils {
     /// # Returns
     /// * LAB values as [L, a, b]
     pub fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
-        let srgb = Self::rgb_to_srgb((rgb[0], rgb[1], rgb[2]));
-        srgb.into_linear(); // Ensure linearization for accurate conversion
-        let lab: Lab = Lab::from_color(srgb);
+        let lab: Lab = Self::rgb_to_lab((rgb[0], rgb[1], rgb[2]));
         [lab.l, lab.a, lab.b]
     }
 
@@ -455,6 +570,19 @@ impl ColorUtils {
         Ok(Lab::from_color(best_srgb))
     }
 
+    /// Convert LAB color to CMYK as a (c, m, y, k) tuple (f32, f32, f32, f32)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color space representation
+    ///
+    /// # Returns
+    /// * (c, m, y, k) tuple where each component is 0.0-1.0
+    pub fn lab_to_cmyk_tuple(lab: Lab) -> (f32, f32, f32, f32) {
+        let srgb: Srgb = lab.into_color();
+        let (r, g, b) = Self::srgb_to_rgb(srgb);
+        Self::rgb_to_cmyk_tuple((r, g, b))
+    }
+
     /// Convert RGB to CMYK color space
     ///
     /// Uses the standard CMYK conversion formula for print color representation.
@@ -473,17 +601,17 @@ impl ColorUtils {
     /// let (c, m, y, k) = ColorUtils::rgb_to_cmyk(255, 87, 51);
     /// // Returns CMYK values for #FF5733
     /// ```
-    pub fn rgb_to_cmyk(rgb: (u8, u8, u8)) -> (f64, f64, f64, f64) {
+    pub fn rgb_to_cmyk_tuple(rgb: (u8, u8, u8)) -> (f32, f32, f32, f32) {
         // Convert RGB to 0.0-1.0 range
-        let r_norm = rgb.0 as f64 / 255.0;
-        let g_norm = rgb.1 as f64 / 255.0;
-        let b_norm = rgb.2 as f64 / 255.0;
+        let r_norm = rgb.0 as f32 / 255.0;
+        let g_norm = rgb.1 as f32 / 255.0;
+        let b_norm = rgb.2 as f32 / 255.0;
 
         // Calculate K (black key)
         let k = 1.0 - r_norm.max(g_norm).max(b_norm);
 
         // Avoid division by zero and handle black
-        if k >= 1.0 - f64::EPSILON {
+        if k >= 1.0 - f32::EPSILON {
             return (0.0, 0.0, 0.0, 1.0);
         }
 
