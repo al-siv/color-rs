@@ -142,6 +142,15 @@ impl CssColorParser {
                 let a = ParseUtils::parse_alpha(params[3])?;
                 Ok(ParsedColor::new(r, g, b, a, ColorFormat::Hsla))
             }
+            "lch" => {
+                if params.len() != 3 {
+                    return Err(ColorError::InvalidColor(
+                        "LCH requires 3 parameters".to_string(),
+                    ));
+                }
+                let (r, g, b) = self.parse_lch_params(&params)?;
+                Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Lch))
+            }
             _ => Err(ColorError::InvalidColor(format!(
                 "Unknown function: {}",
                 function_name
@@ -182,6 +191,36 @@ impl CssColorParser {
 
         // Convert HSL to RGB using the reliable color_utils implementation
         let (r, g, b) = ColorUtils::srgb_to_rgb(hsl.into_color());
+        Ok((r, g, b))
+    }
+
+    /// Parse LCH parameters and convert to RGB
+    fn parse_lch_params(&self, params: &[&str]) -> Result<(u8, u8, u8)> {
+        if params.len() != 3 {
+            return Err(ColorError::InvalidColor(
+                "Expected 3 LCH parameters".to_string(),
+            ));
+        }
+
+        let l: f32 = params[0]
+            .trim()
+            .parse()
+            .map_err(|_| ColorError::InvalidColor("Invalid LCH L value".to_string()))?;
+        let c: f32 = params[1]
+            .trim()
+            .parse()
+            .map_err(|_| ColorError::InvalidColor("Invalid LCH C value".to_string()))?;
+        let h: f32 = params[2]
+            .trim()
+            .parse()
+            .map_err(|_| ColorError::InvalidColor("Invalid LCH H value".to_string()))?;
+
+        // Convert LCH to LAB using color_utils
+        let lch = palette::Lch::new(l, c, h);
+        let lab = ColorUtils::lch_to_lab(lch);
+        
+        // Convert LAB to RGB
+        let (r, g, b) = ColorUtils::lab_to_rgb(lab);
         Ok((r, g, b))
     }
 

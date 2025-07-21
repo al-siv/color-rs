@@ -32,6 +32,8 @@ pub enum ColorFormat {
     Named,
     /// LAB format (lab(L,a,b))
     Lab,
+    /// LCH format (lch(L,C,H))
+    Lch,
 }
 
 impl ParsedColor {

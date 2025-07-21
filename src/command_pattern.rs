@@ -275,6 +275,12 @@ pub struct CommandInvoker {
     current_index: usize,
 }
 
+impl Default for CommandInvoker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CommandInvoker {
     pub fn new() -> Self {
         Self {

@@ -5,10 +5,8 @@ use crate::color_formatter::ColorFormatter;
 use crate::color_utils::*;
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
-use palette::white_point::B;
 use palette::{Lab, Srgb};
 use tabled::Tabled;
-use tabled::settings::format;
 
 /// Color information for display in tables
 #[derive(Tabled)]
@@ -101,7 +99,7 @@ impl ColorProcessor {
                 .green(),
             lab_delta_e
         );
-        println!("");
+        println!();
     }
 
     /// Validate a hex color string
@@ -366,19 +364,16 @@ fn format_comprehensive_report_with_schemes(
     strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
 ) -> Result<String> {
     // Use the strategy-aware ColorFormatter to generate the report
-    match ColorFormatter::format_comprehensive_report_with_strategy(
+    ColorFormatter::format_comprehensive_report_with_strategy(
         schemes.base_color,
         input,
         color_name,
         strategy,
-    ) {
-        Ok(report) => report,
-        Err(e) => return Err(e),
-    };
+    )?;
 
     // Now add the color schemes section
     crate::color_formatter::ColorFormatter::format_color_schemes(&schemes);
 
     // Combine both reports
-    Ok(format!(""))
+    Ok(String::new())
 }

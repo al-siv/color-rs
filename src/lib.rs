@@ -20,6 +20,8 @@ pub mod gradient;
 pub mod gradient_builder;
 pub mod image;
 pub mod output_utils;
+pub mod output_formats;
+pub mod file_output;
 
 // New GoF Pattern Implementations
 pub mod command_pattern;

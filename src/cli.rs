@@ -193,6 +193,24 @@ pub struct ColorArgs {
         help = "Replace color with specified Lab luminance value"
     )]
     pub luminance: Option<f64>,
+
+    /// Save output to TOML file
+    #[arg(
+        short = 'm',
+        long = "toml",
+        value_name = "FILENAME",
+        help = "Save color analysis to TOML file"
+    )]
+    pub toml_output: Option<String>,
+
+    /// Save output to YAML file
+    #[arg(
+        short = 'y',
+        long = "yaml",
+        value_name = "FILENAME", 
+        help = "Save color analysis to YAML file"
+    )]
+    pub yaml_output: Option<String>,
 }
 
 impl ColorArgs {
@@ -200,7 +218,7 @@ impl ColorArgs {
     pub fn validate(&self) -> Result<()> {
         // Validate relative luminance range
         if let Some(relative_lum) = self.relative_luminance {
-            if relative_lum < 0.0 || relative_lum > 1.0 {
+            if !(0.0..=1.0).contains(&relative_lum) {
                 return Err(ColorError::InvalidArguments(
                     "Relative luminance must be between 0.0 and 1.0".to_string(),
                 ));
@@ -209,7 +227,7 @@ impl ColorArgs {
 
         // Validate Lab luminance range (typical range is 0-100, but can extend beyond)
         if let Some(lab_lum) = self.luminance {
-            if lab_lum < 0.0 || lab_lum > 100.0 {
+            if !(0.0..=100.0).contains(&lab_lum) {
                 return Err(ColorError::InvalidArguments(
                     "Lab luminance should typically be between 0.0 and 100.0".to_string(),
                 ));

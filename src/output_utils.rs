@@ -84,7 +84,7 @@ impl OutputUtils {
 
     fn make_lch(lab: Lab) -> String {
         let (l, c, h) = ColorUtils::lab_to_lch_tuple(lab);
-        format!("lch({:.2}, {:.3}, {:.1})", l, c, h)
+        format!("lch({:.2}, {:.2}, {:.1})", l, c, h)
     }
 
     fn make_format(lab: Lab, color_format: &ColorFormat) -> String {
@@ -126,9 +126,9 @@ impl OutputUtils {
     pub fn print_contrast_ln(label: &str, contrast: (f32, ColoredString)) {
         let (val, assessment) = contrast;
         println!(
-            "{} {} [{}]",
+            "{} {:.2}:1 [{}]",
             Self::make_label(label),
-            format!("{:.2}:1", val),
+            val,
             assessment
         );
     }

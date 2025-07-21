@@ -44,8 +44,8 @@ impl GradientCalculator {
         // This matches cubic-bezier specification
         let curve = CubicBez::new(
             Point::new(0.0, 0.0),       // Start point
-            Point::new(x1 as f64, 0.0), // First control point (x1, 0)
-            Point::new(x2 as f64, 1.0), // Second control point (x2, 1)
+            Point::new(x1, 0.0), // First control point (x1, 0)
+            Point::new(x2, 1.0), // Second control point (x2, 1)
             Point::new(1.0, 1.0),       // End point
         );
 
@@ -58,7 +58,7 @@ impl GradientCalculator {
     fn solve_cubic_bezier_for_x(curve: &CubicBez, target_x: f64) -> f64 {
         let mut low: f64 = 0.0;
         let mut high: f64 = 1.0;
-        let tgt: f64 = target_x as f64;
+        let tgt: f64 = target_x;
 
         for _ in 0..MAX_ITERATIONS {
             let mid = (low + high) * 0.5;

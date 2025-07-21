@@ -33,6 +33,12 @@ pub trait ColorParsingHandler: Send + Sync {
 /// HEX color parser (handles #FF0000, FF0000, #F00 formats)
 pub struct HexColorParsingHandler;
 
+impl Default for HexColorParsingHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HexColorParsingHandler {
     pub fn new() -> Self {
         Self
@@ -94,6 +100,12 @@ impl ColorParsingHandler for HexColorParsingHandler {
 /// RGB color parser (handles rgb(255,0,0), rgba(255,0,0,1.0) formats)
 pub struct RgbColorParsingHandler;
 
+impl Default for RgbColorParsingHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RgbColorParsingHandler {
     pub fn new() -> Self {
         Self
@@ -129,6 +141,12 @@ impl ColorParsingHandler for RgbColorParsingHandler {
 /// CSS Named Color parser (handles named colors like 'red', 'blue')
 pub struct CssNamedColorParsingHandler;
 
+impl Default for CssNamedColorParsingHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CssNamedColorParsingHandler {
     pub fn new() -> Self {
         Self
@@ -162,6 +180,12 @@ impl ColorParsingHandler for CssNamedColorParsingHandler {
 
 /// RAL Color parser (handles RAL 3020, RAL 050 50 78 formats)
 pub struct RalColorParsingHandler;
+
+impl Default for RalColorParsingHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl RalColorParsingHandler {
     pub fn new() -> Self {

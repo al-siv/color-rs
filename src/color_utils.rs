@@ -294,9 +294,9 @@ impl ColorUtils {
     pub fn lab_to_oklch_tuple(lab: Lab) -> (f32, f32, f32) {
         let oklch = palette::Oklch::from_color(lab);
         (
-            oklch.l as f32,
-            oklch.chroma as f32,
-            oklch.hue.into_positive_degrees() as f32,
+            oklch.l,
+            oklch.chroma,
+            oklch.hue.into_positive_degrees(),
         )
     }
 
@@ -338,9 +338,9 @@ impl ColorUtils {
     pub fn lab_to_lch_tuple(lab: Lab) -> (f32, f32, f32) {
         let lch: palette::Lch = palette::Lch::from_color(lab);
         (
-            lch.l as f32,
-            lch.chroma as f32,
-            lch.hue.into_positive_degrees() as f32,
+            lch.l,
+            lch.chroma,
+            lch.hue.into_positive_degrees(),
         )
     }
 
@@ -433,9 +433,9 @@ impl ColorUtils {
     pub fn srgb_to_hsl_tuple(srgb: Srgb) -> (f32, f32, f32) {
         let hsl: Hsl = srgb.into_color();
         (
-            hsl.hue.into_positive_degrees() as f32,
-            hsl.saturation as f32,
-            hsl.lightness as f32,
+            hsl.hue.into_positive_degrees(),
+            hsl.saturation,
+            hsl.lightness,
         )
     }
 
@@ -450,9 +450,9 @@ impl ColorUtils {
         let srgb = Self::rgb_to_srgb(rgb);
         let hsl: Hsl = srgb.into_color();
         (
-            hsl.hue.into_positive_degrees() as f32,
-            hsl.saturation as f32,
-            hsl.lightness as f32,
+            hsl.hue.into_positive_degrees(),
+            hsl.saturation,
+            hsl.lightness,
         )
     }
 
@@ -489,7 +489,7 @@ impl ColorUtils {
     /// # Returns
     /// * RGB values as [r, g, b] where each component is 0-255
     pub fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
-        let lab_color = Lab::new(lab[0] as f32, lab[1] as f32, lab[2] as f32);
+        let lab_color = Lab::new(lab[0], lab[1], lab[2]);
         // Convert Lab to linear RGB, then to sRGB for proper gamma correction
         let srgb: Srgb = lab_color.into_color();
         let (r, g, b) = Self::srgb_to_rgb(srgb);
@@ -516,13 +516,6 @@ impl ColorUtils {
     }
 
     /// Convert RGB array to LAB array
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as [r, g, b] where each component is 0-255
-    ///
-    /// # Returns
-    /// * LAB values as [L, a, b]
-    /// Convert an RGB array to a LAB array
     ///
     /// # Arguments
     /// * `rgb` - RGB values as [r, g, b] where each component is 0-255
@@ -574,17 +567,11 @@ impl ColorUtils {
     /// * (r, g, b) tuple where each component is clamped and rounded to 0-255
     pub fn srgb_to_rgb(srgb: Srgb) -> (u8, u8, u8) {
         let r = (srgb.red.clamp(0.0, 1.0) * 255.0)
-            .round()
-            .min(255.0)
-            .max(0.0) as u8;
+            .round().clamp(0.0, 255.0) as u8;
         let g = (srgb.green.clamp(0.0, 1.0) * 255.0)
-            .round()
-            .min(255.0)
-            .max(0.0) as u8;
+            .round().clamp(0.0, 255.0) as u8;
         let b = (srgb.blue.clamp(0.0, 1.0) * 255.0)
-            .round()
-            .min(255.0)
-            .max(0.0) as u8;
+            .round().clamp(0.0, 255.0) as u8;
         (r, g, b)
     }
 
@@ -610,7 +597,7 @@ impl ColorUtils {
     /// let adjusted = ColorUtils::adjust_color_relative_luminance(red_lab, 0.5).unwrap();
     /// ```
     pub fn adjust_color_relative_luminance(color: Lab, target_luminance: f64) -> Result<Lab> {
-        if target_luminance < 0.0 || target_luminance > 1.0 {
+        if !(0.0..=1.0).contains(&target_luminance) {
             return Err(ColorError::InvalidArguments(
                 "Relative luminance must be between 0.0 and 1.0".to_string(),
             ));

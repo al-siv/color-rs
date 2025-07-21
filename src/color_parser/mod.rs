@@ -58,7 +58,12 @@ impl ColorParser {
     pub fn parse(&self, input: &str) -> Result<(Lab, ColorFormat)> {
         let input = input.trim();
 
-        // Try CSS parsing first (handles hex, rgb, rgba, hsl, hsla, named colors)
+        // Try LCH parsing first for direct LAB conversion (avoids RGB roundtrip)
+        if let Ok(lab) = self.parse_lch_color(input) {
+            return Ok((lab, ColorFormat::Lch));
+        }
+
+        // Try CSS parsing (handles hex, rgb, rgba, hsl, hsla, named colors)
         if let Ok(parsed) = self.css_parser.parse(input) {
             let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
             return Ok((lab, parsed.format));
@@ -137,6 +142,39 @@ impl ColorParser {
 
         Err(ColorError::InvalidColor(
             "Invalid LAB color format".to_string(),
+        ))
+    }
+
+    /// Parse LCH color in the format lch(L, C, H) - direct to LAB conversion
+    fn parse_lch_color(&self, input: &str) -> Result<Lab> {
+        let input = input.trim().to_lowercase();
+
+        if input.starts_with("lch(") && input.ends_with(')') {
+            let content = &input[4..input.len() - 1]; // Remove "lch(" and ")"
+            let parts: Vec<&str> = content.split(',').collect();
+
+            if parts.len() == 3 {
+                let l: f32 = parts[0]
+                    .trim()
+                    .parse()
+                    .map_err(|_| ColorError::InvalidColor("Invalid LCH L value".to_string()))?;
+                let c: f32 = parts[1]
+                    .trim()
+                    .parse()
+                    .map_err(|_| ColorError::InvalidColor("Invalid LCH C value".to_string()))?;
+                let h: f32 = parts[2]
+                    .trim()
+                    .parse()
+                    .map_err(|_| ColorError::InvalidColor("Invalid LCH H value".to_string()))?;
+
+                // Convert LCH directly to LAB (no RGB roundtrip)
+                let lch = palette::Lch::new(l, c, h);
+                return Ok(ColorUtils::lch_to_lab(lch));
+            }
+        }
+
+        Err(ColorError::InvalidColor(
+            "Invalid LCH color format".to_string(),
         ))
     }
 

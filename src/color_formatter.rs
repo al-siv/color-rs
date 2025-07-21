@@ -20,8 +20,6 @@
 //! - Additional information (grayscale, WCAG metrics, brightness)
 //! - Color collection matches (CSS names, RAL Classic, RAL Design)
 
-use std::u8;
-
 use crate::color_utils::*;
 use crate::config::*;
 use crate::error::Result;
@@ -33,12 +31,20 @@ use palette::{Hsl, IntoColor, Lab, Lch, Srgb};
 pub struct ColorFormatter;
 
 impl ColorFormatter {
-    /// Format a color into a comprehensive analysis report
-    pub fn format_comprehensive_report(lab_color: Lab, original_input: &str, color_name: &str) {
-        Self::write_header(original_input, lab_color);
-        Self::write_format_conversions(lab_color);
-        Self::write_additional_info(lab_color);
-        Self::write_unified_collection_matches_impl(lab_color, color_name, None);
+    /// Format a color into a comprehensive analysis report with optional strategy (defaults to DeltaE2000)
+    pub fn format_comprehensive_report(
+        lab_color: Lab, 
+        original_input: &str, 
+        color_name: &str
+    ) {
+        // Use default DeltaE2000 strategy
+        let default_strategy = crate::color_distance_strategies::DeltaE2000Strategy::default();
+        let _ = Self::format_comprehensive_report_with_strategy(
+            lab_color, 
+            original_input, 
+            color_name, 
+            &default_strategy
+        );
     }
 
     /// Format a color into a comprehensive analysis report with custom distance strategy
@@ -51,7 +57,7 @@ impl ColorFormatter {
         Self::write_header(original_input, lab_color);
         Self::write_format_conversions(lab_color);
         Self::write_additional_info(lab_color);
-        Self::write_unified_collection_matches_impl(lab_color, color_name, Some(strategy));
+        Self::write_unified_collection_matches_impl(lab_color, color_name, strategy);
 
         Ok(String::new())
     }
@@ -118,14 +124,14 @@ impl ColorFormatter {
         OutputUtils::print_contrast_black_ln(lab_color);
         OutputUtils::print_brightness(lab_color);
 
-        println!("");
+        println!();
     }
 
-    /// Implementation for writing unified collection matches with optional strategy
+    /// Implementation for writing unified collection matches with strategy
     fn write_unified_collection_matches_impl(
         lab_color: Lab,
         _css_name: &str,
-        strategy: Option<&dyn crate::color_distance_strategies::ColorDistanceStrategy>,
+        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
     ) {
         use palette::IntoColor;
 
@@ -150,42 +156,19 @@ impl ColorFormatter {
             }
         };
 
-        // Choose appropriate matching method based on strategy
-        if let Some(strategy) = strategy {
-            // Use strategy-based matching
-            let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
-            Self::write_unified_collection_results(COLLECTION_CSS, &css_matches);
+        // Use strategy-based matching (always uses strategy now)
+        let css_matches = manager.find_closest_css_colors_with_strategy(rgb_array, 2, strategy);
+        Self::write_unified_collection_results(COLLECTION_CSS, &css_matches);
 
-            let classic_matches =
-                manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
-            Self::write_unified_collection_results(COLLECTION_RAL_CLASSIC, &classic_matches);
+        let classic_matches =
+            manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
+        Self::write_unified_collection_results(COLLECTION_RAL_CLASSIC, &classic_matches);
 
-            let design_matches =
-                manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
-            Self::write_unified_collection_results(COLLECTION_RAL_DESIGN, &design_matches);
-        } else {
-            // Use default matching (backward compatibility)
-            use crate::color_parser::{
-                RgbColor, find_closest_ral_classic, find_closest_ral_design,
-            };
+        let design_matches =
+            manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
+        Self::write_unified_collection_results(COLLECTION_RAL_DESIGN, &design_matches);
 
-            let css_matches = manager.find_closest_css_colors(rgb_array, 2);
-            Self::write_css_collection(&css_matches);
-
-            let rgb = RgbColor::new(r, g, b);
-            let classic_matches = find_closest_ral_classic(&rgb, 2);
-            let _ = Self::write_ral_classic_collection(&classic_matches);
-
-            let design_matches = find_closest_ral_design(&rgb, 2);
-            let _ = Self::write_ral_design_collection(&design_matches);
-        }
-
-        println!("");
-    }
-
-    /// Write CSS color collection with closest matches (unified with other collections)
-    fn write_css_collection(css_matches: &[crate::color_parser::ColorMatch]) {
-        Self::write_unified_collection_results(COLLECTION_CSS, css_matches)
+        println!();
     }
 
     /// Write unified collection search results that works with both ColorMatch and RalMatch
@@ -193,7 +176,7 @@ impl ColorFormatter {
         collection_name: &str,
         matches: &[crate::color_parser::ColorMatch],
     ) {
-        println!("{}", format!("{}", collection_name).bold());
+        println!("{}", collection_name.bold());
 
         if matches.is_empty() {
             println!("{}", NO_MATCHES_MESSAGE.bold());
@@ -225,50 +208,7 @@ impl ColorFormatter {
             }
         }
 
-        println!("");
-    }
-
-    /// Write collection search results with closest matches
-    fn write_collection_search_results(
-        collection_name: &str,
-        matches: &[crate::color_parser::RalMatch],
-    ) -> Result<()> {
-        println!("{}", format!("{}", collection_name).bold());
-
-        if matches.is_empty() {
-            println!("{}", NO_MATCHES_MESSAGE.bold());
-        } else {
-            for ral_match in matches.iter() {
-                println!(
-                    "{} {}",
-                    format!(
-                        "{:>width$}",
-                        format!("{}:", ral_match.name),
-                        width = COLUMN_WIDTH
-                    )
-                    .bold()
-                    .green(),
-                    ral_match.code
-                );
-                println!(
-                    "{:>width$} {}",
-                    format!("[ΔE {:.2}] ", ral_match.distance),
-                    ral_match.hex.to_uppercase().yellow(),
-                    width = COLUMN_WIDTH
-                );
-            }
-        }
-        Ok(())
-    }
-
-    /// Write RAL Classic collection with closest matches
-    fn write_ral_classic_collection(matches: &[crate::color_parser::RalMatch]) -> Result<()> {
-        Self::write_collection_search_results(COLLECTION_RAL_CLASSIC, matches)
-    }
-
-    /// Write RAL Design collection with closest matches
-    fn write_ral_design_collection(matches: &[crate::color_parser::RalMatch]) -> Result<()> {
-        Self::write_collection_search_results(COLLECTION_RAL_DESIGN, matches)
+        println!();
     }
 
     /// Write header for color schemes section
@@ -397,7 +337,7 @@ impl ColorFormatter {
         // Luminance-matched variations if available
         if let Some(matched_colors) = luminance_matched {
             let header_text = format!("Luminance-matched variations ({})", strategy_name);
-            println!("{}", format!("{}", header_text).bold());
+            println!("{}", header_text.bold());
 
             for (i, color) in matched_colors.iter().enumerate() {
                 let color_name = match title {

@@ -236,7 +236,7 @@ impl ColorOperationsFacade {
     ) -> Result<(u8, u8, u8)> {
         let lab1 = self.rgb_to_lab(color1)?;
         let lab2 = self.rgb_to_lab(color2)?;
-        let mixed = ColorUtils::interpolate_lab(lab1, lab2, ratio as f64);
+        let mixed = ColorUtils::interpolate_lab(lab1, lab2, ratio);
         Ok(ColorUtils::lab_to_rgb(mixed))
     }
 
@@ -331,7 +331,11 @@ mod tests {
         let facade = ColorOperationsFacade::new();
         let analysis = facade.analyze_color("#FF5733").unwrap();
 
-        assert_eq!(analysis.srgb, facade.rgb_to_srgb((255, 87, 51)).unwrap());
+        let expected_srgb = facade.rgb_to_srgb((255, 87, 51)).unwrap();
+        // Use epsilon comparison for floating point values
+        assert!((analysis.srgb.red - expected_srgb.red).abs() < 1e-6);
+        assert!((analysis.srgb.green - expected_srgb.green).abs() < 1e-6);
+        assert!((analysis.srgb.blue - expected_srgb.blue).abs() < 1e-6);
         assert!(analysis.hex.to_uppercase().contains("FF5733"));
         assert!(analysis.luminance > 0.2 && analysis.luminance < 0.4);
         assert!(analysis.contrast_white > 3.0);
