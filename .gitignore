@@ -8,8 +8,7 @@ Cargo.lock
 .idea/
 *.swp
 *.swo
-*.svg
-*.png
+
 *.html
 *.sh
 
@@ -20,6 +19,10 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+*.svg
+*.png
+*.toml
+*.yaml
 
 # Plan file (not for version control)
 PLAN.md
