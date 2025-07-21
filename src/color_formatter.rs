@@ -20,12 +20,14 @@
 //! - Additional information (grayscale, WCAG metrics, brightness)
 //! - Color collection matches (CSS names, RAL Classic, RAL Design)
 
-use crate::color_utils::ColorUtils;
+use std::u8;
+
+use crate::color_utils::*;
+use crate::config::*;
 use crate::error::Result;
 use crate::output_utils::*;
-use crate::{config::*, output_utils};
 use colored::*;
-use palette::{Hsl, Hsv, IntoColor, Lab, Oklch, Srgb, Xyz};
+use palette::{Hsl, IntoColor, Lab, Lch, Srgb};
 
 /// Color formatter for generating comprehensive color reports
 pub struct ColorFormatter;
@@ -67,10 +69,10 @@ impl ColorFormatter {
     fn write_format_conversions(lab_color: Lab) {
         OutputUtils::print_header_ln(HEADER_FORMAT_CONVERSIONS);
         OutputUtils::print_hex_ln(LABEL_HEX, lab_color, ColorFormat::Rgb);
-        OutputUtils::print_color_ln(LABEL_RGB, lab_color, ColorFormat::Hsl);
-        OutputUtils::print_color_ln(LABEL_HSL, lab_color, ColorFormat::Hsv);
+        OutputUtils::print_color_ln(LABEL_HSB, lab_color, ColorFormat::Hsv);
+        OutputUtils::print_color_ln(LABEL_HSL, lab_color, ColorFormat::Hsl);
         OutputUtils::print_color_ln(LABEL_LAB, lab_color, ColorFormat::Lab);
-        OutputUtils::print_color_ln(LABEL_HSB, lab_color, ColorFormat::Lch);
+        OutputUtils::print_color_ln(LABEL_LCH, lab_color, ColorFormat::Lch);
         OutputUtils::print_color_ln(LABEL_CMYK, lab_color, ColorFormat::Cmyk);
         OutputUtils::print_color_ln(LABEL_XYZ, lab_color, ColorFormat::Xyz);
         OutputUtils::print_color_ln(LABEL_OKLCH, lab_color, ColorFormat::Oklch);
@@ -78,125 +80,45 @@ impl ColorFormatter {
         println!();
     }
 
-    /// Get color contrast assessment based on WCAG guidelines
-    fn get_contrast_assessment(
-        color1_rgb: (u8, u8, u8),
-        color2_rgb: (u8, u8, u8),
-    ) -> (f64, ColoredString) {
-        let contrast = ColorUtils::wcag_contrast_ratio_rgb(color1_rgb, color2_rgb);
-        if contrast >= 7.0 {
-            (contrast, crate::config::STATUS_PASS.bold().green())
-        } else if contrast >= 4.5 {
-            (contrast, crate::config::STATUS_WARNING.bold().yellow())
-        } else {
-            (contrast, crate::config::STATUS_FAIL.bold().red())
-        }
-    }
-
     /// Write additional color information
     fn write_additional_info(lab_color: Lab) {
-        println!(
-            "{:#<width$}",
-            HEADER_ADDITIONAL_INFO.to_uppercase().bold(),
-            width = COLUMN_HEADER_WIDTH
+        OutputUtils::print_header_ln(HEADER_ADDITIONAL_INFO);
+        OutputUtils::print_hex_ln(
+            LABEL_GRAYSCALE_LAB,
+            ColorUtils::lab_tulip_to_lab((lab_color.l, 0.0, 0.0)),
+            ColorFormat::Lab,
+        );
+        let lch: Lch = ColorUtils::lab_to_lch(lab_color);
+        OutputUtils::print_hex_ln(
+            LABEL_GRAYSCALE_LCH_0,
+            ColorUtils::lch_tulip_to_lab((lch.l, 0.0, lch.hue.into_degrees())),
+            ColorFormat::Lch,
+        );
+        OutputUtils::print_hex_ln(
+            LABEL_GRAYSCALE_LCH_2,
+            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.02, lch.hue.into_degrees())),
+            ColorFormat::Lch,
+        );
+        OutputUtils::print_hex_ln(
+            LABEL_GRAYSCALE_LCH_4,
+            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.04, lch.hue.into_degrees())),
+            ColorFormat::Lch,
+        );
+        OutputUtils::print_hex_ln(
+            LABEL_GRAYSCALE_LCH_6,
+            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.06, lch.hue.into_degrees())),
+            ColorFormat::Lch,
+        );
+        OutputUtils::print_f64_ln(
+            LABEL_WCAG_LUMINANCE,
+            ColorUtils::wcag_relative_luminance(ColorUtils::lab_to_srgb(lab_color)),
         );
 
-        // Convert LAB to sRGB for calculations
-        let srgb: Srgb = lab_color.into_color();
-        let r = (srgb.red * 255.0).round() as u8;
-        let g = (srgb.green * 255.0).round() as u8;
-        let b = (srgb.blue * 255.0).round() as u8;
-
-        // Grayscale equivalent using LAB L* component
-        let grayscale_lab = Lab::new(
-            lab_color.l,
-            0.0, // a component is not used for grayscale
-            0.0, // b component is not used for grayscale
-        );
-        let grayscale_rgb: Srgb = grayscale_lab.into_color();
-
-        println!(
-            "{} {}",
-            format!("{:>width$}", LABEL_GRAYSCALE, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            format!(
-                "#{:02X}{:02X}{:02X}",
-                (grayscale_rgb.red * 255.0).round() as u8,
-                (grayscale_rgb.green * 255.0).round() as u8,
-                (grayscale_rgb.blue * 255.0).round() as u8
-            )
-            .yellow()
-        );
-
-        // WCAG calculations
-        let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((r, g, b));
-        println!(
-            "{} {} {}",
-            format!("{:>width$}", LABEL_WCAG_LUMINANCE, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            format!("{:<width$.3}", wcag_luminance, width = COLUMN_WIDTH),
-            format!("{:<width$}", LABEL_WCAG_COMPARTIBLE, width = COLUMN_WIDTH)
-                .bold()
-                .green()
-        );
-
-        // Color-coded contrast ratios
-        let (contrast_white, white_contrast_color) =
-            Self::get_contrast_assessment((r, g, b), (255, 255, 255));
-
-        println!(
-            "{} {} [{}]",
-            format!("{:>width$}", LABEL_CONTRAST_WHITE, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            format!("{:.2}:1", contrast_white),
-            white_contrast_color
-        );
-
-        let (contrast_black, black_contrast_color) =
-            Self::get_contrast_assessment((r, g, b), (0, 0, 0));
-
-        println!(
-            "{} {} [{}]",
-            format!("{:>width$}", LABEL_CONTRAST_BLACK, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            format!("{:.2}:1", contrast_black),
-            black_contrast_color
-        );
-
-        println!(
-            "{} {} [{}] | {} [{}]",
-            format!("{:>width$}", LABEL_BRIGHTNESS, width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            Self::get_brightness_asssessment_lab(lab_color),
-            "Lab".bold().green(),
-            Self::get_brightness_asssessment_wcag(wcag_luminance),
-            "WCAG".bold().green()
-        );
+        OutputUtils::print_contrast_white_ln(lab_color);
+        OutputUtils::print_contrast_black_ln(lab_color);
+        OutputUtils::print_brightness(lab_color);
 
         println!("");
-    }
-
-    fn get_brightness_asssessment_lab(lab_color: Lab) -> String {
-        // Calculate brightness based on L* value
-        if lab_color.l > 50.0 {
-            "Light".to_string()
-        } else {
-            "Dark".to_string()
-        }
-    }
-
-    fn get_brightness_asssessment_wcag(wcag_luminance: f64) -> String {
-        // Calculate brightness based on WCAG luminance
-        if wcag_luminance > 0.18 {
-            "Light".to_string()
-        } else {
-            "Dark".to_string()
-        }
     }
 
     /// Implementation for writing unified collection matches with optional strategy
@@ -365,9 +287,7 @@ impl ColorFormatter {
     }
 
     /// Format color schemes section for comprehensive reports with both HSL and Lab strategies
-    pub fn format_color_schemes(
-        schemes: &crate::color_schemes::ColorSchemeResult,
-    ) {
+    pub fn format_color_schemes(schemes: &crate::color_schemes::ColorSchemeResult) {
         Self::write_color_scheme_header("HSL Color Space Strategy");
 
         // HSL Complementary color section

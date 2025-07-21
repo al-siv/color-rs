@@ -205,7 +205,9 @@ impl ColorParserTrait for FullColorParser {
 
     fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
         // Use unified manager for comprehensive color matching
-        let matches = self.unified_manager.find_closest_across_all([rgb.0, rgb.1, rgb.2], 1);
+        let matches = self
+            .unified_manager
+            .find_closest_across_all([rgb.0, rgb.1, rgb.2], 1);
 
         // Find the best match across all collections
         for (_, collection_matches) in &matches {

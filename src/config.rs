@@ -7,7 +7,7 @@ pub const APP_AUTHOR: &str = "https://github.com/al-siv";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Formatting constant: width for formatted columns in the output
-pub const COLUMN_WIDTH: usize = 26;
+pub const COLUMN_WIDTH: usize = 27;
 pub const COLUMN_MULTIPLIER: usize = 3; // For double-width columns
 pub const COLUMN_HEADER_WIDTH: usize = COLUMN_WIDTH * COLUMN_MULTIPLIER; // For header columns
 
@@ -80,12 +80,17 @@ pub const LABEL_BASE_COLOR: &str = "Base Color:";
 pub const LABEL_RGB: &str = "RGB:";
 pub const LABEL_HEX: &str = "HEX:";
 pub const LABEL_HSL: &str = "HSL:";
-pub const LABEL_HSB: &str = "HSB:";
+pub const LABEL_HSB: &str = "HSB (HSV):";
+pub const LABEL_LCH: &str = "LCH:";
 pub const LABEL_LAB: &str = "LAB:";
 pub const LABEL_XYZ: &str = "XYZ:";
 pub const LABEL_OKLCH: &str = "OKLCH:";
 pub const LABEL_CMYK: &str = "CMYK:";
-pub const LABEL_GRAYSCALE: &str = "Grayscale (Lab):";
+pub const LABEL_GRAYSCALE_LAB: &str = "Grayscale (Lab):";
+pub const LABEL_GRAYSCALE_LCH_0: &str = "Grayscale (LCH C ~0%):";
+pub const LABEL_GRAYSCALE_LCH_2: &str = "Grayscale (LCH C ~2%):";
+pub const LABEL_GRAYSCALE_LCH_4: &str = "Grayscale (LCH C ~4%):";
+pub const LABEL_GRAYSCALE_LCH_6: &str = "Grayscale (LCH C ~6%):";
 pub const LABEL_WCAG_LUMINANCE: &str = "Relative Luminance:";
 pub const LABEL_WCAG_COMPARTIBLE: &str = "WCAG 2.1 Compatible";
 pub const LABEL_CONTRAST_WHITE: &str = "Contrast vs White:";
@@ -130,3 +135,10 @@ pub const HEADER_GRADIENT_VALUES: &str = " # Gradient Values";
 /// Labels for gradient start and end colors
 pub const LABEL_GRADIENT_START_COLOR: &str = "Start Color";
 pub const LABEL_GRADIENT_END_COLOR: &str = "End Color";
+
+/// RGB color constants for white and black
+pub const RGB_WHITE: (u8, u8, u8) = (255, 255, 255);
+pub const RGB_BLACK: (u8, u8, u8) = (0, 0, 0);
+pub const RGB_GRAY: (u8, u8, u8) = (128, 128, 128);
+
+

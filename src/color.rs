@@ -7,8 +7,8 @@ use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
 use palette::white_point::B;
 use palette::{Lab, Srgb};
-use tabled::settings::format;
 use tabled::Tabled;
+use tabled::settings::format;
 
 /// Color information for display in tables
 #[derive(Tabled)]
@@ -191,7 +191,7 @@ fn get_color_name_for_lab(lab_color: Lab) -> Result<String> {
     use crate::color_parser::ColorParser;
 
     // Convert LAB back to sRGB for name lookup
-    let (r,g,b) = ColorUtils::lab_to_rgb(lab_color);
+    let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
     let parser = ColorParser::new();
     Ok(parser.get_color_name((r, g, b)))
 }

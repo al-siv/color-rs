@@ -10,10 +10,47 @@ use palette::{
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ContrastLevel {
+    High,
+    Medium,
+    Marginal,
+    Low,
+}
+
+impl ContrastLevel {
+    pub fn to_string(&self) -> &'static str {
+        match self {
+            ContrastLevel::High => "High",
+            ContrastLevel::Medium => "Medium",
+            ContrastLevel::Marginal => "Marginal",
+            ContrastLevel::Low => "Low",
+        }
+    }
+}
+
 /// Universal color utilities for calculations and transformations
 pub struct ColorUtils;
 
 impl ColorUtils {
+    /// Get color contrast assessment based on WCAG guidelines using palette's WCAG methods
+    pub fn get_contrast_assessment(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> (f32, ContrastLevel) {
+        let srgb1 = Self::rgb_to_srgb(rgb1);
+        let srgb2 = Self::rgb_to_srgb(rgb2);
+        let contrast = srgb1.relative_contrast(srgb2);
+
+        // Use palette's WCAG methods for assessment
+        if srgb1.has_enhanced_contrast_text(srgb2) {
+            (contrast, ContrastLevel::High)
+        } else if srgb1.has_min_contrast_text(srgb2) {
+            (contrast, ContrastLevel::Medium)
+        } else if srgb1.has_min_contrast_large_text(srgb2) {
+            (contrast, ContrastLevel::Marginal)
+        } else {
+            (contrast, ContrastLevel::Low)
+        }
+    }
+
     /// Calculate Delta E using improved CIEDE2000 algorithm from palette library
     ///
     /// This uses the ImprovedCiede2000 implementation from palette which provides
@@ -305,6 +342,45 @@ impl ColorUtils {
             lch.chroma as f32,
             lch.hue.into_positive_degrees() as f32,
         )
+    }
+
+    /// Convert a "tulip" LAB color (L, a, b as f32) to palette::Lab
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color as (L, a, b) tuple (f32, f32, f32)
+    ///
+    /// # Returns
+    /// * Lab color space representation
+    pub fn lab_tulip_to_lab(lab: (f32, f32, f32)) -> Lab {
+        Lab::new(lab.0, lab.1, lab.2)
+    }
+
+    /// Convert a "tulip" LCH color (L, C, H as f32) to palette::Lab
+    ///
+    /// # Arguments
+    /// * `lch` - LCH color as (L, C, H) tuple (f32, f32, f32), H in degrees
+    ///
+    /// # Returns
+    /// * Lab color space representation
+    pub fn lch_tulip_to_lab(lch: (f32, f32, f32)) -> Lab {
+        let lch_color = palette::Lch::new(
+            lch.0,
+            lch.1,
+            lch.2,
+        );
+        Lab::from_color(lch_color)
+    }
+
+    /// Convert a "tulip" LAB color (L, a, b as f32) to sRGB (palette::Srgb<f64>)
+    ///
+    /// # Arguments
+    /// * `lab` - LAB color as (L, a, b) tuple (f32, f32, f32)
+    ///
+    /// # Returns
+    /// * Srgb<f64> color (each channel in 0.0-1.0)
+    pub fn lab_tulip_to_srgb(lab: (f32, f32, f32)) -> Srgb {
+        let lab_color = Lab::new(lab.0, lab.1, lab.2);
+        lab_color.into_color()
     }
 
     /// Convert LCH (CIE L*C*h) color space to LAB color space
