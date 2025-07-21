@@ -1,15 +1,15 @@
-//! Gradient calculations and easing functions for color-rs
+//! Gradient generation and interpolation using LAB color space
 
 use crate::cli::GradientArgs;
-use crate::color::ColorProcessor;
+use crate::color_utils::ColorUtils;
+use crate::config::*;
 use crate::error::{ColorError, Result};
-use crate::{ColorUtils, config::*};
 use kurbo::{CubicBez, ParamCurve, Point};
 use palette::Lab;
 use tabled::Tabled;
 
 /// Gradient value for display in tables
-#[derive(Tabled)]
+#[derive(Tabled, Clone)]
 pub struct GradientValue {
     #[tabled(rename = "Position")]
     pub position: String,
@@ -43,10 +43,10 @@ impl GradientCalculator {
         // Create cubic bezier curve with control points (0,0), (x1,0), (x2,1), (1,1)
         // This matches cubic-bezier specification
         let curve = CubicBez::new(
-            Point::new(0.0, 0.0),       // Start point
-            Point::new(x1, 0.0), // First control point (x1, 0)
-            Point::new(x2, 1.0), // Second control point (x2, 1)
-            Point::new(1.0, 1.0),       // End point
+            Point::new(0.0, 0.0), // Start point
+            Point::new(x1, 0.0),  // First control point (x1, 0)
+            Point::new(x2, 1.0),  // Second control point (x2, 1)
+            Point::new(1.0, 1.0), // End point
         );
 
         // Use binary search to find parameter where x-coordinate equals target
@@ -355,7 +355,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     })?;
 
     // Print color information with beautiful formatting
-    ColorProcessor::print_color_info_table(start_lab, end_lab);
+    // ColorProcessor::print_color_info_table(start_lab, end_lab);
 
     // Generate images if requested
     if args.svg || args.png {
@@ -383,9 +383,19 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
         }
     }
 
-    // Generate gradient values for console output
+    // Generate gradient values for terminal/file output
     let gradient_values = GradientCalculator::generate_gradient_values(&args, start_lab, end_lab)?;
-    GradientCalculator::print_gradient_table(gradient_values);
+
+    // Create structured output data
+    let gradient_output =
+        create_gradient_analysis_output(&args, start_lab, end_lab, &gradient_values)?;
+
+    // Display structured output to terminal
+    let format = args
+        .output_format
+        .as_ref()
+        .unwrap_or(&crate::cli::OutputFormat::Toml);
+    format_gradient_structured_output(&gradient_output, format, args.output_file.as_ref())?;
 
     Ok(())
 }
@@ -435,5 +445,284 @@ mod tests {
         assert!((hex_color.l - rgb_color.l).abs() < 1.0);
         assert!((hex_color.l - named_color.l).abs() < 1.0);
         assert!((hex_color.l - hsl_color.l).abs() < 1.0);
+    }
+}
+
+/// Create gradient analysis output for file export
+pub fn create_gradient_analysis_output(
+    args: &GradientArgs,
+    start_lab: Lab,
+    end_lab: Lab,
+    gradient_values: &[GradientValue],
+) -> Result<crate::output_formats::GradientAnalysisOutput> {
+    use crate::ColorUtils;
+    use crate::output_formats::*;
+    use palette::{IntoColor, Srgb};
+
+    // Convert Lab colors to RGB for color info
+    let start_srgb: Srgb = start_lab.into_color();
+    let start_rgb: Srgb<u8> = start_srgb.into_format();
+    let end_srgb: Srgb = end_lab.into_color();
+    let end_rgb: Srgb<u8> = end_srgb.into_format();
+
+    let gradient_output = GradientAnalysisOutput {
+        metadata: ProgramMetadata::new(None),
+        configuration: GradientConfiguration {
+            start_color: args.start_color.clone(),
+            end_color: args.end_color.clone(),
+            start_position: args.start_position,
+            end_position: args.end_position,
+            ease_in: args.ease_in,
+            ease_out: args.ease_out,
+            gradient_steps: gradient_values.len(),
+        },
+        colors: GradientColors {
+            start: ColorInfo {
+                hex: format!(
+                    "#{:02X}{:02X}{:02X}",
+                    start_rgb.red, start_rgb.green, start_rgb.blue
+                ),
+                rgb: format!(
+                    "rgb({}, {}, {})",
+                    start_rgb.red, start_rgb.green, start_rgb.blue
+                ),
+                lab: format!(
+                    "lab({:.2}, {:.2}, {:.2})",
+                    start_lab.l, start_lab.a, start_lab.b
+                ),
+                lch: crate::format_utils::FormatUtils::lab_to_lch(start_lab),
+                wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(start_srgb),
+            },
+            end: ColorInfo {
+                hex: format!(
+                    "#{:02X}{:02X}{:02X}",
+                    end_rgb.red, end_rgb.green, end_rgb.blue
+                ),
+                rgb: format!("rgb({}, {}, {})", end_rgb.red, end_rgb.green, end_rgb.blue),
+                lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
+                lch: crate::format_utils::FormatUtils::lab_to_lch(end_lab),
+                wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(end_srgb),
+            },
+        },
+        gradient_stops: gradient_values
+            .iter()
+            .map(|gv| {
+                // Parse the position from the string (like "0%" -> 0.0)
+                let position_str = gv.position.trim_end_matches('%');
+                let position = position_str.parse::<f64>().unwrap_or(0.0) / 100.0;
+
+                // Parse the hex color to get Lab for luminance calculation
+                let hex_clean = gv.hex.trim_start_matches('#');
+                let r = u8::from_str_radix(&hex_clean[0..2], 16).unwrap_or(0);
+                let g = u8::from_str_radix(&hex_clean[2..4], 16).unwrap_or(0);
+                let b = u8::from_str_radix(&hex_clean[4..6], 16).unwrap_or(0);
+                let rgb: Srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+                let lab: Lab = rgb.into_color();
+
+                // Create color parser for name matching
+                let parser = crate::color_parser::ColorParser::new();
+                let color_name = get_gradient_color_name_info((r, g, b), &parser);
+
+                GradientStop {
+                    position,
+                    hex: gv.hex.clone(),
+                    rgb: gv.rgb.clone(),
+                    lab: format!("lab({:.2}, {:.2}, {:.2})", lab.l, lab.a, lab.b),
+                    lch: crate::format_utils::FormatUtils::lab_to_lch(lab),
+                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(rgb),
+                    color_name,
+                }
+            })
+            .collect(),
+    };
+
+    Ok(gradient_output)
+}
+
+/// Get color name information for gradient stops
+fn get_gradient_color_name_info(rgb: (u8, u8, u8), parser: &crate::color_parser::ColorParser) -> Option<crate::output_formats::ColorNameInfo> {
+    use crate::output_formats::{ColorNameInfo, NearestColorMatch};
+    use crate::color_parser::{UniversalColor, ColorCollection};
+    
+    let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
+    let target_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
+    
+    // Check for exact match first by comparing hex values
+    let exact_match = parser.css_collection().colors().iter().find(|color| {
+        let color_hex = format!("#{:02X}{:02X}{:02X}", 
+            color.color.rgb[0], 
+            color.color.rgb[1], 
+            color.color.rgb[2]);
+        color_hex.to_uppercase() == target_hex.to_uppercase()
+    });
+    
+    let exact = exact_match.map(|color| color.metadata.name.clone());
+    
+    // Find nearest match with actual distance calculation
+    let nearest_matches = parser.css_collection().find_closest(&target, 1, None);
+    let nearest = if let Some(closest) = nearest_matches.first() {
+        Some(NearestColorMatch {
+            name: closest.entry.metadata.name.clone(),
+            collection: "CSS".to_string(),
+            distance: closest.distance,
+        })
+    } else {
+        None
+    };
+
+    // Only include color_name if we have either exact or nearest
+    if exact.is_some() || nearest.is_some() {
+        Some(ColorNameInfo { exact, nearest })
+    } else {
+        None
+    }
+}
+
+/// Format and display gradient structured output to terminal with optional file save
+fn format_gradient_structured_output(
+    gradient_data: &crate::output_formats::GradientAnalysisOutput,
+    format: &crate::cli::OutputFormat,
+    file_path: Option<&String>,
+) -> crate::error::Result<()> {
+    use crate::file_output::FileOutputService;
+
+    // Generate formatted output
+    let formatted_output = match format {
+        crate::cli::OutputFormat::Toml => toml::to_string_pretty(gradient_data).map_err(|e| {
+            crate::error::ColorError::General(format!("TOML serialization failed: {}", e))
+        })?,
+        crate::cli::OutputFormat::Yaml => serde_yml::to_string(gradient_data).map_err(|e| {
+            crate::error::ColorError::General(format!("YAML serialization failed: {}", e))
+        })?,
+    };
+
+    // Display colorized structured output to terminal
+    display_colorized_gradient_output(&formatted_output, format);
+
+    // Save to file if requested
+    if let Some(filename) = file_path {
+        let extension = match format {
+            crate::cli::OutputFormat::Toml => "toml",
+            crate::cli::OutputFormat::Yaml => "yaml",
+        };
+
+        let full_filename = if filename.contains('.') {
+            filename.clone()
+        } else {
+            format!("{}.{}", filename, extension)
+        };
+
+        match format {
+            crate::cli::OutputFormat::Toml => {
+                FileOutputService::write_gradient_toml(gradient_data, &full_filename)?;
+                println!("Gradient analysis saved to TOML file: {}", full_filename);
+            }
+            crate::cli::OutputFormat::Yaml => {
+                FileOutputService::write_gradient_yaml(gradient_data, &full_filename)?;
+                println!("Gradient analysis saved to YAML file: {}", full_filename);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Display TOML/YAML gradient output to terminal with colorization
+fn display_colorized_gradient_output(content: &str, format: &crate::cli::OutputFormat) {
+    use colored::*;
+
+    println!(
+        "{}",
+        format!(
+            "# {} OUTPUT",
+            match format {
+                crate::cli::OutputFormat::Toml => "TOML",
+                crate::cli::OutputFormat::Yaml => "YAML",
+            }
+        )
+        .bold()
+        .blue()
+    );
+
+    for line in content.lines() {
+        let colored_line = colorize_gradient_line(line, format);
+        println!("{}", colored_line);
+    }
+}
+
+/// Colorize a single line of gradient TOML/YAML output
+fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> String {
+    use colored::*;
+
+    let trimmed = line.trim_start();
+    let indent = &line[..line.len() - trimmed.len()];
+
+    match format {
+        crate::cli::OutputFormat::Toml => {
+            if trimmed.starts_with('[') && trimmed.ends_with(']') {
+                // Section headers like [metadata], [configuration]
+                format!("{}{}", indent, trimmed.bold().cyan())
+            } else if trimmed.starts_with("[[") && trimmed.ends_with("]]") {
+                // Array section headers like [[gradient_stops]]
+                format!("{}{}", indent, trimmed.bold().magenta())
+            } else if let Some(eq_pos) = trimmed.find(" = ") {
+                // Key = value pairs
+                let key = &trimmed[..eq_pos];
+                let value = &trimmed[eq_pos + 3..];
+                format!(
+                    "{}{} = {}",
+                    indent,
+                    key.green(),
+                    colorize_gradient_value(value)
+                )
+            } else {
+                line.to_string()
+            }
+        }
+        crate::cli::OutputFormat::Yaml => {
+            if trimmed.ends_with(':') && !trimmed.contains(' ') {
+                // Top-level keys like "metadata:", "configuration:"
+                format!("{}{}", indent, trimmed.bold().cyan())
+            } else if let Some(colon_pos) = trimmed.find(": ") {
+                // Key: value pairs
+                let key = &trimmed[..colon_pos + 1];
+                let value = &trimmed[colon_pos + 2..];
+                format!(
+                    "{}{} {}",
+                    indent,
+                    key.green(),
+                    colorize_gradient_value(value)
+                )
+            } else if trimmed.starts_with("- ") {
+                // Array items
+                format!("{}- {}", indent, colorize_gradient_value(&trimmed[2..]))
+            } else {
+                line.to_string()
+            }
+        }
+    }
+}
+
+/// Colorize gradient values based on their type
+fn colorize_gradient_value(value: &str) -> String {
+    use colored::*;
+
+    if value.starts_with('"') && value.ends_with('"') {
+        // String values
+        value.yellow().to_string()
+    } else if value.parse::<f64>().is_ok() {
+        // Numeric values
+        value.bright_blue().to_string()
+    } else if value == "true" || value == "false" {
+        // Boolean values
+        value.bright_green().to_string()
+    } else if value.starts_with('#') {
+        // Hex colors
+        value.bright_yellow().to_string()
+    } else if value.starts_with("rgb(") || value.starts_with("lab(") || value.starts_with("lch(") {
+        // Color format values
+        value.bright_cyan().to_string()
+    } else {
+        value.to_string()
     }
 }

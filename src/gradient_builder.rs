@@ -44,6 +44,8 @@ pub struct GradientBuilder {
     grad_step: Option<u8>,
     grad_stops: usize,
     grad_stops_simple: Option<usize>,
+    output_format: Option<crate::cli::OutputFormat>,
+    output_file: Option<String>,
 }
 
 impl Default for GradientBuilder {
@@ -71,6 +73,8 @@ impl GradientBuilder {
             grad_step: None,
             grad_stops: 5,
             grad_stops_simple: None,
+            output_format: None,
+            output_file: None,
         }
     }
 
@@ -212,6 +216,22 @@ impl GradientBuilder {
         self
     }
 
+    /// Set output format and file
+    pub fn output(mut self, format: crate::cli::OutputFormat, filename: String) -> Self {
+        self.output_format = Some(format);
+        self.output_file = Some(filename);
+        self
+    }
+
+    /// Set output file (format will default to TOML)
+    pub fn output_file<S: Into<String>>(mut self, filename: S) -> Self {
+        self.output_file = Some(filename.into());
+        if self.output_format.is_none() {
+            self.output_format = Some(crate::cli::OutputFormat::Toml);
+        }
+        self
+    }
+
     /// Validate the current configuration
     pub fn validate(&self) -> Result<()> {
         // Check required fields
@@ -302,6 +322,8 @@ impl GradientBuilder {
             grad_step: self.grad_step,
             grad_stops: self.grad_stops,
             grad_stops_simple: self.grad_stops_simple,
+            output_format: self.output_format,
+            output_file: self.output_file,
         })
     }
 }

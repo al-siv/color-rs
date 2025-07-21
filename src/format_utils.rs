@@ -1,0 +1,151 @@
+//! Centralized color format conversion utilities
+//!
+//! Provides consistent color format conversions with standardized precision
+//! for both console output and file export, eliminating code duplication.
+
+use crate::color_utils::ColorUtils;
+use crate::precision_utils::PrecisionUtils;
+use palette::Lab;
+
+/// Consolidated color format utilities
+pub struct FormatUtils;
+
+impl FormatUtils {
+    /// Convert LAB to HEX format string
+    pub fn lab_to_hex(lab: Lab) -> String {
+        ColorUtils::lab_to_hex(lab)
+    }
+
+    /// Convert LAB to RGB format string
+    pub fn lab_to_rgb(lab: Lab) -> String {
+        let (r, g, b) = ColorUtils::lab_to_rgb(lab);
+        format!("rgb({}, {}, {})", r, g, b)
+    }
+
+    /// Convert LAB to HSL format string with standardized precision
+    pub fn lab_to_hsl(lab: Lab) -> String {
+        let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab);
+        PrecisionUtils::format_hsl(h as f64, s as f64, l as f64)
+    }
+
+    /// Convert LAB to HSV/HSB format string with standardized precision
+    pub fn lab_to_hsv(lab: Lab) -> String {
+        let (h, s, v) = ColorUtils::lab_to_hsv_tuple(lab);
+        PrecisionUtils::format_hsv(h as f64, s as f64, v as f64)
+    }
+
+    /// Convert LAB to CMYK format string with standardized precision
+    pub fn lab_to_cmyk(lab: Lab) -> String {
+        let (c, m, y, k) = ColorUtils::lab_to_cmyk_tuple(lab);
+        PrecisionUtils::format_cmyk(c as f64, m as f64, y as f64, k as f64)
+    }
+
+    /// Convert LAB to XYZ format string with standardized precision
+    pub fn lab_to_xyz(lab: Lab) -> String {
+        let (x, y, z) = ColorUtils::lab_to_xyz_tuple(lab);
+        PrecisionUtils::format_xyz(x as f64, y as f64, z as f64)
+    }
+
+    /// Convert LAB to LAB format string with standardized precision
+    pub fn lab_to_lab(lab: Lab) -> String {
+        PrecisionUtils::format_lab(lab.l as f64, lab.a as f64, lab.b as f64)
+    }
+
+    /// Convert LAB to LCH format string with standardized precision
+    pub fn lab_to_lch(lab: Lab) -> String {
+        let (l, c, h) = ColorUtils::lab_to_lch_tuple(lab);
+        PrecisionUtils::format_lch(l as f64, c as f64, h as f64)
+    }
+
+    /// Convert LAB to OKLCh format string with standardized precision
+    pub fn lab_to_oklch(lab: Lab) -> String {
+        let (l, c, h) = ColorUtils::lab_to_oklch_tuple(lab);
+        PrecisionUtils::format_oklch(l as f64, c as f64, h as f64)
+    }
+
+    /// Get all format conversions for a LAB color
+    pub fn get_all_formats(lab: Lab) -> crate::output_formats::ColorFormats {
+        crate::output_formats::ColorFormats {
+            hex: Self::lab_to_hex(lab),
+            rgb: Self::lab_to_rgb(lab),
+            hsl: Self::lab_to_hsl(lab),
+            hsb: Self::lab_to_hsv(lab),
+            lab: Self::lab_to_lab(lab),
+            lch: Self::lab_to_lch(lab),
+            cmyk: Self::lab_to_cmyk(lab),
+            xyz: Self::lab_to_xyz(lab),
+            oklch: Self::lab_to_oklch(lab),
+        }
+    }
+}
+
+/// Enum for selecting the color output type.
+#[derive(PartialEq)]
+pub enum ColorFormat {
+    Hex,
+    Lab,
+    Rgb,
+    Hsl,
+    Hsv,
+    Cmyk,
+    Xyz,
+    Oklch,
+    Lch,
+}
+
+impl FormatUtils {
+    /// Format a color according to the specified format type
+    pub fn format_color(lab: Lab, color_format: &ColorFormat) -> String {
+        match color_format {
+            ColorFormat::Lab => Self::lab_to_lab(lab),
+            ColorFormat::Rgb => Self::lab_to_rgb(lab),
+            ColorFormat::Hsl => Self::lab_to_hsl(lab),
+            ColorFormat::Hsv => Self::lab_to_hsv(lab),
+            ColorFormat::Cmyk => Self::lab_to_cmyk(lab),
+            ColorFormat::Hex => Self::lab_to_hex(lab),
+            ColorFormat::Xyz => Self::lab_to_xyz(lab),
+            ColorFormat::Oklch => Self::lab_to_oklch(lab),
+            ColorFormat::Lch => Self::lab_to_lch(lab),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use palette::Lab;
+
+    #[test]
+    fn test_lab_to_formats() {
+        let lab = Lab::new(50.0, 25.0, -15.0);
+
+        // Test that formats are consistent and have proper precision
+        let hex = FormatUtils::lab_to_hex(lab);
+        assert!(hex.starts_with('#'));
+        assert_eq!(hex.len(), 7);
+
+        let rgb = FormatUtils::lab_to_rgb(lab);
+        assert!(rgb.starts_with("rgb("));
+        assert!(rgb.ends_with(')'));
+
+        let hsl = FormatUtils::lab_to_hsl(lab);
+        assert!(hsl.starts_with("hsl("));
+        assert!(hsl.contains('%'));
+
+        let lab_str = FormatUtils::lab_to_lab(lab);
+        assert!(lab_str.starts_with("lab("));
+        assert!(lab_str.contains("50.00")); // Check precision
+    }
+
+    #[test]
+    fn test_get_all_formats() {
+        let lab = Lab::new(50.0, 25.0, -15.0);
+        let formats = FormatUtils::get_all_formats(lab);
+
+        assert!(!formats.hex.is_empty());
+        assert!(!formats.rgb.is_empty());
+        assert!(!formats.hsl.is_empty());
+        assert!(!formats.lab.is_empty());
+        assert!(!formats.lch.is_empty());
+    }
+}

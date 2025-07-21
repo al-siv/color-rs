@@ -16,12 +16,14 @@ pub mod color_schemes;
 pub mod color_utils;
 pub mod config;
 pub mod error;
+pub mod file_output;
+pub mod format_utils;
 pub mod gradient;
 pub mod gradient_builder;
 pub mod image;
-pub mod output_utils;
 pub mod output_formats;
-pub mod file_output;
+pub mod output_utils;
+pub mod precision_utils;
 
 // New GoF Pattern Implementations
 pub mod command_pattern;

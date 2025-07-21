@@ -4,7 +4,6 @@
 //! results to TOML and YAML formats using the Strategy pattern for different output types.
 
 use serde::Serialize;
-use std::collections::HashMap;
 
 /// Complete color analysis result that can be serialized to TOML/YAML
 #[derive(Debug, Serialize)]
@@ -14,13 +13,69 @@ pub struct ColorAnalysisOutput {
     /// Input information
     pub input: InputInfo,
     /// Color format conversions
-    pub formats: ColorFormats,
-    /// Additional color information
-    pub additional_info: AdditionalInfo,
+    pub conversion: ColorFormats,
+    /// Contrast and luminance information
+    pub contrast: ContrastData,
+    /// Grayscale variations
+    pub grayscale: GrayscaleData,
     /// Color collection matches
     pub color_collections: ColorCollections,
     /// Color schemes
     pub color_schemes: ColorSchemes,
+}
+
+/// Complete gradient analysis result that can be serialized to TOML/YAML
+#[derive(Debug, Serialize)]
+pub struct GradientAnalysisOutput {
+    /// Program metadata
+    pub metadata: ProgramMetadata,
+    /// Gradient configuration
+    pub configuration: GradientConfiguration,
+    /// Start and end color information
+    pub colors: GradientColors,
+    /// Gradient steps/stops
+    pub gradient_stops: Vec<GradientStop>,
+}
+
+/// Gradient configuration section
+#[derive(Debug, Serialize)]
+pub struct GradientConfiguration {
+    pub start_color: String,
+    pub end_color: String,
+    pub start_position: u8,
+    pub end_position: u8,
+    pub ease_in: f64,
+    pub ease_out: f64,
+    pub gradient_steps: usize,
+}
+
+/// Start and end color information
+#[derive(Debug, Serialize)]
+pub struct GradientColors {
+    pub start: ColorInfo,
+    pub end: ColorInfo,
+}
+
+/// Individual color information
+#[derive(Debug, Serialize)]
+pub struct ColorInfo {
+    pub hex: String,
+    pub rgb: String,
+    pub lab: String,
+    pub lch: String,
+    pub wcag21_relative_luminance: f64,
+}
+
+/// Individual gradient stop
+#[derive(Debug, Serialize)]
+pub struct GradientStop {
+    pub position: f64,
+    pub hex: String,
+    pub rgb: String,
+    pub lab: String,
+    pub lch: String,
+    pub wcag21_relative_luminance: f64,
+    pub color_name: Option<ColorNameInfo>,
 }
 
 /// Program metadata section
@@ -31,6 +86,7 @@ pub struct ProgramMetadata {
     pub author: String,
     pub description: String,
     pub generated_at: String,
+    pub distance_strategy: String,
 }
 
 /// Input color information
@@ -54,18 +110,23 @@ pub struct ColorFormats {
     pub oklch: String,
 }
 
-/// Additional color information
+/// Contrast and luminance information
 #[derive(Debug, Serialize)]
-pub struct AdditionalInfo {
+pub struct ContrastData {
+    pub wcag21_relative_luminance: f64,
+    pub contrast_vs_white: ContrastInfo,
+    pub contrast_vs_black: ContrastInfo,
+    pub brightness: BrightnessInfo,
+}
+
+/// Grayscale variations
+#[derive(Debug, Serialize)]
+pub struct GrayscaleData {
     pub grayscale_lab: String,
     pub grayscale_lch_0: String,
     pub grayscale_lch_2: String,
     pub grayscale_lch_4: String,
     pub grayscale_lch_6: String,
-    pub relative_luminance: f64,
-    pub contrast_vs_white: ContrastInfo,
-    pub contrast_vs_black: ContrastInfo,
-    pub brightness: BrightnessInfo,
 }
 
 /// Contrast information
@@ -91,12 +152,14 @@ pub struct ColorCollections {
 }
 
 /// Individual color match
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct ColorMatch {
     pub name: String,
     pub hex: String,
+    pub lch: String,
     pub code: Option<String>,
     pub delta_e_distance: f64,
+    pub wcag21_relative_luminance: f64,
 }
 
 /// Color schemes
@@ -106,22 +169,48 @@ pub struct ColorSchemes {
     pub lab_strategy: ColorSchemeSet,
 }
 
+/// Individual color scheme item with format conversions and color name matching
+#[derive(Debug, Serialize)]
+pub struct ColorSchemeItem {
+    pub hex: String,
+    pub hsl: String,
+    pub lch: String,
+    pub color_name: Option<ColorNameInfo>,
+}
+
+/// Color name information with exact and nearest matches
+#[derive(Debug, Serialize)]
+pub struct ColorNameInfo {
+    pub exact: Option<String>,
+    pub nearest: Option<NearestColorMatch>,
+}
+
+/// Nearest color match information with distance
+#[derive(Debug, Serialize)]
+pub struct NearestColorMatch {
+    pub name: String,
+    pub collection: String,
+    pub distance: f64,
+}
+
 /// Set of color schemes for a strategy
 #[derive(Debug, Serialize)]
 pub struct ColorSchemeSet {
-    pub complementary: String,
-    pub split_complementary: Vec<String>,
-    pub triadic: Vec<String>,
+    pub complementary: ColorSchemeItem,
+    pub split_complementary: Vec<ColorSchemeItem>,
+    pub triadic: Vec<ColorSchemeItem>,
+    pub tetradic: Vec<ColorSchemeItem>,
 }
 
 impl ColorAnalysisOutput {
     /// Create a new empty color analysis output
     pub fn new() -> Self {
         Self {
-            metadata: ProgramMetadata::new(),
+            metadata: ProgramMetadata::new(None),
             input: InputInfo::default(),
-            formats: ColorFormats::default(),
-            additional_info: AdditionalInfo::default(),
+            conversion: ColorFormats::default(),
+            contrast: ContrastData::default(),
+            grayscale: GrayscaleData::default(),
             color_collections: ColorCollections::default(),
             color_schemes: ColorSchemes::default(),
         }
@@ -137,14 +226,20 @@ impl ColorAnalysisOutput {
     }
 
     /// Set color formats
-    pub fn with_formats(mut self, formats: ColorFormats) -> Self {
-        self.formats = formats;
+    pub fn with_conversion(mut self, conversion: ColorFormats) -> Self {
+        self.conversion = conversion;
         self
     }
 
-    /// Set additional information
-    pub fn with_additional_info(mut self, additional_info: AdditionalInfo) -> Self {
-        self.additional_info = additional_info;
+    /// Set contrast information
+    pub fn with_contrast(mut self, contrast: ContrastData) -> Self {
+        self.contrast = contrast;
+        self
+    }
+
+    /// Set grayscale information
+    pub fn with_grayscale(mut self, grayscale: GrayscaleData) -> Self {
+        self.grayscale = grayscale;
         self
     }
 
@@ -166,21 +261,34 @@ impl ColorAnalysisOutput {
     }
 
     /// Serialize to YAML format
-    pub fn to_yaml(&self) -> Result<String, serde_yaml::Error> {
-        serde_yaml::to_string(self)
+    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
+        serde_yml::to_string(self)
+    }
+}
+
+impl GradientAnalysisOutput {
+    /// Serialize to TOML format
+    pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string_pretty(self)
+    }
+
+    /// Serialize to YAML format
+    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
+        serde_yml::to_string(self)
     }
 }
 
 impl ProgramMetadata {
-    fn new() -> Self {
+    pub fn new(distance_strategy: Option<&str>) -> Self {
         use chrono::Utc;
-        
+
         Self {
             program_name: crate::config::APP_NAME.to_string(),
             version: crate::config::APP_VERSION.to_string(),
             author: crate::config::APP_AUTHOR.to_string(),
             description: crate::config::APP_ABOUT.to_string(),
             generated_at: Utc::now().to_rfc3339(),
+            distance_strategy: distance_strategy.unwrap_or("LAB Delta E").to_string(),
         }
     }
 }
@@ -210,7 +318,18 @@ impl Default for ColorFormats {
     }
 }
 
-impl Default for AdditionalInfo {
+impl Default for ContrastData {
+    fn default() -> Self {
+        Self {
+            wcag21_relative_luminance: 0.0,
+            contrast_vs_white: ContrastInfo::default(),
+            contrast_vs_black: ContrastInfo::default(),
+            brightness: BrightnessInfo::default(),
+        }
+    }
+}
+
+impl Default for GrayscaleData {
     fn default() -> Self {
         Self {
             grayscale_lab: String::new(),
@@ -218,10 +337,6 @@ impl Default for AdditionalInfo {
             grayscale_lch_2: String::new(),
             grayscale_lch_4: String::new(),
             grayscale_lch_6: String::new(),
-            relative_luminance: 0.0,
-            contrast_vs_white: ContrastInfo::default(),
-            contrast_vs_black: ContrastInfo::default(),
-            brightness: BrightnessInfo::default(),
         }
     }
 }
@@ -263,12 +378,24 @@ impl Default for ColorSchemes {
     }
 }
 
+impl Default for ColorSchemeItem {
+    fn default() -> Self {
+        Self {
+            hex: String::new(),
+            hsl: String::new(),
+            lch: String::new(),
+            color_name: None,
+        }
+    }
+}
+
 impl Default for ColorSchemeSet {
     fn default() -> Self {
         Self {
-            complementary: String::new(),
+            complementary: ColorSchemeItem::default(),
             split_complementary: Vec::new(),
             triadic: Vec::new(),
+            tetradic: Vec::new(),
         }
     }
 }

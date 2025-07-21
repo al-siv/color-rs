@@ -140,5 +140,3 @@ pub const LABEL_GRADIENT_END_COLOR: &str = "End Color";
 pub const RGB_WHITE: (u8, u8, u8) = (255, 255, 255);
 pub const RGB_BLACK: (u8, u8, u8) = (0, 0, 0);
 pub const RGB_GRAY: (u8, u8, u8) = (128, 128, 128);
-
-

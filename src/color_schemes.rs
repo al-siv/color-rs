@@ -22,6 +22,9 @@ pub trait ColorSchemeStrategy {
     /// Calculate triadic colors  
     fn triadic(&self, color: Lab) -> (Lab, Lab);
 
+    /// Calculate tetradic colors (four colors, evenly spaced)
+    fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab);
+
     /// Get the name of this strategy
     fn name(&self) -> &'static str;
 }
@@ -46,6 +49,16 @@ impl ColorSchemeStrategy for HslColorSchemeStrategy {
         let hsl: Hsl = color.into_color();
         let (tri1, tri2) = hsl.triadic();
         (tri1.into_color(), tri2.into_color())
+    }
+
+    fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
+        let hsl: Hsl = color.into_color();
+        // Tetradic: rotate hue by 90, 180, and 270 degrees
+        let hue = hsl.hue.into_positive_degrees();
+        let tet1: Hsl = Hsl::new((hue + 90.0) % 360.0, hsl.saturation, hsl.lightness);
+        let tet2: Hsl = Hsl::new((hue + 180.0) % 360.0, hsl.saturation, hsl.lightness);
+        let tet3: Hsl = Hsl::new((hue + 270.0) % 360.0, hsl.saturation, hsl.lightness);
+        (tet1.into_color(), tet2.into_color(), tet3.into_color())
     }
 
     fn name(&self) -> &'static str {
@@ -74,6 +87,20 @@ impl ColorSchemeStrategy for LabColorSchemeStrategy {
         let lch = palette::Lch::from_color(color);
         let (tri1, tri2) = lch.triadic();
         (Lab::from_color(tri1), Lab::from_color(tri2))
+    }
+
+    fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
+        let lch = palette::Lch::from_color(color);
+        // Tetradic: rotate hue by 90, 180, and 270 degrees
+        let hue = lch.hue.into_positive_degrees();
+        let tet1 = palette::Lch::new(lch.l, lch.chroma, (hue + 90.0) % 360.0);
+        let tet2 = palette::Lch::new(lch.l, lch.chroma, (hue + 180.0) % 360.0);
+        let tet3 = palette::Lch::new(lch.l, lch.chroma, (hue + 270.0) % 360.0);
+        (
+            Lab::from_color(tet1),
+            Lab::from_color(tet2),
+            Lab::from_color(tet3),
+        )
     }
 
     fn name(&self) -> &'static str {
@@ -158,19 +185,23 @@ pub struct ColorSchemeResult {
     pub hsl_complementary: Lab,
     pub hsl_split_complementary: (Lab, Lab),
     pub hsl_triadic: (Lab, Lab),
+    pub hsl_tetradic: (Lab, Lab, Lab),
 
     // Lab strategy results
     pub lab_complementary: Lab,
     pub lab_split_complementary: (Lab, Lab),
     pub lab_triadic: (Lab, Lab),
+    pub lab_tetradic: (Lab, Lab, Lab),
 
     // Luminance-matched variations (if requested)
     pub luminance_matched_hsl_complementary: Option<Lab>,
     pub luminance_matched_hsl_split_complementary: Option<(Lab, Lab)>,
     pub luminance_matched_hsl_triadic: Option<(Lab, Lab)>,
+    pub luminance_matched_hsl_tetradic: Option<(Lab, Lab, Lab)>,
     pub luminance_matched_lab_complementary: Option<Lab>,
     pub luminance_matched_lab_split_complementary: Option<(Lab, Lab)>,
     pub luminance_matched_lab_triadic: Option<(Lab, Lab)>,
+    pub luminance_matched_lab_tetradic: Option<(Lab, Lab, Lab)>,
 }
 
 impl ColorSchemeCalculator {
@@ -191,11 +222,13 @@ impl ColorSchemeCalculator {
         let hsl_complementary = hsl_strategy.complementary(base_color);
         let hsl_split_complementary = hsl_strategy.split_complementary(base_color);
         let hsl_triadic = hsl_strategy.triadic(base_color);
+        let hsl_tetradic = hsl_strategy.tetradic(base_color);
 
         // Calculate Lab-based color schemes
         let lab_complementary = lab_strategy.complementary(base_color);
         let lab_split_complementary = lab_strategy.split_complementary(base_color);
         let lab_triadic = lab_strategy.triadic(base_color);
+        let lab_tetradic = lab_strategy.tetradic(base_color);
 
         // Calculate luminance-matched variations for HSL results if requested
         let luminance_matched_hsl_complementary = if self.preserve_relative_luminance {
@@ -269,20 +302,52 @@ impl ColorSchemeCalculator {
             None
         };
 
+        let luminance_matched_hsl_tetradic = if self.preserve_relative_luminance {
+            let tet1 = preserve_wcag_relative_luminance(hsl_tetradic.0, base_color)?;
+            let tet2 = preserve_wcag_relative_luminance(hsl_tetradic.1, base_color)?;
+            let tet3 = preserve_wcag_relative_luminance(hsl_tetradic.2, base_color)?;
+            Some((tet1, tet2, tet3))
+        } else if self.preserve_lab_luminance {
+            let tet1 = preserve_lab_luminance(hsl_tetradic.0, base_color)?;
+            let tet2 = preserve_lab_luminance(hsl_tetradic.1, base_color)?;
+            let tet3 = preserve_lab_luminance(hsl_tetradic.2, base_color)?;
+            Some((tet1, tet2, tet3))
+        } else {
+            None
+        };
+
+        let luminance_matched_lab_tetradic = if self.preserve_relative_luminance {
+            let tet1 = preserve_wcag_relative_luminance(lab_tetradic.0, base_color)?;
+            let tet2 = preserve_wcag_relative_luminance(lab_tetradic.1, base_color)?;
+            let tet3 = preserve_wcag_relative_luminance(lab_tetradic.2, base_color)?;
+            Some((tet1, tet2, tet3))
+        } else if self.preserve_lab_luminance {
+            let tet1 = preserve_lab_luminance(lab_tetradic.0, base_color)?;
+            let tet2 = preserve_lab_luminance(lab_tetradic.1, base_color)?;
+            let tet3 = preserve_lab_luminance(lab_tetradic.2, base_color)?;
+            Some((tet1, tet2, tet3))
+        } else {
+            None
+        };
+
         Ok(ColorSchemeResult {
             base_color,
             hsl_complementary,
             hsl_split_complementary,
             hsl_triadic,
+            hsl_tetradic,
             lab_complementary,
             lab_split_complementary,
             lab_triadic,
+            lab_tetradic,
             luminance_matched_hsl_complementary,
             luminance_matched_hsl_split_complementary,
             luminance_matched_hsl_triadic,
+            luminance_matched_hsl_tetradic,
             luminance_matched_lab_complementary,
             luminance_matched_lab_split_complementary,
             luminance_matched_lab_triadic,
+            luminance_matched_lab_tetradic,
         })
     }
 }

@@ -95,7 +95,9 @@ impl ColorUtils {
     /// # Example
     /// ```rust
     /// use color_rs::color_utils::ColorUtils;
-    /// let luminance = ColorUtils::wcag_relative_luminance(255, 87, 51);
+    /// use palette::Srgb;
+    /// let srgb: Srgb = Srgb::new(1.0, 0.341, 0.2); // #FF5733
+    /// let luminance = ColorUtils::wcag_relative_luminance(srgb);
     /// // Returns approximately 0.283 for #FF5733
     /// ```
     pub fn wcag_relative_luminance(srgb: Srgb) -> f64 {
@@ -141,7 +143,10 @@ impl ColorUtils {
     /// # Example
     /// ```rust
     /// use color_rs::color_utils::ColorUtils;
-    /// let ratio = ColorUtils::wcag_contrast_ratio((255, 87, 51), (255, 255, 255));
+    /// use palette::Srgb;
+    /// let color1: Srgb = Srgb::new(1.0, 0.341, 0.2); // #FF5733
+    /// let color2: Srgb = Srgb::new(1.0, 1.0, 1.0); // white
+    /// let ratio = ColorUtils::wcag_contrast_ratio(color1, color2);
     /// // Returns approximately 3.15 for #FF5733 vs white
     /// ```
     pub fn wcag_contrast_ratio(srgb1: Srgb, srgb2: Srgb) -> f64 {
@@ -293,11 +298,7 @@ impl ColorUtils {
     /// * (l, c, h) tuple where l is lightness (0.0-1.0), c is chroma, h is hue in degrees
     pub fn lab_to_oklch_tuple(lab: Lab) -> (f32, f32, f32) {
         let oklch = palette::Oklch::from_color(lab);
-        (
-            oklch.l,
-            oklch.chroma,
-            oklch.hue.into_positive_degrees(),
-        )
+        (oklch.l, oklch.chroma, oklch.hue.into_positive_degrees())
     }
 
     /// Convert a palette::Srgb<f64> to Lab color space
@@ -337,11 +338,7 @@ impl ColorUtils {
     /// * (l, c, h) tuple where l is lightness, c is chroma, h is hue in degrees
     pub fn lab_to_lch_tuple(lab: Lab) -> (f32, f32, f32) {
         let lch: palette::Lch = palette::Lch::from_color(lab);
-        (
-            lch.l,
-            lch.chroma,
-            lch.hue.into_positive_degrees(),
-        )
+        (lch.l, lch.chroma, lch.hue.into_positive_degrees())
     }
 
     /// Convert a "tulip" LAB color (L, a, b as f32) to palette::Lab
@@ -363,11 +360,7 @@ impl ColorUtils {
     /// # Returns
     /// * Lab color space representation
     pub fn lch_tulip_to_lab(lch: (f32, f32, f32)) -> Lab {
-        let lch_color = palette::Lch::new(
-            lch.0,
-            lch.1,
-            lch.2,
-        );
+        let lch_color = palette::Lch::new(lch.0, lch.1, lch.2);
         Lab::from_color(lch_color)
     }
 
@@ -566,12 +559,13 @@ impl ColorUtils {
     /// # Returns
     /// * (r, g, b) tuple where each component is clamped and rounded to 0-255
     pub fn srgb_to_rgb(srgb: Srgb) -> (u8, u8, u8) {
-        let r = (srgb.red.clamp(0.0, 1.0) * 255.0)
-            .round().clamp(0.0, 255.0) as u8;
+        let r = (srgb.red.clamp(0.0, 1.0) * 255.0).round().clamp(0.0, 255.0) as u8;
         let g = (srgb.green.clamp(0.0, 1.0) * 255.0)
-            .round().clamp(0.0, 255.0) as u8;
+            .round()
+            .clamp(0.0, 255.0) as u8;
         let b = (srgb.blue.clamp(0.0, 1.0) * 255.0)
-            .round().clamp(0.0, 255.0) as u8;
+            .round()
+            .clamp(0.0, 255.0) as u8;
         (r, g, b)
     }
 
@@ -661,7 +655,7 @@ impl ColorUtils {
     /// # Example
     /// ```rust
     /// use color_rs::color_utils::ColorUtils;
-    /// let (c, m, y, k) = ColorUtils::rgb_to_cmyk(255, 87, 51);
+    /// let (c, m, y, k) = ColorUtils::rgb_to_cmyk_tuple((255, 87, 51));
     /// // Returns CMYK values for #FF5733
     /// ```
     pub fn rgb_to_cmyk_tuple(rgb: (u8, u8, u8)) -> (f32, f32, f32, f32) {

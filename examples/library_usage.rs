@@ -59,6 +59,8 @@ fn main() -> Result<()> {
         grad_step: Some(10),
         grad_stops: 5, // Default value
         grad_stops_simple: Some(7),
+        output_format: None,
+        output_file: None,
     };
 
     // This will generate the gradient and save SVG file

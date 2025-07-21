@@ -23,6 +23,8 @@
 use crate::color_utils::*;
 use crate::config::*;
 use crate::error::Result;
+use crate::format_utils::ColorFormat;
+use crate::output_formats::*;
 use crate::output_utils::*;
 use colored::*;
 use palette::{Hsl, IntoColor, Lab, Lch, Srgb};
@@ -32,18 +34,14 @@ pub struct ColorFormatter;
 
 impl ColorFormatter {
     /// Format a color into a comprehensive analysis report with optional strategy (defaults to DeltaE2000)
-    pub fn format_comprehensive_report(
-        lab_color: Lab, 
-        original_input: &str, 
-        color_name: &str
-    ) {
+    pub fn format_comprehensive_report(lab_color: Lab, original_input: &str, color_name: &str) {
         // Use default DeltaE2000 strategy
         let default_strategy = crate::color_distance_strategies::DeltaE2000Strategy::default();
         let _ = Self::format_comprehensive_report_with_strategy(
-            lab_color, 
-            original_input, 
-            color_name, 
-            &default_strategy
+            lab_color,
+            original_input,
+            color_name,
+            &default_strategy,
         );
     }
 
@@ -164,8 +162,7 @@ impl ColorFormatter {
             manager.find_closest_ral_classic_with_strategy(rgb_array, 2, strategy);
         Self::write_unified_collection_results(COLLECTION_RAL_CLASSIC, &classic_matches);
 
-        let design_matches =
-            manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
+        let design_matches = manager.find_closest_ral_design_with_strategy(rgb_array, 2, strategy);
         Self::write_unified_collection_results(COLLECTION_RAL_DESIGN, &design_matches);
 
         println!();
@@ -418,6 +415,214 @@ impl ColorFormatter {
                 "lab({:.2}, {:.2}, {:.2})",
                 lab_color.l, lab_color.a, lab_color.b
             ),
+        }
+    }
+
+    /// Collect color analysis data for file output instead of printing
+    pub fn collect_color_analysis_data(
+        lab_color: Lab,
+        original_input: &str,
+        color_name: &str,
+        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    ) -> Result<ColorAnalysisOutput> {
+        let conversion = Self::collect_format_conversions(lab_color);
+        let contrast = Self::collect_contrast_data(lab_color);
+        let grayscale = Self::collect_grayscale_data(lab_color);
+        let color_collections = Self::collect_color_collections(lab_color, color_name, strategy);
+
+        let mut output = ColorAnalysisOutput::new();
+        // Update metadata with distance strategy
+        output.metadata = crate::output_formats::ProgramMetadata::new(Some(strategy.name()));
+
+        Ok(output
+            .with_input(
+                original_input.to_string(),
+                ColorUtils::lab_to_hex(lab_color),
+            )
+            .with_conversion(conversion)
+            .with_contrast(contrast)
+            .with_grayscale(grayscale)
+            .with_color_collections(color_collections))
+    }
+
+    /// Collect format conversion data
+    /// Collect format conversion data using centralized formatting utilities
+    fn collect_format_conversions(lab_color: Lab) -> ColorFormats {
+        crate::format_utils::FormatUtils::get_all_formats(lab_color)
+    }
+
+    /// Collect contrast and luminance data
+    fn collect_contrast_data(lab_color: Lab) -> ContrastData {
+        let srgb = ColorUtils::lab_to_srgb(lab_color);
+        let relative_luminance = ColorUtils::wcag_relative_luminance(srgb);
+        let white_luminance = 1.0;
+        let black_luminance = 0.0;
+
+        let white_contrast = if relative_luminance > white_luminance {
+            (relative_luminance + 0.05) / (white_luminance + 0.05)
+        } else {
+            (white_luminance + 0.05) / (relative_luminance + 0.05)
+        };
+
+        let black_contrast = if relative_luminance > black_luminance {
+            (relative_luminance + 0.05) / (black_luminance + 0.05)
+        } else {
+            (black_luminance + 0.05) / (relative_luminance + 0.05)
+        };
+
+        ContrastData {
+            wcag21_relative_luminance: relative_luminance,
+            contrast_vs_white: ContrastInfo {
+                ratio: white_contrast,
+                assessment: Self::assess_contrast_level(white_contrast),
+            },
+            contrast_vs_black: ContrastInfo {
+                ratio: black_contrast,
+                assessment: Self::assess_contrast_level(black_contrast),
+            },
+            brightness: BrightnessInfo {
+                lab_assessment: Self::assess_lab_brightness(lab_color.l),
+                wcag_assessment: Self::assess_wcag_brightness(relative_luminance),
+            },
+        }
+    }
+
+    /// Assess contrast level
+    fn assess_contrast_level(ratio: f64) -> String {
+        if ratio >= 7.0 {
+            "High".to_string()
+        } else if ratio >= 4.5 {
+            "Medium".to_string()
+        } else if ratio >= 3.0 {
+            "Low".to_string()
+        } else {
+            "Very Low".to_string()
+        }
+    }
+
+    /// Assess LAB brightness
+    fn assess_lab_brightness(l: f32) -> String {
+        if l >= 70.0 {
+            "Light".to_string()
+        } else if l >= 50.0 {
+            "Medium".to_string()
+        } else {
+            "Dark".to_string()
+        }
+    }
+
+    /// Assess WCAG brightness
+    fn assess_wcag_brightness(luminance: f64) -> String {
+        if luminance >= 0.5 {
+            "Light".to_string()
+        } else {
+            "Dark".to_string()
+        }
+    }
+
+    /// Collect grayscale variations data
+    fn collect_grayscale_data(lab_color: Lab) -> GrayscaleData {
+        let lch = ColorUtils::lab_to_lch(lab_color);
+
+        GrayscaleData {
+            grayscale_lab: format!("lab({:.2}, 0.000, 0.000)", lab_color.l),
+            grayscale_lch_0: format!(
+                "lch({:.2}, 0.000, {:.1})",
+                lch.l,
+                lch.hue.into_positive_degrees()
+            ),
+            grayscale_lch_2: format!(
+                "lch({:.2}, 2.000, {:.1})",
+                lch.l,
+                lch.hue.into_positive_degrees()
+            ),
+            grayscale_lch_4: format!(
+                "lch({:.2}, 4.000, {:.1})",
+                lch.l,
+                lch.hue.into_positive_degrees()
+            ),
+            grayscale_lch_6: format!(
+                "lch({:.2}, 6.000, {:.1})",
+                lch.l,
+                lch.hue.into_positive_degrees()
+            ),
+        }
+    }
+
+    /// Collect color collection matches with up to 4 colors and relative luminance
+    fn collect_color_collections(
+        lab_color: Lab,
+        _color_name: &str,
+        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    ) -> ColorCollections {
+        use crate::color_parser::unified_manager::UnifiedColorManager;
+
+        let manager = UnifiedColorManager::new().unwrap_or_default();
+        let srgb = ColorUtils::lab_to_srgb(lab_color);
+        let rgb = [
+            (srgb.red * 255.0) as u8,
+            (srgb.green * 255.0) as u8,
+            (srgb.blue * 255.0) as u8,
+        ];
+
+        // Get CSS colors
+        let css_matches = manager.find_closest_css_colors_with_strategy(rgb, 4, strategy);
+        let css_colors = css_matches
+            .into_iter()
+            .map(|m| {
+                let match_lab = Lab::from(m.entry.color.lab);
+                let match_srgb = ColorUtils::lab_to_srgb(match_lab);
+                ColorMatch {
+                    name: m.entry.metadata.name.clone(),
+                    hex: ColorUtils::lab_to_hex(match_lab),
+                    lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
+                    code: m.entry.metadata.code.clone(),
+                    delta_e_distance: m.distance,
+                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(match_srgb),
+                }
+            })
+            .collect();
+
+        // Get RAL Classic colors
+        let ral_classic_matches = manager.find_closest_ral_classic_with_strategy(rgb, 4, strategy);
+        let ral_classic = ral_classic_matches
+            .into_iter()
+            .map(|m| {
+                let match_lab = Lab::from(m.entry.color.lab);
+                let match_srgb = ColorUtils::lab_to_srgb(match_lab);
+                ColorMatch {
+                    name: m.entry.metadata.name.clone(),
+                    hex: ColorUtils::lab_to_hex(match_lab),
+                    lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
+                    code: m.entry.metadata.code.clone(),
+                    delta_e_distance: m.distance,
+                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(match_srgb),
+                }
+            })
+            .collect();
+
+        // Get RAL Design colors
+        let ral_design_matches = manager.find_closest_ral_design_with_strategy(rgb, 4, strategy);
+        let ral_design = ral_design_matches
+            .into_iter()
+            .map(|m| {
+                let match_lab = Lab::from(m.entry.color.lab);
+                let match_srgb = ColorUtils::lab_to_srgb(match_lab);
+                ColorMatch {
+                    name: m.entry.metadata.name.clone(),
+                    hex: ColorUtils::lab_to_hex(match_lab),
+                    lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
+                    code: m.entry.metadata.code.clone(),
+                    delta_e_distance: m.distance,
+                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(match_srgb),
+                }
+            })
+            .collect();
+
+        ColorCollections {
+            css_colors,
+            ral_classic,
+            ral_design,
         }
     }
 

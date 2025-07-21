@@ -16,14 +16,16 @@ use palette::{IntoColor, Lab, Srgb};
 /// # Example
 /// ```rust
 /// use color_rs::ColorOperationsFacade;
+/// use palette::Srgb;
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let facade = ColorOperationsFacade::new();
 ///
 /// // Simple color conversion
-/// let rgb = facade.hex_to_rgb("#FF5733")?;
-/// let lab = facade.rgb_to_lab(rgb)?;
-/// let contrast = facade.calculate_contrast(rgb, (255, 255, 255))?;
+/// let rgb = facade.hex_to_srgb("#FF5733")?;
+/// let lab = facade.srgb_to_lab(rgb)?;
+/// let white: Srgb = Srgb::new(1.0, 1.0, 1.0);
+/// let contrast = facade.calculate_contrast(rgb, white)?;
 /// # Ok(())
 /// # }
 /// ```

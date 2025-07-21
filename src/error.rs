@@ -94,13 +94,20 @@ pub trait IoResultExt<T> {
     ///
     /// # Example
     /// ```rust
-    /// use crate::error::IoResultExt;
+    /// use color_rs::error::{IoResultExt, Result};
+    /// use std::fs;
     ///
+    /// # fn main() -> Result<()> {
     /// // Instead of:
-    /// // some_io_operation().map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))?;
+    /// // fs::read_to_string("file.txt").map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))?;
     ///
     /// // You can write:
-    /// some_io_operation().to_err()?;
+    /// match fs::read_to_string("nonexistent.txt").to_err() {
+    ///     Ok(_content) => println!("File found"),
+    ///     Err(e) => println!("Expected error: {}", e),
+    /// }
+    /// # Ok(())
+    /// # }
     /// ```
     fn to_err(self) -> Result<T>;
 }
@@ -119,13 +126,20 @@ pub trait Utf8ResultExt {
     ///
     /// # Example
     /// ```rust
-    /// use crate::error::Utf8ResultExt;
+    /// use color_rs::error::{Utf8ResultExt, Result};
     ///
+    /// # fn main() -> Result<()> {
+    /// let bytes = vec![0xc3, 0x28]; // Invalid UTF-8 sequence
     /// // Instead of:
     /// // String::from_utf8(bytes).map_err(|e| ColorError::InvalidColor(format!("UTF-8 error: {}", e)))?;
     ///
     /// // You can write:
-    /// String::from_utf8(bytes).to_err()?;
+    /// match String::from_utf8(bytes).to_err() {
+    ///     Ok(_string) => println!("Valid UTF-8"),
+    ///     Err(e) => println!("Expected error: {}", e),
+    /// }
+    /// # Ok(())
+    /// # }
     /// ```
     fn to_err(self) -> Result<String>;
 }

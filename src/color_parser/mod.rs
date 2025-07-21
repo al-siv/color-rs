@@ -189,6 +189,11 @@ impl ColorParser {
             format!("rgb({}, {}, {})", rgb.0, rgb.1, rgb.2) // Fallback to RGB notation
         }
     }
+
+    /// Get access to the CSS color collection
+    pub fn css_collection(&self) -> &CssColorCollection {
+        &self.css_collection
+    }
 }
 
 impl Default for ColorParser {

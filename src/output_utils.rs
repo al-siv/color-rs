@@ -1,21 +1,8 @@
 use crate::color_utils::*;
 use crate::config::*;
+use crate::format_utils::{ColorFormat, FormatUtils};
 use colored::*;
-use palette::{Lab, Srgb};
-
-/// Enum for selecting the color output type.
-#[derive(PartialEq)]
-pub enum ColorFormat {
-    Hex,
-    Lab,
-    Rgb,
-    Hsl,
-    Hsv,
-    Cmyk,
-    Xyz,
-    Oklch,
-    Lch,
-}
+use palette::Lab;
 
 pub struct OutputUtils;
 
@@ -37,68 +24,12 @@ impl OutputUtils {
             .green()
     }
 
-    fn make_lab(lab: Lab) -> String {
-        format!("lab({:.2}, {:.2}, {:.2})", lab.l, lab.a, lab.b)
-    }
-
-    fn make_rgb(lab: Lab) -> String {
-        let (r, g, b) = ColorUtils::lab_to_rgb(lab);
-        format!("rgb({}, {}, {})", r, g, b)
-    }
-
-    fn make_hsl(lab: Lab) -> String {
-        let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab);
-        format!("hsl({:.1}, {:.2}%, {:.2}%)", h, s * 100.0, l * 100.0)
-    }
-
-    fn make_hsv(lab: Lab) -> String {
-        let (h, s, v) = ColorUtils::lab_to_hsv_tuple(lab);
-        format!("hsv({:.1}, {:.2}%, {:.2}%)", h, s * 100.0, v * 100.0)
-    }
-
-    fn make_cmyk(lab: Lab) -> String {
-        let (c, m, y, k) = ColorUtils::lab_to_cmyk_tuple(lab);
-        format!(
-            "cmyk({:.1}%, {:.1}%, {:.1}%, {:.1}%)",
-            c * 100.0,
-            m * 100.0,
-            y * 100.0,
-            k * 100.0
-        )
-    }
-
-    fn make_xyz(lab: Lab) -> String {
-        let (x, y, z) = ColorUtils::lab_to_xyz_tuple(lab);
-        format!("xyz({:.2}, {:.2}, {:.2})", x, y, z)
+    fn make_format(lab: Lab, color_format: &ColorFormat) -> String {
+        FormatUtils::format_color(lab, color_format)
     }
 
     fn make_hex(lab: Lab) -> String {
-        let srgb: Srgb = ColorUtils::lab_to_srgb(lab);
-        ColorUtils::srgb_to_hex(srgb)
-    }
-
-    fn make_oklch(lab: Lab) -> String {
-        let (l, c, h) = ColorUtils::lab_to_oklch_tuple(lab);
-        format!("oklch({:.3}, {:.3}, {:.1})", l, c, h)
-    }
-
-    fn make_lch(lab: Lab) -> String {
-        let (l, c, h) = ColorUtils::lab_to_lch_tuple(lab);
-        format!("lch({:.2}, {:.2}, {:.1})", l, c, h)
-    }
-
-    fn make_format(lab: Lab, color_format: &ColorFormat) -> String {
-        match color_format {
-            ColorFormat::Lab => Self::make_lab(lab),
-            ColorFormat::Rgb => Self::make_rgb(lab),
-            ColorFormat::Hsl => Self::make_hsl(lab),
-            ColorFormat::Hsv => Self::make_hsv(lab),
-            ColorFormat::Cmyk => Self::make_cmyk(lab),
-            ColorFormat::Hex => Self::make_hex(lab),
-            ColorFormat::Xyz => Self::make_xyz(lab),
-            ColorFormat::Oklch => Self::make_oklch(lab),
-            ColorFormat::Lch => Self::make_lch(lab),
-        }
+        FormatUtils::lab_to_hex(lab)
     }
 
     /// Writes a formatted header with a specific width and style.
@@ -107,7 +38,11 @@ impl OutputUtils {
     }
 
     pub fn print_f64_ln(label: &str, value: f64) {
-        println!("{} {:.3}", Self::make_label(label), value);
+        println!(
+            "{} {}",
+            Self::make_label(label),
+            crate::precision_utils::PrecisionUtils::format_f64(value)
+        );
     }
 
     fn get_contrast(lab: Lab, rgb2: (u8, u8, u8)) -> (f32, ColoredString) {
@@ -125,12 +60,7 @@ impl OutputUtils {
 
     pub fn print_contrast_ln(label: &str, contrast: (f32, ColoredString)) {
         let (val, assessment) = contrast;
-        println!(
-            "{} {:.2}:1 [{}]",
-            Self::make_label(label),
-            val,
-            assessment
-        );
+        println!("{} {:.2}:1 [{}]", Self::make_label(label), val, assessment);
     }
 
     pub fn print_contrast_white_ln(lab_color: Lab) {
@@ -191,7 +121,8 @@ impl OutputUtils {
     }
 
     pub fn print_brightness(lab_color: Lab) {
-        let wcag_luminance = ColorUtils::wcag_relative_luminance(ColorUtils::lab_to_srgb(lab_color));
+        let wcag_luminance =
+            ColorUtils::wcag_relative_luminance(ColorUtils::lab_to_srgb(lab_color));
         println!(
             "{} {} [{}] | {} [{}]",
             format!("{:>width$}", LABEL_BRIGHTNESS, width = COLUMN_WIDTH)

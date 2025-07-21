@@ -257,6 +257,8 @@ mod tests {
             grad_step: None,
             grad_stops: 5,
             grad_stops_simple: None,
+            output_format: None,
+            output_file: None,
         }
     }
 

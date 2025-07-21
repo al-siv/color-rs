@@ -2,7 +2,24 @@
 
 use crate::config::*;
 use crate::error::{ColorError, Result};
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+
+/// Output format for file export
+#[derive(Debug, Clone, ValueEnum)]
+pub enum OutputFormat {
+    /// TOML format output
+    #[clap(alias = "t")]
+    Toml,
+    /// YAML format output  
+    #[clap(alias = "y")]
+    Yaml,
+}
+
+impl Default for OutputFormat {
+    fn default() -> Self {
+        OutputFormat::Toml
+    }
+}
 
 /// Parse percentage values for CLI arguments
 fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
@@ -94,6 +111,24 @@ pub struct GradientArgs {
     /// Number of equally spaced gradient stops to output
     #[arg(long, conflicts_with_all = ["grad_step", "grad_stops"], help = "Number of equally spaced gradient stops")]
     pub grad_stops_simple: Option<usize>,
+
+    /// Output format for file export (toml/t or yaml/y, default: toml)
+    #[arg(
+        short = 'o',
+        long = "output",
+        value_enum,
+        help = "Output format: toml (t) or yaml (y), default: toml"
+    )]
+    pub output_format: Option<OutputFormat>,
+
+    /// Output filename (extension will be added based on format)
+    #[arg(
+        short = 'f',
+        long = "file",
+        value_name = "FILENAME",
+        help = "Output filename (extension added automatically based on format)"
+    )]
+    pub output_file: Option<String>,
 }
 
 impl GradientArgs {
@@ -194,23 +229,23 @@ pub struct ColorArgs {
     )]
     pub luminance: Option<f64>,
 
-    /// Save output to TOML file
+    /// Output format for file export (toml/t or yaml/y, default: toml)
     #[arg(
-        short = 'm',
-        long = "toml",
-        value_name = "FILENAME",
-        help = "Save color analysis to TOML file"
+        short = 'o',
+        long = "output",
+        value_enum,
+        help = "Output format: toml (t) or yaml (y), default: toml"
     )]
-    pub toml_output: Option<String>,
+    pub output_format: Option<OutputFormat>,
 
-    /// Save output to YAML file
+    /// Output filename (extension will be added based on format)
     #[arg(
-        short = 'y',
-        long = "yaml",
-        value_name = "FILENAME", 
-        help = "Save color analysis to YAML file"
+        short = 'f',
+        long = "file",
+        value_name = "FILENAME",
+        help = "Output filename (extension added automatically based on format)"
     )]
-    pub yaml_output: Option<String>,
+    pub output_file: Option<String>,
 }
 
 impl ColorArgs {

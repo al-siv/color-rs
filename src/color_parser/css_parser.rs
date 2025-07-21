@@ -218,7 +218,7 @@ impl CssColorParser {
         // Convert LCH to LAB using color_utils
         let lch = palette::Lch::new(l, c, h);
         let lab = ColorUtils::lch_to_lab(lch);
-        
+
         // Convert LAB to RGB
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
         Ok((r, g, b))

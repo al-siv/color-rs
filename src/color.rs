@@ -1,7 +1,7 @@
 //! Color operations and conversions for color-rs
 
 use crate::color_formatter::ColorFormatter;
-
+use crate::color_parser::{ColorCollection, UniversalColor};
 use crate::color_utils::*;
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
@@ -352,28 +352,320 @@ pub fn color_match_with_schemes(
     let calculator = scheme_builder.build();
     let schemes = calculator.calculate(lab_color)?;
 
-    // Generate comprehensive report with color schemes
-    format_comprehensive_report_with_schemes(schemes, &args.color, &color_name, strategy)
+    // Always use structured TOML/YAML output (terminal + optional file)
+    format_comprehensive_report_with_structured_output(
+        schemes,
+        &args.color,
+        &color_name,
+        strategy,
+        args,
+    )
 }
 
-/// Generate comprehensive report with color schemes included
-fn format_comprehensive_report_with_schemes(
+/// Generate comprehensive report with structured TOML/YAML output for terminal and optional file
+
+/// Generate comprehensive report with file output support
+fn format_comprehensive_report_with_structured_output(
     schemes: crate::color_schemes::ColorSchemeResult,
     input: &str,
     color_name: &str,
     strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    args: &crate::cli::ColorArgs,
 ) -> Result<String> {
-    // Use the strategy-aware ColorFormatter to generate the report
-    ColorFormatter::format_comprehensive_report_with_strategy(
+    use crate::color_formatter::ColorFormatter;
+    use crate::file_output::FileOutputService;
+
+    // Collect structured data for both terminal and file output
+    let mut analysis_data = ColorFormatter::collect_color_analysis_data(
         schemes.base_color,
         input,
         color_name,
         strategy,
     )?;
 
-    // Now add the color schemes section
-    crate::color_formatter::ColorFormatter::format_color_schemes(&schemes);
+    // Add color schemes data
+    let color_schemes = collect_color_schemes_data(&schemes);
+    analysis_data = analysis_data.with_color_schemes(color_schemes);
 
-    // Combine both reports
+    // Determine output format (default to TOML if not specified)
+    let format = args
+        .output_format
+        .as_ref()
+        .unwrap_or(&crate::cli::OutputFormat::Toml);
+
+    // Create output service and generate formatted output
+    let formatted_output = match format {
+        crate::cli::OutputFormat::Toml => analysis_data.to_toml().map_err(|e| {
+            crate::error::ColorError::InvalidArguments(format!(
+                "Failed to serialize to TOML: {}",
+                e
+            ))
+        })?,
+        crate::cli::OutputFormat::Yaml => analysis_data.to_yaml().map_err(|e| {
+            crate::error::ColorError::InvalidArguments(format!(
+                "Failed to serialize to YAML: {}",
+                e
+            ))
+        })?,
+    };
+
+    // Display structured output to terminal with colorization
+    display_colorized_structured_output(&formatted_output, format);
+
+    // Write to file if requested
+    if let Some(filename) = &args.output_file {
+        use crate::cli::OutputFormat;
+        use colored::*;
+
+        match format {
+            OutputFormat::Toml => {
+                let toml_filename = if filename.ends_with(".toml") {
+                    filename.clone()
+                } else {
+                    format!("{}.toml", filename)
+                };
+                FileOutputService::write_toml(&analysis_data, &toml_filename)?;
+                println!(
+                    "Color analysis saved to TOML file: {}",
+                    toml_filename.green()
+                );
+            }
+            OutputFormat::Yaml => {
+                let yaml_filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
+                    filename.clone()
+                } else {
+                    format!("{}.yaml", filename)
+                };
+                FileOutputService::write_yaml(&analysis_data, &yaml_filename)?;
+                println!(
+                    "Color analysis saved to YAML file: {}",
+                    yaml_filename.green()
+                );
+            }
+        }
+    }
+
     Ok(String::new())
+}
+
+/// Display TOML/YAML output to terminal with colorization
+fn display_colorized_structured_output(content: &str, format: &crate::cli::OutputFormat) {
+    use colored::*;
+
+    println!(
+        "{}",
+        format!(
+            "# {} OUTPUT",
+            match format {
+                crate::cli::OutputFormat::Toml => "TOML",
+                crate::cli::OutputFormat::Yaml => "YAML",
+            }
+        )
+        .bold()
+        .blue()
+    );
+
+    for line in content.lines() {
+        let colored_line = colorize_structured_line(line, format);
+        println!("{}", colored_line);
+    }
+}
+
+/// Colorize a single line of TOML/YAML output
+fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> String {
+    use colored::*;
+
+    let trimmed = line.trim_start();
+    let indent = &line[..line.len() - trimmed.len()];
+
+    match format {
+        crate::cli::OutputFormat::Toml => {
+            if trimmed.starts_with('[') && trimmed.ends_with(']') {
+                // Section headers like [metadata], [conversion]
+                format!("{}{}", indent, trimmed.bold().cyan())
+            } else if trimmed.starts_with("[[") && trimmed.ends_with("]]") {
+                // Array section headers like [[color_collections.css_colors]]
+                format!("{}{}", indent, trimmed.bold().magenta())
+            } else if let Some(eq_pos) = trimmed.find(" = ") {
+                // Key = value pairs
+                let key = &trimmed[..eq_pos];
+                let value = &trimmed[eq_pos + 3..];
+                format!("{}{} = {}", indent, key.green(), colorize_value(value))
+            } else {
+                line.to_string()
+            }
+        }
+        crate::cli::OutputFormat::Yaml => {
+            if trimmed.ends_with(':') && !trimmed.contains(' ') {
+                // Top-level keys like "metadata:", "conversion:"
+                format!("{}{}", indent, trimmed.bold().cyan())
+            } else if let Some(colon_pos) = trimmed.find(": ") {
+                // Key: value pairs
+                let key = &trimmed[..colon_pos + 1];
+                let value = &trimmed[colon_pos + 2..];
+                format!("{}{} {}", indent, key.green(), colorize_value(value))
+            } else if trimmed.starts_with("- ") {
+                // Array items
+                format!("{}- {}", indent, colorize_value(&trimmed[2..]))
+            } else {
+                line.to_string()
+            }
+        }
+    }
+}
+
+/// Colorize values based on their type
+fn colorize_value(value: &str) -> String {
+    use colored::*;
+
+    if value.starts_with('"') && value.ends_with('"') {
+        // String values
+        value.yellow().to_string()
+    } else if value.parse::<f64>().is_ok() {
+        // Numeric values
+        value.bright_blue().to_string()
+    } else if value == "true" || value == "false" {
+        // Boolean values
+        value.bright_green().to_string()
+    } else if value.starts_with('#') {
+        // Hex colors
+        value.bright_yellow().to_string()
+    } else if value.starts_with("rgb(")
+        || value.starts_with("hsl(")
+        || value.starts_with("lab(")
+        || value.starts_with("lch(")
+        || value.starts_with("hsv(")
+        || value.starts_with("cmyk(")
+        || value.starts_with("xyz(")
+        || value.starts_with("oklch(")
+    {
+        // Color format values
+        value.bright_cyan().to_string()
+    } else {
+        value.to_string()
+    }
+}
+
+/// Collect color schemes data for file output
+fn collect_color_schemes_data(
+    schemes: &crate::color_schemes::ColorSchemeResult,
+) -> crate::output_formats::ColorSchemes {
+    use crate::color_parser::ColorParser;
+    use crate::color_utils::ColorUtils;
+    use crate::output_formats::{
+        ColorNameInfo, ColorSchemeItem, ColorSchemeSet, ColorSchemes, NearestColorMatch,
+    };
+    use palette::Lab;
+
+    // Create parser for color name matching
+    let parser = ColorParser::new();
+
+    /// Convert a Lab color to a ColorSchemeItem with hex, hsl, lch formats and color name matching
+    fn lab_to_color_scheme_item(lab: Lab, parser: &ColorParser) -> ColorSchemeItem {
+        let hex = ColorUtils::lab_to_hex(lab);
+        let hsl_tuple = ColorUtils::lab_to_hsl_tuple(lab);
+        let hsl = format!(
+            "hsl({:.1}, {:.2}%, {:.2}%)",
+            hsl_tuple.0,
+            hsl_tuple.1 * 100.0,
+            hsl_tuple.2 * 100.0
+        );
+        let lch = crate::format_utils::FormatUtils::lab_to_lch(lab);
+
+        // Get color name information
+        let (r, g, b) = ColorUtils::lab_to_rgb(lab);
+        let color_name = get_color_name_info((r, g, b), parser);
+
+        ColorSchemeItem {
+            hex,
+            hsl,
+            lch,
+            color_name,
+        }
+    }
+
+    /// Get color name information with exact and nearest matches
+    fn get_color_name_info(rgb: (u8, u8, u8), parser: &ColorParser) -> Option<ColorNameInfo> {
+        // Get basic color name
+        let color_name = parser.get_color_name(rgb);
+        
+        // Check if it's an exact match (not a hex/rgb fallback)
+        if color_name.starts_with("#") || color_name.starts_with("rgb(") {
+            return None; // No named color found
+        }
+
+        // Create target color for comparison
+        let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
+        let input_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
+        let css_collection = parser.css_collection();
+        
+        // Check if there's an exact match by comparing hex values directly
+        let exact_match = css_collection.colors().iter().find(|color| {
+            let color_hex = format!("#{:02X}{:02X}{:02X}",
+                color.color.rgb[0],
+                color.color.rgb[1], 
+                color.color.rgb[2]);
+            color_hex.to_uppercase() == input_hex.to_uppercase()
+        });
+        
+        let exact = exact_match.map(|color| color.metadata.name.clone());
+        
+        // Find nearest match with actual distance calculation
+        let nearest_matches = css_collection.find_closest(&target, 1, None);
+        let nearest = if let Some(closest) = nearest_matches.first() {
+            Some(NearestColorMatch {
+                name: closest.entry.metadata.name.clone(),
+                collection: "CSS".to_string(),
+                distance: closest.distance,
+            })
+        } else {
+            None
+        };
+
+        // Only include color_name if we have either exact or nearest
+        if exact.is_some() || nearest.is_some() {
+            Some(ColorNameInfo { exact, nearest })
+        } else {
+            None
+        }
+    }
+
+    let hsl_strategy = ColorSchemeSet {
+        complementary: lab_to_color_scheme_item(schemes.hsl_complementary, &parser),
+        split_complementary: vec![
+            lab_to_color_scheme_item(schemes.hsl_split_complementary.0, &parser),
+            lab_to_color_scheme_item(schemes.hsl_split_complementary.1, &parser),
+        ],
+        triadic: vec![
+            lab_to_color_scheme_item(schemes.hsl_triadic.0, &parser),
+            lab_to_color_scheme_item(schemes.hsl_triadic.1, &parser),
+        ],
+        tetradic: vec![
+            lab_to_color_scheme_item(schemes.hsl_tetradic.0, &parser),
+            lab_to_color_scheme_item(schemes.hsl_tetradic.1, &parser),
+            lab_to_color_scheme_item(schemes.hsl_tetradic.2, &parser),
+        ],
+    };
+
+    let lab_strategy = ColorSchemeSet {
+        complementary: lab_to_color_scheme_item(schemes.lab_complementary, &parser),
+        split_complementary: vec![
+            lab_to_color_scheme_item(schemes.lab_split_complementary.0, &parser),
+            lab_to_color_scheme_item(schemes.lab_split_complementary.1, &parser),
+        ],
+        triadic: vec![
+            lab_to_color_scheme_item(schemes.lab_triadic.0, &parser),
+            lab_to_color_scheme_item(schemes.lab_triadic.1, &parser),
+        ],
+        tetradic: vec![
+            lab_to_color_scheme_item(schemes.lab_tetradic.0, &parser),
+            lab_to_color_scheme_item(schemes.lab_tetradic.1, &parser),
+            lab_to_color_scheme_item(schemes.lab_tetradic.2, &parser),
+        ],
+    };
+
+    ColorSchemes {
+        hsl_strategy,
+        lab_strategy,
+    }
 }
