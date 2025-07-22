@@ -1,153 +1,248 @@
-# Color-rs CLI Reference
+# Color-rs CLI Reference v0.14.1
 
-This document provides comprehensive reference for all color-rs command-line options, subcommands, flags, and environment variables.
+Command-line reference for color-rs: color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations.
 
-## Table of Contents
-
-- [Global Options](#global-options)
-- [Subcommands](#subcommands)
-- [Gradient Command](#gradient-command)
-- [Color-Match Command](#color-match-command)
-- [Environment Variables](#environment-variables)
-- [Usage Examples](#usage-examples)
-
-## Global Options
-
-The color-rs CLI application supports the following global options that apply to all subcommands:
+## Global Commands
 
 ```bash
-color-rs [SUBCOMMAND] [OPTIONS]
+color-rs <COMMAND> [OPTIONS]
 ```
 
-### Available Global Flags
+**Commands:**
+- `gradient` - Generate color gradients using LAB color space with cubic-bezier timing
+- `color` - Analyze and convert colors between different color spaces
+- `help` - Print help information
 
-- `--help, -h`: Display help information
-- `--version, -V`: Display version information
+**Global Options:**
+- `-h, --help` - Print help
+- `-V, --version` - Print version
 
-## Subcommands
+## Color Command
 
-### Overview
+Analyze and convert colors between different color spaces. Outputs comprehensive YAML/TOML data with metadata, conversions, contrast analysis, color collections, and color schemes.
 
-color-rs provides two main subcommands:
+### Syntax
+```bash
+color-rs color [OPTIONS] <COLOR>
+```
 
-1. **`gradient`** - Generate color gradients using LAB color space with cubic-bezier timing
-2. **`color`** - Analyze and convert colors between different color spaces
+### Arguments
+- `<COLOR>` - Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
 
----
+### Options
+- `--distance-method <METHOD>` - Distance calculation method [default: delta-e-2000]
+  - `delta-e-76` - CIE Delta E 1976 (faster)
+  - `delta-e-2000` - CIE Delta E 2000 (perceptually accurate)
+  - `euclidean-lab` - Euclidean distance in LAB space
+  - `lch` - LCH-based calculation
+
+- `--schemes <STRATEGY>` - Color scheme strategy [default: lab]
+  - `hsl` - HSL color space schemes
+  - `lab` - LAB color space schemes (perceptually uniform)
+
+- `-r, --relative-luminance <LUM_VALUE>` - Replace color with specified WCAG relative luminance (0.0-1.0)
+
+- `-l, --luminance <LUM_VALUE>` - Replace color with specified Lab luminance value
+
+- `-o, --output <OUTPUT_FORMAT>` - Output format [default: yaml]
+  - `yaml` - YAML format output
+  - `toml` - TOML format output
+
+- `-f, --file <FILENAME>` - Output filename (extension added automatically based on format)
+
+### Output Structure
+The color command outputs structured data containing:
+- **metadata** - Program version, timestamp, analysis info
+- **input** - Original input value and detected format
+- **conversion** - All color space conversions (RGB, HSL, HEX, LAB, LCH, XYZ)
+- **contrast** - WCAG luminance, contrast ratios vs white/black
+- **grayscale** - Perceptually accurate grayscale conversion using LAB L*
+- **color_collections** - Closest matches from CSS colors, RAL Classic, RAL Design System+
+- **color_schemes** - Generated color harmonies (complementary, triadic, tetradic)
+
+### Examples
+```bash
+# Basic color analysis
+color-rs color "#FF5733"
+color-rs color "rgb(255, 87, 51)"
+color-rs color "red"
+
+# RAL color system
+color-rs color "RAL 3020"
+color-rs color "RAL 010 40 30"
+
+# Different distance methods
+color-rs color "#FF5733" --distance-method delta-e-76
+color-rs color "#FF5733" --distance-method euclidean-lab
+
+# HSL-based color schemes
+color-rs color "blue" --schemes hsl
+
+# Output to file
+color-rs color "#FF5733" --output toml --file analysis
+# Creates: analysis.toml
+
+# Luminance replacement
+color-rs color "#FF5733" --relative-luminance 0.5
+color-rs color "blue" --luminance 60
+```
 
 ## Gradient Command
 
-Generate perceptually uniform color gradients with mathematical easing functions.
+Generate color gradients using LAB color space with cubic-bezier timing functions. Outputs structured data with gradient stops and metadata.
 
-### Basic Syntax
-
+### Syntax
 ```bash
-color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
+color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
 ```
 
-### Positional Arguments
+### Arguments
+- `<START_COLOR>` - Starting color (HEX, RGB, HSL, or named color)
+- `<END_COLOR>` - Ending color (HEX, RGB, HSL, or named color)
 
-- `<START_COLOR>` - Starting color (required)
-  - **Formats**: HEX (#FF0000), RGB (rgb(255,0,0)), HSL (hsl(0,100%,50%)), named colors (red)
-  - **RAL Support**: RAL Classic (RAL 3020) and RAL Design+ (H040L50C70)
+### Position Options
+- `-s, --start-position <PERCENT>` - Starting position as percentage [default: 0]
+- `-e, --end-position <PERCENT>` - Ending position as percentage [default: 100]
 
-- `<END_COLOR>` - Ending color (required)
-  - **Formats**: Same as START_COLOR
+### Easing Options
+- `--ease-in <EASE_IN>` - Ease-in control point for cubic-bezier (0.0-1.0) [default: 0.65]
+- `--ease-out <EASE_OUT>` - Ease-out control point for cubic-bezier (0.0-1.0) [default: 0.35]
 
-### Options
+### Gradient Control
+- `-t, --step <STEP>` - Output gradient values every X percent
+- `-g, --stops <STOPS>` - Number of gradient stops using curve derivatives [default: 5]
+- `--stops-simple` - Use equally spaced gradient stops instead of intelligent placement
 
-#### Position Control
-- `--start-position <PERCENT>` - Starting position as percentage (default: 0%)
-- `--end-position <PERCENT>` - Ending position as percentage (default: 100%)
-
-#### Easing Control  
-- `--ease-in <FLOAT>` - Ease-in control point for cubic-bezier (0.0-1.0, default: 0.65)
-- `--ease-out <FLOAT>` - Ease-out control point for cubic-bezier (0.0-1.0, default: 0.35)
-
-#### Output Control
-- `--grad-step <PERCENT>` - Output gradient values every X percent (default: 5%)
-- `--grad-stops <COUNT>` - Number of mathematically placed gradient stops using curve derivatives
-- `--grad-stops-simple <COUNT>` - Number of equally spaced gradient stops
-
-**Note**: `--grad-step`, `--grad-stops`, and `--grad-stops-simple` are mutually exclusive.
-
-#### Image Generation
+### Image Generation
 - `--svg` - Generate SVG image of the gradient
-- `--png` - Generate PNG image of the gradient  
-- `--width <PIXELS>` - Width of the image in pixels (default: 1000)
-- `--svg-name <FILENAME>` - Output filename for SVG image (default: gradient.svg)
-- `--png-name <FILENAME>` - Output filename for PNG image (default: gradient.png)
+- `--png` - Generate PNG image of the gradient
 - `--no-legend` - Disable legend/caption on gradient images (only valid with --svg or --png)
+- `--width <WIDTH>` - Width of the image in pixels [default: 1000]
+- `-v, --svg-name <SVG_NAME>` - Output filename for SVG image [default: gradient.svg]
+- `-p, --png-name <PNG_NAME>` - Output filename for PNG image [default: gradient.png]
 
-### Output Format
+### Output Options
+- `-o, --output <OUTPUT_FORMAT>` - Output format [default: yaml]
+  - `yaml` - YAML format output
+  - `toml` - TOML format output
+- `-f, --file <FILENAME>` - Output filename (extension added automatically based on format)
 
-The gradient command outputs a comprehensive table with the following information:
+### Output Structure
+The gradient command outputs structured data containing:
+- **metadata** - Program version, timestamp, gradient parameters
+- **start_color** - Complete analysis of starting color
+- **end_color** - Complete analysis of ending color
+- **gradient_stops** - Array of gradient stops with position, colors, and luminance
+- **summary** - Contrast ratios and overall gradient statistics
 
-#### Gradient Values Table
-- **Position**: Percentage position in the gradient (0% to 100%)
-- **Hex**: Hexadecimal color representation
-- **RGB**: RGB color values
-- **WCAG Luminance**: Relative luminance value for accessibility calculations
-
-#### Contrast Information
-Below the table, two contrast values are displayed:
-- **Contrast (WCAG)**: WCAG contrast ratio between start and end colors
-- **Contrast (Lab)**: Lab Delta E color difference for perceptual accuracy
-
-### Usage Examples
-
-#### Basic Gradient Generation
-
+### Examples
 ```bash
-# Simple red to blue gradient
+# Basic gradients
 color-rs gradient red blue
-```
-
-```bash
-# HEX colors with default 5% steps
 color-rs gradient "#FF0000" "#0000FF"
-```
+color-rs gradient "rgb(255,0,0)" "hsl(240,100%,50%)"
 
-```bash
-# Mixed color formats
-color-rs gradient "rgb(255, 107, 53)" "hsl(270, 100%, 50%)"
-```
+# Partial gradients
+color-rs gradient red blue --start-position 20 --end-position 80
 
-#### Advanced Gradient Control
+# Custom easing (ease-in-out)
+color-rs gradient red blue --ease-in 0.42 --ease-out 0.58
 
-```bash
-# Custom position range with ease-in-out timing
-color-rs gradient "#FF6B35" "#7209B7" --start-position 20 --end-position 80 --ease-in 0.42 --ease-out 0.58
-```
+# Different stop distributions
+color-rs gradient red blue --step 10          # Every 10%
+color-rs gradient red blue --stops 8          # 8 intelligent stops
+color-rs gradient red blue --stops 6 --stops-simple  # 6 equal stops
 
-```bash
-# 10% gradient steps with custom easing
-color-rs gradient red blue --grad-step 10 --ease-in 0.25 --ease-out 0.75
-```
-
-```bash
-# Mathematically distributed gradient stops based on curve analysis
-color-rs gradient "RAL 3020" "RAL 5005" --grad-stops 8
-```
-
-#### Image Output
-
-```bash
-# Generate SVG with default settings
+# Image generation
 color-rs gradient red blue --svg
+color-rs gradient red blue --png --width 1600
+color-rs gradient red blue --svg --png --no-legend
+
+# Custom filenames
+color-rs gradient red blue --svg --svg-name custom-gradient.svg
+color-rs gradient red blue --output toml --file my-gradient
+# Creates: my-gradient.toml
+
+# RAL colors
+color-rs gradient "RAL 3020" "RAL 5005"
+color-rs gradient "RAL 010 40 30" "RAL 270 30 40"
 ```
 
-```bash
-# Generate both SVG and PNG with custom dimensions
-color-rs gradient "#FF6B35" "#7209B7" --svg --png --width 1600
+## Color Format Support
+
+Both commands support multiple input formats:
+
+### Standard Formats
+- **HEX**: `#FF0000`, `#ff0000`, `FF0000`
+- **RGB**: `rgb(255,0,0)`, `rgba(255,0,0,1.0)`
+- **HSL**: `hsl(0,100%,50%)`, `hsla(0,100%,50%,1.0)`
+- **Named Colors**: `red`, `blue`, `forestgreen`, etc.
+
+### RAL Color System
+- **RAL Classic**: `RAL 3020`, `RAL1000` (213 colors)
+- **RAL Design System+**: `RAL 010 40 30` (1825+ colors)
+- **RAL Names**: `traffic red`, `signal yellow`, etc.
+
+## Output Formats
+
+### YAML (Default)
+```yaml
+metadata:
+  program: "color-rs"
+  version: "0.14.1"
+  timestamp: "2024-01-15T10:30:45Z"
+  
+input:
+  value: "#FF5733"
+  format: "hex"
+  
+conversion:
+  rgb: [255, 87, 51]
+  hsl: [11.0, 100.0, 60.0]
+  # ... additional conversions
 ```
 
-```bash
-# Custom filenames with no legend
-color-rs gradient "signal yellow" "traffic red" --svg --svg-name "corporate-gradient.svg" --no-legend
+### TOML
+```toml
+[metadata]
+program = "color-rs"
+version = "0.14.1"
+timestamp = "2024-01-15T10:30:45Z"
+
+[input]
+value = "#FF5733"
+format = "hex"
+
+[conversion]
+rgb = [255, 87, 51]
+hsl = [11.0, 100.0, 60.0]
+# ... additional conversions
 ```
 
-#### RAL Color System
+## Technical Details
+
+### Color Spaces
+- **LAB**: Perceptually uniform color space for accurate calculations
+- **LCH**: Cylindrical representation of LAB (Lightness, Chroma, Hue)
+- **sRGB**: Standard RGB color space for display
+- **HSL**: Hue, Saturation, Lightness for intuitive color manipulation
+
+### Distance Methods
+- **Delta E 2000**: Most perceptually accurate (recommended)
+- **Delta E 76**: Faster computation, less accurate
+- **Euclidean LAB**: Simple geometric distance in LAB space
+- **LCH**: Distance in cylindrical LAB coordinates
+
+### Cubic-Bezier Easing
+The gradient command uses cubic-bezier timing functions:
+- `cubic-bezier(ease-in, 0, ease-out, 1)`
+- Standard CSS timing function compatibility
+- Intelligent stop placement based on curve derivatives
+
+### Performance
+- Optimized LAB color space calculations using palette library
+- Efficient color collection lookups with indexed data structures
+- Memory-efficient gradient generation
 
 ```bash
 # RAL Classic colors

@@ -1,63 +1,262 @@
-# Color-rs Feature Catalog
+# Color-rs Feature Catalog v0.14.1
 
-A comprehensive catalog of all features, capabilities, and functionality in color-rs.
+Comprehensive catalog of color analysis, gradient generation, and structured output capabilities.
 
-## Table of Contents
+## Core Features
 
-- [Feature Overview](#feature-overview)
-- [Compile-Time Features](#compile-time-features)
-- [Runtime Capabilities](#runtime-capabilities)
-- [Input/Output Formats](#inputoutput-formats)
-- [Color Collections](#color-collections)
-- [Distance Algorithms](#distance-algorithms)
-- [Image Generation](#image-generation)
-- [CLI Commands](#cli-commands)
-- [Library API](#library-api)
-- [Non-Functional Features](#non-functional-features)
-- [Version Timeline](#version-timeline)
+### Color Analysis
+- **Input Format Detection**: Automatic parsing of hex, rgb(), hsl(), and named colors
+- **RAL Color System**: Support for RAL Classic (213 colors) and RAL Design System+ (1825+ colors)  
+- **Color Space Conversions**: RGB, HSL, HEX, LAB, LCH, XYZ with palette library
+- **Distance Calculations**: CIE Delta E 2000, Delta E 76, Euclidean LAB, LCH methods
+- **WCAG Compliance**: Relative luminance and contrast ratio calculations
+- **Color Collections**: CSS colors, RAL systems with closest match finding
+- **Color Schemes**: Complementary, triadic, tetradic harmonies in LAB and HSL space
 
-## Feature Overview
+### Gradient Generation  
+- **LAB Color Space**: Perceptually uniform gradient interpolation
+- **Cubic-Bezier Easing**: Industry-standard timing functions with custom control points
+- **Intelligent Stops**: Curve derivative-based stop placement for optimal smoothness
+- **Position Control**: Custom start/end positions with partial gradient support
+- **Image Export**: SVG and PNG generation with optional legends
+- **Multiple Formats**: YAML and TOML structured output
 
-### TL;DR Feature Bullets
+### Output Formats
+- **YAML Output**: Default structured format with metadata, conversions, analysis
+- **TOML Output**: Alternative structured format for configuration workflows
+- **File Output**: Save analysis results to files with automatic extension handling
+- **Comprehensive Metadata**: Program version, timestamp, analysis parameters
 
-- ✅ **Color Parsing**: HEX (#FF0000), RGB functions, HSL, CSS named colors
-- ✅ **Color Collections**: RAL Classic (213 colors), RAL Design (191 colors), CSS colors (147 colors)
-- ✅ **Color Matching**: Find closest color in any collection with multiple distance algorithms
-- ✅ **Color Analysis**: Complete format conversion (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH)
-- ✅ **Color Schemes**: Harmony calculations in both HSL and Lab color space strategies
-- ✅ **Gradient Generation**: Linear gradients with Bézier easing, custom color stops
-- ✅ **Image Export**: SVG and PNG gradient visualization with legends
-- ✅ **CLI Interface**: Intuitive subcommands for all major operations
-- ✅ **Library API**: Comprehensive Rust API for programmatic use
-- ✅ **Cross-Platform**: Windows, macOS, Linux support
-- ✅ **Performance**: Optimized color space conversions, efficient distance calculations
-- ✅ **Extensible**: Plugin architecture for new collections and algorithms
+## Input Support
 
-### Quick Capabilities Matrix
+### Color Formats
+- **HEX**: `#FF0000`, `#ff0000`, `FF0000`
+- **RGB Functions**: `rgb(255,0,0)`, `rgba(255,0,0,1.0)`
+- **HSL Functions**: `hsl(0,100%,50%)`, `hsla(0,100%,50%,1.0)` 
+- **Named Colors**: CSS color names (`red`, `blue`, `forestgreen`, etc.)
+- **RAL Classic**: `RAL 3020`, `RAL1000` (with or without space)
+- **RAL Design System+**: `RAL 010 40 30` (hue/lightness/chromaticity format)
+- **RAL Names**: `traffic red`, `signal yellow`, `luminous orange`
 
-| Capability | CLI | Library | Notes |
-|------------|-----|---------|-------|
-| Color Parsing | ✅ | ✅ | All major formats |
-| Color Matching | ✅ | ✅ | Multiple algorithms |
-| Gradient Generation | ✅ | ✅ | With easing curves |
-| Image Export | ✅ | ✅ | SVG + PNG |
-| Collection Loading | ✅ | ✅ | CSV + built-in |
-| Distance Calculations | ✅ | ✅ | 6 algorithms |
-| Color Analysis | ✅ | ✅ | Luminance, contrast, HSB, CMYK |
-| Format Conversion | ✅ | ✅ | Between all formats |
+### Color Collections
+- **CSS Colors**: 147 named colors with hex values
+- **RAL Classic**: 213 standardized colors with codes and names
+- **RAL Design System+**: 1825+ colors in systematic arrangement
+- **Closest Matching**: Delta E-based perceptually accurate matching
 
-## Compile-Time Features
+## Output Structure
 
-### Cargo Feature Flags
+### Color Analysis Output
+```yaml
+metadata:
+  program: "color-rs"
+  version: "0.14.1"
+  timestamp: "ISO 8601 format"
+  analysis_type: "color"
 
-```toml
-[features]
-default = ["cli", "image-generation", "collections"]
+input:
+  value: "input color string"
+  format: "detected format type"
 
-# Core features
-cli = ["dep:clap", "dep:tabled"]               # Command-line interface
-image-generation = ["dep:tiny-skia", "dep:usvg", "dep:resvg"]  # Image export
-collections = []                               # Built-in color collections
+conversion:
+  rgb: [r, g, b]
+  hsl: [h, s, l]
+  hex: "#rrggbb"
+  lab: [l, a, b]
+  lch: [l, c, h]
+  xyz: [x, y, z]
+
+contrast:
+  wcag_relative_luminance: float
+  contrast_vs_white: float
+  contrast_vs_black: float
+
+grayscale:
+  rgb: [r, g, b]
+  hex: "#rrggbb"
+  lab_l_star: float
+
+color_collections:
+  css_colors: [closest matches]
+  ral_classic: [closest matches]
+  ral_design: [closest matches]
+
+color_schemes:
+  complementary: [colors]
+  triadic: [colors]
+  tetradic: [colors]
+```
+
+### Gradient Analysis Output
+```yaml
+metadata:
+  program: "color-rs"
+  version: "0.14.1"
+  analysis_type: "gradient"
+  parameters:
+    start_position: int
+    end_position: int
+    ease_in: float
+    ease_out: float
+    stops: int
+
+start_color:
+  value: "start color"
+  format: "format type"
+  conversion: {complete color data}
+
+end_color:
+  value: "end color"  
+  format: "format type"
+  conversion: {complete color data}
+
+gradient_stops:
+  - position: int
+    rgb: [r, g, b]
+    hex: "#rrggbb"
+    wcag_luminance: float
+
+summary:
+  total_stops: int
+  wcag_contrast_ratio: float
+  lab_distance: float
+```
+
+## CLI Commands
+
+### Color Command
+```bash
+color-rs color [OPTIONS] <COLOR>
+```
+
+**Options:**
+- `--distance-method`: delta-e-2000, delta-e-76, euclidean-lab, lch
+- `--schemes`: lab, hsl
+- `--relative-luminance`: Replace with WCAG luminance (0.0-1.0)
+- `--luminance`: Replace with Lab lightness value
+- `--output`: yaml, toml
+- `--file`: Output filename
+
+**Capabilities:**
+- Comprehensive color analysis with all format conversions
+- RAL color system support with exact matches and closest alternatives  
+- WCAG compliance calculations for accessibility
+- Color scheme generation in LAB or HSL space
+- Structured YAML/TOML output with complete metadata
+
+### Gradient Command
+```bash
+color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
+```
+
+**Options:**
+- `--start-position`, `--end-position`: Position control (0-100)
+- `--ease-in`, `--ease-out`: Cubic-bezier control points (0.0-1.0)
+- `--step`: Output every X percent
+- `--stops`: Number of intelligent stops using curve derivatives
+- `--stops-simple`: Use equally spaced stops
+- `--svg`, `--png`: Image generation
+- `--width`: Image width in pixels
+- `--svg-name`, `--png-name`: Custom filenames
+- `--no-legend`: Disable image legends
+- `--output`: yaml, toml
+- `--file`: Output filename
+
+**Capabilities:**
+- LAB color space interpolation for perceptual uniformity
+- Cubic-bezier easing with CSS timing function compatibility
+- Intelligent stop placement based on curve derivatives
+- SVG and PNG image generation with scalable legends
+- Complete analysis of start/end colors with gradient metadata
+
+## Technical Implementation
+
+### Color Spaces
+- **sRGB**: Standard RGB for display compatibility
+- **LAB**: CIE LAB for perceptually uniform calculations  
+- **LCH**: Cylindrical LAB representation (Lightness, Chroma, Hue)
+- **XYZ**: Device-independent CIE color space
+- **HSL**: Hue, Saturation, Lightness for intuitive manipulation
+
+### Distance Algorithms
+- **Delta E 2000**: Most perceptually accurate (CIE recommended)
+- **Delta E 76**: Faster computation, less perceptual accuracy
+- **Euclidean LAB**: Simple geometric distance in LAB space
+- **LCH**: Distance in cylindrical LAB coordinates
+
+### Performance Optimizations
+- **Palette Library**: Rust color science library for accurate conversions
+- **Indexed Collections**: Efficient color collection lookups
+- **Memory Efficiency**: Minimal allocation for gradient generation
+- **Structured Output**: Clean YAML/TOML without redundant formatting
+
+## Architecture
+
+### Modular Design
+- **Color Operations**: RGB/HSL/LAB conversions with palette integration
+- **Collection Management**: RAL and CSS color systems with unified interface
+- **Distance Calculations**: Multiple algorithms with strategy pattern
+- **Output Formatting**: Structured data generation with metadata
+- **CLI Interface**: Argument parsing and command dispatch
+- **Image Generation**: SVG/PNG export with legend support
+
+### Error Handling
+- **Input Validation**: Comprehensive color format checking
+- **Conversion Errors**: Graceful handling of color space limitations
+- **File Operations**: Clear error messages for I/O failures
+- **Command Validation**: Argument consistency checking
+
+### Extensibility
+- **New Color Collections**: Modular collection loading system
+- **Additional Distance Methods**: Pluggable algorithm interface
+- **Output Formats**: Structured data enables easy format addition
+- **Color Spaces**: Palette library provides extensive space support
+
+## Use Cases
+
+### Web Development
+- Color accessibility testing with WCAG compliance data
+- CSS gradient generation with mathematically placed stops
+- Color scheme creation for design systems
+- RAL color matching for brand specification
+
+### Design Workflows
+- Corporate color analysis with RAL system integration
+- Gradient visualization for presentations and mockups
+- Color harmony generation for palette development
+- Perceptually uniform color interpolation
+
+### Technical Applications
+- Color space conversion testing and validation
+- Distance algorithm comparison and analysis
+- Structured color data for automated workflows
+- Batch color processing with file output
+
+### Accessibility
+- WCAG relative luminance calculation
+- Contrast ratio analysis for compliance testing
+- Perceptually uniform color adjustments
+- Grayscale conversion using LAB lightness
+
+## Version Features
+
+### v0.14.1 (Current)
+- **YAML/TOML Output**: Structured data formats replacing table output
+- **Complete Metadata**: Program version, timestamp, analysis parameters  
+- **RAL Design System+**: Extended support for 1825+ colors
+- **Enhanced Color Schemes**: LAB and HSL strategy options
+- **File Output**: Save analysis results with automatic extensions
+- **Distance Method Options**: Multiple algorithms for color matching
+- **Luminance Replacement**: WCAG and LAB luminance modification
+- **Comprehensive Documentation**: Updated examples and references
+
+### Core Stability
+- **Color Parsing**: Robust input format detection and validation
+- **LAB Interpolation**: Perceptually uniform gradient generation
+- **Cubic-Bezier Easing**: Industry-standard timing functions
+- **Image Generation**: High-quality SVG/PNG export
+- **Cross-Platform**: Windows, macOS, Linux support
+- **Performance**: Optimized calculations with minimal overhead
 
 # Optional features  
 serde = ["dep:serde"]                         # Serialization support (planned)

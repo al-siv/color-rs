@@ -1,41 +1,254 @@
 # color-rs
 
-CLI tool and Rust library for color analysis, gradient generation, and color space conversions using LAB color space with cubic-bezier easing functions.
+CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations.
 
-## Features
+## Installation
 
-- **Direct Color Input**: Color arguments without flags - `gradient red blue`
-- **Color Format Support**: HEX, RGB, HSL, and 148+ named colors across all commands
-- **RAL Color System**: Support for RAL Classic (213 colors) and RAL Design System+ (1825 colors) with color matching
-- **LAB Color Space**: Gradient calculations using perceptually uniform LAB color space and CIE Delta E 2000 for color distance calculations
-- **WCAG Compliance**: WCAG 2.1 implementation for relative luminance and contrast ratio calculations
-- **Color Analysis**: Output includes RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
-- **Modular Architecture**: Separated modules for color utilities, formatting, and parsing
-- **Dual Interface**: Command-line tool and Rust library
-- **Terminal Output**: Table formatting with color information and aligned numeric columns
-- **CSS Cubic-Bezier**: Easing functions matching web standards
-- **Gradient Stops**: Automatic placement at points of maximum color change
-- **Output Formats**: 
-    - Terminal tables with color information
-    - SVG gradients with optional legends
-    - PNG image exports
-    - TOML/YAML data files
-- **Proportional Scaling**: All dimensions scale with width (1:5 aspect ratio)
-- **CSS Percentages**: Integer percentage values for web development
-- **Color Information**: RGB, HSL, LAB, XYZ, OKLCH values with color name recognition
-- **Error Handling**: Custom error types and validation
-- **Test Coverage**: Unit test suite with 37+ tests
+```bash
+cargo install color-rs
+```
+
+## Core Functionality
+
+### Color Analysis Command
+
+The primary command for analyzing colors and generating color schemes:
+
+```bash
+color-rs color <COLOR> [OPTIONS]
+```
+
+**Input formats supported:**
+- Named colors: `red`, `blue`, `forestgreen`
+- Hex codes: `#FF0000`, `FF0000`
+- RGB values: `rgb(255, 0, 0)`
+- HSL values: `hsl(0, 100%, 50%)`
+- LAB values: `lab(53.24, 80.092, 67.203)`
+- RAL codes: `RAL 3020`, `RAL 050 50 78`
+
+**Output format:**
+- YAML format (default)
+- TOML format (with `--output toml`)
+- File export (with `--file filename.yaml`)
+
+### Gradient Generation Command
+
+Generate color gradients with mathematical easing functions:
+
+```bash
+color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
+```
+
+## Current Output Structure
+
+All commands output structured data in YAML format containing:
+
+### Metadata Section
+```yaml
+metadata:
+  program_name: color-rs
+  version: '0.14.1'
+  author: al-siv <https://github.com/al-siv>
+  description: CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations
+  generated_at: '2025-07-22T21:52:57.453462200+00:00'
+  distance_strategy: Delta E 2000
+```
+
+### Input Processing
+```yaml
+input:
+  input_color: red
+  base_color: '#FF0000'
+```
+
+### Color Conversions
+```yaml
+conversion:
+  hex: '#FF0000'
+  rgb: rgb(255, 0, 0)
+  hsl: hsl(0.0, 100.00%, 50.00%)
+  hsb: hsv(0.0, 100.00%, 100.00%)
+  lab: lab(53.24, 80.092, 67.203)
+  lch: lch(53.24, 104.552, 40.0)
+  cmyk: cmyk(0.00%, 100.00%, 100.00%, 0.00%)
+  xyz: xyz(0.412, 0.213, 0.019)
+  oklch: oklch(0.628, 0.258, 29.2)
+```
+
+### WCAG Accessibility Data
+```yaml
+contrast:
+  wcag21_relative_luminance: 0.21267294883728027
+  contrast_vs_white:
+    ratio: 3.9973663243505535
+    assessment: Low
+  contrast_vs_black:
+    ratio: 5.253458976745605
+    assessment: Medium
+  brightness:
+    lab_assessment: Medium
+    wcag_assessment: Light
+```
+
+### Grayscale Variants
+```yaml
+grayscale:
+  lch0_hex: '#7F7F7F'
+  lch0: lch(53.24, 0.000, 40.0)
+  lch2_hex: '#837E7D'
+  lch2: lch(53.24, 2.000, 40.0)
+  # ... additional chroma levels
+```
+
+### Color Collection Matching
+
+Nearest color matches from three comprehensive databases:
+
+```yaml
+color_collections:
+  css_colors:
+  - name: Red
+    hex: '#FF0000'
+    lch: lch(53.24, 104.552, 40.0)
+    code: red
+    distance: 0.0
+    wcag21_relative_luminance: 0.21267294883728027
+  ral_classic:
+  - name: Luminous bright red
+    hex: '#F71027'
+    lch: lch(52.17, 93.407, 34.0)
+    code: RAL 3026
+    distance: 4.682887077331543
+    wcag21_relative_luminance: 0.20297928154468536
+  ral_design:
+  - name: Pompeii red
+    hex: '#D55845'
+    lch: lch(53.56, 59.917, 36.7)
+    code: RAL 040 50 70
+    distance: 7.0684661865234375
+    wcag21_relative_luminance: 0.2155948132276535
+```
+
+### Color Schemes
+
+Complementary, split-complementary, triadic, and tetradic color schemes with nearest color matches:
+
+```yaml
+color_schemes:
+  complementary:
+    hex: '#00A2F3'
+    hsl: hsl(200.1, 100.00%, 47.63%)
+    lch: lch(53.24, 104.552, 220.0)
+    css:
+      name: Dodger Blue
+      hex: '#1E90FF'
+      distance: 6.035937786102295
+      wcag_relative_luminance: 0.27438798523182434
+    ral_classic:
+      name: Pastel blue
+      hex: '#6C8DAA'
+      distance: 8.271005630493164
+      wcag_relative_luminance: 0.25138992639889884
+    ral_design:
+      name: Structural blue
+      hex: '#3A9FD3'
+      distance: 4.235053062438965
+      wcag_relative_luminance: 0.3039598609318176
+```
+
+## Command Reference
+
+### Color Analysis Examples
+
+```bash
+# Basic color analysis
+color-rs color red
+
+# Analyze hex color with HSL schemes
+color-rs color "#FF5733" --schemes hsl
+
+# Export analysis to file
+color-rs color "rgb(255, 87, 51)" --file analysis.yaml
+
+# TOML format output
+color-rs color blue --output toml
+
+# Different color distance strategy
+color-rs color "#A1D1E6" --schemes lab
+```
+
+### Gradient Generation Examples
+
+```bash
+# Basic gradient
+color-rs gradient red blue
+
+# Custom easing and file export
+color-rs gradient "#FF0000" "#0000FF" --ease-in 0.25 --ease-out 0.75 --file gradient.yaml
+
+# SVG gradient generation
+color-rs gradient red blue --svg gradient.svg
+
+# PNG image export
+color-rs gradient forestgreen skyblue --png gradient.png --width 1200
+
+# TOML output with custom stops
+color-rs gradient "#FF5733" "#00AFF0" --stops 8 --output toml
+```
+
+## Technical Specifications
+
+### Color Distance Calculations
+- **CIE Delta E 2000**: Perceptually uniform color distance measurement
+- **LAB Color Space**: All calculations performed in CIELAB color space
+- **LCH Color Space**: Cylindrical representation of LAB for intuitive color relationships
+
+### Color Collections
+- **CSS Named Colors**: 140+ standard web colors
+- **RAL Classic**: 213 industrial color standards
+- **RAL Design System+**: 1825+ extended color palette
+
+### Distance Strategies
+- Delta E 76
+- Delta E 2000 (default)
+- Euclidean LAB
+- LCH distance calculations
+
+### Output Formats
+- **YAML**: Default structured output format
+- **TOML**: Alternative structured format
+- **SVG**: Vector gradient files
+- **PNG**: Raster image exports
 
 ## Library Usage
 
-Color-rs can be used as a Rust library in your projects:
-
 ```toml
 [dependencies]
-color-rs = "0.14.0"
+color-rs = "0.14.1"
 ```
 
-### Basic Library Usage
+### Basic Library Integration
+
+```rust
+use color_rs::{ColorRs, cli::ColorArgs};
+
+fn main() -> color_rs::Result<()> {
+    let color_rs = ColorRs::new();
+    
+    // Color analysis
+    let args = ColorArgs {
+        color: "red".to_string(),
+        schemes: Some("lab".to_string()),
+        output: Some("yaml".to_string()),
+        file: None,
+    };
+    
+    color_rs.analyze_color(args)?;
+    Ok(())
+}
+```
+
+### Gradient Generation
 
 ```rust
 use color_rs::{ColorRs, cli::GradientArgs};
@@ -43,737 +256,105 @@ use color_rs::{ColorRs, cli::GradientArgs};
 fn main() -> color_rs::Result<()> {
     let color_rs = ColorRs::new();
     
-    // Generate gradient with named colors
     let args = GradientArgs {
-        start_color: "red".to_string(),           // Named color
-        end_color: "blue".to_string(),           // Named color
-        start_position: 0,
-        end_position: 100,
-        ease_in: 0.25,
-        ease_out: 0.75,
-        svg: true,
-        png: false,
-        no_legend: false,
-        width: 1000,
-        svg_name: "my-gradient.svg".to_string(),
-        png_name: "gradient.png".to_string(),
-        grad_step: None,
-        grad_stops: 5, // Default: intelligent stops
-        grad_stops_simple: None,
+        start_color: "#FF0000".to_string(),
+        end_color: "#0000FF".to_string(),
+        output: Some("yaml".to_string()),
+        file: Some("gradient.yaml".to_string()),
+        svg: None,
+        png: None,
+        width: Some(1000),
+        ease_in: Some(0.25),
+        ease_out: Some(0.75),
+        stops: Some(5),
+        // ... other fields with defaults
     };
     
     color_rs.generate_gradient(args)?;
-    
-    // Analyze a color with WCAG compliance data
-    let analysis = color_rs.color_match("rgb(255, 87, 51)")?;
-    println!("{}", analysis);
-    
     Ok(())
 }
 ```
 
-### Design Patterns and Advanced Usage
+## Architecture
 
-Color-rs implements several Gang of Four design patterns for improved flexibility and maintainability:
+### Core Components
+- **Color Analysis Engine**: LAB/LCH color space calculations
+- **Distance Calculation**: Multiple perceptual distance strategies  
+- **Color Collection Matching**: Comprehensive color database queries
+- **Scheme Generation**: Mathematical color harmony calculations
+- **Output Formatting**: Structured data serialization
+- **File Export**: Multiple format support
 
-#### Builder Pattern for Gradient Configuration
+### Design Patterns
+- **Strategy Pattern**: Multiple color distance calculation methods
+- **Builder Pattern**: Gradient configuration construction
+- **Factory Pattern**: Color parser instantiation
+- **Template Method**: Color matching algorithm structure
+- **Command Pattern**: CLI command processing
 
-```rust
-use color_rs::GradientBuilder;
-
-// Fluent interface for gradient configuration
-let gradient_args = GradientBuilder::new()
-    .start_color("#FF0000")
-    .end_color("#0000FF")
-    .ease_in_out()                    // CSS ease-in-out preset
-    .steps(10)                        // 10% increments
-    .svg()                           // Enable SVG output
-    .width(800)                      // Custom width
-    .build()?;
-
-// Alternative presets
-let linear_gradient = GradientBuilder::new()
-    .start_color("red")
-    .end_color("blue")
-    .linear()                        // No easing
-    .equal_stops(5)                  // 5 equally spaced stops
-    .build()?;
-
-// Custom easing with validation
-let custom_gradient = GradientBuilder::new()
-    .start_color("hsl(0, 100%, 50%)")
-    .end_color("hsl(240, 100%, 50%)")
-    .ease_in(0.42)                   // Custom control points
-    .ease_out(0.58)
-    .intelligent_stops(12)           // AI-placed stops based on curve analysis
-    .images()                        // Enable both SVG and PNG
-    .build()?;
-```
-
-#### Factory Pattern for Color Parser Creation
-
-```rust
-use color_rs::{ColorParserFactory, ColorParserType};
-
-// Create different types of parsers
-let basic_parser = ColorParserFactory::create_parser(ColorParserType::Css)?;
-let full_parser = ColorParserFactory::create_parser(ColorParserType::Full)?;
-
-// Create parser configurations
-let fast_parser = ColorParserFactory::create_fast()?;        // Speed optimized
-let comprehensive_parser = ColorParserFactory::create_comprehensive()?; // All features
-let strict_parser = ColorParserFactory::create_strict()?;    // Validation enabled
-
-// Parse colors with different capabilities
-let (lab_color, format) = comprehensive_parser.parse("#FF5722")?;
-let color_name = comprehensive_parser.get_color_name(255, 87, 34); // "Deep Orange"
-
-// Check parser capabilities
-let info = comprehensive_parser.get_info();
-println!("Parser supports: {:?}", info.supported_formats);
-println!("Collections: {}, Colors: {}", info.collection_count, info.color_count);
-```
-
-#### Strategy Pattern for Color Distance Algorithms
-
-```rust
-use color_rs::{create_strategy, ColorUtils};
-
-// Different distance calculation strategies
-let delta_e_2000 = create_strategy("delta-e-2000");      // CIE Delta E 2000 (default)
-let delta_e_76 = create_strategy("delta-e-76");          // CIE Delta E 76 formula
-let euclidean = create_strategy("euclidean-lab");        // Euclidean distance
-
-// Use strategies for color matching
-let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
-let orange_lab = ColorUtils::rgb_to_lab([255, 165, 0]);
-
-let distance_2000 = delta_e_2000.calculate_distance(red_lab, orange_lab);
-let distance_76 = delta_e_76.calculate_distance(red_lab, orange_lab);
-
-println!("ΔE 2000: {:.2}", distance_2000);  // Perceptually accurate
-println!("ΔE 76: {:.2}", distance_76);      // Faster computation
-```
-
-### Facade Pattern
-
-The Facade pattern provides simplified interface for color operations:
-
-```rust
-use color_rs::ColorOperationsFacade;
-
-let facade = ColorOperationsFacade::new();
-
-// Hex to RGB conversion
-let rgb = facade.hex_to_rgb("#FF5733")?;
-println!("RGB: {:?}", rgb);
-
-// Calculate contrast ratio
-let contrast = facade.calculate_contrast("#FFFFFF", "#000000")?;
-println!("Contrast ratio: {:.2}", contrast);
-
-// Color analysis
-let analysis = facade.analyze_color("#3498DB")?;
-println!("Color analysis: {:?}", analysis);
-
-// Mix colors with ratio
-let mixed = facade.mix_colors("#FF0000", "#0000FF", 0.3)?;
-println!("Mixed color: {}", mixed);
-```
-
-### Template Method Pattern
-
-Template Method pattern for color matching:
-
-```rust
-use color_rs::{ColorMatchingTemplate, CssColorMatcher, RalClassicMatcher};
-
-// CSS color matching
-let css_matcher = CssColorMatcher::new()?;
-let css_result = css_matcher.find_closest_color("#FF6B6B");
-println!("Closest CSS color: {:?}", css_result);
-
-// RAL Classic color matching
-let ral_matcher = RalClassicMatcher::new()?;
-let ral_result = ral_matcher.find_closest_color("#D32F2F");
-println!("Closest RAL color: {:?}", ral_result);
-```
-
-### Using Individual Modules
-
-```rust
-use color_rs::{
-    color::ColorProcessor,
-    gradient::GradientCalculator,
-    image::ImageGenerator,
-};
-
-// Parse colors
-let start_lab = ColorProcessor::parse_hex_color("#FF0000")?;
-let end_lab = ColorProcessor::parse_hex_color("#0000FF")?;
-
-// Generate gradient with cubic-bezier easing
-let smooth_t = GradientCalculator::cubic_bezier_ease(0.5, 0.25, 0.75);
-let mid_color = ColorProcessor::interpolate_lab(start_lab, end_lab, smooth_t);
-let hex_color = ColorProcessor::lab_to_hex(mid_color);
-
-println!("Mid-point color: {}", hex_color);
-```
-
-## CLI Usage
-
-#### Windows Installation
-
-Download the executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
-
-1. Download `color-rs.exe` from the release assets
-2. Place it in a folder in your PATH or use directly
-3. Run `color-rs.exe gradient --help` to start
-
-#### Source Installation
+## Testing
 
 ```bash
-git clone https://github.com/al-siv/color-rs.git
-cd color-rs
-cargo build --release
-```
+# Run all tests
+cargo test
 
-Binary location: `target/release/color-rs` (`target/release/color-rs.exe` on Windows).
-
-#### Requirements
-
-- Windows users: No additional requirements with pre-compiled executable
-- Source build: Rust 1.70+ and Cargo
-
-### Basic Gradient
-
-```bash
-# Using HEX colors - simplified syntax
-color-rs gradient FF0000 0000FF
-
-# Using named colors
-color-rs gradient red blue
-
-# Using RGB/HSL colors
-color-rs gradient "rgb(255,0,0)" "hsl(240,100%,50%)"
-```
-
-### Custom Easing
-
-```bash
-color-rs gradient FF6B35 7209B7 --ease-in 0.25 --ease-out 0.75
-```
-
-### Generate Images
-
-```bash
-# SVG with legend
-color-rs gradient FF0000 0000FF --svg --svg-name my-gradient.svg
-
-# PNG without legend
-color-rs gradient FF0000 0000FF --png --no-legend --png-name clean-gradient.png
-
-# Both formats with custom size
-color-rs gradient FF0000 0000FF --svg --png --width 1600
-```
-
-### Intelligent Stop Placement
-
-```bash
-# 8 intelligently placed stops
-color-rs gradient FF0000 0000FF --grad-stops 8 --ease-in 0.9 --ease-out 0.1
-
-# 10 equally spaced stops
-color-rs gradient FF0000 0000FF --grad-stops-simple 10
-```
-
-### Partial Gradients
-
-```bash
-color-rs gradient FF0000 0000FF --start-position 20 --end-position 80
-```
-
-### Color Matching and Analysis
-
-```bash
-# Color analysis with WCAG compliance data
-color-rs color "#FF5733"
-color-rs color "rgb(255, 87, 51)"
-color-rs color "red"
-color-rs color "hsl(240, 100%, 50%)"
-```
-
-### Color Distance Strategies
-
-```bash
-# Use different distance calculation methods
-color-rs color red --distance-method delta-e-76      # Fast CIE Delta E 1976
-color-rs color red --distance-method delta-e-2000    # Accurate CIE Delta E 2000
-color-rs color red --distance-method euclidean-lab   # Euclidean LAB distance
-```
-
-# Compare different strategies
-color-rs color "#FF6B35" --distance-method delta-e-2000
+cargo run -- color "#FF5733"
 ```
 
 ## Installation
 
-### As a Library
+From source:
+```bash
+git clone https://github.com/al-siv/color-rs.git
+cd color-rs
+cargo build --release
+```
 
-Add to your `Cargo.toml`:
-
+As a Rust library:
 ```toml
 [dependencies]
-color-rs = "0.8.3"
+color-rs = "0.14.1"
 ```
 
-### As a CLI Tool
-
-#### Windows Users (Recommended)
-
-Download the pre-compiled executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
-
-1. Download `color-rs.exe` from the release assets
-2. Place it in a folder that's in your PATH or use it directly
-3. Run `color-rs.exe gradient --help` to get started
-
-#### From Source
-
-```bash
-git clone https://github.com/al-siv/color-rs.git
-cd color-rs
-cargo build --release
-```
-
-The binary will be available at `target/release/color-rs` (or `target/release/color-rs.exe` on Windows).
-
-#### Requirements
-
-- For Windows users: No additional requirements with the pre-compiled executable
-- For building from source: Rust 1.70+ and Cargo
-
-### Universal Color Format Support
-
-```bash
-# Use any color format for gradients - now with simplified syntax
-color-rs gradient red blue
-color-rs gradient "#FF0000" "rgb(0, 0, 255)"
-color-rs gradient "hsl(0, 100%, 50%)" "hsl(240, 100%, 50%)"
-```
-
-## Output Examples
-
-### Application Information (Cargo-Style)
-```
- Application: Color-rs v0.7.2
-             About: A CLI tool for color gradient calculations using LAB color space with cubic-bezier easing functions
-            Author: https://github.com/al-siv
-```
-
-### Color Information Table
-```
-COLOR INFORMATION:
-╭─────────────┬─────────┬────────────────┬────────────────────────────┬─────────────────────────╮
-│ Color       │ Hex     │ RGB            │ HSL                        │ Lab                     │
-├─────────────┼─────────┼────────────────┼────────────────────────────┼─────────────────────────┤
-│ Start Color │ #FF0000 │ RGB(255, 0, 0) │ HSL(0.0°, 100.0%, 50.0%)   │ Lab(53.2, 80.1, 67.2)   │
-│ End Color   │ #0000FF │ RGB(0, 0, 255) │ HSL(240.0°, 100.0%, 50.0%) │ Lab(32.3, 79.2, -107.9) │
-╰─────────────┴─────────┴────────────────┴────────────────────────────┴─────────────────────────╯
-```
-
-### Gradient Values Table
-```
-GRADIENT VALUES:
-╭──────────┬─────────┬──────────────────┬────────────────╮
-│ Position │ Hex     │ RGB              │ WCAG Luminance │
-├──────────┼─────────┼──────────────────┼────────────────┤
-│       0% │ #FF0000 │ rgb(255, 0, 0)   │ 0.213          │
-│      24% │ #F0003D │ rgb(240, 0, 61)  │ 0.197          │
-│      35% │ #E2005C │ rgb(226, 0, 92)  │ 0.184          │
-│      45% │ #D30079 │ rgb(211, 0, 121) │ 0.172          │
-│      55% │ #BF0098 │ rgb(191, 0, 152) │ 0.160          │
-│      65% │ #A700B6 │ rgb(167, 0, 182) │ 0.147          │
-│      76% │ #8400D5 │ rgb(132, 0, 213) │ 0.134          │
-│     100% │ #0000FF │ rgb(0, 0, 255)   │ 0.072          │
-╰──────────┴─────────┴──────────────────┴────────────────╯
-
-Contrast (WCAG): 2.96
-Contrast (Lab): 52.84
-```
-
-### Color Analysis Enhanced Output with WCAG Compliance
-```
-Color Analysis for: #FF5733
-──────────────────────────────────────────────────
-Input: #FF5733
-Name: Tomato
-
-Format Conversions:
-• RGB:    rgb(255, 87, 51)
-• Hex:    #ff5733
-• HSL:    hsl(11, 100.0%, 60.0%)
-• LAB:    lab(60.18, 62.06, 54.34)
-• XYZ:    xyz(0.453, 0.283, 0.062)
-• OKLCH:  oklch(0.680, 0.210, 33.7°)
-
-Additional Information:
-• Grayscale: rgb(153, 153, 153) #999999 (LAB L* = 60.2)
-• WCAG Relative Luminance: 0.283
-• Contrast vs White: 3.15:1
-• Contrast vs Black: 6.66:1
-• Brightness: Light
-```
-
-## Command Line Options
-
-### Gradient Command
-```
-color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
-
-ARGUMENTS:
-    <START_COLOR>    Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)
-    <END_COLOR>      Ending color (HEX, RGB, HSL, or named color, e.g., #0000FF, rgb(0,0,255), blue)
-
-OPTIONS:
-    --start-position <PERCENT>       Starting position [default: 0]
-    --end-position <PERCENT>         Ending position [default: 100]
-    --ease-in <EASE_IN>              Ease-in control point [default: 0.65]
-    --ease-out <EASE_OUT>            Ease-out control point [default: 0.35]
-    --svg                            Generate SVG image
-    --png                            Generate PNG image
-    --no-legend                      Disable legend (only with --svg or --png)
-    --width <WIDTH>                  Image width in pixels [default: 1000]
-    --svg-name <SVG_NAME>            SVG filename [default: gradient.svg]
-    --png-name <PNG_NAME>            PNG filename [default: gradient.png]
-    --grad-step <GRAD_STEP>          Output every X percent
-    --grad-stops <GRAD_STOPS>        Number of intelligent stops [default: 5]
-    --grad-stops-simple <GRAD_STOPS> Number of equal stops
-```
-
-### Color Command
-```
-color-rs color <COLOR>
-
-ARGUMENTS:
-    <COLOR>    Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), lab(), or color name)
-
-The color command automatically detects the input format and provides comprehensive color analysis with all color format conversions (RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH), WCAG-compliant relative luminance calculations, contrast ratios, accessibility information, and color harmony schemes calculated in both HSL and Lab color space strategies.
-
-#### RAL Color System Support
-The color command now includes comprehensive RAL color system support with:
-- **RAL Classic**: 213 standardized colors (e.g., "RAL 1000", "RAL1000")
-- **RAL Design System+**: 1825 colors in hue/lightness/chromaticity format (e.g., "RAL 010 40 30")
-- **Name-based lookup**: Search by RAL color names (e.g., "luminous orange", "light blue")
-- **Closest matches**: Shows 2 closest colors from each classification separately
-- **Complete Analysis**: RAL colors receive the same comprehensive analysis as all other color inputs
-
-Examples:
-```bash
-color-rs color "RAL 1000"          # RAL Classic with space
-color-rs color "RAL1000"           # RAL Classic without space  
-color-rs color "RAL 010 40 30"     # RAL Design System+
-color-rs color "luminous orange"   # RAL name search
-```
-```
-
-All color inputs (including RAL colors) receive comprehensive analysis including:
-- **Input Format Auto-Detection**: Supports hex (#FF5733), RGB/RGBA (rgb(255,87,51)), HSL/HSLA (hsl(11,100%,60%)), and named colors (red, blue, etc.)
-- **Comprehensive Conversion**: Outputs RGB, Hex, HSL, LAB, XYZ, and OKLCH formats
-- **Color Name Recognition**: Uses a database of 148+ named colors to find the closest match
-- **Grayscale Conversion**: Calculates grayscale equivalent using LAB L* component for perceptually accurate results
-- **WCAG Compliance**: Provides proper relative luminance with gamma correction (not simple weighted averages)
-- **Contrast Analysis**: Shows contrast ratios against white and black backgrounds
-- **Accessibility Testing**: Helps determine if colors meet WCAG AA/AAA contrast requirements
-
-## Color Spaces
-
-### LAB Color Space
-- **Perceptually uniform**: Equal numerical differences appear as equal visual differences
-- **Device independent**: Consistent across different displays and printers
-- **Wide gamut**: Encompasses all colors visible to the human eye
-
-### RGB → LAB → RGB Pipeline
-1. Input colors parsed as sRGB hex values
-2. Converted to LAB for perceptually uniform interpolation
-3. Converted back to sRGB for output
-
-## Cubic-Bezier Easing
-
-The tool uses industry-standard cubic-bezier curves matching CSS timing functions:
-
-- `cubic-bezier(ease-in, 0, ease-out, 1)`
-- **Linear**: `--ease-in 0 --ease-out 1`
-- **Ease**: `--ease-in 0.25 --ease-out 1` (default-ish)
-- **Ease-in**: `--ease-in 0.42 --ease-out 1`
-- **Ease-out**: `--ease-in 0 --ease-out 0.58`
-- **Ease-in-out**: `--ease-in 0.42 --ease-out 0.58`
-
-## Intelligent Stop Placement
-
-The `--grad-stops` option uses curve derivatives to automatically place gradient stops where colors change most rapidly:
-
-- Analyzes the cubic-bezier curve's rate of change
-- Places more stops in areas of rapid color transition
-- Results in smoother gradients with fewer visible bands
-- Always uses integer percentages for CSS compatibility
-
-## Image Generation
-
-### SVG Features
-- Scalable vector format
-- Optional legends with typography
-- System font stacks
-- Text automatically converted to paths for PNG export
-
-### PNG Features
-- High-quality rasterization via resvg
-- System font loading for text rendering
-- Consistent output across platforms
-- Optional legend control
-
-### Proportional Design
-- Gradient height = width × 0.2 (1:5 aspect ratio)
-- Legend height = gradient height × 0.2 (when enabled)
-- Font size = legend height × 0.6
-- All dimensions scale proportionally
-
-## Technical Details
-
-### Architecture
-
-Color-rs follows a modular architecture with clear separation of concerns:
-
-- **`lib.rs`**: Main library entry point with public API
-- **`cli.rs`**: Command-line interface and argument parsing
-- **`color.rs`**: Color operations, conversions, and LAB color space handling
-- **`gradient.rs`**: Gradient calculations and cubic-bezier easing functions
-- **`image.rs`**: SVG and PNG image generation
-- **`error.rs`**: Custom error types and error handling
-- **`config.rs`**: Configuration constants and default values
-- **`utils.rs`**: Utility functions and validation
-- **`main.rs`**: CLI entry point (minimal, delegates to library)
-
-### Error Handling
-
-Custom error types provide clear error messages and proper error propagation:
-
-```rust
-pub enum ColorError {
-    InvalidColor(String),
-    InvalidGradient(String),
-    ImageError(String),
-    IoError(std::io::Error),
-    SvgError(String),
-    InvalidArguments(String),
-    General(String),
-}
-```
-
-### Dependencies
-- **kurbo**: Industry-standard 2D curve operations
-- **palette**: Color space conversions
-- **usvg/resvg**: SVG parsing and PNG rendering
-- **clap**: Modern CLI argument parsing
-- **tabled**: Terminal table formatting
-- **colored**: Terminal output formatting
-
-### Performance
-- Optimized curve calculations with binary search
-- High-resolution sampling (10,000 points) for intelligent stops
-- Efficient LAB color space interpolation
-- Minimal memory allocation
-
-### Development
-
-```bash
-# Clone the repository
-git clone https://github.com/al-siv/color-rs.git
-cd color-rs
-
-# Run tests
-cargo test
-
-# Run with debug output
-cargo run -- gradient --start-color FF0000 --end-color 0000FF
-
-# Build optimized release
-cargo build --release
-
-# Run benchmarks (if available)
-cargo bench
-
-# Generate documentation
-cargo doc --open
-
-# Check code formatting
-cargo fmt --check
-
-# Run linter
-cargo clippy
-```
-
-### Project Structure
-
-```
-src/
-├── lib.rs          # Library entry point
-├── main.rs         # CLI entry point
-├── cli.rs          # CLI argument parsing
-├── color.rs        # Color operations
-├── gradient.rs     # Gradient calculations
-├── image.rs        # SVG/PNG generation
-├── error.rs        # Error handling
-├── config.rs       # Configuration
-└── utils.rs        # Utilities
-```
-
-### Testing
-
-The project includes comprehensive unit tests:
-
-```bash
-cargo test
-```
-
-Tests cover:
-- Color parsing and conversion
-- Gradient calculations
-- Cubic-bezier easing functions
-- Image generation validation
-- Error handling
-- Utility functions
-
-## Examples
-
-### Web Development
-```bash
-# Generate CSS-ready gradient with simplified syntax
-color-rs gradient "FF6B35" "7209B7" --grad-stops 5 --ease-in 0.25 --ease-out 0.75
-```
-
-Output for CSS:
-```css
-background: linear-gradient(
-        to right,
-        rgb(255, 107, 53) 0%,
-        rgb(226, 78, 99) 35%,
-        rgb(189, 53, 132) 55%,
-        rgb(151, 28, 161) 75%,
-        rgb(114, 9, 183) 100%
-);
-```
-
-### Design Assets
-```bash
-# High-resolution design asset
-color-rs gradient "FF6B35" "7209B7" --svg --png --width 3000 --no-legend
-```
-
-### Color Analysis for Accessibility
-```bash
-# Check WCAG compliance
-color-rs color "#FF5733"
-# Output includes contrast ratios: 3.15:1 vs white, 6.66:1 vs black
-# Helps determine if color meets WCAG AA (4.5:1) requirements
-```
+## Architecture
+
+Modular design with separated concerns:
+- **Color operations**: RGB/HSL/LAB/LCH conversions with palette library
+- **Format detection**: Automatic input format parsing (hex, rgb(), hsl(), names)
+- **Color collections**: CSS colors, RAL Classic (213), RAL Design System+ (1825+)
+- **Distance calculations**: CIE Delta E 2000 for perceptual accuracy
+- **Output formats**: YAML (default), TOML, structured data
+
+## Error Handling
+
+Comprehensive error reporting for:
+- Invalid color formats
+- Unsupported conversions
+- File operations
+- Command validation
+
+## Performance
+
+- Optimized LAB calculations with palette
+- Efficient collection lookups
+- Memory-efficient operations
+- Clean structured output
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+Standard Rust practices:
+- Comprehensive error handling
+- Modular architecture
+- Unit test coverage
+- rustfmt formatting
+- clippy compliance
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- **kurbo**: Rust graphics ecosystem for curve mathematics
-- **palette**: Comprehensive color science library
-- **usvg/resvg**: SVG processing pipeline
-- **tabled**: Terminal table formatting
-- **LAB color space**: Perceptually uniform color representation
+MIT License - see LICENSE file
 
 ## Links
 
 - [Repository](https://github.com/al-siv/color-rs)
 - [Issues](https://github.com/al-siv/color-rs/issues)
-- [CSS cubic-bezier reference](https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function)
-- [LAB color space](https://en.wikipedia.org/wiki/CIELAB_color_space)
-
----
-
-**color-rs** - Color gradients for modern workflows
-
-## Changelog
-
-### v0.8.4 - Color Accuracy Improvements (2025-07-15)
-- **ImprovedCiede2000 Delta E**: Replaces simple Euclidean distance with perceptually uniform color difference calculations. Red vs Blue ΔE ≈ 23 (vs ≈ 175 with old method)
-- **Official WCAG 2.1 Implementation**: Uses palette's `Wcag21RelativeContrast` for standards-compliant accessibility calculations
-- **Color Interpolation**: Leverages palette's `Mix` trait for accurate color blending
-- **Dual HSL Conversion Paths**: Offers both direct HSL→RGB and HSL→XYZ→LAB→RGB conversion with typically <1 RGB unit difference
-
-These improvements ensure color calculations match color management standards.
-
-### Architecture
-- **Unified Color Collection System**: Advanced architecture for managing multiple color standards
-  - **Extensible Design**: Support for CSS Named Colors, RAL Classic, RAL Design System+, and future collections (Pantone, etc.)
-  - **Advanced Filtering**: Group-based filtering for RAL collections (by color families, lightness, chromaticity)
-  - **Multiple Search Methods**: Closest match, exact name/code, luminance-based, and pattern-based searching
-  - **Perceptually Accurate Matching**: LAB color space for consistent color distance calculations across all collections
-  - **Library-First Design**: Clean APIs suitable for integration into other Rust projects
-
-### Advanced Color Collection System
-
-```rust
-use color_rs::color_parser::{
-    UnifiedColorManager, UniversalColor, SearchFilter
-};
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create unified manager with all color collections
-    let manager = UnifiedColorManager::new();
-    
-    // Find closest colors across all collections (CSS, RAL Classic, RAL Design System+)
-    let red_rgb = [255, 0, 0];
-    let results = manager.find_closest_across_all(red_rgb, 2);
-    
-    for (collection_name, matches) in results {
-        println!("{} Collection:", collection_name);
-        for color_match in matches {
-            println!("  {} - Distance: {:.2}", 
-                color_match.entry.metadata.name,
-                color_match.distance
-            );
-        }
-    }
-    
-    // Advanced RAL filtering by groups
-    let ral_red_groups = vec!["RAL 3000".to_string()]; // Red group
-    let ral_reds = manager.find_ral_classic_in_groups(red_rgb, &ral_red_groups, 3);
-    
-    // Filter RAL Design System+ by hue
-    let red_hue_groups = vec!["Red".to_string()];
-    let design_reds = manager.find_ral_design_in_hue_groups(red_rgb, &red_hue_groups, 3);
-    
-    // Search by exact codes
-    if let Some((collection, entry)) = manager.find_by_code("RAL 1000") {
-        println!("Found {} in {}", entry.metadata.name, collection);
-    }
-    
-    // Advanced filtering with SearchFilter
-    let filter = SearchFilter {
-        luminance_range: Some([0.3, 0.8]), // Medium to high luminance
-        groups: Some(vec!["RAL 3000".to_string()]), // Red group only
-        ..Default::default()
-    };
-    
-    let filtered_results = manager.search_with_filter([200, 50, 50], &filter, 5);
-    
-    Ok(())
-}
-```
 

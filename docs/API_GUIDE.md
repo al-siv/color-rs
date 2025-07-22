@@ -1,62 +1,445 @@
-# Color-rs API Guide
+# Color-rs API Guide v0.14.1
 
-This document provides comprehensive reference for the color-rs library's public API, covering all types, traits, and functions re-exported from the crate root.
+Rust library API reference for color analysis, gradient generation, and color space conversions.
 
-## Table of Contents
+## Installation
 
-- [Getting Started](#getting-started)
-- [Core Types](#core-types)
-- [Color Operations](#color-operations)
-- [Gradient System](#gradient-system)
-- [Parser System](#parser-system)
-- [Design Patterns](#design-patterns)
-- [Error Handling](#error-handling)
-- [Usage Examples](#usage-examples)
-
-## Getting Started
-
-Add color-rs to your `Cargo.toml`:
+Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-color-rs = "0.14.0"
+color-rs = "0.14.1"
 ```
 
-### Basic Usage
+## Basic Library Usage
 
 ```rust
-use color_rs::{ColorRs, cli::GradientArgs};
+use color_rs::{color, gradient, format_utils, ColorError};
 
-fn main() -> color_rs::Result<()> {
-    let color_rs = ColorRs::new();
+fn main() -> Result<(), ColorError> {
+    // Color analysis
+    let color_result = color::analyze_color(
+        "#FF5733",
+        "delta-e-2000",
+        "lab",
+        None,
+        None
+    )?;
     
-    // Simple gradient generation
-    let args = GradientArgs {
-        start_color: "red".to_string(),
-        end_color: "blue".to_string(),
-        // ... other fields with defaults
-    };
+    // Gradient generation
+    let gradient_result = gradient::generate_gradient(
+        "red",
+        "blue", 
+        0,     // start position
+        100,   // end position
+        0.65,  // ease in
+        0.35,  // ease out
+        5,     // stops
+        false, // simple stops
+        None,  // step override
+        false  // generate images
+    )?;
     
-    color_rs.generate_gradient(args)?;
     Ok(())
 }
 ```
 
-## Core Types
+## Core Modules
 
-### ColorRs
+### color Module
 
-The main library interface providing high-level operations.
+Primary color analysis functionality:
 
 ```rust
-pub struct ColorRs;
+use color_rs::color;
 
-impl ColorRs {
-    /// Create a new instance of the color-rs library
-    pub fn new() -> Self;
+// Analyze a color with full output
+let result = color::analyze_color(
+    color_input: &str,          // Color value (any format)
+    distance_method: &str,      // "delta-e-2000", "delta-e-76", etc.
+    scheme_strategy: &str,      // "lab" or "hsl"
+    relative_luminance: Option<f64>,  // WCAG luminance replacement
+    lab_luminance: Option<f64>        // LAB L* replacement
+)?;
+
+// Result contains structured color data:
+// - metadata (program info, timestamp)
+// - input (original value, detected format) 
+// - conversion (all color space conversions)
+// - contrast (WCAG compliance data)
+// - grayscale (perceptually accurate conversion)
+// - color_collections (closest matches from CSS/RAL)
+// - color_schemes (complementary, triadic, tetradic)
+```
+
+### gradient Module
+
+Gradient generation with LAB interpolation:
+
+```rust
+use color_rs::gradient;
+
+// Generate gradient with intelligent stops
+let result = gradient::generate_gradient(
+    start_color: &str,      // Starting color (any format)
+    end_color: &str,        // Ending color (any format)
+    start_position: u8,     // Start position (0-100)
+    end_position: u8,       // End position (0-100)
+    ease_in: f64,           // Cubic-bezier ease-in (0.0-1.0)
+    ease_out: f64,          // Cubic-bezier ease-out (0.0-1.0)
+    stops: usize,           // Number of gradient stops
+    simple_stops: bool,     // Use equal spacing vs curve derivatives
+    step_override: Option<u8>,  // Override with fixed step size
+    generate_images: bool   // Generate SVG/PNG files
+)?;
+
+// Result contains structured gradient data:
+// - metadata (program info, parameters)
+// - start_color (complete analysis)
+// - end_color (complete analysis)
+// - gradient_stops (array with positions, colors, luminance)
+// - summary (contrast ratios, total distance)
+```
+
+### format_utils Module
+
+Output formatting utilities:
+
+```rust
+use color_rs::format_utils;
+
+// Format as YAML (default)
+let yaml_output = format_utils::format_as_yaml(&result_data)?;
+
+// Format as TOML
+let toml_output = format_utils::format_as_toml(&result_data)?;
+
+// Save to file with automatic extension
+format_utils::save_to_file(&result_data, "analysis", "yaml")?;
+// Creates: analysis.yaml
+```
+
+## Color Data Structures
+
+### ColorAnalysisResult
+
+Complete color analysis output:
+
+```rust
+#[derive(Serialize, Deserialize)]
+pub struct ColorAnalysisResult {
+    pub metadata: AnalysisMetadata,
+    pub input: InputData,
+    pub conversion: ConversionData,
+    pub contrast: ContrastData,
+    pub grayscale: GrayscaleData,
+    pub color_collections: ColorCollectionData,
+    pub color_schemes: ColorSchemeData,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AnalysisMetadata {
+    pub program: String,
+    pub version: String,
+    pub timestamp: String,
+    pub analysis_type: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ConversionData {
+    pub rgb: [u8; 3],
+    pub hsl: [f64; 3],
+    pub hex: String,
+    pub lab: [f64; 3],
+    pub lch: [f64; 3],
+    pub xyz: [f64; 3],
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ContrastData {
+    pub wcag_relative_luminance: f64,
+    pub contrast_vs_white: f64,
+    pub contrast_vs_black: f64,
+}
+```
+
+### GradientResult
+
+Gradient generation output:
+
+```rust
+#[derive(Serialize, Deserialize)]
+pub struct GradientResult {
+    pub metadata: GradientMetadata,
+    pub start_color: ColorAnalysisResult,
+    pub end_color: ColorAnalysisResult,
+    pub gradient_stops: Vec<GradientStop>,
+    pub summary: GradientSummary,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GradientStop {
+    pub position: u8,
+    pub rgb: [u8; 3],
+    pub hex: String,
+    pub wcag_luminance: f64,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GradientMetadata {
+    pub program: String,
+    pub version: String,
+    pub timestamp: String,
+    pub analysis_type: String,
+    pub parameters: GradientParameters,
+}
+```
+
+## Error Handling
+
+```rust
+use color_rs::ColorError;
+
+#[derive(Debug)]
+pub enum ColorError {
+    InvalidColor(String),
+    InvalidFormat(String),
+    ConversionError(String),
+    IoError(String),
+    SerializationError(String),
+}
+
+impl std::fmt::Display for ColorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ColorError::InvalidColor(msg) => write!(f, "Invalid color: {}", msg),
+            ColorError::InvalidFormat(msg) => write!(f, "Invalid format: {}", msg),
+            ColorError::ConversionError(msg) => write!(f, "Conversion error: {}", msg),
+            ColorError::IoError(msg) => write!(f, "I/O error: {}", msg),
+            ColorError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for ColorError {}
+```
+
+## Advanced Usage Examples
+
+### Color Collection Matching
+
+```rust
+use color_rs::color;
+
+// Find closest colors with different distance methods
+let result = color::analyze_color(
+    "#FF5733",
+    "delta-e-2000",  // Most perceptually accurate
+    "lab",
+    None,
+    None
+)?;
+
+// Access closest matches
+let css_matches = &result.color_collections.css_colors;
+let ral_classic = &result.color_collections.ral_classic;
+let ral_design = &result.color_collections.ral_design;
+
+for color_match in css_matches {
+    println!("CSS: {} - {:.2} distance", 
+             color_match.name, 
+             color_match.distance);
+}
+```
+
+### Color Scheme Generation
+
+```rust
+// Generate LAB-based schemes (perceptually uniform)
+let lab_result = color::analyze_color("#FF5733", "delta-e-2000", "lab", None, None)?;
+let lab_schemes = &lab_result.color_schemes;
+
+// Generate HSL-based schemes (traditional color wheel)
+let hsl_result = color::analyze_color("#FF5733", "delta-e-2000", "hsl", None, None)?;
+let hsl_schemes = &hsl_result.color_schemes;
+
+println!("LAB Complementary: {:?}", lab_schemes.complementary);
+println!("HSL Complementary: {:?}", hsl_schemes.complementary);
+```
+
+### Gradient with Custom Easing
+
+```rust
+use color_rs::gradient;
+
+// Create ease-in-out gradient
+let result = gradient::generate_gradient(
+    "red",
+    "blue",
+    0,      // full range
+    100,
+    0.42,   // ease-in (CSS ease-in-out)
+    0.58,   // ease-out (CSS ease-in-out)
+    8,      // 8 intelligent stops
+    false,  // use curve derivatives
+    None,   // no step override
+    true    // generate SVG/PNG
+)?;
+
+// Access gradient stops
+for stop in &result.gradient_stops {
+    println!("{}%: {} (luminance: {:.3})", 
+             stop.position, 
+             stop.hex, 
+             stop.wcag_luminance);
+}
+```
+
+### Luminance Adjustment
+
+```rust
+// Replace color with specific WCAG relative luminance
+let adjusted = color::analyze_color(
+    "#FF5733",
+    "delta-e-2000",
+    "lab",
+    Some(0.5),  // Target WCAG luminance
+    None
+)?;
+
+// Replace color with specific LAB lightness
+let lab_adjusted = color::analyze_color(
+    "#FF5733", 
+    "delta-e-2000",
+    "lab",
+    None,
+    Some(60.0)  // Target LAB L* value
+)?;
+```
+
+### File Output
+
+```rust
+use color_rs::{color, format_utils};
+
+// Analyze color and save as TOML
+let result = color::analyze_color("#FF5733", "delta-e-2000", "lab", None, None)?;
+format_utils::save_to_file(&result, "color-analysis", "toml")?;
+// Creates: color-analysis.toml
+
+// Generate gradient and save as YAML
+let gradient = gradient::generate_gradient("red", "blue", 0, 100, 0.65, 0.35, 5, false, None, false)?;
+format_utils::save_to_file(&gradient, "red-blue-gradient", "yaml")?;
+// Creates: red-blue-gradient.yaml
+```
+
+## Integration Patterns
+
+### Batch Processing
+
+```rust
+use color_rs::{color, format_utils};
+
+fn process_color_palette(colors: Vec<&str>) -> Result<(), ColorError> {
+    for (i, color_input) in colors.iter().enumerate() {
+        let result = color::analyze_color(
+            color_input,
+            "delta-e-2000",
+            "lab", 
+            None,
+            None
+        )?;
+        
+        format_utils::save_to_file(
+            &result, 
+            &format!("color-{:02}", i),
+            "yaml"
+        )?;
+    }
+    Ok(())
+}
+
+// Process a brand palette
+process_color_palette(vec!["#FF5733", "#33C4FF", "#7209B7"])?;
+```
+
+### Color Validation
+
+```rust
+use color_rs::color;
+
+fn validate_accessibility(color: &str, min_contrast: f64) -> Result<bool, ColorError> {
+    let result = color::analyze_color(color, "delta-e-2000", "lab", None, None)?;
     
-    /// Generate a gradient based on the provided arguments
-    pub fn generate_gradient(&self, args: GradientArgs) -> Result<()>;
+    let white_contrast = result.contrast.contrast_vs_white;
+    let black_contrast = result.contrast.contrast_vs_black;
+    
+    Ok(white_contrast >= min_contrast || black_contrast >= min_contrast)
+}
+
+// Check WCAG AA compliance (4.5:1 ratio)
+let is_accessible = validate_accessibility("#FF5733", 4.5)?;
+```
+
+### Design System Integration
+
+```rust
+use color_rs::{color, gradient};
+
+struct DesignSystem {
+    primary: String,
+    secondary: String,
+}
+
+impl DesignSystem {
+    fn analyze_colors(&self) -> Result<(ColorAnalysisResult, ColorAnalysisResult), ColorError> {
+        let primary = color::analyze_color(&self.primary, "delta-e-2000", "lab", None, None)?;
+        let secondary = color::analyze_color(&self.secondary, "delta-e-2000", "lab", None, None)?;
+        Ok((primary, secondary))
+    }
+    
+    fn generate_brand_gradient(&self) -> Result<GradientResult, ColorError> {
+        gradient::generate_gradient(
+            &self.primary,
+            &self.secondary,
+            0, 100,
+            0.65, 0.35,
+            6,
+            false,
+            None,
+            true  // Generate images for design assets
+        )
+    }
+}
+```
+
+## Performance Considerations
+
+- **Color Space Conversions**: Optimized using the palette library
+- **Distance Calculations**: Delta E 2000 is most accurate but slower than Delta E 76
+- **Collection Matching**: RAL Design System+ has 1825+ colors vs RAL Classic's 213
+- **Memory Usage**: Structured output is memory-efficient with minimal allocation
+- **File I/O**: Automatic buffering for large YAML/TOML outputs
+
+## Thread Safety
+
+All color-rs functions are stateless and thread-safe:
+
+```rust
+use std::thread;
+use color_rs::color;
+
+let handles: Vec<_> = (0..4).map(|i| {
+    thread::spawn(move || {
+        color::analyze_color(&format!("#{:06x}", i * 0x111111), "delta-e-2000", "lab", None, None)
+    })
+}).collect();
+
+for handle in handles {
+    let result = handle.join().unwrap()?;
+    // Process result...
+}
+```
     
     /// Match and convert color between different color spaces
     pub fn color_match(&self, args: ColorMatchArgs) -> Result<String>;
