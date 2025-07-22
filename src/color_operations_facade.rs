@@ -21,11 +21,17 @@ use palette::{Lab, Srgb};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let facade = ColorOperationsFacade::new();
 ///
-/// // Simple color conversion
-/// let rgb = facade.hex_to_srgb("#FF5733")?;
-/// let lab = facade.srgb_to_lab(rgb)?;
-/// let white: Srgb = Srgb::new(1.0, 1.0, 1.0);
-/// let contrast = facade.calculate_contrast(rgb, white)?;
+/// // Color analysis
+/// let analysis = facade.analyze_color("#FF5733")?;
+/// 
+/// // Calculate luminance
+/// let srgb = Srgb::new(1.0, 0.341, 0.2);
+/// let luminance = facade.calculate_luminance(srgb)?;
+/// 
+/// // Calculate distance between colors
+/// let srgb1 = Srgb::new(1.0, 0.0, 0.0);
+/// let srgb2 = Srgb::new(0.0, 1.0, 0.0);
+/// let distance = facade.calculate_distance(srgb1, srgb2)?;
 /// # Ok(())
 /// # }
 /// ```

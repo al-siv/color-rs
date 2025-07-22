@@ -338,7 +338,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
         ))
     })?;
 
-    // Print color information with beautiful formatting
+    // Print color information with formatting
     // ColorProcessor::print_color_info_table(start_lab, end_lab);
 
     // Generate images if requested
@@ -753,7 +753,7 @@ fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> Stri
                     "{}{} = {}",
                     indent,
                     key.green(),
-                    crate::output_utils::OutputUtils::colorize_output_value(value)
+                    value
                 )
             } else {
                 line.to_string()
@@ -771,14 +771,14 @@ fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> Stri
                     "{}{} {}",
                     indent,
                     key.green(),
-                    crate::output_utils::OutputUtils::colorize_output_value(value)
+                    value
                 )
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
                 format!(
                     "{}- {}",
                     indent,
-                    crate::output_utils::OutputUtils::colorize_output_value(stripped)
+                    stripped
                 )
             } else {
                 line.to_string()

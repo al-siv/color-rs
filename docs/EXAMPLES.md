@@ -52,7 +52,7 @@ RAL color matching provides:
 ## Advanced Features
 
 ```bash
-# Intelligent gradient stops with custom easing
+# Mathematically distributed gradient stops with custom easing
 color-rs gradient FF0000 0000FF --grad-stops 8 --ease-in 0.9 --ease-out 0.1
 
 # Generate image files with simplified syntax
@@ -209,14 +209,14 @@ color-rs find-by-name "blue" --collection "CSS"    # Only CSS colors
 ```rust
 use color_rs::GradientBuilder;
 
-// Professional gradient with ease-in-out
-let professional = GradientBuilder::new()
+// Gradient with ease-in-out
+let gradient = GradientBuilder::new()
     .start_color("#2C3E50")           // Dark blue-gray
     .end_color("#E74C3C")            // Red
     .ease_in_out()                   // Smooth acceleration/deceleration
-    .intelligent_stops(8)            // AI-optimized stop placement
+    .intelligent_stops(8)            // Mathematically optimized stop placement
     .svg()                          // Export to SVG
-    .svg_filename("professional-gradient.svg")
+    .svg_filename("gradient.svg")
     .width(1200)
     .build()?;
 

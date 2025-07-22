@@ -192,7 +192,7 @@ flowchart TD
     F --> G[Step Calculation]
     G --> H{Stop Strategy}
     H -->|Equal| I[Equal Distribution]
-    H -->|Intelligent| J[Curve Analysis]
+    H -->|Mathematical| J[Curve Analysis]
     I --> K[Color Interpolation]
     J --> K
     K --> L[Format Conversion]

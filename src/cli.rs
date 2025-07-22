@@ -308,18 +308,3 @@ impl ColorArgs {
         Ok(())
     }
 }
-
-/// Print application information in cargo style
-pub fn print_app_info() {
-    use colored::*;
-
-    println!(
-        "{:>13} {} v{}",
-        "Application:".green().bold(),
-        APP_NAME,
-        APP_VERSION
-    );
-    println!("{:>13} {}", "About:".green().bold(), APP_DESCRIPTION);
-    println!("{:>13} {}", "Author:".green().bold(), APP_AUTHOR);
-    println!();
-}

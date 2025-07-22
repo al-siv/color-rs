@@ -1,4 +1,4 @@
-//! Color-rs: Professional color gradient calculations using LAB color space
+//! Color-rs: Color gradient calculations using LAB color space
 //!
 //! This library provides tools for generating perceptually uniform color gradients
 //! with CSS cubic-bezier easing functions. It supports multiple output formats

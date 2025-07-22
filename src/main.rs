@@ -4,9 +4,6 @@ use clap::Parser;
 use color_rs::{ColorRs, cli};
 
 fn main() -> color_rs::Result<()> {
-    // Print application information
-    cli::print_app_info();
-
     // Parse command line arguments
     let cli_args = cli::Cli::parse();
 

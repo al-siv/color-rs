@@ -19,7 +19,7 @@ Add color-rs to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-color-rs = "0.11.1"
+color-rs = "0.14.0"
 ```
 
 ### Basic Usage
@@ -268,7 +268,7 @@ impl GradientCalculator {
         ease_out: f64,
     ) -> Vec<GradientValue>;
     
-    /// Generate intelligently placed stops based on curve analysis
+    /// Generate mathematically placed stops based on curve analysis
     pub fn intelligent_stops(
         &self,
         start_color: [f64; 3],
@@ -329,7 +329,7 @@ impl GradientBuilder {
     /// Set number of equal stops
     pub fn equal_stops(self, count: usize) -> Self;
     
-    /// Set number of intelligent stops
+    /// Set number of mathematically distributed stops
     pub fn intelligent_stops(self, count: usize) -> Self;
     
     /// Enable SVG output

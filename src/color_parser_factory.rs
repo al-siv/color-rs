@@ -4,7 +4,6 @@
 //! with various configurations and capabilities.
 
 use crate::color_parser::{ColorParser, UnifiedColorManager};
-use crate::config::*;
 use crate::error::Result;
 use crate::utils::Utils;
 

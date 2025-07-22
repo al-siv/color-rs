@@ -5,6 +5,29 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2025-01-18
+
+### Changed
+- **Documentation Rewrite**: Complete documentation refresh with factual, technical language
+  - Removed promotional language from all documentation files
+  - Updated README.md with direct, factual descriptions
+  - Revised API documentation for technical accuracy
+  - Updated CLI reference with mathematical terminology
+  - Replaced "professional", "beautiful", "intelligent" with precise technical terms
+- **Package Metadata**: Updated Cargo.toml with refined description, keywords, and categories
+  - Description: "CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations"
+  - Added keywords: lch, wcag, ral, color-distance, accessibility
+  - Added accessibility category
+- **Code Quality**: Fixed compilation issues and improved module structure
+  - Resolved broken function calls in color.rs and gradient.rs
+  - Fixed module exports in lib.rs
+  - Removed problematic output_utils dependencies
+
+### Fixed
+- **Build System**: Resolved compilation errors from missing functions
+- **Module Structure**: Corrected module visibility and exports
+- **Documentation Consistency**: Ensured all version references point to 0.14.0
+
 ## [0.12.0] - 2025-01-18
 
 ### Added
@@ -79,7 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Collection Formatting**: Unified all collection output to use consistent ColorMatch-based formatting
 
 ### Changed
-- **Architecture**: Implemented professional design patterns for better maintainability and extensibility
+- **Architecture**: Implemented design patterns for better maintainability and extensibility
 - **Code Quality**: Reduced color.rs parsing logic from 39 lines to 3 lines using unified utilities
 - **Constants**: Replaced magic numbers with named constants throughout color conversion functions
 

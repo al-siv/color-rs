@@ -330,21 +330,6 @@ fn format_comprehensive_report_with_structured_output(
 
 /// Display TOML/YAML output to terminal with colorization
 fn display_colorized_structured_output(content: &str, format: &crate::cli::OutputFormat) {
-    use colored::*;
-
-    println!(
-        "{}",
-        format!(
-            "# {} OUTPUT",
-            match format {
-                crate::cli::OutputFormat::Toml => "TOML",
-                crate::cli::OutputFormat::Yaml => "YAML",
-            }
-        )
-        .bold()
-        .blue()
-    );
-
     for line in content.lines() {
         let colored_line = colorize_structured_line(line, format);
         println!("{}", colored_line);
@@ -374,7 +359,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                     "{}{} = {}",
                     indent,
                     key.green(),
-                    crate::output_utils::OutputUtils::colorize_output_value(value)
+                    value
                 )
             } else {
                 line.to_string()
@@ -392,14 +377,14 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                     "{}{} {}",
                     indent,
                     key.green(),
-                    crate::output_utils::OutputUtils::colorize_output_value(value)
+                    value
                 )
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
                 format!(
                     "{}- {}",
                     indent,
-                    crate::output_utils::OutputUtils::colorize_output_value(stripped)
+                    stripped
                 )
             } else {
                 line.to_string()

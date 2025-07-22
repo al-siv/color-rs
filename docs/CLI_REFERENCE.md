@@ -37,7 +37,7 @@ color-rs provides two main subcommands:
 
 ## Gradient Command
 
-Generate perceptually uniform color gradients with professional easing functions.
+Generate perceptually uniform color gradients with mathematical easing functions.
 
 ### Basic Syntax
 
@@ -66,7 +66,7 @@ color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
 
 #### Output Control
 - `--grad-step <PERCENT>` - Output gradient values every X percent (default: 5%)
-- `--grad-stops <COUNT>` - Number of intelligently placed gradient stops using curve derivatives
+- `--grad-stops <COUNT>` - Number of mathematically placed gradient stops using curve derivatives
 - `--grad-stops-simple <COUNT>` - Number of equally spaced gradient stops
 
 **Note**: `--grad-step`, `--grad-stops`, and `--grad-stops-simple` are mutually exclusive.
@@ -126,7 +126,7 @@ color-rs gradient red blue --grad-step 10 --ease-in 0.25 --ease-out 0.75
 ```
 
 ```bash
-# Intelligent gradient stops based on curve analysis
+# Mathematically distributed gradient stops based on curve analysis
 color-rs gradient "RAL 3020" "RAL 5005" --grad-stops 8
 ```
 
@@ -288,7 +288,7 @@ Future versions may support:
 
 ### Terminal Table Output
 
-All commands output beautiful terminal tables with:
+All commands output terminal tables with:
 
 - Color information with RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH values
 - WCAG compliance data (relative luminance, contrast ratios)
@@ -301,7 +301,7 @@ All commands output beautiful terminal tables with:
 #### SVG Format
 - Scalable vector graphics with optional legends
 - CSS-compatible color values
-- Professional typography using system fonts
+- Typography using system fonts
 
 #### PNG Format  
 - High-quality raster images

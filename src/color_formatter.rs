@@ -37,29 +37,6 @@ impl ColorFormatter {
         let _ = (lab_color, original_input, color_name);
     }
 
-    /// Format a color for output as either HSL or Lab based on flag
-    fn format_color_for_output(color: Lab, use_lab_output: bool) -> (String, String) {
-
-        // Always generate hex using ColorUtils
-        let (r, g, b) = ColorUtils::lab_to_rgb(color);
-        let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
-
-        // Generate either HSL or Lab format
-        let color_value = if use_lab_output {
-            format!("lab({:.2}, {:.2}, {:.2})", color.l, color.a, color.b)
-        } else {
-            let (h, s, l) = ColorUtils::lab_to_hsl_tuple(color);
-            format!(
-                "hsl({:.0}, {:.1}%, {:.1}%)",
-                h,
-                s * 100.0,
-                l * 100.0
-            )
-        };
-
-        (color_value, hex)
-    }
-
     /// Format a simple color info for table display
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
         let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);

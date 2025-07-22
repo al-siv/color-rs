@@ -1,29 +1,30 @@
 # color-rs
 
-A professional CLI tool and Rust library for color gradient calculations using perceptually uniform LAB color space with CSS cubic-bezier easing functions.
+CLI tool and Rust library for color analysis, gradient generation, and color space conversions using LAB color space with cubic-bezier easing functions.
 
 ## Features
 
-- **Simplified Interface**: Direct color arguments without flags - just `gradient red blue`
-- **Universal Color Parsing**: Supports HEX, RGB, HSL, and 148+ named colors across all commands
-- **RAL Color System**: Complete support for RAL Classic (213 colors) and RAL Design System+ (1825 colors) with precise color matching
-- **Perceptually Accurate Processing**: LAB color space for smooth gradients and ImprovedCiede2000 Delta E for precise color distance calculations
-- **WCAG Compliance**: Official WCAG 2.1 implementation for relative luminance and contrast ratio calculations using palette library
-- **Comprehensive Color Analysis**: Detailed output with RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
-- **Modular Architecture**: Clean separation of concerns with dedicated modules for color utilities, formatting, and parsing
-- **Library & CLI**: Use as a command-line tool or integrate as a Rust library
-- **Cargo-Style Output**: Professional terminal formatting matching Rust toolchain aesthetics
-- **CSS Cubic-Bezier Timing**: Professional easing functions matching web standards
-- **Intelligent Stop Placement**: Automatically places gradient stops where colors change most rapidly
-- **Multiple Output Formats**: 
-    - Beautiful terminal tables with color information and right-aligned numeric columns
+- **Direct Color Input**: Color arguments without flags - `gradient red blue`
+- **Color Format Support**: HEX, RGB, HSL, and 148+ named colors across all commands
+- **RAL Color System**: Support for RAL Classic (213 colors) and RAL Design System+ (1825 colors) with color matching
+- **LAB Color Space**: Gradient calculations using perceptually uniform LAB color space and CIE Delta E 2000 for color distance calculations
+- **WCAG Compliance**: WCAG 2.1 implementation for relative luminance and contrast ratio calculations
+- **Color Analysis**: Output includes RGB, HEX, HSL, HSB, CMYK, LAB, XYZ, OKLCH, WCAG luminance, and contrast ratios
+- **Modular Architecture**: Separated modules for color utilities, formatting, and parsing
+- **Dual Interface**: Command-line tool and Rust library
+- **Terminal Output**: Table formatting with color information and aligned numeric columns
+- **CSS Cubic-Bezier**: Easing functions matching web standards
+- **Gradient Stops**: Automatic placement at points of maximum color change
+- **Output Formats**: 
+    - Terminal tables with color information
     - SVG gradients with optional legends
-    - High-quality PNG exports
-- **Proportional Design**: All dimensions scale with width (1:5 aspect ratio)
-- **Integer Percentages**: CSS-friendly percentage values for practical use
-- **Rich Color Information**: RGB, HSL, LAB, XYZ, OKLCH values with color name recognition
-- **Type Safety**: Custom error types and comprehensive error handling
-- **Well Tested**: Comprehensive unit test suite with 37+ tests
+    - PNG image exports
+    - TOML/YAML data files
+- **Proportional Scaling**: All dimensions scale with width (1:5 aspect ratio)
+- **CSS Percentages**: Integer percentage values for web development
+- **Color Information**: RGB, HSL, LAB, XYZ, OKLCH values with color name recognition
+- **Error Handling**: Custom error types and validation
+- **Test Coverage**: Unit test suite with 37+ tests
 
 ## Library Usage
 
@@ -31,7 +32,7 @@ Color-rs can be used as a Rust library in your projects:
 
 ```toml
 [dependencies]
-color-rs = "0.10.0"
+color-rs = "0.14.0"
 ```
 
 ### Basic Library Usage
@@ -118,10 +119,10 @@ use color_rs::{ColorParserFactory, ColorParserType};
 let basic_parser = ColorParserFactory::create_parser(ColorParserType::Css)?;
 let full_parser = ColorParserFactory::create_parser(ColorParserType::Full)?;
 
-// Use preset configurations
-let fast_parser = ColorParserFactory::create_fast()?;        // Optimized for speed
+// Create parser configurations
+let fast_parser = ColorParserFactory::create_fast()?;        // Speed optimized
 let comprehensive_parser = ColorParserFactory::create_comprehensive()?; // All features
-let strict_parser = ColorParserFactory::create_strict()?;    // Strict validation
+let strict_parser = ColorParserFactory::create_strict()?;    // Validation enabled
 
 // Parse colors with different capabilities
 let (lab_color, format) = comprehensive_parser.parse("#FF5722")?;
@@ -138,10 +139,10 @@ println!("Collections: {}, Colors: {}", info.collection_count, info.color_count)
 ```rust
 use color_rs::{create_strategy, ColorUtils};
 
-// Choose from different distance calculation strategies
-let delta_e_2000 = create_strategy("delta-e-2000");      // Industry standard (default)
-let delta_e_76 = create_strategy("delta-e-76");          // Fast CIE76 formula
-let euclidean = create_strategy("euclidean-lab");        // Simple Euclidean distance
+// Different distance calculation strategies
+let delta_e_2000 = create_strategy("delta-e-2000");      // CIE Delta E 2000 (default)
+let delta_e_76 = create_strategy("delta-e-76");          // CIE Delta E 76 formula
+let euclidean = create_strategy("euclidean-lab");        // Euclidean distance
 
 // Use strategies for color matching
 let red_lab = ColorUtils::rgb_to_lab([255, 0, 0]);
@@ -150,20 +151,20 @@ let orange_lab = ColorUtils::rgb_to_lab([255, 165, 0]);
 let distance_2000 = delta_e_2000.calculate_distance(red_lab, orange_lab);
 let distance_76 = delta_e_76.calculate_distance(red_lab, orange_lab);
 
-println!("ΔE 2000: {:.2}", distance_2000);  // More perceptually accurate
+println!("ΔE 2000: {:.2}", distance_2000);  // Perceptually accurate
 println!("ΔE 76: {:.2}", distance_76);      // Faster computation
 ```
 
 ### Facade Pattern
 
-The Facade pattern provides a simplified interface for complex color operations:
+The Facade pattern provides simplified interface for color operations:
 
 ```rust
 use color_rs::ColorOperationsFacade;
 
 let facade = ColorOperationsFacade::new();
 
-// Simple hex to RGB conversion
+// Hex to RGB conversion
 let rgb = facade.hex_to_rgb("#FF5733")?;
 println!("RGB: {:?}", rgb);
 
@@ -171,18 +172,18 @@ println!("RGB: {:?}", rgb);
 let contrast = facade.calculate_contrast("#FFFFFF", "#000000")?;
 println!("Contrast ratio: {:.2}", contrast);
 
-// Comprehensive color analysis
+// Color analysis
 let analysis = facade.analyze_color("#3498DB")?;
 println!("Color analysis: {:?}", analysis);
 
-// Mix colors with specified ratio
+// Mix colors with ratio
 let mixed = facade.mix_colors("#FF0000", "#0000FF", 0.3)?;
 println!("Mixed color: {}", mixed);
 ```
 
 ### Template Method Pattern
 
-The Template Method pattern provides a standardized approach to color matching:
+Template Method pattern for color matching:
 
 ```rust
 use color_rs::{ColorMatchingTemplate, CssColorMatcher, RalClassicMatcher};
@@ -221,15 +222,15 @@ println!("Mid-point color: {}", hex_color);
 
 ## CLI Usage
 
-#### Windows Users (Recommended)
+#### Windows Installation
 
-Download the pre-compiled executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
+Download the executable from the [latest release](https://github.com/al-siv/color-rs/releases/latest):
 
 1. Download `color-rs.exe` from the release assets
-2. Place it in a folder that's in your PATH or use it directly
-3. Run `color-rs.exe gradient --help` to get started
+2. Place it in a folder in your PATH or use directly
+3. Run `color-rs.exe gradient --help` to start
 
-#### From Source
+#### Source Installation
 
 ```bash
 git clone https://github.com/al-siv/color-rs.git
@@ -237,12 +238,12 @@ cd color-rs
 cargo build --release
 ```
 
-The binary will be available at `target/release/color-rs` (or `target/release/color-rs.exe` on Windows).
+Binary location: `target/release/color-rs` (`target/release/color-rs.exe` on Windows).
 
 #### Requirements
 
-- For Windows users: No additional requirements with the pre-compiled executable
-- For building from source: Rust 1.70+ and Cargo
+- Windows users: No additional requirements with pre-compiled executable
+- Source build: Rust 1.70+ and Cargo
 
 ### Basic Gradient
 
@@ -520,8 +521,8 @@ The `--grad-stops` option uses curve derivatives to automatically place gradient
 
 ### SVG Features
 - Scalable vector format
-- Optional typography-rich legends
-- Professional font stacks
+- Optional legends with typography
+- System font stacks
 - Text automatically converted to paths for PNG export
 
 ### PNG Features
@@ -570,11 +571,11 @@ pub enum ColorError {
 
 ### Dependencies
 - **kurbo**: Industry-standard 2D curve operations
-- **palette**: Professional color space conversions
+- **palette**: Color space conversions
 - **usvg/resvg**: SVG parsing and PNG rendering
 - **clap**: Modern CLI argument parsing
-- **tabled**: Beautiful terminal table formatting
-- **colored**: Rich terminal output formatting
+- **tabled**: Terminal table formatting
+- **colored**: Terminal output formatting
 
 ### Performance
 - Optimized curve calculations with binary search
@@ -693,7 +694,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **kurbo**: Rust graphics ecosystem for curve mathematics
 - **palette**: Comprehensive color science library
 - **usvg/resvg**: SVG processing pipeline
-- **tabled**: Professional terminal table formatting
+- **tabled**: Terminal table formatting
 - **LAB color space**: Perceptually uniform color representation
 
 ## Links
@@ -705,17 +706,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-**color-rs** - Professional color gradients for modern workflows
+**color-rs** - Color gradients for modern workflows
 
 ## Changelog
 
 ### v0.8.4 - Color Accuracy Improvements (2025-07-15)
 - **ImprovedCiede2000 Delta E**: Replaces simple Euclidean distance with perceptually uniform color difference calculations. Red vs Blue ΔE ≈ 23 (vs ≈ 175 with old method)
 - **Official WCAG 2.1 Implementation**: Uses palette's `Wcag21RelativeContrast` for standards-compliant accessibility calculations
-- **Professional Color Interpolation**: Leverages palette's `Mix` trait for accurate color blending
+- **Color Interpolation**: Leverages palette's `Mix` trait for accurate color blending
 - **Dual HSL Conversion Paths**: Offers both direct HSL→RGB and HSL→XYZ→LAB→RGB conversion with typically <1 RGB unit difference
 
-These improvements ensure color calculations match professional color management standards.
+These improvements ensure color calculations match color management standards.
 
 ### Architecture
 - **Unified Color Collection System**: Advanced architecture for managing multiple color standards
