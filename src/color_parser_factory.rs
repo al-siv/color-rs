@@ -220,7 +220,7 @@ impl ColorParserTrait for FullColorParser {
         if self.config.enable_fallback_naming {
             Utils::rgb_to_string(rgb.0, rgb.1, rgb.2)
         } else {
-            DEFAULT_COLOR_UNKNOWN.to_string()
+            "Unknown".to_string()
         }
     }
 
@@ -275,7 +275,7 @@ impl ColorParserTrait for CustomColorParser {
             // More conservative naming
             let name = self.color_parser.get_color_name(rgb);
             if name.starts_with("rgb(") {
-                DEFAULT_COLOR_UNKNOWN.to_string()
+                "Unknown".to_string()
             } else {
                 name
             }

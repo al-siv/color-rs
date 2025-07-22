@@ -375,7 +375,7 @@ mod tests {
 
     #[test]
     fn test_lab_luminance_adjustment() {
-        let red_lab = Lab::from_color(Srgb::new(1.0, 0.0, 0.0));
+        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
         let adjusted = adjust_color_lab_luminance(red_lab, 75.0).unwrap();
 
         // Lab L component should be exactly 75.0
@@ -397,7 +397,7 @@ mod tests {
     #[test]
     fn test_color_scheme_calculation() {
         let calculator = ColorSchemeBuilder::new().build();
-        let red_lab = Lab::from_color(Srgb::new(1.0, 0.0, 0.0));
+        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
 
         let result = calculator.calculate(red_lab).unwrap();
 

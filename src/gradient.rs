@@ -314,24 +314,6 @@ impl GradientCalculator {
         Ok(gradient_values)
     }
 
-    /// Print gradient table with contrast information
-    pub fn print_gradient_table(values: Vec<GradientValue>) {
-        if values.is_empty() {
-            return;
-        }
-
-        use colored::*;
-        use tabled::{
-            Table,
-            settings::{Alignment, Style, object::Columns},
-        };
-
-        println!("{}", HEADER_GRADIENT_VALUES.bold().to_uppercase());
-        let mut table = Table::new(&values);
-        table.with(Style::rounded());
-        table.modify(Columns::first(), Alignment::right()); // Right-align Position column
-        println!("{}", table);
-    }
 }
 
 /// Main gradient generation function

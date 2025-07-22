@@ -27,7 +27,7 @@ fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
 /// Main CLI structure
 #[derive(Parser)]
 #[command(name = APP_NAME)]
-#[command(about = APP_ABOUT)]
+#[command(about = APP_DESCRIPTION)]
 #[command(author = APP_AUTHOR)]
 #[command(version = APP_VERSION)]
 pub struct Cli {
@@ -319,7 +319,7 @@ pub fn print_app_info() {
         APP_NAME,
         APP_VERSION
     );
-    println!("{:>13} {}", "About:".green().bold(), APP_ABOUT);
+    println!("{:>13} {}", "About:".green().bold(), APP_DESCRIPTION);
     println!("{:>13} {}", "Author:".green().bold(), APP_AUTHOR);
     println!();
 }

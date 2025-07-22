@@ -333,7 +333,7 @@ impl ProgramMetadata {
             program_name: crate::config::APP_NAME.to_string(),
             version: crate::config::APP_VERSION.to_string(),
             author: crate::config::APP_AUTHOR.to_string(),
-            description: crate::config::APP_ABOUT.to_string(),
+            description: crate::config::APP_DESCRIPTION.to_string(),
             generated_at: Utc::now().to_rfc3339(),
             distance_strategy: distance_strategy.unwrap_or("LAB Delta E").to_string(),
         }

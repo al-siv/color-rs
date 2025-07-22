@@ -22,7 +22,7 @@ As of version 0.11.1, color-rs uses **compile-time configuration** through const
 // Application metadata
 pub const APP_NAME: &str = "color-rs";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const APP_ABOUT: &str = "Professional color gradient calculations using LAB color space";
+pub const APP_DESCRIPTION: &str = "Professional color gradient calculations using LAB color space";
 pub const APP_AUTHOR: &str = "al-siv <https://github.com/al-siv>";
 
 // Default values for CLI arguments
