@@ -37,150 +37,18 @@ impl ColorOperationsFacade {
         Self
     }
 
-    /// Convert hex color to RGB values
-    ///
-    /// # Arguments
-    /// * `hex` - Hex color string (with or without #)
-    ///
-    /// # Returns
-    /// * RGB values as (r, g, b) tuple
-    pub fn hex_to_rgb(&self, hex: &str) -> Result<(u8, u8, u8)> {
-        let lab = ColorUtils::parse_hex_color(hex)?;
-        Ok(ColorUtils::lab_to_rgb(lab))
-    }
-
-    pub fn hex_to_srgb(&self, hex: &str) -> Result<Srgb> {
-        let lab = ColorUtils::parse_hex_color(hex)?;
-        let srgb: Srgb = lab.into_color();
-        Ok(srgb)
-    }
-
-    /// Convert RGB values to LAB color space
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as (r, g, b) tuple
-    ///
-    /// # Returns
-    /// * LAB color space representation
-    pub fn srgb_to_lab(&self, srgb: Srgb) -> Result<Lab> {
-        Ok(srgb.into_color())
-    }
-
-    /// Convert RGB values to LAB color space
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as (r, g, b) tuple
-    ///
-    /// # Returns
-    /// * LAB color space representation
-    pub fn rgb_to_lab(&self, rgb: (u8, u8, u8)) -> Result<Lab> {
-        Ok(ColorUtils::rgb_to_lab(rgb))
-    }
-
-    /// Convert LAB to hex color string
-    ///
-    /// # Arguments
-    /// * `lab` - LAB color space representation
-    ///
-    /// # Returns
-    /// * Hex color string with # prefix
-    pub fn lab_to_hex(&self, lab: Lab) -> Result<String> {
-        Ok(ColorUtils::lab_to_hex(lab))
-    }
-
-    /// Convert RGB to HSL values
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as (r, g, b) tuple
-    ///
-    /// # Returns
-    /// * HSL values as (hue, saturation, lightness) where hue is in degrees
-    pub fn rgb_to_hsl(&self, rgb: (u8, u8, u8)) -> Result<(f32, f32, f32)> {
-        Ok(ColorUtils::rgb_to_hsl_tuple(rgb))
-    }
-
-    /// Convert Srgb to HSL values as (hue, saturation, lightness)
-    ///
-    /// # Arguments
-    /// * `srgb` - Srgb color
-    ///
-    /// # Returns
-    /// * HSL values as (hue, saturation, lightness) where hue is in degrees
-    pub fn srgb_to_hsl_tuple(&self, srgb: Srgb) -> Result<(f32, f32, f32)> {
-        Ok(ColorUtils::srgb_to_hsl_tuple(srgb))
-    }
-
-    /// Convert HSL to RGB values
-    ///
-    /// # Arguments
-    /// * `hue` - Hue in degrees (0-360)
-    /// * `saturation` - Saturation (0.0-1.0)
-    /// * `lightness` - Lightness (0.0-1.0)
-    ///
-    /// # Returns
-    /// * RGB values as (r, g, b) tuple
-    pub fn hsl_to_rgb(&self, hsl: (f64, f64, f64)) -> Result<(u8, u8, u8)> {
-        Ok(ColorUtils::hsl_tuple_to_rgb(hsl))
-    }
-
-    /// Calculate WCAG contrast ratio between two colors
-    ///
-    /// # Arguments
-    /// * `color1` - First color as RGB tuple
-    /// * `color2` - Second color as RGB tuple
-    ///
-    /// # Returns
-    /// * Contrast ratio (1.0:1 to 21.0:1)
-    pub fn calculate_contrast(&self, srgb1: Srgb, srgb2: Srgb) -> Result<f64> {
-        Ok(ColorUtils::wcag_contrast_ratio(srgb1, srgb2))
-    }
-
-    /// Calculate WCAG contrast ratio between two colors given as RGB tuples
-    ///
-    /// # Arguments
-    /// * `color1` - First color as RGB tuple
-    /// * `color2` - Second color as RGB tuple
-    ///
-    /// # Returns
-    /// * Contrast ratio (1.0:1 to 21.0:1)
-    pub fn calculate_contrast_rgb(&self, rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> Result<f64> {
-        let srgb1 = ColorUtils::rgb_to_srgb(rgb1);
-        let srgb2 = ColorUtils::rgb_to_srgb(rgb2);
-        Ok(ColorUtils::wcag_contrast_ratio(srgb1, srgb2))
-    }
-
-    /// Calculate relative luminance for WCAG compliance
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as (r, g, b) tuple
-    ///
-    /// # Returns
-    /// * Relative luminance (0.0-1.0)
-    pub fn calculate_luminance_rgb(&self, rgb: (u8, u8, u8)) -> Result<f64> {
-        Ok(ColorUtils::wcag_relative_luminance_rgb(rgb))
-    }
-
-    /// Convert Srgb to RGB tuple (u8, u8, u8)
-    ///
-    /// # Arguments
-    /// * `srgb` - Srgb color
-    ///
-    /// # Returns
-    /// * RGB values as (r, g, b) tuple
-    pub fn srgb_to_rgb(&self, srgb: Srgb) -> Result<(u8, u8, u8)> {
-        Ok(ColorUtils::srgb_to_rgb(srgb))
-    }
-
-    /// Convert RGB tuple (u8, u8, u8) to Srgb
-    ///
-    /// # Arguments
-    /// * `rgb` - RGB values as (r, g, b) tuple
-    ///
-    /// # Returns
-    /// * Srgb color
-    pub fn rgb_to_srgb(&self, rgb: (u8, u8, u8)) -> Result<Srgb> {
-        Ok(ColorUtils::rgb_to_srgb(rgb))
-    }
+    // CRITICAL DUPLICATION ELIMINATION: ColorOperationsFacade removed all wrapper functions
+    // These were duplicating ColorUtils functions with unnecessary Result<> wrappers
+    // Direct usage of ColorUtils is preferred - this facade adds no value and creates confusion
+    
+    // Use ColorUtils::parse_hex_color() directly instead of hex_to_rgb()
+    // Use ColorUtils::rgb_to_lab() directly instead of rgb_to_lab()  
+    // Use ColorUtils::lab_to_hex() directly instead of lab_to_hex()
+    // Use ColorUtils::rgb_to_hsl_tuple() directly instead of rgb_to_hsl()
+    // Use ColorUtils::wcag_contrast_ratio() directly instead of calculate_contrast()
+    // Use ColorUtils::wcag_relative_luminance_rgb() directly instead of calculate_luminance_rgb()
+    
+    // This facade pattern was creating massive code duplication without adding functionality
 
     /// Calculate relative luminance for WCAG compliance
     ///
@@ -236,8 +104,8 @@ impl ColorOperationsFacade {
         color2: (u8, u8, u8),
         ratio: f64,
     ) -> Result<(u8, u8, u8)> {
-        let lab1 = self.rgb_to_lab(color1)?;
-        let lab2 = self.rgb_to_lab(color2)?;
+        let lab1 = ColorUtils::rgb_to_lab(color1);
+        let lab2 = ColorUtils::rgb_to_lab(color2);
         let mixed = ColorUtils::interpolate_lab(lab1, lab2, ratio);
         Ok(ColorUtils::lab_to_rgb(mixed))
     }
@@ -250,18 +118,19 @@ impl ColorOperationsFacade {
     /// # Returns
     /// * ColorAnalysis struct with all calculated values
     pub fn analyze_color(&self, hex: &str) -> Result<ColorAnalysis> {
-        let srgb1: Srgb = self.hex_to_srgb(hex)?;
-        let lab = self.srgb_to_lab(srgb1)?;
-        let hsl = self.srgb_to_hsl_tuple(srgb1)?;
-        let luminance = self.calculate_luminance(srgb1)?;
-        let contrast_white =
-            self.calculate_contrast_rgb(self.srgb_to_rgb(srgb1)?, (255, 255, 255))?;
-        let contrast_black = self.calculate_contrast_rgb(self.srgb_to_rgb(srgb1)?, (0, 0, 0))?;
+        let lab = ColorUtils::parse_hex_color(hex)?;
+        let srgb1: Srgb = lab.into_color();
+        let hsl = ColorUtils::srgb_to_hsl_tuple(srgb1);
+        let luminance = ColorUtils::wcag_relative_luminance(srgb1);
+        let white_srgb = ColorUtils::rgb_to_srgb((255, 255, 255));
+        let black_srgb = ColorUtils::rgb_to_srgb((0, 0, 0));
+        let contrast_white = ColorUtils::wcag_contrast_ratio(srgb1, white_srgb);
+        let contrast_black = ColorUtils::wcag_contrast_ratio(srgb1, black_srgb);
         let grayscale = self.to_grayscale(srgb1)?;
 
         Ok(ColorAnalysis {
             srgb: srgb1,
-            hex: self.lab_to_hex(lab)?,
+            hex: ColorUtils::lab_to_hex(lab),
             lab,
             hsl,
             luminance,
@@ -305,15 +174,14 @@ mod tests {
 
     #[test]
     fn test_facade_hex_to_rgb() {
-        let facade = ColorOperationsFacade::new();
-        let rgb = facade.hex_to_rgb("#FF5733").unwrap();
+        let lab = ColorUtils::parse_hex_color("#FF5733").unwrap();
+        let rgb = ColorUtils::lab_to_rgb(lab);
         assert_eq!(rgb, (255, 87, 51));
     }
 
     #[test]
     fn test_facade_rgb_to_lab() {
-        let facade = ColorOperationsFacade::new();
-        let lab = facade.rgb_to_lab((255, 87, 51)).unwrap();
+        let lab = ColorUtils::rgb_to_lab((255, 87, 51));
         assert!(lab.l > 50.0 && lab.l < 70.0);
         assert!(lab.a > 40.0);
         assert!(lab.b > 40.0);
@@ -321,10 +189,9 @@ mod tests {
 
     #[test]
     fn test_facade_contrast_calculation() {
-        let facade = ColorOperationsFacade::new();
         let srgb1 = Srgb::new(255.0 / 255.0, 87.0 / 255.0, 51.0 / 255.0);
         let srgb2 = Srgb::new(1.0, 1.0, 1.0);
-        let contrast = facade.calculate_contrast(srgb1, srgb2).unwrap();
+        let contrast = ColorUtils::wcag_contrast_ratio(srgb1, srgb2);
         assert!(contrast > 3.0 && contrast < 4.0); // Should be around 3.15
     }
 
@@ -333,7 +200,7 @@ mod tests {
         let facade = ColorOperationsFacade::new();
         let analysis = facade.analyze_color("#FF5733").unwrap();
 
-        let expected_srgb = facade.rgb_to_srgb((255, 87, 51)).unwrap();
+        let expected_srgb = ColorUtils::rgb_to_srgb((255, 87, 51));
         // Use epsilon comparison for floating point values
         assert!((analysis.srgb.red - expected_srgb.red).abs() < 1e-6);
         assert!((analysis.srgb.green - expected_srgb.green).abs() < 1e-6);
@@ -347,12 +214,11 @@ mod tests {
     #[test]
     fn test_facade_grayscale() {
         let facade = ColorOperationsFacade::new();
-        let gray: Srgb = facade
-            .to_grayscale(facade.rgb_to_srgb((255, 87, 51)).unwrap())
-            .unwrap();
+        let input_srgb = ColorUtils::rgb_to_srgb((255, 87, 51));
+        let gray: Srgb = facade.to_grayscale(input_srgb).unwrap();
 
         // Grayscale should have similar R, G, B values
-        let (r, g, b) = facade.srgb_to_rgb(gray).unwrap();
+        let (r, g, b) = ColorUtils::srgb_to_rgb(gray);
         assert!((r as i16 - g as i16).abs() < 5);
         assert!((g as i16 - b as i16).abs() < 5);
     }

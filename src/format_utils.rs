@@ -11,7 +11,7 @@ use palette::Lab;
 pub struct FormatUtils;
 
 impl FormatUtils {
-    /// Convert LAB to HEX format string
+    /// Convert LAB to hex format string - DIRECT DELEGATION to ColorUtils
     pub fn lab_to_hex(lab: Lab) -> String {
         ColorUtils::lab_to_hex(lab)
     }
@@ -57,23 +57,24 @@ impl FormatUtils {
         PrecisionUtils::format_lch(l as f64, c as f64, h as f64)
     }
 
-    /// Convert LAB to OKLCh format string with standardized precision
+    /// Convert LAB to OKLCH format string with standardized precision
     pub fn lab_to_oklch(lab: Lab) -> String {
         let (l, c, h) = ColorUtils::lab_to_oklch_tuple(lab);
         PrecisionUtils::format_oklch(l as f64, c as f64, h as f64)
     }
 
-    /// Get all format conversions for a LAB color
+    /// Get all color format strings - this is the ONLY non-duplicate function in FormatUtils
+    /// It actually adds value by collecting all formats into a structured output
     pub fn get_all_formats(lab: Lab) -> crate::output_formats::ColorFormats {
         crate::output_formats::ColorFormats {
             hex: Self::lab_to_hex(lab),
             rgb: Self::lab_to_rgb(lab),
             hsl: Self::lab_to_hsl(lab),
             hsb: Self::lab_to_hsv(lab),
-            lab: Self::lab_to_lab(lab),
-            lch: Self::lab_to_lch(lab),
             cmyk: Self::lab_to_cmyk(lab),
             xyz: Self::lab_to_xyz(lab),
+            lab: Self::lab_to_lab(lab),
+            lch: Self::lab_to_lch(lab),
             oklch: Self::lab_to_oklch(lab),
         }
     }

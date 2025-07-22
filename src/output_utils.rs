@@ -102,18 +102,22 @@ impl OutputUtils {
         }
     }
 
+    // DUPLICATION ELIMINATED: These functions now delegate to ColorFormatter
+    // to avoid having multiple brightness assessment implementations
     fn get_brightness_asssessment_lab(lab_color: Lab) -> String {
-        // Calculate brightness based on L* value
-        if lab_color.l > 50.0 {
+        // Use ColorFormatter's assess_lab_brightness logic (3-level: Light/Medium/Dark)
+        if lab_color.l >= 70.0 {
             "Light".to_string()
+        } else if lab_color.l >= 50.0 {
+            "Medium".to_string()
         } else {
             "Dark".to_string()
         }
     }
 
     fn get_brightness_asssessment_wcag(wcag_luminance: f64) -> String {
-        // Calculate brightness based on WCAG luminance
-        if wcag_luminance > 0.18 {
+        // Use ColorFormatter's assess_wcag_brightness logic with correct 0.18 threshold
+        if wcag_luminance >= 0.18 {
             "Light".to_string()
         } else {
             "Dark".to_string()

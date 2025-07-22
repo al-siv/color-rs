@@ -145,11 +145,8 @@ pub fn color_match(color_input: &str) {
         // Use the RAL color name as the color name
         let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
 
-        format_comprehensive_report_with_unified_collections(
-            lab_color,
-            color_input,
-            &ral_color_name,
-        );
+        // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
+        let _ = ColorFormatter::format_comprehensive_report(lab_color, color_input, &ral_color_name);
     }
 
     // Parse the input color
@@ -170,8 +167,8 @@ pub fn color_match(color_input: &str) {
         }
     };
 
-    // Generate comprehensive report including RAL matches
-    format_comprehensive_report_with_unified_collections(lab_color, color_input, &color_name);
+    // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
+    let _ = ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name);
 }
 
 /// Parse color input using the integrated parser
@@ -247,77 +244,7 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 }
 
 /// Generate comprehensive report using the unified collection approach
-fn format_comprehensive_report_with_unified_collections(
-    lab_color: Lab,
-    input: &str,
-    color_name: &str,
-) {
-    // Use the new unified approach that includes all collections in one section
-    ColorFormatter::format_comprehensive_report(lab_color, input, color_name);
-}
 
-/// Match and convert a color to all formats with comprehensive output using a custom strategy
-pub fn color_match_with_strategy(
-    color_input: &str,
-    strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
-) {
-    // First, try to parse as RAL code (RAL Classic or Design System+)
-    if let Some(ral_match) = try_parse_ral_color(color_input) {
-        // Convert RAL match to LAB color for comprehensive analysis
-        let hex_without_hash = ral_match.hex.trim_start_matches('#');
-        let r = u8::from_str_radix(&hex_without_hash[0..2], 16).unwrap_or(0);
-        let g = u8::from_str_radix(&hex_without_hash[2..4], 16).unwrap_or(0);
-        let b = u8::from_str_radix(&hex_without_hash[4..6], 16).unwrap_or(0);
-
-        let srgb = ColorUtils::rgb_to_srgb((r, g, b));
-        let lab_color: Lab = ColorUtils::srgb_to_lab(srgb);
-
-        // Use the RAL color name as the color name
-        let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
-
-        match ColorFormatter::format_comprehensive_report_with_strategy(
-            lab_color,
-            color_input,
-            &ral_color_name,
-            strategy,
-        ) {
-            Ok(_) => return,
-            Err(e) => {
-                println!("Error generating report: {}", e);
-                return;
-            }
-        }
-    }
-
-    // Parse the input color
-    let (lab_color, _format) = match parse_color_with_parser(color_input) {
-        Ok((lab, format)) => (lab, format),
-        Err(e) => {
-            println!("Error parsing color: {}", e);
-            return;
-        }
-    };
-
-    // Get color name
-    let color_name = match get_color_name_for_lab(lab_color) {
-        Ok(name) => name,
-        Err(e) => {
-            println!("Error getting color name: {}", e);
-            return;
-        }
-    };
-
-    // Generate comprehensive report including RAL matches
-    match ColorFormatter::format_comprehensive_report_with_strategy(
-        lab_color,
-        color_input,
-        &color_name,
-        strategy,
-    ) {
-        Ok(report) => println!("{}", report),
-        Err(e) => println!("Error generating report: {}", e),
-    }
-}
 
 /// Enhanced color matching with color schemes and luminance adjustments
 pub fn color_match_with_schemes(

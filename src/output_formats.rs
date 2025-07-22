@@ -153,11 +153,14 @@ pub struct ContrastData {
 /// Grayscale variations
 #[derive(Debug, Serialize, Default)]
 pub struct GrayscaleData {
-    pub grayscale_lab: String,
-    pub grayscale_lch_0: String,
-    pub grayscale_lch_2: String,
-    pub grayscale_lch_4: String,
-    pub grayscale_lch_6: String,
+    pub lch0_hex: String,
+    pub lch0: String,
+    pub lch2_hex: String,
+    pub lch2: String,
+    pub lch4_hex: String,
+    pub lch4: String,
+    pub lch6_hex: String,
+    pub lch6: String,
 }
 
 /// Contrast information
@@ -189,7 +192,7 @@ pub struct ColorMatch {
     pub hex: String,
     pub lch: String,
     pub code: Option<String>,
-    pub delta_e_distance: f64,
+    pub distance: f64,
     pub wcag21_relative_luminance: f64,
 }
 
