@@ -6,7 +6,7 @@ use crate::color_utils::*;
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
 use crate::utils::Utils;
-use palette::{Lab, Srgb};
+use palette::Lab;
 use tabled::Tabled;
 
 /// Color information for display in tables
@@ -54,53 +54,6 @@ impl ColorProcessor {
             ),
             lab: format!("lab({:.1}, {:.1}, {:.1})", lab.l, lab.a, lab.b),
         }
-    }
-
-    /// Print color information table
-    pub fn print_color_info_table(start_lab: Lab, end_lab: Lab) {
-        use crate::config::{
-            COLUMN_WIDTH, HEADER_BASE_COLORS, LABEL_GRADIENT_END_COLOR, LABEL_GRADIENT_START_COLOR,
-        };
-        use colored::*;
-        use tabled::{
-            Table,
-            settings::{Alignment, Style, object::Columns},
-        };
-
-        let color_data = vec![
-            Self::create_color_info(LABEL_GRADIENT_START_COLOR.to_string(), start_lab),
-            Self::create_color_info(LABEL_GRADIENT_END_COLOR.to_string(), end_lab),
-        ];
-
-        println!("{}", HEADER_BASE_COLORS.bold().to_uppercase());
-        let mut table = Table::new(color_data);
-        table.with(Style::rounded());
-        table.modify(Columns::first(), Alignment::right());
-        println!("{}", table);
-        println!();
-
-        // Calculate WCAG contrast ratio
-        let start_srgb: Srgb = ColorUtils::lab_to_srgb(start_lab);
-        let end_srgb: Srgb = ColorUtils::lab_to_srgb(end_lab);
-        let wcag_contrast =
-            crate::color_utils::ColorUtils::wcag_contrast_ratio(start_srgb, end_srgb);
-        let lab_delta_e = crate::color_utils::ColorUtils::lab_contrast_ratio(start_lab, end_lab);
-
-        println!(
-            "{} {:>7.2}",
-            format!("{:>width$}", "Contrast (WCAG):", width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            wcag_contrast
-        );
-        println!(
-            "{} {:>7.2}",
-            format!("{:>width$}", "Contrast (Lab):", width = COLUMN_WIDTH)
-                .bold()
-                .green(),
-            lab_delta_e
-        );
-        println!();
     }
 
     /// Validate a hex color string

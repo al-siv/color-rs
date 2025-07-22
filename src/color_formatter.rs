@@ -26,7 +26,7 @@ use crate::error::Result;
 use crate::output_formats::*;
 use crate::utils::Utils;
 use colored::*;
-use palette::{Hsl, IntoColor, Lab, Srgb};
+use palette::Lab;
 
 /// Color formatter for generating comprehensive color reports
 pub struct ColorFormatter;
@@ -198,25 +198,21 @@ impl ColorFormatter {
 
     /// Format a color for output as either HSL or Lab based on flag
     fn format_color_for_output(color: Lab, use_lab_output: bool) -> (String, String) {
-        use palette::IntoColor;
 
-        // Always generate hex
-        let srgb: Srgb = color.into_color();
-        let r = (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8;
-        let g = (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8;
-        let b = (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8;
+        // Always generate hex using ColorUtils
+        let (r, g, b) = ColorUtils::lab_to_rgb(color);
         let hex = format!("#{:02X}{:02X}{:02X}", r, g, b);
 
         // Generate either HSL or Lab format
         let color_value = if use_lab_output {
             format!("lab({:.2}, {:.2}, {:.2})", color.l, color.a, color.b)
         } else {
-            let hsl: palette::Hsl = color.into_color();
+            let (h, s, l) = ColorUtils::lab_to_hsl_tuple(color);
             format!(
                 "hsl({:.0}, {:.1}%, {:.1}%)",
-                hsl.hue.into_positive_degrees(),
-                hsl.saturation * 100.0,
-                hsl.lightness * 100.0
+                h,
+                s * 100.0,
+                l * 100.0
             )
         };
 
@@ -225,12 +221,9 @@ impl ColorFormatter {
 
     /// Format a simple color info for table display
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
-        let srgb: Srgb = lab_color.into_color();
-        let r = (srgb.red * 255.0).round() as u8;
-        let g = (srgb.green * 255.0).round() as u8;
-        let b = (srgb.blue * 255.0).round() as u8;
+        let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
 
-        let hsl: Hsl = lab_color.into_color();
+        let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab_color);
 
         crate::color::ColorInfo {
             label: label.to_string(),
@@ -238,9 +231,9 @@ impl ColorFormatter {
             rgb: Utils::rgb_to_string(r, g, b),
             hsl: format!(
                 "hsl({:.0}, {:.1}%, {:.1}%)",
-                hsl.hue.into_positive_degrees(),
-                hsl.saturation * 100.0,
-                hsl.lightness * 100.0
+                h,
+                s * 100.0,
+                l * 100.0
             ),
             lab: format!(
                 "lab({:.2}, {:.2}, {:.2})",
@@ -344,7 +337,7 @@ impl ColorFormatter {
 
     /// Assess WCAG brightness
     fn assess_wcag_brightness(luminance: f64) -> String {
-        if luminance >= 0.5 {
+        if luminance >= 0.18 {
             "Light".to_string()
         } else {
             "Dark".to_string()

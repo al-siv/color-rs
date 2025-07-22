@@ -8,6 +8,7 @@ use crate::error::{ColorError, Result};
 use palette::{
     FromColor, Hsl, Hsv, IntoColor, Lab, Mix, Srgb,
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
+    color_theory::{Complementary, SplitComplementary, Triadic, Tetradic},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -316,6 +317,30 @@ impl ColorUtils {
             srgb.blue.clamp(0.0, 1.0),
         );
         Lab::from_color(clamped.into_linear())
+    }
+
+    /// Convert HSL to Lab color space using the palette library
+    ///
+    /// # Arguments
+    /// * `hsl` - HSL color space representation
+    ///
+    /// # Returns
+    /// * Lab color space representation
+    pub fn hsl_to_lab(hsl: Hsl) -> Lab {
+        let srgb: Srgb = hsl.into_color();
+        Self::srgb_to_lab(srgb)
+    }
+
+    /// Convert Lab to HSL color space using the palette library
+    ///
+    /// # Arguments
+    /// * `lab` - Lab color space representation
+    ///
+    /// # Returns  
+    /// * HSL color space representation
+    pub fn lab_to_hsl(lab: Lab) -> Hsl {
+        let srgb = Self::lab_to_srgb(lab);
+        srgb.into_color()
     }
 
     /// Convert LAB color to LCH (CIE L*C*h) color space
@@ -679,6 +704,113 @@ impl ColorUtils {
         let y = ((1.0 - b_norm - k) / denom).clamp(0.0, 1.0);
 
         (c, m, y, k.clamp(0.0, 1.0))
+    }
+
+    // Color Scheme Calculation Functions
+    // These replace the custom implementations in color_schemes.rs with proper palette library usage
+
+    /// Calculate complementary color using palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Complementary Lab color
+    pub fn complementary_lab(color: Lab) -> Lab {
+        let lch = Self::lab_to_lch(color);
+        let comp_lch = lch.complementary();
+        Lab::from_color(comp_lch)
+    }
+
+    /// Calculate split complementary colors using palette's built-in method
+    ///
+    /// # Arguments  
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Tuple of two split complementary Lab colors
+    pub fn split_complementary_lab(color: Lab) -> (Lab, Lab) {
+        let lch = Self::lab_to_lch(color);
+        let (comp1, comp2) = lch.split_complementary();
+        (Lab::from_color(comp1), Lab::from_color(comp2))
+    }
+
+    /// Calculate triadic colors using palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Tuple of two triadic Lab colors
+    pub fn triadic_lab(color: Lab) -> (Lab, Lab) {
+        let lch = Self::lab_to_lch(color);
+        let (tri1, tri2) = lch.triadic();
+        (Lab::from_color(tri1), Lab::from_color(tri2))
+    }
+
+    /// Calculate tetradic colors using palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Tuple of three tetradic Lab colors
+    pub fn tetradic_lab(color: Lab) -> (Lab, Lab, Lab) {
+        let lch = Self::lab_to_lch(color);
+        let (tet1, tet2, tet3) = lch.tetradic();
+        (Lab::from_color(tet1), Lab::from_color(tet2), Lab::from_color(tet3))
+    }
+
+    /// Calculate complementary color using HSL color space via palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Complementary Lab color calculated via HSL
+    pub fn complementary_hsl(color: Lab) -> Lab {
+        let hsl = Self::lab_to_hsl(color);
+        let comp_hsl = hsl.complementary();
+        Self::hsl_to_lab(comp_hsl)
+    }
+
+    /// Calculate split complementary colors using HSL color space via palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Tuple of two split complementary Lab colors calculated via HSL
+    pub fn split_complementary_hsl(color: Lab) -> (Lab, Lab) {
+        let hsl = Self::lab_to_hsl(color);
+        let (comp1, comp2) = hsl.split_complementary();
+        (Self::hsl_to_lab(comp1), Self::hsl_to_lab(comp2))
+    }
+
+    /// Calculate triadic colors using HSL color space via palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Tuple of two triadic Lab colors calculated via HSL
+    pub fn triadic_hsl(color: Lab) -> (Lab, Lab) {
+        let hsl = Self::lab_to_hsl(color);
+        let (tri1, tri2) = hsl.triadic();
+        (Self::hsl_to_lab(tri1), Self::hsl_to_lab(tri2))
+    }
+
+    /// Calculate tetradic colors using HSL color space via palette's built-in method
+    ///
+    /// # Arguments
+    /// * `color` - Lab color space representation
+    ///
+    /// # Returns
+    /// * Tuple of three tetradic Lab colors calculated via HSL
+    pub fn tetradic_hsl(color: Lab) -> (Lab, Lab, Lab) {
+        let hsl = Self::lab_to_hsl(color);
+        let (tet1, tet2, tet3) = hsl.tetradic();
+        (Self::hsl_to_lab(tet1), Self::hsl_to_lab(tet2), Self::hsl_to_lab(tet3))
     }
 }
 

@@ -9,7 +9,7 @@ use super::compat::{
     find_closest_ral_design_compat, find_ral_by_code_compat, find_ral_by_name_pattern_compat,
 };
 use crate::color_utils::*;
-use palette::{IntoColor, Lab};
+use palette::{Lab};
 use regex::Regex;
 use std::sync::OnceLock;
 
@@ -45,8 +45,7 @@ impl RgbColor {
 
     /// Convert RGB to LAB color space for accurate distance calculation
     pub fn to_lab(&self) -> Lab {
-        let srgb = ColorUtils::rgb_to_srgb((self.r, self.g, self.b));
-        srgb.into_color()
+        ColorUtils::rgb_to_lab((self.r, self.g, self.b))
     }
 }
 
@@ -113,19 +112,7 @@ pub fn parse_ral_color(input: &str) -> Option<RalMatch> {
         return Some(color);
     }
 
-    // For name search, avoid common CSS color names to prevent conflicts
-    let input_lower = input.to_lowercase();
-    let common_css_colors = [
-        "red", "green", "blue", "black", "white", "yellow", "cyan", "magenta", "orange", "purple",
-        "pink", "brown", "gray", "grey", "navy", "lime", "olive", "maroon", "teal", "silver",
-        "aqua", "fuchsia",
-    ];
-
-    if common_css_colors.contains(&input_lower.as_str()) {
-        return None;
-    }
-
-    // Try name search for non-CSS color names
+    // Try name search - let the system handle conflicts naturally
     let name_matches = find_ral_by_name(input);
     if !name_matches.is_empty() {
         return Some(name_matches[0].clone());

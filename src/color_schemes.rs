@@ -6,10 +6,7 @@
 
 use crate::color_utils::ColorUtils;
 use crate::error::{ColorError, Result};
-use palette::{
-    FromColor, Hsl, IntoColor, Lab, Srgb,
-    color_theory::{Complementary, SplitComplementary, Triadic},
-};
+use palette::Lab;
 
 /// Strategy trait for different color scheme calculation methods
 pub trait ColorSchemeStrategy {
@@ -34,31 +31,19 @@ pub struct HslColorSchemeStrategy;
 
 impl ColorSchemeStrategy for HslColorSchemeStrategy {
     fn complementary(&self, color: Lab) -> Lab {
-        let hsl: Hsl = color.into_color();
-        let comp_hsl = hsl.complementary();
-        comp_hsl.into_color()
+        ColorUtils::complementary_hsl(color)
     }
 
     fn split_complementary(&self, color: Lab) -> (Lab, Lab) {
-        let hsl: Hsl = color.into_color();
-        let (comp1, comp2) = hsl.split_complementary();
-        (comp1.into_color(), comp2.into_color())
+        ColorUtils::split_complementary_hsl(color)
     }
 
     fn triadic(&self, color: Lab) -> (Lab, Lab) {
-        let hsl: Hsl = color.into_color();
-        let (tri1, tri2) = hsl.triadic();
-        (tri1.into_color(), tri2.into_color())
+        ColorUtils::triadic_hsl(color)
     }
 
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
-        let hsl: Hsl = color.into_color();
-        // Tetradic: rotate hue by 90, 180, and 270 degrees
-        let hue = hsl.hue.into_positive_degrees();
-        let tet1: Hsl = Hsl::new((hue + 90.0) % 360.0, hsl.saturation, hsl.lightness);
-        let tet2: Hsl = Hsl::new((hue + 180.0) % 360.0, hsl.saturation, hsl.lightness);
-        let tet3: Hsl = Hsl::new((hue + 270.0) % 360.0, hsl.saturation, hsl.lightness);
-        (tet1.into_color(), tet2.into_color(), tet3.into_color())
+        ColorUtils::tetradic_hsl(color)
     }
 
     fn name(&self) -> &'static str {
@@ -71,36 +56,19 @@ pub struct LabColorSchemeStrategy;
 
 impl ColorSchemeStrategy for LabColorSchemeStrategy {
     fn complementary(&self, color: Lab) -> Lab {
-        // For Lab space, we work with LCh (polar Lab) for hue manipulation
-        let lch = palette::Lch::from_color(color);
-        let comp_lch = lch.complementary();
-        Lab::from_color(comp_lch)
+        ColorUtils::complementary_lab(color)
     }
 
     fn split_complementary(&self, color: Lab) -> (Lab, Lab) {
-        let lch = palette::Lch::from_color(color);
-        let (comp1, comp2) = lch.split_complementary();
-        (Lab::from_color(comp1), Lab::from_color(comp2))
+        ColorUtils::split_complementary_lab(color)
     }
 
     fn triadic(&self, color: Lab) -> (Lab, Lab) {
-        let lch = palette::Lch::from_color(color);
-        let (tri1, tri2) = lch.triadic();
-        (Lab::from_color(tri1), Lab::from_color(tri2))
+        ColorUtils::triadic_lab(color)
     }
 
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
-        let lch = palette::Lch::from_color(color);
-        // Tetradic: rotate hue by 90, 180, and 270 degrees
-        let hue = lch.hue.into_positive_degrees();
-        let tet1 = palette::Lch::new(lch.l, lch.chroma, (hue + 90.0) % 360.0);
-        let tet2 = palette::Lch::new(lch.l, lch.chroma, (hue + 180.0) % 360.0);
-        let tet3 = palette::Lch::new(lch.l, lch.chroma, (hue + 270.0) % 360.0);
-        (
-            Lab::from_color(tet1),
-            Lab::from_color(tet2),
-            Lab::from_color(tet3),
-        )
+        ColorUtils::tetradic_lab(color)
     }
 
     fn name(&self) -> &'static str {
@@ -366,7 +334,7 @@ pub fn adjust_color_lab_luminance(color: Lab, target_luminance: f64) -> Result<L
 
 /// Preserve WCAG relative luminance from reference color in target color
 pub fn preserve_wcag_relative_luminance(color: Lab, reference: Lab) -> Result<Lab> {
-    let reference_srgb: Srgb = reference.into_color();
+    let reference_srgb = ColorUtils::lab_to_srgb(reference);
     let target_luminance = ColorUtils::wcag_relative_luminance(reference_srgb);
     ColorUtils::adjust_color_relative_luminance(color, target_luminance)
 }
@@ -384,21 +352,21 @@ mod tests {
     #[test]
     fn test_hsl_complementary() {
         let strategy = HslColorSchemeStrategy;
-        let red_lab = Lab::from_color(Srgb::new(1.0, 0.0, 0.0));
+        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
         let comp = strategy.complementary(red_lab);
 
         // Complementary of red should be cyan-ish
-        let comp_srgb: Srgb = comp.into_color();
+        let comp_srgb = ColorUtils::lab_to_srgb(comp);
         assert!(comp_srgb.blue > 0.5); // Should have significant blue component
         assert!(comp_srgb.red < 0.5); // Should have minimal red component
     }
 
     #[test]
     fn test_relative_luminance_adjustment() {
-        let red_lab = Lab::from_color(Srgb::new(1.0, 0.0, 0.0));
+        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
         let adjusted = ColorUtils::adjust_color_relative_luminance(red_lab, 0.5).unwrap();
 
-        let adjusted_srgb: Srgb = adjusted.into_color();
+        let adjusted_srgb = ColorUtils::lab_to_srgb(adjusted);
         let actual_luminance = ColorUtils::wcag_relative_luminance(adjusted_srgb);
 
         // Should be close to target luminance

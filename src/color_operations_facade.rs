@@ -5,7 +5,7 @@
 
 use crate::color_utils::*;
 use crate::error::Result;
-use palette::{IntoColor, Lab, Srgb};
+use palette::{Lab, Srgb};
 
 /// Facade for complex color operations
 ///
@@ -70,8 +70,8 @@ impl ColorOperationsFacade {
     /// # Returns
     /// * Delta E distance (0.0 = identical, higher = more different)
     pub fn calculate_distance(&self, srgb1: Srgb, srgb2: Srgb) -> Result<f64> {
-        let lab1: Lab = srgb1.into_color();
-        let lab2: Lab = srgb2.into_color();
+        let lab1 = ColorUtils::srgb_to_lab(srgb1);
+        let lab2 = ColorUtils::srgb_to_lab(srgb2);
         Ok(ColorUtils::lab_distance(lab1, lab2))
     }
 
@@ -83,10 +83,10 @@ impl ColorOperationsFacade {
     /// # Returns
     /// * Grayscale color as RGB tuple
     pub fn to_grayscale(&self, srgb: Srgb) -> Result<Srgb> {
-        let lab: Lab = srgb.into_color();
+        let lab = ColorUtils::srgb_to_lab(srgb);
         // Create grayscale using LAB L* component (a=0, b=0)
         let gray_lab = Lab::new(lab.l, 0.0, 0.0);
-        Ok(gray_lab.into_color())
+        Ok(ColorUtils::lab_to_srgb(gray_lab))
     }
 
     /// Mix two colors in LAB color space
@@ -119,7 +119,7 @@ impl ColorOperationsFacade {
     /// * ColorAnalysis struct with all calculated values
     pub fn analyze_color(&self, hex: &str) -> Result<ColorAnalysis> {
         let lab = ColorUtils::parse_hex_color(hex)?;
-        let srgb1: Srgb = lab.into_color();
+        let srgb1 = ColorUtils::lab_to_srgb(lab);
         let hsl = ColorUtils::srgb_to_hsl_tuple(srgb1);
         let luminance = ColorUtils::wcag_relative_luminance(srgb1);
         let white_srgb = ColorUtils::rgb_to_srgb((255, 255, 255));

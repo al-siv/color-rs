@@ -73,68 +73,6 @@ impl UnifiedColorManager {
             .find_closest(&target, max_results, None)
     }
 
-    // /// Find RAL Classic colors within specific groups
-    // TODO: Implement after CSV migration is complete
-    // pub fn find_ral_classic_in_groups(
-    //     &self,
-    //     rgb: [u8; 3],
-    //     groups: &[String],
-    //     max_results: usize,
-    // ) -> Vec<ColorMatch> {
-    //     let target = UniversalColor::from_rgb(rgb);
-    //     self.ral_classic_collection
-    //         .find_in_groups(&target, groups, max_results)
-    // }
-
-    // /// Find RAL Design colors within specific hue groups
-    // TODO: Implement after CSV migration is complete
-    // pub fn find_ral_design_in_hue_groups(
-    //     &self,
-    //     rgb: [u8; 3],
-    //     hue_groups: &[String],
-    //     max_results: usize,
-    // ) -> Vec<ColorMatch> {
-    //     let target = UniversalColor::from_rgb(rgb);
-    //     self.ral_design_collection
-    //         .find_in_hue_groups(&target, hue_groups, max_results)
-    // }
-
-    // /// Find RAL Design colors within lightness range
-    // TODO: Implement after CSV migration is complete
-    // pub fn find_ral_design_in_lightness_range(
-    //     &self,
-    //     rgb: [u8; 3],
-    //     min_lightness: f64,
-    //     max_lightness: f64,
-    //     max_results: usize,
-    // ) -> Vec<ColorMatch> {
-    //     let target = UniversalColor::from_rgb(rgb);
-    //     self.ral_design_collection.find_in_lightness_range(
-    //         &target,
-    //         min_lightness,
-    //         max_lightness,
-    //         max_results,
-    //     )
-    // }
-
-    // /// Find RAL Design colors within chroma range
-    // TODO: Implement after CSV migration is complete
-    // pub fn find_ral_design_in_chroma_range(
-    //     &self,
-    //     rgb: [u8; 3],
-    //     min_chroma: f64,
-    //     max_chroma: f64,
-    //     max_results: usize,
-    // ) -> Vec<ColorMatch> {
-    //     let target = UniversalColor::from_rgb(rgb);
-    //     self.ral_design_collection.find_in_chroma_range(
-    //         &target,
-    //         min_chroma,
-    //         max_chroma,
-    //         max_results,
-    //     )
-    // }
-
     /// Search by exact name across all collections
     pub fn find_by_name(&self, name: &str) -> Vec<(String, super::collections::ColorEntry)> {
         self.manager.search_by_name(name)
@@ -150,30 +88,6 @@ impl UnifiedColorManager {
         }
         None
     }
-
-    // /// Get available RAL Classic groups
-    // TODO: Implement after CSV migration is complete
-    // pub fn get_ral_classic_groups(&self) -> Vec<String> {
-    //     RalClassicCollection::get_ral_groups()
-    // }
-
-    // /// Get available RAL Design hue groups
-    // TODO: Implement after CSV migration is complete
-    // pub fn get_ral_design_hue_groups(&self) -> Vec<String> {
-    //     RalDesignCollection::get_hue_groups()
-    // }
-
-    // /// Get available RAL Design lightness groups
-    // TODO: Implement after CSV migration is complete
-    // pub fn get_ral_design_lightness_groups(&self) -> Vec<String> {
-    //     RalDesignCollection::get_lightness_groups()
-    // }
-
-    // /// Get available RAL Design chroma groups
-    // TODO: Implement after CSV migration is complete
-    // pub fn get_ral_design_chroma_groups(&self) -> Vec<String> {
-    //     RalDesignCollection::get_chroma_groups()
-    // }
 
     /// Search with advanced filtering
     pub fn search_with_filter(
@@ -240,29 +154,6 @@ impl UnifiedColorManager {
         self.ral_design_collection
             .find_closest_with_strategy(&target, max_results, None, strategy)
     }
-
-    // Find RAL colors by name pattern (for backward compatibility)
-    // TODO: Implement after CSV migration is complete
-    // pub fn find_ral_by_name_pattern(
-    //     &self,
-    //     pattern: &str,
-    // ) -> Vec<(String, super::collections::ColorEntry)> {
-    //     let mut results = Vec::new();
-
-    //     // Search RAL Classic
-    //     let classic_matches = self.ral_classic_collection.find_by_name_pattern(pattern);
-    //     for entry in classic_matches {
-    //         results.push(("RAL Classic".to_string(), entry));
-    //     }
-
-    //     // Search RAL Design System+
-    //     let design_matches = self.ral_design_collection.find_by_name_pattern(pattern);
-    //     for entry in design_matches {
-    //         results.push(("RAL Design System+".to_string(), entry));
-    //     }
-
-    //     results
-    // }
 }
 
 impl Default for UnifiedColorManager {

@@ -4,6 +4,10 @@ use crate::format_utils::{ColorFormat, FormatUtils};
 use colored::*;
 use palette::Lab;
 
+// Standard RGB values for white and black
+const RGB_WHITE: (u8, u8, u8) = (255, 255, 255);
+const RGB_BLACK: (u8, u8, u8) = (0, 0, 0);
+
 pub struct OutputUtils;
 
 impl OutputUtils {

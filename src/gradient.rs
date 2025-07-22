@@ -459,13 +459,13 @@ pub fn create_gradient_analysis_output(
 ) -> Result<crate::output_formats::GradientAnalysisOutput> {
     use crate::ColorUtils;
     use crate::output_formats::*;
-    use palette::{IntoColor, Srgb};
+    use palette::{Srgb};
 
-    // Convert Lab colors to RGB for color info
-    let start_srgb: Srgb = start_lab.into_color();
-    let start_rgb: Srgb<u8> = start_srgb.into_format();
-    let end_srgb: Srgb = end_lab.into_color();
-    let end_rgb: Srgb<u8> = end_srgb.into_format();
+    // Convert Lab colors to RGB for color info using ColorUtils
+    let start_srgb = ColorUtils::lab_to_srgb(start_lab);
+    let start_rgb = ColorUtils::lab_to_rgb(start_lab);
+    let end_srgb = ColorUtils::lab_to_srgb(end_lab);
+    let end_rgb = ColorUtils::lab_to_rgb(end_lab);
 
     let gradient_output = GradientAnalysisOutput {
         metadata: ProgramMetadata::new(None),
@@ -482,11 +482,11 @@ pub fn create_gradient_analysis_output(
             start: ColorInfo {
                 hex: format!(
                     "#{:02X}{:02X}{:02X}",
-                    start_rgb.red, start_rgb.green, start_rgb.blue
+                    start_rgb.0, start_rgb.1, start_rgb.2
                 ),
                 rgb: format!(
                     "rgb({}, {}, {})",
-                    start_rgb.red, start_rgb.green, start_rgb.blue
+                    start_rgb.0, start_rgb.1, start_rgb.2
                 ),
                 lab: format!(
                     "lab({:.2}, {:.2}, {:.2})",
@@ -498,9 +498,9 @@ pub fn create_gradient_analysis_output(
             end: ColorInfo {
                 hex: format!(
                     "#{:02X}{:02X}{:02X}",
-                    end_rgb.red, end_rgb.green, end_rgb.blue
+                    end_rgb.0, end_rgb.1, end_rgb.2
                 ),
-                rgb: Utils::rgb_to_string(end_rgb.red, end_rgb.green, end_rgb.blue),
+                rgb: Utils::rgb_to_string(end_rgb.0, end_rgb.1, end_rgb.2),
                 lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: crate::format_utils::FormatUtils::lab_to_lch(end_lab),
                 wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(end_srgb),
@@ -519,7 +519,7 @@ pub fn create_gradient_analysis_output(
                 let g = u8::from_str_radix(&hex_clean[2..4], 16).unwrap_or(0);
                 let b = u8::from_str_radix(&hex_clean[4..6], 16).unwrap_or(0);
                 let rgb: Srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-                let lab: Lab = rgb.into_color();
+                let lab: Lab = ColorUtils::srgb_to_lab(rgb);
 
                 // Create color parser for name matching
                 let parser = crate::color_parser::ColorParser::new();

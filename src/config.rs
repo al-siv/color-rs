@@ -135,8 +135,3 @@ pub const HEADER_GRADIENT_VALUES: &str = " # Gradient Values";
 /// Labels for gradient start and end colors
 pub const LABEL_GRADIENT_START_COLOR: &str = "Start Color";
 pub const LABEL_GRADIENT_END_COLOR: &str = "End Color";
-
-/// RGB color constants for white and black
-pub const RGB_WHITE: (u8, u8, u8) = (255, 255, 255);
-pub const RGB_BLACK: (u8, u8, u8) = (0, 0, 0);
-pub const RGB_GRAY: (u8, u8, u8) = (128, 128, 128);

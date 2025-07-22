@@ -103,11 +103,11 @@ pub struct LchStrategy;
 
 impl ColorDistanceStrategy for LchStrategy {
     fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
-        use palette::{IntoColor, Lch};
+        use crate::color_utils::ColorUtils;
 
-        // Convert LAB to LCH
-        let lch1: Lch = lab1.into_color();
-        let lch2: Lch = lab2.into_color();
+        // Convert LAB to LCH using ColorUtils
+        let lch1 = ColorUtils::lab_to_lch(lab1);
+        let lch2 = ColorUtils::lab_to_lch(lab2);
 
         // Calculate differences in each component
         let delta_l = lch1.l - lch2.l;
