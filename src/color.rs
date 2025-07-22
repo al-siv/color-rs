@@ -363,7 +363,6 @@ pub fn color_match_with_schemes(
 }
 
 /// Generate comprehensive report with structured TOML/YAML output for terminal and optional file
-
 /// Generate comprehensive report with file output support
 fn format_comprehensive_report_with_structured_output(
     schemes: crate::color_schemes::ColorSchemeResult,
@@ -391,7 +390,7 @@ fn format_comprehensive_report_with_structured_output(
     let format = args
         .output_format
         .as_ref()
-        .unwrap_or(&crate::cli::OutputFormat::Toml);
+        .unwrap_or(&crate::cli::OutputFormat::Yaml);
 
     // Create output service and generate formatted output
     let formatted_output = match format {
@@ -490,7 +489,12 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 // Key = value pairs
                 let key = &trimmed[..eq_pos];
                 let value = &trimmed[eq_pos + 3..];
-                format!("{}{} = {}", indent, key.green(), colorize_value(value))
+                format!(
+                    "{}{} = {}",
+                    indent,
+                    key.green(),
+                    crate::output_utils::OutputUtils::colorize_output_value(value)
+                )
             } else {
                 line.to_string()
             }
@@ -503,10 +507,19 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 // Key: value pairs
                 let key = &trimmed[..colon_pos + 1];
                 let value = &trimmed[colon_pos + 2..];
-                format!("{}{} {}", indent, key.green(), colorize_value(value))
-            } else if trimmed.starts_with("- ") {
+                format!(
+                    "{}{} {}",
+                    indent,
+                    key.green(),
+                    crate::output_utils::OutputUtils::colorize_output_value(value)
+                )
+            } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
-                format!("{}- {}", indent, colorize_value(&trimmed[2..]))
+                format!(
+                    "{}- {}",
+                    indent,
+                    crate::output_utils::OutputUtils::colorize_output_value(stripped)
+                )
             } else {
                 line.to_string()
             }
@@ -515,37 +528,6 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
 }
 
 /// Colorize values based on their type
-fn colorize_value(value: &str) -> String {
-    use colored::*;
-
-    if value.starts_with('"') && value.ends_with('"') {
-        // String values
-        value.yellow().to_string()
-    } else if value.parse::<f64>().is_ok() {
-        // Numeric values
-        value.bright_blue().to_string()
-    } else if value == "true" || value == "false" {
-        // Boolean values
-        value.bright_green().to_string()
-    } else if value.starts_with('#') {
-        // Hex colors
-        value.bright_yellow().to_string()
-    } else if value.starts_with("rgb(")
-        || value.starts_with("hsl(")
-        || value.starts_with("lab(")
-        || value.starts_with("lch(")
-        || value.starts_with("hsv(")
-        || value.starts_with("cmyk(")
-        || value.starts_with("xyz(")
-        || value.starts_with("oklch(")
-    {
-        // Color format values
-        value.bright_cyan().to_string()
-    } else {
-        value.to_string()
-    }
-}
-
 /// Collect color schemes data for file output
 fn collect_color_schemes_data(
     schemes: &crate::color_schemes::ColorSchemeResult,
@@ -553,7 +535,8 @@ fn collect_color_schemes_data(
     use crate::color_parser::ColorParser;
     use crate::color_utils::ColorUtils;
     use crate::output_formats::{
-        ColorNameInfo, ColorSchemeItem, ColorSchemeSet, ColorSchemes, NearestColorMatch,
+        CollectionColorMatch, ColorNameAllCollections, ColorNameInfo, ColorSchemeItem,
+        ColorSchemeSet, ColorSchemes, NearestColorMatch,
     };
     use palette::Lab;
 
@@ -586,48 +569,131 @@ fn collect_color_schemes_data(
 
     /// Get color name information with exact and nearest matches
     fn get_color_name_info(rgb: (u8, u8, u8), parser: &ColorParser) -> Option<ColorNameInfo> {
-        // Get basic color name
-        let color_name = parser.get_color_name(rgb);
-        
-        // Check if it's an exact match (not a hex/rgb fallback)
-        if color_name.starts_with("#") || color_name.starts_with("rgb(") {
-            return None; // No named color found
-        }
-
-        // Create target color for comparison
         let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
         let input_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
-        let css_collection = parser.css_collection();
-        
-        // Check if there's an exact match by comparing hex values directly
-        let exact_match = css_collection.colors().iter().find(|color| {
-            let color_hex = format!("#{:02X}{:02X}{:02X}",
-                color.color.rgb[0],
-                color.color.rgb[1], 
-                color.color.rgb[2]);
-            color_hex.to_uppercase() == input_hex.to_uppercase()
-        });
-        
-        let exact = exact_match.map(|color| color.metadata.name.clone());
-        
-        // Find nearest match with actual distance calculation
-        let nearest_matches = css_collection.find_closest(&target, 1, None);
-        let nearest = if let Some(closest) = nearest_matches.first() {
-            Some(NearestColorMatch {
+
+        // Enhanced color name matching from all collections
+        create_enhanced_color_name_info(parser, &input_hex, &target)
+    }
+
+    /// Create enhanced color name information with matches from all collections
+    fn create_enhanced_color_name_info(
+        parser: &ColorParser,
+        input_hex: &str,
+        target: &UniversalColor,
+    ) -> Option<ColorNameInfo> {
+        let mut has_any_match = false;
+
+        // Create collection matches for CSS colors
+        let css_match = {
+            let css_collection = parser.css_collection();
+            let exact_match = css_collection.colors().iter().find(|color| {
+                let color_hex = format!(
+                    "#{:02X}{:02X}{:02X}",
+                    color.color.rgb[0], color.color.rgb[1], color.color.rgb[2]
+                );
+                color_hex.to_uppercase() == input_hex.to_uppercase()
+            });
+
+            let exact = exact_match.map(|color| color.metadata.name.clone());
+
+            let nearest_matches = css_collection.find_closest(target, 1, None);
+            let nearest = nearest_matches.first().map(|closest| NearestColorMatch {
                 name: closest.entry.metadata.name.clone(),
                 collection: "CSS".to_string(),
                 distance: closest.distance,
-            })
-        } else {
-            None
+            });
+
+            if exact.is_some() || nearest.is_some() {
+                has_any_match = true;
+                Some(CollectionColorMatch { exact, nearest })
+            } else {
+                None
+            }
         };
 
-        // Only include color_name if we have either exact or nearest
-        if exact.is_some() || nearest.is_some() {
-            Some(ColorNameInfo { exact, nearest })
-        } else {
-            None
+        // Create collection matches for RAL Classic colors
+        let ral_classic_match = {
+            let ral_classic_matches =
+                parser.find_closest_ral_classic([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
+            if let Some(closest) = ral_classic_matches.first() {
+                // Check for exact match by comparing hex values
+                let color_hex = format!(
+                    "#{:02X}{:02X}{:02X}",
+                    closest.entry.color.rgb[0],
+                    closest.entry.color.rgb[1],
+                    closest.entry.color.rgb[2]
+                );
+                let exact = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                    Some(closest.entry.metadata.name.clone())
+                } else {
+                    None
+                };
+
+                let nearest = Some(NearestColorMatch {
+                    name: closest.entry.metadata.name.clone(),
+                    collection: "RAL Classic".to_string(),
+                    distance: closest.distance,
+                });
+
+                has_any_match = true;
+                Some(CollectionColorMatch { exact, nearest })
+            } else {
+                None
+            }
+        };
+
+        // Create collection matches for RAL Design colors
+        let ral_design_match = {
+            let ral_design_matches =
+                parser.find_closest_ral_design([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
+            if let Some(closest) = ral_design_matches.first() {
+                // Check for exact match by comparing hex values
+                let color_hex = format!(
+                    "#{:02X}{:02X}{:02X}",
+                    closest.entry.color.rgb[0],
+                    closest.entry.color.rgb[1],
+                    closest.entry.color.rgb[2]
+                );
+                let exact = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                    Some(closest.entry.metadata.name.clone())
+                } else {
+                    None
+                };
+
+                let nearest = Some(NearestColorMatch {
+                    name: closest.entry.metadata.name.clone(),
+                    collection: "RAL Design".to_string(),
+                    distance: closest.distance,
+                });
+
+                has_any_match = true;
+                Some(CollectionColorMatch { exact, nearest })
+            } else {
+                None
+            }
+        };
+
+        if !has_any_match {
+            return None;
         }
+
+        // For backward compatibility with existing code, use CSS collection for primary exact/nearest
+        let primary_exact = css_match.as_ref().and_then(|m| m.exact.clone());
+        let primary_nearest = css_match.as_ref().and_then(|m| m.nearest.clone());
+
+        // Create the all_collections data
+        let all_collections = ColorNameAllCollections {
+            css: css_match,
+            ral_classic: ral_classic_match,
+            ral_design: ral_design_match,
+        };
+
+        Some(ColorNameInfo {
+            exact: primary_exact,
+            nearest: primary_nearest,
+            all_collections: Some(all_collections),
+        })
     }
 
     let hsl_strategy = ColorSchemeSet {

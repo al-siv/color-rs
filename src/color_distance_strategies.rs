@@ -93,10 +93,53 @@ impl ColorDistanceStrategy for EuclideanLabStrategy {
     }
 }
 
+/// LCH Color Space strategy - Distance calculation in LCH cylindrical color space
+///
+/// This calculates distance in LCH (Lightness, Chroma, Hue) space, which can be
+/// more intuitive for certain color operations as it separates lightness from
+/// chromatic components.
+#[derive(Debug, Clone, Default)]
+pub struct LchStrategy;
+
+impl ColorDistanceStrategy for LchStrategy {
+    fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
+        use palette::{IntoColor, Lch};
+
+        // Convert LAB to LCH
+        let lch1: Lch = lab1.into_color();
+        let lch2: Lch = lab2.into_color();
+
+        // Calculate differences in each component
+        let delta_l = lch1.l - lch2.l;
+        let delta_c = lch1.chroma - lch2.chroma;
+
+        // Handle hue difference (circular space)
+        let delta_h = {
+            let h1 = lch1.hue.into_positive_degrees();
+            let h2 = lch2.hue.into_positive_degrees();
+            let diff = (h1 - h2).abs();
+            if diff > 180.0 { 360.0 - diff } else { diff }
+        };
+
+        // Calculate Euclidean distance in LCH space
+        // Note: Hue is weighted less since it's in degrees while L and C are in different scales
+        let hue_weight = 0.1; // Adjust this weight as needed
+        (delta_l.powi(2) + delta_c.powi(2) + (delta_h * hue_weight).powi(2)).sqrt() as f64
+    }
+
+    fn name(&self) -> &'static str {
+        "LCH Color Space"
+    }
+
+    fn description(&self) -> &'static str {
+        "Distance calculation in LCH cylindrical color space - Separates lightness from chroma"
+    }
+}
+
 /// Convenience function to create a strategy by name
 ///
 /// # Arguments
-/// * `strategy_name` - Name of the strategy ("delta-e-76", "delta-e-2000", "euclidean-lab")
+/// * `strategy_name` - Name of the strategy ("delta-e-76", "delta-e-2000", "euclidean-lab", "lch")
 ///
 /// # Returns
 /// * Boxed strategy instance, defaults to Delta E 2000 for unknown names
@@ -105,6 +148,7 @@ pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorDistanceStrategy> {
         "delta-e-76" | "deltae76" | "cie76" => Box::new(DeltaE76Strategy),
         "delta-e-2000" | "deltae2000" | "ciede2000" | "default" => Box::new(DeltaE2000Strategy),
         "euclidean-lab" | "euclidean" | "lab" => Box::new(EuclideanLabStrategy),
+        "lch" | "lch-space" | "lch-color-space" => Box::new(LchStrategy),
         _ => {
             eprintln!(
                 "Warning: Unknown strategy '{}', using Delta E 2000",
@@ -117,7 +161,7 @@ pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorDistanceStrategy> {
 
 /// Get all available strategy names for CLI help
 pub fn available_strategies() -> Vec<&'static str> {
-    vec!["delta-e-76", "delta-e-2000", "euclidean-lab"]
+    vec!["delta-e-76", "delta-e-2000", "euclidean-lab", "lch"]
 }
 
 #[cfg(test)]
@@ -135,6 +179,9 @@ mod tests {
 
         let strategy = create_strategy("euclidean-lab");
         assert_eq!(strategy.name(), "Euclidean distance");
+
+        let strategy = create_strategy("lch");
+        assert_eq!(strategy.name(), "LCH Color Space");
     }
 
     #[test]
@@ -145,20 +192,24 @@ mod tests {
         let delta_e_76 = DeltaE76Strategy;
         let delta_e_2000 = DeltaE2000Strategy;
         let euclidean_lab = EuclideanLabStrategy;
+        let lch_strategy = LchStrategy;
 
         let distance_76 = delta_e_76.calculate_distance(red_lab, blue_lab);
         let distance_2000 = delta_e_2000.calculate_distance(red_lab, blue_lab);
         let distance_lab = euclidean_lab.calculate_distance(red_lab, blue_lab);
+        let distance_lch = lch_strategy.calculate_distance(red_lab, blue_lab);
 
         // All should return positive distances for different colors
         assert!(distance_76 > 0.0);
         assert!(distance_2000 > 0.0);
         assert!(distance_lab > 0.0);
+        assert!(distance_lch > 0.0);
 
         // Test identity (same color should have distance 0 for all strategies)
         assert!((delta_e_76.calculate_distance(red_lab, red_lab) - 0.0).abs() < 0.001);
         assert!((delta_e_2000.calculate_distance(red_lab, red_lab) - 0.0).abs() < 0.001);
         assert!((euclidean_lab.calculate_distance(red_lab, red_lab) - 0.0).abs() < 0.001);
+        assert!((lch_strategy.calculate_distance(red_lab, red_lab) - 0.0).abs() < 0.001);
     }
 
     #[test]
@@ -170,6 +221,7 @@ mod tests {
             Box::new(DeltaE76Strategy),
             Box::new(DeltaE2000Strategy),
             Box::new(EuclideanLabStrategy),
+            Box::new(LchStrategy),
         ];
 
         for strategy in strategies {

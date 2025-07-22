@@ -117,7 +117,7 @@ impl FileOutputService {
             .to_toml()
             .map_err(|e| ColorError::General(format!("Failed to serialize to TOML: {}", e)))?;
 
-        fs::write(&filename, toml_string).map_err(|e| ColorError::IoError(e))?;
+        fs::write(&filename, toml_string).map_err(ColorError::IoError)?;
 
         Ok(())
     }
@@ -140,7 +140,7 @@ impl FileOutputService {
             .to_yaml()
             .map_err(|e| ColorError::General(format!("Failed to serialize to YAML: {}", e)))?;
 
-        fs::write(&filename, yaml_string).map_err(|e| ColorError::IoError(e))?;
+        fs::write(&filename, yaml_string).map_err(ColorError::IoError)?;
 
         Ok(())
     }

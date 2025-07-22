@@ -41,9 +41,9 @@ pub struct GradientBuilder {
     width: u32,
     svg_name: String,
     png_name: String,
-    grad_step: Option<u8>,
-    grad_stops: usize,
-    grad_stops_simple: Option<usize>,
+    step: Option<u8>,
+    stops: usize,
+    stops_simple: bool,
     output_format: Option<crate::cli::OutputFormat>,
     output_file: Option<String>,
 }
@@ -70,9 +70,9 @@ impl GradientBuilder {
             width: 1000,
             svg_name: DEFAULT_SVG_NAME.to_string(),
             png_name: DEFAULT_PNG_NAME.to_string(),
-            grad_step: None,
-            grad_stops: 5,
-            grad_stops_simple: None,
+            step: None,
+            stops: 5,
+            stops_simple: false,
             output_format: None,
             output_file: None,
         }
@@ -194,25 +194,25 @@ impl GradientBuilder {
 
     /// Set gradient step percentage (conflicts with stops methods)
     pub fn steps(mut self, step: u8) -> Self {
-        self.grad_step = Some(step);
-        self.grad_stops = 5; // Reset to default
-        self.grad_stops_simple = None;
+        self.step = Some(step);
+        self.stops = 5; // Reset to default
+        self.stops_simple = false;
         self
     }
 
-    /// Set number of intelligent gradient stops (conflicts with other stop methods)
+    /// Set number of intelligent gradient stops (conflicts with other stop methods)  
     pub fn intelligent_stops(mut self, stops: usize) -> Self {
-        self.grad_stops = stops;
-        self.grad_step = None;
-        self.grad_stops_simple = None;
+        self.stops = stops;
+        self.step = None;
+        self.stops_simple = false;
         self
     }
 
     /// Set number of equally spaced stops (conflicts with other stop methods)
     pub fn equal_stops(mut self, stops: usize) -> Self {
-        self.grad_stops_simple = Some(stops);
-        self.grad_step = None;
-        self.grad_stops = 5; // Reset to default
+        self.stops = stops;
+        self.step = None;
+        self.stops_simple = true;
         self
     }
 
@@ -287,8 +287,8 @@ impl GradientBuilder {
             ));
         }
 
-        // Validate grad_step
-        if let Some(step) = self.grad_step {
+        // Validate step
+        if let Some(step) = self.step {
             if step == 0 {
                 return Err(ColorError::InvalidArguments(
                     "Gradient step must be greater than 0".to_string(),
@@ -319,9 +319,9 @@ impl GradientBuilder {
             width: self.width,
             svg_name: self.svg_name,
             png_name: self.png_name,
-            grad_step: self.grad_step,
-            grad_stops: self.grad_stops,
-            grad_stops_simple: self.grad_stops_simple,
+            step: self.step,
+            stops: self.stops,
+            stops_simple: self.stops_simple,
             output_format: self.output_format,
             output_file: self.output_file,
         })
@@ -366,7 +366,7 @@ mod tests {
         assert_eq!(args.ease_out, 0.58);
         assert!(args.svg);
         assert_eq!(args.width, 500);
-        assert_eq!(args.grad_step, Some(10));
+        assert_eq!(args.step, Some(10));
     }
 
     #[test]
@@ -437,8 +437,8 @@ mod tests {
             .intelligent_stops(10);
 
         let args = builder.build().unwrap();
-        assert_eq!(args.grad_stops, 10);
-        assert_eq!(args.grad_step, None); // Should be None when cleared
-        assert_eq!(args.grad_stops_simple, None);
+        assert_eq!(args.stops, 10);
+        assert_eq!(args.step, None); // Should be None when cleared
+        assert_eq!(args.stops_simple, false);
     }
 }

@@ -1,9 +1,40 @@
 //! Output format serialization for TOML and YAML files
 //!
 //! This module implements serializable data structures for exporting color analysis
-//! results to TOML and YAML formats using the Strategy pattern for different output types.
+//! results to TOML and YAML formats using the builder pattern for different output types.
 
 use serde::Serialize;
+
+/// Enhanced color name information with multi-collection support
+#[derive(Debug, Clone, Serialize)]
+pub struct ColorNameInfo {
+    pub exact: Option<String>,
+    pub nearest: Option<NearestColorMatch>,
+    pub all_collections: Option<ColorNameAllCollections>,
+}
+
+/// Color name matches from all collections
+#[derive(Debug, Clone, Serialize, Default)]
+pub struct ColorNameAllCollections {
+    pub css: Option<CollectionColorMatch>,
+    pub ral_classic: Option<CollectionColorMatch>,
+    pub ral_design: Option<CollectionColorMatch>,
+}
+
+/// Color match from a specific collection
+#[derive(Debug, Clone, Serialize)]
+pub struct CollectionColorMatch {
+    pub exact: Option<String>,
+    pub nearest: Option<NearestColorMatch>,
+}
+
+/// Nearest color match information with distance
+#[derive(Debug, Clone, Serialize)]
+pub struct NearestColorMatch {
+    pub name: String,
+    pub collection: String,
+    pub distance: f64,
+}
 
 /// Complete color analysis result that can be serialized to TOML/YAML
 #[derive(Debug, Serialize)]
@@ -90,14 +121,14 @@ pub struct ProgramMetadata {
 }
 
 /// Input color information
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct InputInfo {
     pub input_color: String,
     pub base_color: String,
 }
 
 /// All color format conversions
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct ColorFormats {
     pub hex: String,
     pub rgb: String,
@@ -120,7 +151,7 @@ pub struct ContrastData {
 }
 
 /// Grayscale variations
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct GrayscaleData {
     pub grayscale_lab: String,
     pub grayscale_lch_0: String,
@@ -137,14 +168,14 @@ pub struct ContrastInfo {
 }
 
 /// Brightness assessment
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct BrightnessInfo {
     pub lab_assessment: String,
     pub wcag_assessment: String,
 }
 
 /// Color collection matches
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct ColorCollections {
     pub css_colors: Vec<ColorMatch>,
     pub ral_classic: Vec<ColorMatch>,
@@ -163,14 +194,14 @@ pub struct ColorMatch {
 }
 
 /// Color schemes
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct ColorSchemes {
     pub hsl_strategy: ColorSchemeSet,
     pub lab_strategy: ColorSchemeSet,
 }
 
 /// Individual color scheme item with format conversions and color name matching
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct ColorSchemeItem {
     pub hex: String,
     pub hsl: String,
@@ -178,28 +209,19 @@ pub struct ColorSchemeItem {
     pub color_name: Option<ColorNameInfo>,
 }
 
-/// Color name information with exact and nearest matches
-#[derive(Debug, Serialize)]
-pub struct ColorNameInfo {
-    pub exact: Option<String>,
-    pub nearest: Option<NearestColorMatch>,
-}
-
-/// Nearest color match information with distance
-#[derive(Debug, Serialize)]
-pub struct NearestColorMatch {
-    pub name: String,
-    pub collection: String,
-    pub distance: f64,
-}
-
 /// Set of color schemes for a strategy
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Default)]
 pub struct ColorSchemeSet {
     pub complementary: ColorSchemeItem,
     pub split_complementary: Vec<ColorSchemeItem>,
     pub triadic: Vec<ColorSchemeItem>,
     pub tetradic: Vec<ColorSchemeItem>,
+}
+
+impl Default for ColorAnalysisOutput {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ColorAnalysisOutput {
@@ -293,31 +315,6 @@ impl ProgramMetadata {
     }
 }
 
-impl Default for InputInfo {
-    fn default() -> Self {
-        Self {
-            input_color: String::new(),
-            base_color: String::new(),
-        }
-    }
-}
-
-impl Default for ColorFormats {
-    fn default() -> Self {
-        Self {
-            hex: String::new(),
-            rgb: String::new(),
-            hsl: String::new(),
-            hsb: String::new(),
-            lab: String::new(),
-            lch: String::new(),
-            cmyk: String::new(),
-            xyz: String::new(),
-            oklch: String::new(),
-        }
-    }
-}
-
 impl Default for ContrastData {
     fn default() -> Self {
         Self {
@@ -329,73 +326,11 @@ impl Default for ContrastData {
     }
 }
 
-impl Default for GrayscaleData {
-    fn default() -> Self {
-        Self {
-            grayscale_lab: String::new(),
-            grayscale_lch_0: String::new(),
-            grayscale_lch_2: String::new(),
-            grayscale_lch_4: String::new(),
-            grayscale_lch_6: String::new(),
-        }
-    }
-}
-
 impl Default for ContrastInfo {
     fn default() -> Self {
         Self {
             ratio: 0.0,
             assessment: String::new(),
-        }
-    }
-}
-
-impl Default for BrightnessInfo {
-    fn default() -> Self {
-        Self {
-            lab_assessment: String::new(),
-            wcag_assessment: String::new(),
-        }
-    }
-}
-
-impl Default for ColorCollections {
-    fn default() -> Self {
-        Self {
-            css_colors: Vec::new(),
-            ral_classic: Vec::new(),
-            ral_design: Vec::new(),
-        }
-    }
-}
-
-impl Default for ColorSchemes {
-    fn default() -> Self {
-        Self {
-            hsl_strategy: ColorSchemeSet::default(),
-            lab_strategy: ColorSchemeSet::default(),
-        }
-    }
-}
-
-impl Default for ColorSchemeItem {
-    fn default() -> Self {
-        Self {
-            hex: String::new(),
-            hsl: String::new(),
-            lch: String::new(),
-            color_name: None,
-        }
-    }
-}
-
-impl Default for ColorSchemeSet {
-    fn default() -> Self {
-        Self {
-            complementary: ColorSchemeItem::default(),
-            split_complementary: Vec::new(),
-            triadic: Vec::new(),
-            tetradic: Vec::new(),
         }
     }
 }

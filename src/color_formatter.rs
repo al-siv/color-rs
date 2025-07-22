@@ -36,7 +36,7 @@ impl ColorFormatter {
     /// Format a color into a comprehensive analysis report with optional strategy (defaults to DeltaE2000)
     pub fn format_comprehensive_report(lab_color: Lab, original_input: &str, color_name: &str) {
         // Use default DeltaE2000 strategy
-        let default_strategy = crate::color_distance_strategies::DeltaE2000Strategy::default();
+        let default_strategy = crate::color_distance_strategies::DeltaE2000Strategy;
         let _ = Self::format_comprehensive_report_with_strategy(
             lab_color,
             original_input,

@@ -209,9 +209,9 @@ impl GradientCalculator {
     ) -> Result<Vec<GradientValue>> {
         let mut gradient_values = Vec::new();
 
-        // Default behavior is now intelligent stops (grad_stops)
-        // First check if grad_step is explicitly provided
-        if let Some(step) = args.grad_step {
+        // Default behavior is now intelligent stops (stops)
+        // First check if step is explicitly provided
+        if let Some(step) = args.step {
             // Use step-based generation when explicitly requested
             let mut position = args.start_position;
             while position <= args.end_position {
@@ -243,8 +243,9 @@ impl GradientCalculator {
                     break;
                 }
             }
-        } else if let Some(num_stops) = args.grad_stops_simple {
-            // Simple equal spacing with integer percentages
+        } else if args.stops_simple {
+            // Simple equal spacing when --stops-simple flag is used
+            let num_stops = args.stops;
             for i in 0..num_stops {
                 let t = if num_stops == 1 {
                     0.5
@@ -278,9 +279,9 @@ impl GradientCalculator {
             // Remove duplicates based on position
             gradient_values.dedup_by(|a, b| a.position == b.position);
         } else {
-            // Default behavior: intelligent stop placement (grad_stops)
+            // Default behavior: intelligent stop placement (stops)
             let stop_positions = Self::calculate_intelligent_stops_integer(
-                args.grad_stops,
+                args.stops,
                 args.ease_in,
                 args.ease_out,
                 args.start_position,
@@ -358,11 +359,11 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     // ColorProcessor::print_color_info_table(start_lab, end_lab);
 
     // Generate images if requested
-    if args.svg || args.png {
+    if args.should_generate_svg() || args.should_generate_png() {
         use crate::image::ImageGenerator;
         let generator = ImageGenerator::new();
 
-        if args.svg {
+        if args.should_generate_svg() {
             generator.generate_svg(&args, start_lab, end_lab)?;
             use colored::*;
             println!(
@@ -372,7 +373,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
             );
         }
 
-        if args.png {
+        if args.should_generate_png() {
             generator.generate_png(&args, start_lab, end_lab)?;
             use colored::*;
             println!(
@@ -394,7 +395,7 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     let format = args
         .output_format
         .as_ref()
-        .unwrap_or(&crate::cli::OutputFormat::Toml);
+        .unwrap_or(&crate::cli::OutputFormat::Yaml);
     format_gradient_structured_output(&gradient_output, format, args.output_file.as_ref())?;
 
     Ok(())
@@ -540,42 +541,138 @@ pub fn create_gradient_analysis_output(
 }
 
 /// Get color name information for gradient stops
-fn get_gradient_color_name_info(rgb: (u8, u8, u8), parser: &crate::color_parser::ColorParser) -> Option<crate::output_formats::ColorNameInfo> {
-    use crate::output_formats::{ColorNameInfo, NearestColorMatch};
-    use crate::color_parser::{UniversalColor, ColorCollection};
-    
+fn get_gradient_color_name_info(
+    rgb: (u8, u8, u8),
+    parser: &crate::color_parser::ColorParser,
+) -> Option<crate::output_formats::ColorNameInfo> {
+    use crate::color_parser::UniversalColor;
+
     let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
     let target_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
-    
-    // Check for exact match first by comparing hex values
-    let exact_match = parser.css_collection().colors().iter().find(|color| {
-        let color_hex = format!("#{:02X}{:02X}{:02X}", 
-            color.color.rgb[0], 
-            color.color.rgb[1], 
-            color.color.rgb[2]);
-        color_hex.to_uppercase() == target_hex.to_uppercase()
-    });
-    
-    let exact = exact_match.map(|color| color.metadata.name.clone());
-    
-    // Find nearest match with actual distance calculation
-    let nearest_matches = parser.css_collection().find_closest(&target, 1, None);
-    let nearest = if let Some(closest) = nearest_matches.first() {
-        Some(NearestColorMatch {
+
+    // Use the enhanced color matching from all collections
+    create_gradient_enhanced_color_name_info(parser, &target_hex, &target)
+}
+
+/// Create enhanced color name information for gradient stops with matches from all collections
+fn create_gradient_enhanced_color_name_info(
+    parser: &crate::color_parser::ColorParser,
+    input_hex: &str,
+    target: &crate::color_parser::UniversalColor,
+) -> Option<crate::output_formats::ColorNameInfo> {
+    use crate::color_parser::ColorCollection;
+    use crate::output_formats::{
+        CollectionColorMatch, ColorNameAllCollections, ColorNameInfo, NearestColorMatch,
+    };
+
+    let mut has_any_match = false;
+
+    // Create collection matches for CSS colors
+    let css_match = {
+        let css_collection = parser.css_collection();
+        let exact_match = css_collection.colors().iter().find(|color| {
+            let color_hex = format!(
+                "#{:02X}{:02X}{:02X}",
+                color.color.rgb[0], color.color.rgb[1], color.color.rgb[2]
+            );
+            color_hex.to_uppercase() == input_hex.to_uppercase()
+        });
+
+        let exact = exact_match.map(|color| color.metadata.name.clone());
+
+        let nearest_matches = css_collection.find_closest(target, 1, None);
+        let nearest = nearest_matches.first().map(|closest| NearestColorMatch {
             name: closest.entry.metadata.name.clone(),
             collection: "CSS".to_string(),
             distance: closest.distance,
-        })
-    } else {
-        None
+        });
+
+        if exact.is_some() || nearest.is_some() {
+            has_any_match = true;
+            Some(CollectionColorMatch { exact, nearest })
+        } else {
+            None
+        }
     };
 
-    // Only include color_name if we have either exact or nearest
-    if exact.is_some() || nearest.is_some() {
-        Some(ColorNameInfo { exact, nearest })
-    } else {
-        None
+    // Create collection matches for RAL Classic colors
+    let ral_classic_match = {
+        let ral_classic_matches =
+            parser.find_closest_ral_classic([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
+        if let Some(closest) = ral_classic_matches.first() {
+            // Check for exact match by comparing hex values
+            let color_hex = format!(
+                "#{:02X}{:02X}{:02X}",
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
+            );
+            let exact = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                Some(closest.entry.metadata.name.clone())
+            } else {
+                None
+            };
+
+            let nearest = Some(NearestColorMatch {
+                name: closest.entry.metadata.name.clone(),
+                collection: "RAL Classic".to_string(),
+                distance: closest.distance,
+            });
+
+            has_any_match = true;
+            Some(CollectionColorMatch { exact, nearest })
+        } else {
+            None
+        }
+    };
+
+    // Create collection matches for RAL Design colors
+    let ral_design_match = {
+        let ral_design_matches =
+            parser.find_closest_ral_design([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
+        if let Some(closest) = ral_design_matches.first() {
+            // Check for exact match by comparing hex values
+            let color_hex = format!(
+                "#{:02X}{:02X}{:02X}",
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
+            );
+            let exact = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                Some(closest.entry.metadata.name.clone())
+            } else {
+                None
+            };
+
+            let nearest = Some(NearestColorMatch {
+                name: closest.entry.metadata.name.clone(),
+                collection: "RAL Design".to_string(),
+                distance: closest.distance,
+            });
+
+            has_any_match = true;
+            Some(CollectionColorMatch { exact, nearest })
+        } else {
+            None
+        }
+    };
+
+    if !has_any_match {
+        return None;
     }
+
+    // For backward compatibility with existing code, use CSS collection for primary exact/nearest
+    let primary_exact = css_match.as_ref().and_then(|m| m.exact.clone());
+    let primary_nearest = css_match.as_ref().and_then(|m| m.nearest.clone());
+
+    // Create the all_collections data
+    let all_collections = ColorNameAllCollections {
+        css: css_match,
+        ral_classic: ral_classic_match,
+        ral_design: ral_design_match,
+    };
+
+    Some(ColorNameInfo {
+        exact: primary_exact,
+        nearest: primary_nearest,
+        all_collections: Some(all_collections),
+    })
 }
 
 /// Format and display gradient structured output to terminal with optional file save
@@ -673,7 +770,7 @@ fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> Stri
                     "{}{} = {}",
                     indent,
                     key.green(),
-                    colorize_gradient_value(value)
+                    crate::output_utils::OutputUtils::colorize_output_value(value)
                 )
             } else {
                 line.to_string()
@@ -691,38 +788,18 @@ fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> Stri
                     "{}{} {}",
                     indent,
                     key.green(),
-                    colorize_gradient_value(value)
+                    crate::output_utils::OutputUtils::colorize_output_value(value)
                 )
-            } else if trimmed.starts_with("- ") {
+            } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
-                format!("{}- {}", indent, colorize_gradient_value(&trimmed[2..]))
+                format!(
+                    "{}- {}",
+                    indent,
+                    crate::output_utils::OutputUtils::colorize_output_value(stripped)
+                )
             } else {
                 line.to_string()
             }
         }
-    }
-}
-
-/// Colorize gradient values based on their type
-fn colorize_gradient_value(value: &str) -> String {
-    use colored::*;
-
-    if value.starts_with('"') && value.ends_with('"') {
-        // String values
-        value.yellow().to_string()
-    } else if value.parse::<f64>().is_ok() {
-        // Numeric values
-        value.bright_blue().to_string()
-    } else if value == "true" || value == "false" {
-        // Boolean values
-        value.bright_green().to_string()
-    } else if value.starts_with('#') {
-        // Hex colors
-        value.bright_yellow().to_string()
-    } else if value.starts_with("rgb(") || value.starts_with("lab(") || value.starts_with("lch(") {
-        // Color format values
-        value.bright_cyan().to_string()
-    } else {
-        value.to_string()
     }
 }

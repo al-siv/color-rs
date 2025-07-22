@@ -73,7 +73,7 @@ impl UnifiedColorManager {
             .find_closest(&target, max_results, None)
     }
 
-    /// Find RAL Classic colors within specific groups
+    // /// Find RAL Classic colors within specific groups
     // TODO: Implement after CSV migration is complete
     // pub fn find_ral_classic_in_groups(
     //     &self,
@@ -86,7 +86,7 @@ impl UnifiedColorManager {
     //         .find_in_groups(&target, groups, max_results)
     // }
 
-    /// Find RAL Design colors within specific hue groups
+    // /// Find RAL Design colors within specific hue groups
     // TODO: Implement after CSV migration is complete
     // pub fn find_ral_design_in_hue_groups(
     //     &self,
@@ -99,7 +99,7 @@ impl UnifiedColorManager {
     //         .find_in_hue_groups(&target, hue_groups, max_results)
     // }
 
-    /// Find RAL Design colors within lightness range
+    // /// Find RAL Design colors within lightness range
     // TODO: Implement after CSV migration is complete
     // pub fn find_ral_design_in_lightness_range(
     //     &self,
@@ -117,7 +117,7 @@ impl UnifiedColorManager {
     //     )
     // }
 
-    /// Find RAL Design colors within chroma range
+    // /// Find RAL Design colors within chroma range
     // TODO: Implement after CSV migration is complete
     // pub fn find_ral_design_in_chroma_range(
     //     &self,
@@ -151,25 +151,25 @@ impl UnifiedColorManager {
         None
     }
 
-    /// Get available RAL Classic groups
+    // /// Get available RAL Classic groups
     // TODO: Implement after CSV migration is complete
     // pub fn get_ral_classic_groups(&self) -> Vec<String> {
     //     RalClassicCollection::get_ral_groups()
     // }
 
-    /// Get available RAL Design hue groups
+    // /// Get available RAL Design hue groups
     // TODO: Implement after CSV migration is complete
     // pub fn get_ral_design_hue_groups(&self) -> Vec<String> {
     //     RalDesignCollection::get_hue_groups()
     // }
 
-    /// Get available RAL Design lightness groups
+    // /// Get available RAL Design lightness groups
     // TODO: Implement after CSV migration is complete
     // pub fn get_ral_design_lightness_groups(&self) -> Vec<String> {
     //     RalDesignCollection::get_lightness_groups()
     // }
 
-    /// Get available RAL Design chroma groups
+    // /// Get available RAL Design chroma groups
     // TODO: Implement after CSV migration is complete
     // pub fn get_ral_design_chroma_groups(&self) -> Vec<String> {
     //     RalDesignCollection::get_chroma_groups()

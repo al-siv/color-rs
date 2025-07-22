@@ -5,20 +5,15 @@ use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 /// Output format for file export
-#[derive(Debug, Clone, ValueEnum)]
+#[derive(Debug, Clone, ValueEnum, Default)]
 pub enum OutputFormat {
     /// TOML format output
     #[clap(alias = "t")]
     Toml,
     /// YAML format output  
     #[clap(alias = "y")]
+    #[default]
     Yaml,
-}
-
-impl Default for OutputFormat {
-    fn default() -> Self {
-        OutputFormat::Toml
-    }
 }
 
 /// Parse percentage values for CLI arguments
@@ -61,11 +56,11 @@ pub struct GradientArgs {
     pub end_color: String,
 
     /// Starting position as percentage (e.g., 20 or 20%, default: 0%)
-    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_START_POSITION)]
+    #[arg(short = 's', long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_START_POSITION)]
     pub start_position: u8,
 
     /// Ending position as percentage (e.g., 80 or 80%, default: 100%)
-    #[arg(long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_END_POSITION)]
+    #[arg(short = 'e', long, value_name = "PERCENT", value_parser = parse_percentage, default_value = DEFAULT_END_POSITION)]
     pub end_position: u8,
 
     /// Ease-in control point for cubic-bezier (0.0-1.0, default: 0.65)
@@ -93,31 +88,35 @@ pub struct GradientArgs {
     pub width: u32,
 
     /// Output filename for SVG image (default: gradient.svg)
-    #[arg(long, default_value = DEFAULT_SVG_NAME)]
+    #[arg(short = 'v', long, default_value = DEFAULT_SVG_NAME)]
     pub svg_name: String,
 
     /// Output filename for PNG image (default: gradient.png)
-    #[arg(long, default_value = DEFAULT_PNG_NAME)]
+    #[arg(short = 'p', long, default_value = DEFAULT_PNG_NAME)]
     pub png_name: String,
 
     /// Output gradient values every X percent
-    #[arg(long, conflicts_with_all = ["grad_stops", "grad_stops_simple"], help = "Output gradient values every X percent")]
-    pub grad_step: Option<u8>,
+    #[arg(short = 't', long = "step", conflicts_with_all = ["stops"], help = "Output gradient values every X percent")]
+    pub step: Option<u8>,
 
-    /// Number of intelligently placed gradient stops to output (default: 5)
-    #[arg(long, default_value = "5", conflicts_with_all = ["grad_step", "grad_stops_simple"], help = "Number of intelligently placed gradient stops using curve derivatives (default: 5)")]
-    pub grad_stops: usize,
+    /// Number of gradient stops to output (default: 5)
+    #[arg(short = 'g', long = "stops", default_value = "5", conflicts_with_all = ["step"], help = "Number of gradient stops using curve derivatives (default: 5)")]
+    pub stops: usize,
 
-    /// Number of equally spaced gradient stops to output
-    #[arg(long, conflicts_with_all = ["grad_step", "grad_stops"], help = "Number of equally spaced gradient stops")]
-    pub grad_stops_simple: Option<usize>,
+    /// Use equally spaced gradient stops instead of intelligent placement
+    #[arg(
+        long = "stops-simple",
+        requires = "stops",
+        help = "Use equally spaced gradient stops instead of intelligent placement"
+    )]
+    pub stops_simple: bool,
 
-    /// Output format for file export (toml/t or yaml/y, default: toml)
+    /// Output format for file export (toml/t or yaml/y, default: yaml)
     #[arg(
         short = 'o',
         long = "output",
         value_enum,
-        help = "Output format: toml (t) or yaml (y), default: toml"
+        help = "Output format: toml (t) or yaml (y), default: yaml"
     )]
     pub output_format: Option<OutputFormat>,
 
@@ -161,10 +160,11 @@ impl GradientArgs {
             ));
         }
 
-        // Validate --no-legend usage
-        if self.no_legend && !self.svg && !self.png {
+        // Validate --no-legend usage (check both explicit flags and implied flags)
+        if self.no_legend && !self.should_generate_svg() && !self.should_generate_png() {
             return Err(ColorError::InvalidArguments(
-                "--no-legend can only be used with --svg or --png".to_string(),
+                "--no-legend can only be used with --svg, --png, --svg-name, or --png-name"
+                    .to_string(),
             ));
         }
 
@@ -175,8 +175,8 @@ impl GradientArgs {
             ));
         }
 
-        // Validate grad_step (if provided)
-        if let Some(step) = self.grad_step {
+        // Validate step (if provided)
+        if let Some(step) = self.step {
             if step == 0 {
                 return Err(ColorError::InvalidArguments(
                     "Gradient step must be greater than 0".to_string(),
@@ -184,14 +184,24 @@ impl GradientArgs {
             }
         }
 
-        // Validate grad_stops
-        if self.grad_stops == 0 {
+        // Validate stops
+        if self.stops == 0 {
             return Err(ColorError::InvalidArguments(
                 "Number of gradient stops must be greater than 0".to_string(),
             ));
         }
 
         Ok(())
+    }
+
+    /// Check if SVG generation should be enabled (explicit flag or custom name)
+    pub fn should_generate_svg(&self) -> bool {
+        self.svg || self.svg_name != DEFAULT_SVG_NAME
+    }
+
+    /// Check if PNG generation should be enabled (explicit flag or custom name)
+    pub fn should_generate_png(&self) -> bool {
+        self.png || self.png_name != DEFAULT_PNG_NAME
     }
 }
 
@@ -207,13 +217,14 @@ pub struct ColorArgs {
         long,
         value_name = "METHOD",
         default_value = "delta-e-2000",
-        help = "Distance calculation method: delta-e-76, delta-e-2000, euclidean-lab"
+        help = "Distance calculation method: delta-e-76, delta-e-2000, euclidean-lab, lch"
     )]
     pub distance_method: String,
 
     /// Replace input color with same hue but specified WCAG relative luminance
     /// If used without value, color schemes will use luminance-matched variations
     #[arg(
+        short = 'r',
         long,
         value_name = "LUM_VALUE",
         help = "Replace color with specified WCAG relative luminance (0.0-1.0)"
@@ -223,18 +234,19 @@ pub struct ColorArgs {
     /// Replace input color with same hue but specified Lab luminance
     /// If used without value, color schemes will use luminance-matched variations
     #[arg(
+        short = 'l',
         long,
         value_name = "LUM_VALUE",
         help = "Replace color with specified Lab luminance value"
     )]
     pub luminance: Option<f64>,
 
-    /// Output format for file export (toml/t or yaml/y, default: toml)
+    /// Output format for file export (toml/t or yaml/y, default: yaml)
     #[arg(
         short = 'o',
         long = "output",
         value_enum,
-        help = "Output format: toml (t) or yaml (y), default: toml"
+        help = "Output format: toml (t) or yaml (y), default: yaml"
     )]
     pub output_format: Option<OutputFormat>,
 

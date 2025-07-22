@@ -50,8 +50,8 @@ impl ColorParsingHandler for HexColorParsingHandler {
         let trimmed = input.trim();
 
         // Check if this looks like a hex color
-        let hex_pattern = if trimmed.starts_with('#') {
-            &trimmed[1..]
+        let hex_pattern = if let Some(stripped) = trimmed.strip_prefix('#') {
+            stripped
         } else {
             trimmed
         };

@@ -125,7 +125,7 @@ impl Command for GenerateGradientCommand {
         }
 
         // Generate SVG if requested
-        if self.args.svg {
+        if self.args.should_generate_svg() {
             match self.generate_svg() {
                 Ok(_svg_content) => {
                     output.push_str("\nSVG generated successfully\n");
@@ -143,7 +143,7 @@ impl Command for GenerateGradientCommand {
         }
 
         // Generate PNG if requested
-        if self.args.png {
+        if self.args.should_generate_png() {
             match self.generate_png() {
                 Ok(_) => {
                     output.push_str("PNG generated successfully\n");

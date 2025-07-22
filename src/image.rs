@@ -213,13 +213,13 @@ impl ImageGenerator {
         }
 
         // Validate filename extensions
-        if args.svg && !args.svg_name.ends_with(".svg") {
+        if args.should_generate_svg() && !args.svg_name.ends_with(".svg") {
             return Err(ColorError::InvalidArguments(
                 "SVG filename must end with .svg extension".to_string(),
             ));
         }
 
-        if args.png && !args.png_name.ends_with(".png") {
+        if args.should_generate_png() && !args.png_name.ends_with(".png") {
             return Err(ColorError::InvalidArguments(
                 "PNG filename must end with .png extension".to_string(),
             ));
@@ -254,9 +254,9 @@ mod tests {
             width: 1000,
             svg_name: "test.svg".to_string(),
             png_name: "test.png".to_string(),
-            grad_step: None,
-            grad_stops: 5,
-            grad_stops_simple: None,
+            step: None,
+            stops: 5,
+            stops_simple: false,
             output_format: None,
             output_file: None,
         }

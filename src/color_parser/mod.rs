@@ -40,17 +40,24 @@ use palette::Lab;
 pub struct ColorParser {
     css_parser: CssColorParser,
     css_collection: CssColorCollection,
+    unified_manager: UnifiedColorManager,
 }
 
 impl ColorParser {
     /// Create a new color parser
     pub fn new() -> Self {
+        let unified_manager = UnifiedColorManager::new().unwrap_or_else(|_| {
+            // Fallback to default if creation fails
+            UnifiedColorManager::default()
+        });
+
         Self {
             css_parser: CssColorParser::new(),
             css_collection: CssColorCollection::new().unwrap_or_else(|_| {
                 // Fallback: create empty collection if CSV loading fails
                 CssColorCollection::new().unwrap()
             }),
+            unified_manager,
         }
     }
 
@@ -193,6 +200,33 @@ impl ColorParser {
     /// Get access to the CSS color collection
     pub fn css_collection(&self) -> &CssColorCollection {
         &self.css_collection
+    }
+
+    /// Get access to the unified color manager for all collections
+    pub fn unified_manager(&self) -> &UnifiedColorManager {
+        &self.unified_manager
+    }
+
+    /// Find closest colors from all collections (CSS, RAL Classic, RAL Design)
+    pub fn find_closest_all_collections(
+        &self,
+        rgb: [u8; 3],
+        max_results: usize,
+    ) -> Vec<(String, Vec<ColorMatch>)> {
+        self.unified_manager
+            .find_closest_across_all(rgb, max_results)
+    }
+
+    /// Find closest RAL Classic colors
+    pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
+        self.unified_manager
+            .find_closest_ral_classic(rgb, max_results)
+    }
+
+    /// Find closest RAL Design colors
+    pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
+        self.unified_manager
+            .find_closest_ral_design(rgb, max_results)
     }
 }
 

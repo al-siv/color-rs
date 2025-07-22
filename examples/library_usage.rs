@@ -56,9 +56,9 @@ fn main() -> Result<()> {
         width: 800,
         svg_name: "example-gradient.svg".to_string(),
         png_name: "example-gradient.png".to_string(),
-        grad_step: Some(10),
-        grad_stops: 5, // Default value
-        grad_stops_simple: Some(7),
+        step: Some(10),
+        stops: 5, // Default value
+        stops_simple: true,
         output_format: None,
         output_file: None,
     };

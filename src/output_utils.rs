@@ -134,4 +134,36 @@ impl OutputUtils {
             "WCAG".bold().green()
         );
     }
+
+    /// Colorize TOML/YAML output values based on their type
+    pub fn colorize_output_value(value: &str) -> String {
+        use colored::*;
+
+        if value.starts_with('"') && value.ends_with('"') {
+            // String values
+            value.yellow().to_string()
+        } else if value.parse::<f64>().is_ok() {
+            // Numeric values
+            value.bright_blue().to_string()
+        } else if value == "true" || value == "false" {
+            // Boolean values
+            value.bright_green().to_string()
+        } else if value.starts_with('#') {
+            // Hex colors
+            value.bright_yellow().to_string()
+        } else if value.starts_with("rgb(")
+            || value.starts_with("hsl(")
+            || value.starts_with("lab(")
+            || value.starts_with("lch(")
+            || value.starts_with("hsv(")
+            || value.starts_with("cmyk(")
+            || value.starts_with("xyz(")
+            || value.starts_with("oklch(")
+        {
+            // Color format values
+            value.bright_cyan().to_string()
+        } else {
+            value.to_string()
+        }
+    }
 }
