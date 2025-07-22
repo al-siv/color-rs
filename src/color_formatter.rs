@@ -24,6 +24,7 @@ use crate::color_utils::*;
 use crate::config::*;
 use crate::error::Result;
 use crate::output_formats::*;
+use crate::utils::Utils;
 use colored::*;
 use palette::{Hsl, IntoColor, Lab, Srgb};
 
@@ -37,16 +38,6 @@ impl ColorFormatter {
         // Keep for backward compatibility but doesn't actually format anything
         let _ = (lab_color, original_input, color_name);
     }
-
-
-
-
-
-
-
-
-
-
 
     /// Write header for color schemes section
     fn write_color_scheme_header(section_title: &str) {
@@ -244,7 +235,7 @@ impl ColorFormatter {
         crate::color::ColorInfo {
             label: label.to_string(),
             hex: format!("#{:02X}{:02X}{:02X}", r, g, b),
-            rgb: format!("rgb({}, {}, {})", r, g, b),
+            rgb: Utils::rgb_to_string(r, g, b),
             hsl: format!(
                 "hsl({:.0}, {:.1}%, {:.1}%)",
                 hsl.hue.into_positive_degrees(),
@@ -413,9 +404,9 @@ impl ColorFormatter {
         let manager = UnifiedColorManager::new().unwrap_or_default();
         let srgb = ColorUtils::lab_to_srgb(lab_color);
         let rgb = [
-            (srgb.red * 255.0) as u8,
-            (srgb.green * 255.0) as u8,
-            (srgb.blue * 255.0) as u8,
+            (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
         ];
 
         // Get CSS colors

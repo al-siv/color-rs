@@ -4,6 +4,7 @@ use crate::cli::GradientArgs;
 use crate::color_utils::ColorUtils;
 use crate::config::*;
 use crate::error::{ColorError, Result};
+use crate::utils::Utils;
 use kurbo::{CubicBez, ParamCurve, Point};
 use palette::Lab;
 use tabled::Tabled;
@@ -231,7 +232,7 @@ impl GradientCalculator {
                 gradient_values.push(GradientValue {
                     position: format!("{}%", position),
                     hex: hex_color,
-                    rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+                    rgb: Utils::rgb_to_string(rgb_values.0, rgb_values.1, rgb_values.2),
                     wcag_luminance: format!("{:.3}", wcag_luminance),
                 });
 
@@ -271,7 +272,7 @@ impl GradientCalculator {
                 gradient_values.push(GradientValue {
                     position: format!("{}%", position),
                     hex: hex_color,
-                    rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+                    rgb: Utils::rgb_to_string(rgb_values.0, rgb_values.1, rgb_values.2),
                     wcag_luminance: format!("{:.3}", wcag_luminance),
                 });
             }
@@ -304,7 +305,7 @@ impl GradientCalculator {
                 gradient_values.push(GradientValue {
                     position: format!("{}%", position),
                     hex: hex_color,
-                    rgb: format!("rgb({}, {}, {})", rgb_values.0, rgb_values.1, rgb_values.2),
+                    rgb: Utils::rgb_to_string(rgb_values.0, rgb_values.1, rgb_values.2),
                     wcag_luminance: format!("{:.3}", wcag_luminance),
                 });
             }
@@ -499,7 +500,7 @@ pub fn create_gradient_analysis_output(
                     "#{:02X}{:02X}{:02X}",
                     end_rgb.red, end_rgb.green, end_rgb.blue
                 ),
-                rgb: format!("rgb({}, {}, {})", end_rgb.red, end_rgb.green, end_rgb.blue),
+                rgb: Utils::rgb_to_string(end_rgb.red, end_rgb.green, end_rgb.blue),
                 lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: crate::format_utils::FormatUtils::lab_to_lch(end_lab),
                 wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(end_srgb),

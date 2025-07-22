@@ -221,6 +221,15 @@ pub struct ColorArgs {
     )]
     pub distance_method: String,
 
+    /// Color scheme strategy to use
+    #[arg(
+        long = "schemes",
+        value_name = "STRATEGY",
+        default_value = "lab",
+        help = "Color scheme strategy: hsl or lab (default: lab)"
+    )]
+    pub scheme_strategy: String,
+
     /// Replace input color with same hue but specified WCAG relative luminance
     /// If used without value, color schemes will use luminance-matched variations
     #[arg(
@@ -263,6 +272,13 @@ pub struct ColorArgs {
 impl ColorArgs {
     /// Validate the color arguments
     pub fn validate(&self) -> Result<()> {
+        // Validate scheme strategy
+        if !matches!(self.scheme_strategy.as_str(), "hsl" | "lab") {
+            return Err(ColorError::InvalidArguments(
+                "Scheme strategy must be either 'hsl' or 'lab'".to_string(),
+            ));
+        }
+
         // Validate relative luminance range
         if let Some(relative_lum) = self.relative_luminance {
             if !(0.0..=1.0).contains(&relative_lum) {

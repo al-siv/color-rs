@@ -24,6 +24,7 @@ pub mod image;
 pub mod output_formats;
 pub mod output_utils;
 pub mod precision_utils;
+pub mod utils;
 
 // New GoF Pattern Implementations
 pub mod command_pattern;
@@ -47,6 +48,7 @@ pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
 pub use gradient_builder::GradientBuilder;
 pub use image::{ImageFormat, ImageGenerator};
+pub use utils::Utils;
 
 /// Main library interface for generating gradients
 pub struct ColorRs;

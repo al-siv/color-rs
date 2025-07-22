@@ -196,14 +196,36 @@ pub struct ColorMatch {
     pub wcag21_relative_luminance: f64,
 }
 
-/// Color schemes
+/// Color schemes with configurable strategy
 #[derive(Debug, Serialize, Default)]
 pub struct ColorSchemes {
-    pub hsl_strategy: ColorSchemeSet,
-    pub lab_strategy: ColorSchemeSet,
+    pub complementary: EnhancedColorSchemeItem,
+    pub split_complementary: Vec<EnhancedColorSchemeItem>,
+    pub triadic: Vec<EnhancedColorSchemeItem>,
+    pub tetradic: Vec<EnhancedColorSchemeItem>,
 }
 
-/// Individual color scheme item with format conversions and color name matching
+/// Enhanced color scheme item with direct collection matches
+#[derive(Debug, Serialize, Default)]
+pub struct EnhancedColorSchemeItem {
+    pub hex: String,
+    pub hsl: String,
+    pub lch: String,
+    pub css: Option<CollectionMatch>,
+    pub ral_classic: Option<CollectionMatch>,
+    pub ral_design: Option<CollectionMatch>,
+}
+
+/// Simplified collection match with essential data
+#[derive(Debug, Serialize, Default)]
+pub struct CollectionMatch {
+    pub name: String,
+    pub hex: String,
+    pub distance: f64,
+    pub wcag_relative_luminance: f64,
+}
+
+/// Individual color scheme item with format conversions and color name matching (deprecated)
 #[derive(Debug, Serialize, Default)]
 pub struct ColorSchemeItem {
     pub hex: String,
@@ -212,7 +234,7 @@ pub struct ColorSchemeItem {
     pub color_name: Option<ColorNameInfo>,
 }
 
-/// Set of color schemes for a strategy
+/// Set of color schemes for a strategy (deprecated)
 #[derive(Debug, Serialize, Default)]
 pub struct ColorSchemeSet {
     pub complementary: ColorSchemeItem,

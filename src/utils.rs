@@ -56,11 +56,6 @@ impl Utils {
         format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0)
     }
 
-    /// Convert Lab values to string representation - DEPRECATED: Use PrecisionUtils::format_lab instead
-    pub fn lab_to_string(l: f64, a: f64, b: f64) -> String {
-        format!("Lab({:.1}, {:.1}, {:.1})", l, a, b)
-    }
-
     /// DUPLICATION ELIMINATED: Use PrecisionUtils::format_percentage() instead
     /// Format a percentage value as string - Simple u8 version for legacy compatibility
     pub fn format_percentage(value: u8) -> String {

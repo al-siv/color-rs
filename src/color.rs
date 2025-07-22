@@ -5,6 +5,7 @@ use crate::color_parser::{ColorCollection, UniversalColor};
 use crate::color_utils::*;
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
+use crate::utils::Utils;
 use palette::{Lab, Srgb};
 use tabled::Tabled;
 
@@ -44,7 +45,7 @@ impl ColorProcessor {
         ColorInfo {
             label,
             hex,
-            rgb: format!("rgb({}, {}, {})", rgb.0, rgb.1, rgb.2),
+            rgb: Utils::rgb_to_string(rgb.0, rgb.1, rgb.2),
             hsl: format!(
                 "hsl({:.1}, {:.1}%, {:.1}%)",
                 hsl.0,
@@ -309,8 +310,8 @@ fn format_comprehensive_report_with_structured_output(
         strategy,
     )?;
 
-    // Add color schemes data
-    let color_schemes = collect_color_schemes_data(&schemes);
+    // Add color schemes data with selected strategy
+    let color_schemes = collect_enhanced_color_schemes_data(&schemes, &args.scheme_strategy);
     analysis_data = analysis_data.with_color_schemes(color_schemes);
 
     // Determine output format (default to TOML if not specified)
@@ -455,23 +456,39 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
 }
 
 /// Colorize values based on their type
-/// Collect color schemes data for file output
-fn collect_color_schemes_data(
+/// Collect enhanced color schemes data for new flattened file output
+fn collect_enhanced_color_schemes_data(
     schemes: &crate::color_schemes::ColorSchemeResult,
+    strategy: &str,
 ) -> crate::output_formats::ColorSchemes {
     use crate::color_parser::ColorParser;
     use crate::color_utils::ColorUtils;
     use crate::output_formats::{
-        CollectionColorMatch, ColorNameAllCollections, ColorNameInfo, ColorSchemeItem,
-        ColorSchemeSet, ColorSchemes, NearestColorMatch,
+        CollectionMatch, EnhancedColorSchemeItem, ColorSchemes,
     };
     use palette::Lab;
 
     // Create parser for color name matching
     let parser = ColorParser::new();
 
-    /// Convert a Lab color to a ColorSchemeItem with hex, hsl, lch formats and color name matching
-    fn lab_to_color_scheme_item(lab: Lab, parser: &ColorParser) -> ColorSchemeItem {
+    // Select the appropriate strategy schemes
+    let selected_schemes = match strategy {
+        "hsl" => (
+            schemes.hsl_complementary,
+            schemes.hsl_split_complementary,
+            schemes.hsl_triadic,
+            schemes.hsl_tetradic,
+        ),
+        "lab" | _ => (
+            schemes.lab_complementary,
+            schemes.lab_split_complementary,
+            schemes.lab_triadic,
+            schemes.lab_tetradic,
+        ),
+    };
+
+    /// Convert a Lab color to an EnhancedColorSchemeItem with full color information
+    fn lab_to_enhanced_color_scheme_item(lab: Lab, parser: &ColorParser) -> EnhancedColorSchemeItem {
         let hex = ColorUtils::lab_to_hex(lab);
         let hsl_tuple = ColorUtils::lab_to_hsl_tuple(lab);
         let hsl = format!(
@@ -482,39 +499,29 @@ fn collect_color_schemes_data(
         );
         let lch = crate::format_utils::FormatUtils::lab_to_lch(lab);
 
-        // Get color name information
+        // Get color name information with enhanced collection matches
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
-        let color_name = get_color_name_info((r, g, b), parser);
+        let (css_match, ral_classic_match, ral_design_match) = get_collection_matches((r, g, b), parser);
 
-        ColorSchemeItem {
+        EnhancedColorSchemeItem {
             hex,
             hsl,
             lch,
-            color_name,
+            css: css_match,
+            ral_classic: ral_classic_match,
+            ral_design: ral_design_match,
         }
     }
 
-    /// Get color name information with exact and nearest matches
-    fn get_color_name_info(rgb: (u8, u8, u8), parser: &ColorParser) -> Option<ColorNameInfo> {
+    /// Get collection matches for all color collections
+    fn get_collection_matches(rgb: (u8, u8, u8), parser: &ColorParser) -> (Option<CollectionMatch>, Option<CollectionMatch>, Option<CollectionMatch>) {
         let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
         let input_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
 
-        // Enhanced color name matching from all collections
-        create_enhanced_color_name_info(parser, &input_hex, &target)
-    }
-
-    /// Create enhanced color name information with matches from all collections
-    fn create_enhanced_color_name_info(
-        parser: &ColorParser,
-        input_hex: &str,
-        target: &UniversalColor,
-    ) -> Option<ColorNameInfo> {
-        let mut has_any_match = false;
-
-        // Create collection matches for CSS colors
+        // CSS collection matches
         let css_match = {
             let css_collection = parser.css_collection();
-            let exact_match = css_collection.colors().iter().find(|color| {
+            let exact_css = css_collection.colors().iter().find(|color| {
                 let color_hex = format!(
                     "#{:02X}{:02X}{:02X}",
                     color.color.rgb[0], color.color.rgb[1], color.color.rgb[2]
@@ -522,143 +529,107 @@ fn collect_color_schemes_data(
                 color_hex.to_uppercase() == input_hex.to_uppercase()
             });
 
-            let exact = exact_match.map(|color| color.metadata.name.clone());
-
-            let nearest_matches = css_collection.find_closest(target, 1, None);
-            let nearest = nearest_matches.first().map(|closest| NearestColorMatch {
-                name: closest.entry.metadata.name.clone(),
-                collection: "CSS".to_string(),
-                distance: closest.distance,
-            });
-
-            if exact.is_some() || nearest.is_some() {
-                has_any_match = true;
-                Some(CollectionColorMatch { exact, nearest })
+            if let Some(exact) = exact_css {
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]));
+                let exact_hex = format!("#{:02X}{:02X}{:02X}", exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]);
+                Some(CollectionMatch {
+                    name: exact.metadata.name.clone(),
+                    hex: exact_hex,
+                    distance: 0.0,
+                    wcag_relative_luminance: wcag_luminance,
+                })
             } else {
-                None
+                let nearest_css = css_collection.find_closest(&target, 1, None);
+                if let Some(closest) = nearest_css.first() {
+                    let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]));
+                    let nearest_hex = format!("#{:02X}{:02X}{:02X}", closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]);
+                    Some(CollectionMatch {
+                        name: closest.entry.metadata.name.clone(),
+                        hex: nearest_hex,
+                        distance: closest.distance,
+                        wcag_relative_luminance: wcag_luminance,
+                    })
+                } else {
+                    None
+                }
             }
         };
 
-        // Create collection matches for RAL Classic colors
+        // RAL Classic collection matches
         let ral_classic_match = {
             let ral_classic_matches =
                 parser.find_closest_ral_classic([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
             if let Some(closest) = ral_classic_matches.first() {
-                // Check for exact match by comparing hex values
                 let color_hex = format!(
                     "#{:02X}{:02X}{:02X}",
                     closest.entry.color.rgb[0],
                     closest.entry.color.rgb[1],
                     closest.entry.color.rgb[2]
                 );
-                let exact = if color_hex.to_uppercase() == input_hex.to_uppercase() {
-                    Some(closest.entry.metadata.name.clone())
+                let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                    0.0
                 } else {
-                    None
+                    closest.distance
                 };
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]));
 
-                let nearest = Some(NearestColorMatch {
+                Some(CollectionMatch {
                     name: closest.entry.metadata.name.clone(),
-                    collection: "RAL Classic".to_string(),
-                    distance: closest.distance,
-                });
-
-                has_any_match = true;
-                Some(CollectionColorMatch { exact, nearest })
+                    hex: color_hex,
+                    distance,
+                    wcag_relative_luminance: wcag_luminance,
+                })
             } else {
                 None
             }
         };
 
-        // Create collection matches for RAL Design colors
+        // RAL Design collection matches
         let ral_design_match = {
             let ral_design_matches =
                 parser.find_closest_ral_design([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
             if let Some(closest) = ral_design_matches.first() {
-                // Check for exact match by comparing hex values
                 let color_hex = format!(
                     "#{:02X}{:02X}{:02X}",
                     closest.entry.color.rgb[0],
                     closest.entry.color.rgb[1],
                     closest.entry.color.rgb[2]
                 );
-                let exact = if color_hex.to_uppercase() == input_hex.to_uppercase() {
-                    Some(closest.entry.metadata.name.clone())
+                let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                    0.0
                 } else {
-                    None
+                    closest.distance
                 };
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]));
 
-                let nearest = Some(NearestColorMatch {
+                Some(CollectionMatch {
                     name: closest.entry.metadata.name.clone(),
-                    collection: "RAL Design".to_string(),
-                    distance: closest.distance,
-                });
-
-                has_any_match = true;
-                Some(CollectionColorMatch { exact, nearest })
+                    hex: color_hex,
+                    distance,
+                    wcag_relative_luminance: wcag_luminance,
+                })
             } else {
                 None
             }
         };
 
-        if !has_any_match {
-            return None;
-        }
-
-        // For backward compatibility with existing code, use CSS collection for primary exact/nearest
-        let primary_exact = css_match.as_ref().and_then(|m| m.exact.clone());
-        let primary_nearest = css_match.as_ref().and_then(|m| m.nearest.clone());
-
-        // Create the all_collections data
-        let all_collections = ColorNameAllCollections {
-            css: css_match,
-            ral_classic: ral_classic_match,
-            ral_design: ral_design_match,
-        };
-
-        Some(ColorNameInfo {
-            exact: primary_exact,
-            nearest: primary_nearest,
-            all_collections: Some(all_collections),
-        })
+        (css_match, ral_classic_match, ral_design_match)
     }
 
-    let hsl_strategy = ColorSchemeSet {
-        complementary: lab_to_color_scheme_item(schemes.hsl_complementary, &parser),
-        split_complementary: vec![
-            lab_to_color_scheme_item(schemes.hsl_split_complementary.0, &parser),
-            lab_to_color_scheme_item(schemes.hsl_split_complementary.1, &parser),
-        ],
-        triadic: vec![
-            lab_to_color_scheme_item(schemes.hsl_triadic.0, &parser),
-            lab_to_color_scheme_item(schemes.hsl_triadic.1, &parser),
-        ],
-        tetradic: vec![
-            lab_to_color_scheme_item(schemes.hsl_tetradic.0, &parser),
-            lab_to_color_scheme_item(schemes.hsl_tetradic.1, &parser),
-            lab_to_color_scheme_item(schemes.hsl_tetradic.2, &parser),
-        ],
-    };
-
-    let lab_strategy = ColorSchemeSet {
-        complementary: lab_to_color_scheme_item(schemes.lab_complementary, &parser),
-        split_complementary: vec![
-            lab_to_color_scheme_item(schemes.lab_split_complementary.0, &parser),
-            lab_to_color_scheme_item(schemes.lab_split_complementary.1, &parser),
-        ],
-        triadic: vec![
-            lab_to_color_scheme_item(schemes.lab_triadic.0, &parser),
-            lab_to_color_scheme_item(schemes.lab_triadic.1, &parser),
-        ],
-        tetradic: vec![
-            lab_to_color_scheme_item(schemes.lab_tetradic.0, &parser),
-            lab_to_color_scheme_item(schemes.lab_tetradic.1, &parser),
-            lab_to_color_scheme_item(schemes.lab_tetradic.2, &parser),
-        ],
-    };
-
     ColorSchemes {
-        hsl_strategy,
-        lab_strategy,
+        complementary: lab_to_enhanced_color_scheme_item(selected_schemes.0, &parser),
+        split_complementary: vec![
+            lab_to_enhanced_color_scheme_item(selected_schemes.1.0, &parser),
+            lab_to_enhanced_color_scheme_item(selected_schemes.1.1, &parser),
+        ],
+        triadic: vec![
+            lab_to_enhanced_color_scheme_item(selected_schemes.2.0, &parser),
+            lab_to_enhanced_color_scheme_item(selected_schemes.2.1, &parser),
+        ],
+        tetradic: vec![
+            lab_to_enhanced_color_scheme_item(selected_schemes.3.0, &parser),
+            lab_to_enhanced_color_scheme_item(selected_schemes.3.1, &parser),
+            lab_to_enhanced_color_scheme_item(selected_schemes.3.2, &parser),
+        ],
     }
 }

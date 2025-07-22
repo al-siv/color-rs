@@ -5,6 +5,7 @@
 
 use crate::color_utils::ColorUtils;
 use crate::precision_utils::PrecisionUtils;
+use crate::utils::Utils;
 use palette::Lab;
 
 /// Consolidated color format utilities
@@ -19,7 +20,7 @@ impl FormatUtils {
     /// Convert LAB to RGB format string
     pub fn lab_to_rgb(lab: Lab) -> String {
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
-        format!("rgb({}, {}, {})", r, g, b)
+        Utils::rgb_to_string(r, g, b)
     }
 
     /// Convert LAB to HSL format string with standardized precision

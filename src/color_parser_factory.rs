@@ -6,6 +6,7 @@
 use crate::color_parser::{ColorParser, UnifiedColorManager};
 use crate::config::*;
 use crate::error::Result;
+use crate::utils::Utils;
 
 /// Enum defining different types of color parsers available
 #[derive(Debug, Clone, PartialEq)]
@@ -217,7 +218,7 @@ impl ColorParserTrait for FullColorParser {
         }
 
         if self.config.enable_fallback_naming {
-            format!("rgb({}, {}, {})", rgb.0, rgb.1, rgb.2)
+            Utils::rgb_to_string(rgb.0, rgb.1, rgb.2)
         } else {
             DEFAULT_COLOR_UNKNOWN.to_string()
         }
