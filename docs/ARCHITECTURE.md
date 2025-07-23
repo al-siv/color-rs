@@ -48,6 +48,19 @@ graph TB
         gradient_builder --> gradient
     end
     
+    subgraph "Output System"
+        color --> output_formats[output_formats.rs]
+        color --> output_filter[output_filter.rs]
+        color --> file_output[file_output.rs]
+        color --> format_utils[format_utils.rs]
+        color --> output_utils[output_utils.rs]
+        color --> precision_utils[precision_utils.rs]
+    end
+    
+    subgraph "Color Schemes"
+        color --> color_schemes[color_schemes.rs]
+    end
+    
     subgraph "Utilities"
         utils[utils.rs]
         config[config.rs]
@@ -93,6 +106,8 @@ The following modules and types are part of the public API:
   - `GradientBuilder`
 - **`image`**: Image generation and export
   - `ImageGenerator`, `ImageFormat`
+- **`output_filter`**: Selective output filtering system
+  - `FilterEngine`, `FilterConfig`, `FilterRule`, `AnalysisOutput`
 
 ### Private Modules
 These modules are implementation details not exposed in the public API:
@@ -101,6 +116,11 @@ These modules are implementation details not exposed in the public API:
 - **`main`**: CLI application entry point
 - **`utils`**: Internal utility functions
 - **`color_formatter`**: Internal formatting logic for color output
+- **`output_formats`**: Output data structure definitions
+- **`file_output`**: File writing and export utilities
+- **`format_utils`**: Output formatting helper functions
+- **`output_utils`**: Output processing utilities
+- **`precision_utils`**: Numeric precision control for output
 
 ### Color Parser Submodules
 The `color_parser` module contains several submodules that implement different parsing strategies:
@@ -179,6 +199,55 @@ flowchart LR
     H --> I[Distance Calculation]
     I --> J[Best Match Results]
 ```
+
+### Output Filtering Architecture
+
+```mermaid
+flowchart TD
+    A[Color Analysis] --> B[ColorAnalysisOutput]
+    B --> C{--func parameter?}
+    
+    C -->|No| D[AnalysisOutput::Unfiltered]
+    C -->|Yes| E[FilterExpressionParser]
+    
+    E --> F[FilterConfig]
+    F --> G[FilterEngine]
+    
+    G --> H{Filter Type}
+    H -->|Block Level| I[Include/Exclude Blocks]
+    H -->|Field Level| J[FilteredContrastData<br/>FilteredGrayscaleData]
+    
+    I --> K[AnalysisOutput::Filtered]
+    J --> K
+    
+    K --> L{Output Format}
+    L -->|YAML| M[serde_yml::to_string]
+    L -->|TOML| N[toml::to_string_pretty]
+    
+    M --> O[skip_serializing_if<br/>Option::is_none]
+    N --> O
+    
+    O --> P[Clean Filtered Output]
+```
+
+#### Filter Expression Grammar
+
+```
+filter_expression := '[' filter_list ']'
+filter_list := filter_item (',' filter_item)*
+filter_item := 'all' | block_name | field_name | exclusion
+exclusion := '!' (block_name | field_name)
+block_name := identifier
+field_name := identifier '.' identifier
+identifier := [a-zA-Z0-9_]+
+```
+
+#### Filter Processing Flow
+
+1. **Expression Parsing**: `FilterExpressionParser` converts string expressions into `FilterRule` enums
+2. **Configuration Building**: `FilterConfig` aggregates rules and determines inclusion strategy
+3. **Selective Construction**: `FilterEngine` creates `FilteredColorAnalysisOutput` with `Option<T>` fields
+4. **Conditional Serialization**: `skip_serializing_if = "Option::is_none"` omits unselected content
 
 ### Gradient Generation Flow
 

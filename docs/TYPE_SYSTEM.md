@@ -8,6 +8,7 @@ This document describes the domain model of color-rs, including rationale for ea
 - [Color Representation](#color-representation)
 - [Gradient System Types](#gradient-system-types)
 - [Parser System Types](#parser-system-types)
+- [Output Filter System Types](#output-filter-system-types)
 - [Error Types](#error-types)
 - [Type Safety and Invariants](#type-safety-and-invariants)
 - [Constructor Patterns](#constructor-patterns)
@@ -297,6 +298,131 @@ pub struct SearchFilter {
 **Rationale**: Provides fine-grained control over search operations across color collections.
 
 **Default Implementation**: Enables all collections with fuzzy, case-insensitive matching.
+
+## Output Filter System Types
+
+### AnalysisOutput
+
+Union type for filtered and unfiltered color analysis results.
+
+```rust
+#[derive(Debug)]
+pub enum AnalysisOutput {
+    /// Regular unfiltered output
+    Unfiltered(ColorAnalysisOutput),
+    /// Filtered output with optional blocks
+    Filtered(FilteredColorAnalysisOutput),
+}
+```
+
+**Rationale**: Enables conditional output processing while maintaining type safety. Allows serialization methods to handle both filtered and unfiltered data uniformly.
+
+**Invariants**: Must contain exactly one of the two variants. Methods like `to_yaml()` and `to_toml()` delegate to the appropriate inner type.
+
+### FilterRule
+
+Enumeration of filtering operations supported by the filter expression parser.
+
+```rust
+#[derive(Debug, Clone, PartialEq)]
+pub enum FilterRule {
+    /// Include a specific block (e.g., "input", "conversion")
+    IncludeBlock(String),
+    /// Include a specific field within a block (e.g., "contrast.wcag21_relative_luminance")
+    IncludeField(String, String), // (block, field)
+    /// Exclude a specific block
+    ExcludeBlock(String),
+    /// Exclude a specific field within a block
+    ExcludeField(String, String), // (block, field)
+    /// Include all blocks (default behavior)
+    IncludeAll,
+}
+```
+
+**Rationale**: Separates inclusion and exclusion logic explicitly. String-based field names provide flexibility for dynamic filtering without compile-time field knowledge.
+
+**Invariants**:
+- Field names must match actual struct field names for filtering to work
+- Block names must correspond to top-level analysis output blocks
+- No validation of field/block existence at parse time (validated during application)
+
+### FilterConfig
+
+Configuration state for filter rule evaluation.
+
+```rust
+#[derive(Debug, Clone)]
+pub struct FilterConfig {
+    pub rules: Vec<FilterRule>,
+    pub include_all: bool,
+}
+```
+
+**Rationale**: Aggregates multiple filter rules and maintains global inclusion state. Separation between parsing (rules) and evaluation logic.
+
+**Invariants**:
+- `include_all = true` means show all blocks unless explicitly excluded
+- `include_all = false` means show only explicitly included blocks/fields
+- Rules are processed in order, with exclusions taking precedence over inclusions
+
+**Constructor**: Use `FilterConfig::from_expression()` for expression parsing or `FilterConfig::new()` for manual construction.
+
+### FilteredColorAnalysisOutput
+
+Output structure with optional blocks for selective serialization.
+
+```rust
+#[derive(Debug, Clone, Serialize)]
+pub struct FilteredColorAnalysisOutput {
+    pub metadata: ProgramMetadata,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<InputInfo>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conversion: Option<ColorFormats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast: Option<FilteredContrastData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grayscale: Option<FilteredGrayscaleData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_collections: Option<ColorCollections>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_schemes: Option<ColorSchemes>,
+}
+```
+
+**Rationale**: Uses `Option<T>` wrapper for conditional block inclusion. `skip_serializing_if` attribute ensures clean output without unwanted null/empty values.
+
+**Invariants**:
+- `metadata` is always present (cannot be filtered)
+- All other fields are `Option<T>` to support conditional inclusion
+- `None` values are completely omitted from serialized output
+
+### FilteredContrastData / FilteredGrayscaleData
+
+Field-level filtering structures for blocks with complex nested data.
+
+```rust
+#[derive(Debug, Clone, Serialize)]
+pub struct FilteredContrastData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wcag21_relative_luminance: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast_vs_white: Option<ContrastInfo>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast_vs_black: Option<ContrastInfo>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub brightness: Option<BrightnessInfo>,
+}
+```
+
+**Rationale**: Enables field-level granular filtering within blocks. Each field can be independently included or excluded without affecting siblings.
+
+**Invariants**:
+- Each field maps directly to corresponding field in unfiltered struct
+- `Option<T>` wrapper allows selective field inclusion
+- Field types remain unchanged (no data transformation during filtering)
+
+**Constructor**: Created exclusively by `FilterEngine` based on `FilterConfig` rules. Manual construction not recommended.
 
 ## Error Types
 

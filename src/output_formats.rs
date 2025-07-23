@@ -3,10 +3,10 @@
 //! This module implements serializable data structures for exporting color analysis
 //! results to TOML and YAML formats using the builder pattern for different output types.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Enhanced color name information with multi-collection support
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColorNameInfo {
     pub exact: Option<String>,
     pub nearest: Option<NearestColorMatch>,
@@ -14,7 +14,7 @@ pub struct ColorNameInfo {
 }
 
 /// Color name matches from all collections
-#[derive(Debug, Clone, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ColorNameAllCollections {
     pub css: Option<CollectionColorMatch>,
     pub ral_classic: Option<CollectionColorMatch>,
@@ -22,14 +22,14 @@ pub struct ColorNameAllCollections {
 }
 
 /// Color match from a specific collection
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CollectionColorMatch {
     pub exact: Option<String>,
     pub nearest: Option<NearestColorMatch>,
 }
 
 /// Nearest color match information with distance
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NearestColorMatch {
     pub name: String,
     pub collection: String,
@@ -37,7 +37,7 @@ pub struct NearestColorMatch {
 }
 
 /// Complete color analysis result that can be serialized to TOML/YAML
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ColorAnalysisOutput {
     /// Program metadata
     pub metadata: ProgramMetadata,
@@ -56,7 +56,7 @@ pub struct ColorAnalysisOutput {
 }
 
 /// Complete gradient analysis result that can be serialized to TOML/YAML
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct GradientAnalysisOutput {
     /// Program metadata
     pub metadata: ProgramMetadata,
@@ -69,7 +69,7 @@ pub struct GradientAnalysisOutput {
 }
 
 /// Gradient configuration section
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct GradientConfiguration {
     pub start_color: String,
     pub end_color: String,
@@ -81,14 +81,14 @@ pub struct GradientConfiguration {
 }
 
 /// Start and end color information
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct GradientColors {
     pub start: ColorInfo,
     pub end: ColorInfo,
 }
 
 /// Individual color information
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ColorInfo {
     pub hex: String,
     pub rgb: String,
@@ -98,7 +98,7 @@ pub struct ColorInfo {
 }
 
 /// Individual gradient stop
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct GradientStop {
     pub position: f64,
     pub hex: String,
@@ -110,7 +110,7 @@ pub struct GradientStop {
 }
 
 /// Program metadata section
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ProgramMetadata {
     pub program_name: String,
     pub version: String,
@@ -121,14 +121,14 @@ pub struct ProgramMetadata {
 }
 
 /// Input color information
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct InputInfo {
     pub input_color: String,
     pub base_color: String,
 }
 
 /// All color format conversions
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct ColorFormats {
     pub hex: String,
     pub rgb: String,
@@ -142,7 +142,7 @@ pub struct ColorFormats {
 }
 
 /// Contrast and luminance information
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ContrastData {
     pub wcag21_relative_luminance: f64,
     pub contrast_vs_white: ContrastInfo,
@@ -151,7 +151,7 @@ pub struct ContrastData {
 }
 
 /// Grayscale variations
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct GrayscaleData {
     pub lch0_hex: String,
     pub lch0: String,
@@ -164,21 +164,21 @@ pub struct GrayscaleData {
 }
 
 /// Contrast information
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct ContrastInfo {
     pub ratio: f64,
     pub assessment: String,
 }
 
 /// Brightness assessment
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct BrightnessInfo {
     pub lab_assessment: String,
     pub wcag_assessment: String,
 }
 
 /// Color collection matches
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct ColorCollections {
     pub css_colors: Vec<ColorMatch>,
     pub ral_classic: Vec<ColorMatch>,
@@ -186,7 +186,7 @@ pub struct ColorCollections {
 }
 
 /// Individual color match
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct ColorMatch {
     pub name: String,
     pub hex: String,
@@ -197,7 +197,7 @@ pub struct ColorMatch {
 }
 
 /// Color schemes with configurable strategy
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct ColorSchemes {
     pub complementary: EnhancedColorSchemeItem,
     pub split_complementary: Vec<EnhancedColorSchemeItem>,
@@ -206,7 +206,7 @@ pub struct ColorSchemes {
 }
 
 /// Enhanced color scheme item with direct collection matches
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct EnhancedColorSchemeItem {
     pub hex: String,
     pub hsl: String,
@@ -217,7 +217,7 @@ pub struct EnhancedColorSchemeItem {
 }
 
 /// Simplified collection match with essential data
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct CollectionMatch {
     pub name: String,
     pub hex: String,
@@ -226,7 +226,7 @@ pub struct CollectionMatch {
 }
 
 /// Individual color scheme item with format conversions and color name matching (deprecated)
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct ColorSchemeItem {
     pub hex: String,
     pub hsl: String,
@@ -235,7 +235,7 @@ pub struct ColorSchemeItem {
 }
 
 /// Set of color schemes for a strategy (deprecated)
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct ColorSchemeSet {
     pub complementary: ColorSchemeItem,
     pub split_complementary: Vec<ColorSchemeItem>,

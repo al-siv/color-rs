@@ -119,6 +119,85 @@ format_utils::save_to_file(&result_data, "analysis", "yaml")?;
 // Creates: analysis.yaml
 ```
 
+### output_filter Module
+
+Selective output filtering system for controlling which parts of color analysis are displayed:
+
+```rust
+use color_rs::output_filter::{FilterConfig, FilterEngine, AnalysisOutput};
+use color_rs::color::analyze_color;
+
+// Create filter configuration from expression
+let filter_config = FilterConfig::from_expression("[input,conversion]")?;
+
+// Create filter engine
+let filter_engine = FilterEngine::new(filter_config);
+
+// Perform color analysis
+let analysis_result = analyze_color("#FF5733", "delta-e-2000", "lab", None, None)?;
+
+// Apply filtering
+let filtered_output = filter_engine.apply(&analysis_result)?;
+
+// Serialize filtered output
+match filtered_output {
+    AnalysisOutput::Filtered(filtered) => {
+        let yaml = filtered.to_yaml()?;
+        println!("{}", yaml);
+    },
+    AnalysisOutput::Unfiltered(unfiltered) => {
+        let yaml = unfiltered.to_yaml()?;
+        println!("{}", yaml);
+    }
+}
+```
+
+#### FilterConfig API
+
+```rust
+use color_rs::output_filter::{FilterConfig, FilterRule};
+
+// Parse from expression string
+let config = FilterConfig::from_expression("[contrast.wcag21_relative_luminance]")?;
+
+// Manual configuration
+let mut config = FilterConfig::new();
+config.rules.push(FilterRule::IncludeField("contrast".to_string(), "wcag21_relative_luminance".to_string()));
+
+// Check inclusion rules
+if config.should_include_block("contrast") {
+    // Block will be included
+}
+
+if config.should_include_field("contrast", "wcag21_relative_luminance") {
+    // Field will be included
+}
+```
+
+#### Filter Expression Syntax
+
+Supported filter expressions:
+
+```rust
+// Block filtering
+"[input]"                          // Show only input block
+"[input,conversion,contrast]"      // Show multiple blocks
+"[all]"                           // Show all blocks (default)
+
+// Field filtering  
+"[contrast.wcag21_relative_luminance]"    // Show only specific field
+"[grayscale.lch0,grayscale.lch0_hex]"     // Show multiple fields
+"[conversion.hex,conversion.rgb]"          // Show conversion subset
+
+// Exclusion filtering
+"[all,!color_collections]"               // Show all except color collections
+"[contrast,!contrast.brightness]"        // Show contrast except brightness
+"[!color_schemes,!grayscale]"            // Exclude multiple blocks
+
+// Mixed filtering
+"[input,contrast.wcag21_relative_luminance]"  // Block + field combination
+```
+
 ## Color Data Structures
 
 ### ColorAnalysisResult
@@ -160,6 +239,90 @@ pub struct ContrastData {
     pub wcag_relative_luminance: f64,
     pub contrast_vs_white: f64,
     pub contrast_vs_black: f64,
+}
+```
+
+### Filtered Output Structures
+
+Structures for selective output filtering:
+
+```rust
+#[derive(Debug, Clone, Serialize)]
+pub enum AnalysisOutput {
+    /// Regular unfiltered output
+    Unfiltered(ColorAnalysisOutput),
+    /// Filtered output with optional blocks
+    Filtered(FilteredColorAnalysisOutput),
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FilteredColorAnalysisOutput {
+    /// Program metadata (always included)
+    pub metadata: ProgramMetadata,
+    /// Input information (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input: Option<InputInfo>,
+    /// Color format conversions (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub conversion: Option<ColorFormats>,
+    /// Contrast and luminance information (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast: Option<FilteredContrastData>,
+    /// Grayscale variations (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grayscale: Option<FilteredGrayscaleData>,
+    /// Color collection matches (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_collections: Option<ColorCollections>,
+    /// Color schemes (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_schemes: Option<ColorSchemes>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FilteredContrastData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wcag21_relative_luminance: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast_vs_white: Option<ContrastInfo>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast_vs_black: Option<ContrastInfo>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub brightness: Option<BrightnessInfo>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct FilteredGrayscaleData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch0_hex: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch0: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch2_hex: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch2: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch4_hex: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch4: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch6_hex: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lch6: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum FilterRule {
+    /// Include a specific block (e.g., "input", "conversion")
+    IncludeBlock(String),
+    /// Include a specific field within a block (e.g., "contrast.wcag21_relative_luminance")
+    IncludeField(String, String), // (block, field)
+    /// Exclude a specific block
+    ExcludeBlock(String),
+    /// Exclude a specific field within a block
+    ExcludeField(String, String), // (block, field)
+    /// Include all blocks (default behavior)
+    IncludeAll,
 }
 ```
 

@@ -5,6 +5,26 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.1] - 2025-07-23
+
+### Added
+- **Selective Output Control**: New `--func` parameter for filtering color analysis output
+  - Block-level filtering: `[input]`, `[conversion]`, `[contrast]`, `[grayscale]`, `[color_collections]`, `[color_schemes]`
+  - Field-level filtering: `[contrast.wcag21_relative_luminance]`, `[grayscale.lch0]`, etc.
+  - Multiple selection: `[input,conversion,contrast]`
+  - Exclusion operator: `[all,!color_collections]`, `[contrast,!contrast.brightness]`
+  - Clean output with no unwanted default values for filtered content
+
+### Changed
+- **Enhanced CLI Interface**: Added comprehensive filtering system with expression parser
+- **Improved Output Serialization**: Filtered output now omits unselected blocks and fields completely
+- **Documentation Updates**: Updated README.md, CLI_REFERENCE.md, and EXAMPLES.md with filtering examples
+
+### Technical
+- **New Modules**: Added `output_filter.rs` with `FilterEngine`, `FilterConfig`, and `FilterExpressionParser`
+- **Filtered Output Structures**: Created `FilteredColorAnalysisOutput`, `FilteredContrastData`, and `FilteredGrayscaleData` with `Option<T>` fields
+- **Parser Implementation**: Custom filter expression parser supporting complex inclusion/exclusion patterns
+
 ## [0.14.0] - 2025-01-18
 
 ### Changed

@@ -21,6 +21,7 @@ pub mod format_utils;
 pub mod gradient;
 pub mod gradient_builder;
 pub mod image;
+pub mod output_filter;
 pub mod output_formats;
 pub mod precision_utils;
 pub mod utils;

@@ -216,6 +216,165 @@ pub trait ColorMatchingTemplate {
 - ❌ **Cons**: Inheritance-like complexity, trait object overhead
 - **Alternatives**: Free functions with higher-order functions, composition over inheritance
 
+---
+
+### 6. Interpreter Pattern ⭐ (NEW in v0.14.1)
+
+**Problem & Forces**: Need to parse and evaluate filter expressions like `[input,contrast.wcag21_relative_luminance,!color_collections]` for selective output control. Expression syntax should be intuitive for users but powerful enough for complex filtering.
+
+**Where it lives**:
+- Module: `src/output_filter.rs`
+- Parser: `FilterExpressionParser`
+- AST: `FilterRule` enum
+- Evaluator: `FilterConfig`
+
+**How it's expressed in Rust**:
+```rust
+pub enum FilterRule {
+    IncludeBlock(String),
+    IncludeField(String, String), // (block, field)
+    ExcludeBlock(String),
+    ExcludeField(String, String),
+    IncludeAll,
+}
+
+impl FilterExpressionParser {
+    pub fn parse(&self, expr: &str) -> Result<FilterConfig> {
+        // Grammar: '[' filter_list ']'
+        // filter_list: filter_item (',' filter_item)*
+        // filter_item: 'all' | block_name | field_name | exclusion
+        // exclusion: '!' (block_name | field_name)
+        
+        let content = &expr[1..expr.len()-1]; // Remove brackets
+        let parts: Vec<&str> = content.split(',').map(|s| s.trim()).collect();
+        
+        let mut rules = Vec::new();
+        for part in parts {
+            if part.starts_with('!') {
+                // Parse exclusion rules
+                let excluded = &part[1..];
+                if excluded.contains('.') {
+                    let field_parts: Vec<&str> = excluded.split('.').collect();
+                    rules.push(FilterRule::ExcludeField(
+                        field_parts[0].to_string(),
+                        field_parts[1].to_string(),
+                    ));
+                } else {
+                    rules.push(FilterRule::ExcludeBlock(excluded.to_string()));
+                }
+            } else {
+                // Parse inclusion rules
+                if part.contains('.') {
+                    let field_parts: Vec<&str> = part.split('.').collect();
+                    rules.push(FilterRule::IncludeField(
+                        field_parts[0].to_string(),
+                        field_parts[1].to_string(),
+                    ));
+                } else {
+                    rules.push(FilterRule::IncludeBlock(part.to_string()));
+                }
+            }
+        }
+        
+        Ok(FilterConfig { rules, include_all: false })
+    }
+}
+```
+
+**Trade-offs**:
+- ✅ **Pros**: Flexible user expressions, extensible grammar, clear separation of parsing and evaluation
+- ❌ **Cons**: Added complexity for simple use cases, string-based field names (no compile-time validation)
+- **Alternatives**: Simple enums, builder pattern, fluent interface
+
+---
+
+### 7. Command Pattern ⭐ (Enhanced in v0.14.1)
+
+**Problem & Forces**: Filter operations need to be represented as first-class objects that can be combined, validated, and applied to color analysis output. Need undo/redo capability and operation logging.
+
+**Where it lives**:
+- Module: `src/output_filter.rs`
+- Commands: `FilterRule` enum variants
+- Invoker: `FilterEngine`
+- Receiver: `ColorAnalysisOutput` / `FilteredColorAnalysisOutput`
+
+**How it's expressed in Rust**:
+```rust
+// Command interface - each FilterRule is a command
+#[derive(Debug, Clone, PartialEq)]
+pub enum FilterRule {
+    IncludeBlock(String),      // Command to include a block
+    IncludeField(String, String), // Command to include a field
+    ExcludeBlock(String),      // Command to exclude a block
+    ExcludeField(String, String), // Command to exclude a field
+    IncludeAll,               // Command to include everything
+}
+
+// Invoker - manages and executes commands
+pub struct FilterEngine {
+    config: FilterConfig, // Contains Vec<FilterRule>
+}
+
+impl FilterEngine {
+    pub fn apply(&self, output: &ColorAnalysisOutput) -> Result<AnalysisOutput> {
+        // Execute each command in sequence
+        for rule in &self.config.rules {
+            match rule {
+                FilterRule::IncludeBlock(block) => {
+                    // Execute include block command
+                },
+                FilterRule::ExcludeBlock(block) => {
+                    // Execute exclude block command
+                },
+                // ... other commands
+            }
+        }
+        // Return filtered result
+    }
+}
+```
+
+**Trade-offs**:
+- ✅ **Pros**: Commands are first-class objects, easy to combine and validate, clear separation of concerns
+- ❌ **Cons**: More complex than direct function calls, potential performance overhead
+- **Alternatives**: Direct method calls, functional composition
+
+---
+
+### 8. State Pattern (Implicit in FilterConfig)
+
+**Problem & Forces**: Filter engine behavior changes based on configuration state (`include_all` flag, presence of exclusions vs inclusions). Need to handle different filtering modes without complex conditional logic.
+
+**Where it lives**:
+- Module: `src/output_filter.rs`
+- State: `FilterConfig.include_all` boolean
+- Context: `FilterEngine`
+
+**How it's expressed in Rust**:
+```rust
+impl FilterConfig {
+    pub fn should_include_block(&self, block_name: &str) -> bool {
+        // State-dependent behavior
+        if self.include_all {
+            // "Include All" state - exclude only if explicitly excluded
+            !self.rules.iter().any(|rule| {
+                matches!(rule, FilterRule::ExcludeBlock(excluded) if excluded == block_name)
+            })
+        } else {
+            // "Include Specific" state - include only if explicitly included
+            self.rules.iter().any(|rule| {
+                matches!(rule, FilterRule::IncludeBlock(included) if included == block_name)
+            })
+        }
+    }
+}
+```
+
+**Trade-offs**:
+- ✅ **Pros**: Clean state transitions, behavior varies correctly based on configuration
+- ❌ **Cons**: Implicit state pattern (could be more explicit), boolean flag instead of enum states
+- **Alternatives**: Explicit state enum, separate strategy objects for each mode
+
 ## Pattern Catalog
 
 ### Creational Patterns

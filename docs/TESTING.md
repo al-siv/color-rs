@@ -46,15 +46,19 @@ color-rs/
 │   │   └── #[cfg(test)] mod tests { ... }    # Unit tests
 │   ├── gradient.rs
 │   │   └── #[cfg(test)] mod tests { ... }    # Unit tests
+│   ├── output_filter.rs                      # Output filtering system (v0.14.1+)
+│   │   └── #[cfg(test)] mod tests { ... }    # Filtering unit tests
 │   └── ...
 ├── tests/                                     # Integration tests (planned)
 │   ├── cli_tests.rs
 │   ├── gradient_generation.rs
-│   └── color_parsing.rs
+│   ├── color_parsing.rs
+│   └── output_filtering.rs                  # Filtering integration tests (v0.14.1+)
 ├── benches/                                   # Benchmarks (planned)
 │   ├── color_conversion.rs
 │   ├── gradient_generation.rs
-│   └── collection_loading.rs
+│   ├── collection_loading.rs
+│   └── output_filtering.rs                  # Filtering performance tests (v0.14.1+)
 └── examples/
     ├── library_usage.rs                      # Manual testing examples
     └── ...
@@ -336,6 +340,51 @@ fn test_invalid_color_input() {
     let stderr = String::from_utf8(output.stderr).unwrap();
     assert!(stderr.contains("Unable to parse color"));
 }
+
+#[test]
+fn test_output_filtering_hex_only() {
+    let output = Command::new("color-rs")
+        .args(&["gradient", "red", "blue", "--func", "hex"])
+        .output()
+        .expect("Failed to execute color-rs");
+    
+    assert!(output.status.success());
+    
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("#"));
+    assert!(!stdout.contains("RGB"));
+    assert!(!stdout.contains("HSL"));
+    assert!(!stdout.contains("Lab"));
+}
+
+#[test]
+fn test_output_filtering_multiple_formats() {
+    let output = Command::new("color-rs")
+        .args(&["gradient", "red", "blue", "--func", "hex,rgb"])
+        .output()
+        .expect("Failed to execute color-rs");
+    
+    assert!(output.status.success());
+    
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(stdout.contains("#"));
+    assert!(stdout.contains("RGB"));
+    assert!(!stdout.contains("HSL"));
+    assert!(!stdout.contains("Lab"));
+}
+
+#[test]
+fn test_invalid_filter_expression() {
+    let output = Command::new("color-rs")
+        .args(&["gradient", "red", "blue", "--func", "invalid"])
+        .output()
+        .expect("Failed to execute color-rs");
+    
+    assert!(!output.status.success());
+    
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("Invalid filter"));
+}
 ```
 
 ### Library Integration Tests
@@ -379,6 +428,39 @@ fn test_color_operations_facade() {
 }
 
 #[test]
+fn test_output_filtering_integration() {
+    // Test FilterEngine integration with color analysis
+    let config = FilterConfig::from_expression("hex,hsl").unwrap();
+    let engine = FilterEngine::new(config);
+    
+    let facade = ColorOperationsFacade::new();
+    let analysis = facade.analyze_color("#FF0000").unwrap();
+    let filtered = engine.apply(&analysis);
+    
+    assert!(filtered.hex.is_some());
+    assert!(filtered.hsl.is_some());
+    assert!(filtered.rgb.is_none());
+    assert!(filtered.lab.is_none());
+}
+
+#[test]
+fn test_filtered_gradient_output() {
+    let args = GradientBuilder::new()
+        .start_color("red")
+        .end_color("blue")
+        .steps(5)
+        .filter_expression("hex,rgb")
+        .build()
+        .unwrap();
+    
+    let color_rs = ColorRs::new();
+    let result = color_rs.generate_gradient(args);
+    
+    assert!(result.is_ok());
+    // Each gradient step should only contain hex and rgb outputs
+}
+
+#[test]
 fn test_color_parser_factory() {
     let parser = ColorParserFactory::create_comprehensive().unwrap();
     
@@ -390,6 +472,80 @@ fn test_color_parser_factory() {
     
     let (lab, format) = parser.parse("RAL 3020").unwrap();
     assert_eq!(format, "RAL Classic");
+}
+```
+
+#### output_filter.rs (v0.14.1+)
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn test_filter_config_creation() {
+        let config = FilterConfig::from_expression("hex,rgb").unwrap();
+        assert!(config.include_hex);
+        assert!(config.include_rgb);
+        assert!(!config.include_hsl);
+        assert!(!config.include_lab);
+    }
+    
+    #[test]
+    fn test_filter_engine_basic_filtering() {
+        let config = FilterConfig::from_expression("hex,hsl").unwrap();
+        let engine = FilterEngine::new(config);
+        
+        let analysis = ColorAnalysisOutput {
+            hex: "#FF0000".to_string(),
+            rgb: [255, 0, 0],
+            hsl: [0.0, 100.0, 50.0],
+            lab: [53.24, 80.09, 67.20],
+            distance: Some(0.0),
+            contrast: Some(21.0),
+        };
+        
+        let filtered = engine.apply(&analysis);
+        
+        // Should only include hex and hsl
+        assert!(filtered.hex.is_some());
+        assert!(filtered.hsl.is_some());
+        assert!(filtered.rgb.is_none());
+        assert!(filtered.lab.is_none());
+    }
+    
+    #[test]
+    fn test_filter_expression_parsing() {
+        // Test valid expressions
+        assert!(FilterConfig::from_expression("hex").is_ok());
+        assert!(FilterConfig::from_expression("hex,rgb,hsl,lab").is_ok());
+        assert!(FilterConfig::from_expression("RGB,HSL").is_ok()); // Case insensitive
+        
+        // Test invalid expressions
+        assert!(FilterConfig::from_expression("invalid").is_err());
+        assert!(FilterConfig::from_expression("hex,invalid,rgb").is_err());
+        assert!(FilterConfig::from_expression("").is_err());
+    }
+    
+    #[test]
+    fn test_filter_engine_preserves_metadata() {
+        let config = FilterConfig::from_expression("hex").unwrap();
+        let engine = FilterEngine::new(config);
+        
+        let analysis = ColorAnalysisOutput {
+            hex: "#FF0000".to_string(),
+            rgb: [255, 0, 0],
+            hsl: [0.0, 100.0, 50.0],
+            lab: [53.24, 80.09, 67.20],
+            distance: Some(5.5),
+            contrast: Some(4.2),
+        };
+        
+        let filtered = engine.apply(&analysis);
+        
+        // Metadata should be preserved even if color formats are filtered
+        assert_eq!(filtered.distance, Some(5.5));
+        assert_eq!(filtered.contrast, Some(4.2));
+    }
 }
 ```
 
@@ -467,6 +623,68 @@ mod property_tests {
             // Contrast should be symmetric
             let ratio_reverse = ColorUtils::contrast_ratio([r2, g2, b2], [r1, g1, b1]);
             prop_assert!((ratio - ratio_reverse).abs() < 0.001);
+        }
+    }
+    
+    // Output filtering property tests (v0.14.1+)
+    proptest! {
+        #[test]
+        fn test_filter_preserves_included_formats(
+            include_hex in any::<bool>(),
+            include_rgb in any::<bool>(),
+            include_hsl in any::<bool>(),
+            include_lab in any::<bool>()
+        ) {
+            // Skip if no formats are included (invalid configuration)
+            prop_assume!(include_hex || include_rgb || include_hsl || include_lab);
+            
+            let config = FilterConfig {
+                include_hex,
+                include_rgb,
+                include_hsl,
+                include_lab,
+            };
+            let engine = FilterEngine::new(config);
+            
+            let analysis = ColorAnalysisOutput {
+                hex: "#FF0000".to_string(),
+                rgb: [255, 0, 0],
+                hsl: [0.0, 100.0, 50.0],
+                lab: [53.24, 80.09, 67.20],
+                distance: Some(0.0),
+                contrast: Some(21.0),
+            };
+            
+            let filtered = engine.apply(&analysis);
+            
+            // Check that included formats are present
+            prop_assert_eq!(filtered.hex.is_some(), include_hex);
+            prop_assert_eq!(filtered.rgb.is_some(), include_rgb);
+            prop_assert_eq!(filtered.hsl.is_some(), include_hsl);
+            prop_assert_eq!(filtered.lab.is_some(), include_lab);
+            
+            // Metadata should always be preserved
+            prop_assert_eq!(filtered.distance, Some(0.0));
+            prop_assert_eq!(filtered.contrast, Some(21.0));
+        }
+        
+        #[test]
+        fn test_filter_expression_parsing_property(
+            expression in "[a-zA-Z]{1,10}(,[a-zA-Z]{1,10}){0,5}"
+        ) {
+            let result = FilterConfig::from_expression(&expression);
+            
+            // Valid expressions should only contain hex, rgb, hsl, lab
+            let valid_parts: Vec<&str> = expression
+                .split(',')
+                .filter(|part| ["hex", "rgb", "hsl", "lab"].contains(&part.to_lowercase().as_str()))
+                .collect();
+            
+            if valid_parts.len() == expression.split(',').count() && !expression.is_empty() {
+                prop_assert!(result.is_ok());
+            } else {
+                prop_assert!(result.is_err());
+            }
         }
     }
 }
@@ -649,6 +867,123 @@ criterion_group!(benches, benchmark_gradient_sizes);
 criterion_main!(benches);
 ```
 
+### Output Filtering Benchmarks (v0.14.1+)
+
+```rust
+// benches/output_filtering.rs
+use color_rs::*;
+use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+
+fn benchmark_filter_engine_creation(c: &mut Criterion) {
+    c.bench_function("filter_config_creation", |b| {
+        b.iter(|| {
+            FilterConfig::from_expression(black_box("hex,rgb,hsl,lab"))
+        })
+    });
+}
+
+fn benchmark_filter_application(c: &mut Criterion) {
+    let mut group = c.benchmark_group("filter_application");
+    
+    let analysis = ColorAnalysisOutput {
+        hex: "#FF0000".to_string(),
+        rgb: [255, 0, 0],
+        hsl: [0.0, 100.0, 50.0],
+        lab: [53.24, 80.09, 67.20],
+        distance: Some(0.0),
+        contrast: Some(21.0),
+    };
+    
+    // Test different filter configurations
+    let filter_configs = [
+        ("single_format", "hex"),
+        ("two_formats", "hex,rgb"),
+        ("three_formats", "hex,rgb,hsl"),
+        ("all_formats", "hex,rgb,hsl,lab"),
+    ];
+    
+    for (name, expression) in filter_configs.iter() {
+        let config = FilterConfig::from_expression(expression).unwrap();
+        let engine = FilterEngine::new(config);
+        
+        group.bench_with_input(
+            BenchmarkId::new("filter_apply", name),
+            &analysis,
+            |b, analysis| {
+                b.iter(|| {
+                    engine.apply(black_box(analysis))
+                })
+            }
+        );
+    }
+    
+    group.finish();
+}
+
+fn benchmark_gradient_with_filtering(c: &mut Criterion) {
+    let mut group = c.benchmark_group("filtered_gradient_generation");
+    
+    let calculator = GradientCalculator::new();
+    let start_lab = [53.24, 80.09, 67.20];
+    let end_lab = [32.30, 79.19, -107.86];
+    let steps: Vec<f64> = (0..10).map(|i| i as f64 / 9.0).collect();
+    
+    let filter_configs = [
+        ("no_filter", None),
+        ("hex_only", Some("hex")),
+        ("hex_rgb", Some("hex,rgb")),
+        ("all_formats", Some("hex,rgb,hsl,lab")),
+    ];
+    
+    for (name, filter_expr) in filter_configs.iter() {
+        group.bench_with_input(
+            BenchmarkId::new("gradient_with_filter", name),
+            filter_expr,
+            |b, filter_expr| {
+                b.iter(|| {
+                    let gradient = calculator.calculate(
+                        black_box(start_lab),
+                        black_box(end_lab),
+                        black_box(steps.clone()),
+                        black_box(0.65),
+                        black_box(0.35)
+                    );
+                    
+                    if let Some(expr) = filter_expr {
+                        let config = FilterConfig::from_expression(expr).unwrap();
+                        let engine = FilterEngine::new(config);
+                        
+                        // Apply filtering to each gradient step
+                        for step in &gradient {
+                            let analysis = ColorAnalysisOutput {
+                                hex: format!("#{:02X}{:02X}{:02X}", 
+                                    step.rgb[0], step.rgb[1], step.rgb[2]),
+                                rgb: step.rgb,
+                                hsl: [0.0, 0.0, 0.0], // Simplified for benchmark
+                                lab: step.lab,
+                                distance: None,
+                                contrast: None,
+                            };
+                            black_box(engine.apply(&analysis));
+                        }
+                    }
+                })
+            }
+        );
+    }
+    
+    group.finish();
+}
+
+criterion_group!(
+    benches,
+    benchmark_filter_engine_creation,
+    benchmark_filter_application,
+    benchmark_gradient_with_filtering
+);
+criterion_main!(benches);
+```
+
 ### Running Benchmarks
 
 ```bash
@@ -798,6 +1133,7 @@ cargo check                          # Fast syntax check
 cargo test                          # Run unit tests
 cargo test --lib                    # Library tests only
 cargo test color                    # Tests matching "color"
+cargo test filter                   # Tests matching "filter" (v0.14.1+)
 
 # Comprehensive testing
 cargo test --all-features           # All features enabled

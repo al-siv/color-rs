@@ -48,6 +48,18 @@ color-rs color [OPTIONS] <COLOR>
   - `yaml` - YAML format output
   - `toml` - TOML format output
 
+- `--func <FILTER_EXPRESSION>` - Control selective output of blocks and fields
+  - `[all]` - Show all functionality (default behavior)
+  - `[input]` - Show only input block
+  - `[conversion]` - Show only conversion block
+  - `[contrast]` - Show only contrast block  
+  - `[grayscale]` - Show only grayscale block
+  - `[color_collections]` - Show only color_collections block
+  - `[contrast.wcag21_relative_luminance]` - Show specific field from contrast block
+  - `[conversion, color_collections]` - Show multiple blocks
+  - `[all,!color_collections]` - Show all except color_collections block
+  - `[!contrast.wcag21_relative_luminance]` - Exclude specific field
+
 - `-f, --file <FILENAME>` - Output filename (extension added automatically based on format)
 
 ### Output Structure
@@ -85,6 +97,12 @@ color-rs color "#FF5733" --output toml --file analysis
 # Luminance replacement
 color-rs color "#FF5733" --relative-luminance 0.5
 color-rs color "blue" --luminance 60
+
+# Selective output filtering
+color-rs color "#FF5733" --func "[input,conversion]"
+color-rs color "blue" --func "[contrast.wcag21_relative_luminance]"
+color-rs color "red" --func "[all,!color_collections]"
+color-rs color "green" --output toml --func "[conversion,grayscale]" --file filtered
 ```
 
 ## Gradient Command

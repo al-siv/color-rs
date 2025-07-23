@@ -253,7 +253,6 @@ fn format_comprehensive_report_with_structured_output(
     args: &crate::cli::ColorArgs,
 ) -> Result<String> {
     use crate::color_formatter::ColorFormatter;
-    use crate::file_output::FileOutputService;
 
     // Collect structured data for both terminal and file output
     let mut analysis_data = ColorFormatter::collect_color_analysis_data(
@@ -267,7 +266,16 @@ fn format_comprehensive_report_with_structured_output(
     let color_schemes = collect_enhanced_color_schemes_data(&schemes, &args.scheme_strategy);
     analysis_data = analysis_data.with_color_schemes(color_schemes);
 
-    // Determine output format (default to TOML if not specified)
+    // Apply filtering if func_filter is specified
+    let filtered_analysis_data = if let Some(filter_expr) = &args.func_filter {
+        let filter_config = crate::output_filter::FilterConfig::from_expression(filter_expr)?;
+        let filter_engine = crate::output_filter::FilterEngine::new(filter_config);
+        filter_engine.apply(&analysis_data)?
+    } else {
+        crate::output_filter::AnalysisOutput::Unfiltered(analysis_data)
+    };
+
+    // Determine output format (default to YAML if not specified)
     let format = args
         .output_format
         .as_ref()
@@ -275,13 +283,13 @@ fn format_comprehensive_report_with_structured_output(
 
     // Create output service and generate formatted output
     let formatted_output = match format {
-        crate::cli::OutputFormat::Toml => analysis_data.to_toml().map_err(|e| {
+        crate::cli::OutputFormat::Toml => filtered_analysis_data.to_toml().map_err(|e| {
             crate::error::ColorError::InvalidArguments(format!(
                 "Failed to serialize to TOML: {}",
                 e
             ))
         })?,
-        crate::cli::OutputFormat::Yaml => analysis_data.to_yaml().map_err(|e| {
+        crate::cli::OutputFormat::Yaml => filtered_analysis_data.to_yaml().map_err(|e| {
             crate::error::ColorError::InvalidArguments(format!(
                 "Failed to serialize to YAML: {}",
                 e
@@ -296,6 +304,8 @@ fn format_comprehensive_report_with_structured_output(
     if let Some(filename) = &args.output_file {
         use crate::cli::OutputFormat;
         use colored::*;
+        use std::fs::File;
+        use std::io::Write;
 
         match format {
             OutputFormat::Toml => {
@@ -304,7 +314,24 @@ fn format_comprehensive_report_with_structured_output(
                 } else {
                     format!("{}.toml", filename)
                 };
-                FileOutputService::write_toml(&analysis_data, &toml_filename)?;
+                let toml_content = filtered_analysis_data.to_toml().map_err(|e| {
+                    crate::error::ColorError::InvalidArguments(format!(
+                        "Failed to serialize to TOML: {}",
+                        e
+                    ))
+                })?;
+                let mut file = File::create(&toml_filename).map_err(|e| {
+                    crate::error::ColorError::InvalidArguments(format!(
+                        "Failed to create file {}: {}",
+                        toml_filename, e
+                    ))
+                })?;
+                file.write_all(toml_content.as_bytes()).map_err(|e| {
+                    crate::error::ColorError::InvalidArguments(format!(
+                        "Failed to write to file {}: {}",
+                        toml_filename, e
+                    ))
+                })?;
                 println!(
                     "Color analysis saved to TOML file: {}",
                     toml_filename.green()
@@ -316,7 +343,24 @@ fn format_comprehensive_report_with_structured_output(
                 } else {
                     format!("{}.yaml", filename)
                 };
-                FileOutputService::write_yaml(&analysis_data, &yaml_filename)?;
+                let yaml_content = filtered_analysis_data.to_yaml().map_err(|e| {
+                    crate::error::ColorError::InvalidArguments(format!(
+                        "Failed to serialize to YAML: {}",
+                        e
+                    ))
+                })?;
+                let mut file = File::create(&yaml_filename).map_err(|e| {
+                    crate::error::ColorError::InvalidArguments(format!(
+                        "Failed to create file {}: {}",
+                        yaml_filename, e
+                    ))
+                })?;
+                file.write_all(yaml_content.as_bytes()).map_err(|e| {
+                    crate::error::ColorError::InvalidArguments(format!(
+                        "Failed to write to file {}: {}",
+                        yaml_filename, e
+                    ))
+                })?;
                 println!(
                     "Color analysis saved to YAML file: {}",
                     yaml_filename.green()

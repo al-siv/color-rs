@@ -30,6 +30,14 @@ color-rs color <COLOR> [OPTIONS]
 - YAML format (default)
 - TOML format (with `--output toml`)
 - File export (with `--file filename.yaml`)
+- Selective output control (with `--func [filter_expression]`)
+
+**Key Features:**
+- **Selective Output Control**: Use `--func` to show only specific output blocks or fields
+- **Multiple Output Formats**: YAML, TOML, SVG, PNG
+- **Comprehensive Color Analysis**: WCAG compliance, color distance calculations, color scheme generation
+- **RAL Color System Support**: Both Classic and Design System+ databases
+- **Advanced Gradient Generation**: LAB color space with cubic-bezier easing
 
 ### Gradient Generation Command
 
@@ -37,6 +45,45 @@ Generate color gradients with mathematical easing functions:
 
 ```bash
 color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
+```
+
+## Selective Output Control
+
+The `--func` parameter allows you to control which parts of the analysis output are displayed, helping you focus on specific information or reduce output size.
+
+### Basic Block Filtering
+```bash
+# Show only specific blocks
+color-rs color red --func "[input]"          # Only input information
+color-rs color red --func "[conversion]"     # Only color format conversions
+color-rs color red --func "[contrast]"       # Only WCAG contrast data
+color-rs color red --func "[grayscale]"      # Only grayscale variations
+color-rs color red --func "[color_collections]"  # Only color database matches
+color-rs color red --func "[color_schemes]"  # Only color harmonies
+
+# Show multiple blocks
+color-rs color red --func "[input,conversion,contrast]"
+```
+
+### Field-Level Filtering
+```bash
+# Show specific fields within blocks
+color-rs color red --func "[contrast.wcag21_relative_luminance]"
+color-rs color red --func "[grayscale.lch0,grayscale.lch0_hex]"
+color-rs color red --func "[conversion.hex,conversion.rgb]"
+
+# Mixed block and field selection
+color-rs color red --func "[input,contrast.wcag21_relative_luminance]"
+```
+
+### Exclusion Filtering
+```bash
+# Show everything except specific blocks
+color-rs color red --func "[all,!color_collections]"
+color-rs color red --func "[all,!color_schemes,!grayscale]"
+
+# Exclude specific fields
+color-rs color red --func "[contrast,!contrast.brightness]"
 ```
 
 ## Current Output Structure
@@ -175,6 +222,18 @@ color-rs color blue --output toml
 
 # Different color distance strategy
 color-rs color "#A1D1E6" --schemes lab
+
+# Selective output - show only input and conversion data
+color-rs color red --func "[input,conversion]"
+
+# Show only specific field from contrast analysis
+color-rs color "#FF0000" --func "[contrast.wcag21_relative_luminance]"
+
+# Show all data except color collections
+color-rs color blue --func "[all,!color_collections]"
+
+# Show only specific grayscale variants
+color-rs color green --func "[grayscale.lch0,grayscale.lch0_hex]"
 ```
 
 ### Gradient Generation Examples
@@ -238,9 +297,13 @@ fn main() -> color_rs::Result<()> {
     // Color analysis
     let args = ColorArgs {
         color: "red".to_string(),
-        schemes: Some("lab".to_string()),
-        output: Some("yaml".to_string()),
-        file: None,
+        distance_method: "delta-e-2000".to_string(),
+        scheme_strategy: "lab".to_string(),
+        relative_luminance: None,
+        luminance: None,
+        output_format: Some(OutputFormat::Yaml),
+        output_file: None,
+        func_filter: Some("[input,conversion]".to_string()),
     };
     
     color_rs.analyze_color(args)?;

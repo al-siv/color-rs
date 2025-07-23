@@ -26,6 +26,7 @@ color-rs/
 │   ├── lib.rs              # Library entry point
 │   ├── main.rs             # Binary entry point
 │   ├── cli.rs              # CLI argument parsing
+│   ├── output_filter.rs    # Output filtering system (v0.14.1+)
 │   ├── color/              # Color manipulation modules
 │   ├── gradient/           # Gradient generation
 │   └── ...                 # Other modules
@@ -44,7 +45,7 @@ color-rs/
 ```toml
 [package]
 name = "color-rs"
-version = "0.11.1"
+version = "0.14.1"
 edition = "2024"            # Latest Rust edition
 description = "A CLI tool and Rust library for color gradient calculations using LAB color space with cubic-bezier easing functions"
 authors = ["al-siv <https://github.com/al-siv>"]
@@ -52,7 +53,7 @@ license = "MIT"
 repository = "https://github.com/al-siv/color-rs"
 homepage = "https://github.com/al-siv/color-rs"
 documentation = "https://github.com/al-siv/color-rs#readme"
-keywords = ["color", "gradient", "lab", "css", "cli", "library"]
+keywords = ["color", "gradient", "lab", "css", "cli", "library", "filtering"]
 categories = ["command-line-utilities", "graphics", "multimedia::images", "development-tools"]
 readme = "README.md"
 default-run = "color-rs"    # Default binary name
@@ -110,6 +111,7 @@ collections-minimal = []                   # CSS colors only
 parallel = ["rayon"]                       # Parallel processing
 caching = ["dashmap"]                      # Color collection caching
 validation = ["regex"]                     # Enhanced input validation
+output-filtering = []                      # Advanced output filtering (enabled by default in v0.14.1+)
 
 # Development features
 dev-tools = ["criterion", "proptest"]     # Development and testing tools
@@ -132,6 +134,10 @@ cargo build --target wasm32-unknown-unknown --features collections-minimal
 
 # Performance-optimized build (planned)
 cargo build --features parallel,caching --release
+
+# Testing output filtering (v0.14.1+)
+cargo build --release
+./target/release/color-rs gradient red blue --func "hsl,hex"
 ```
 
 ## Build Profiles
@@ -155,6 +161,7 @@ codegen-units = 256    # Parallel codegen for fast compilation
 ```bash
 cargo build                    # Development build
 cargo run -- gradient red blue  # Run with development optimizations
+cargo run -- gradient red blue --func "rgb,hsl"  # Test filtering features (v0.14.1+)
 ```
 
 ### Release Profile
@@ -177,6 +184,7 @@ strip = true           # Strip symbols for smaller binaries
 ```bash
 cargo build --release          # Optimized build
 ./target/release/color-rs gradient red blue
+./target/release/color-rs gradient red blue --func "hex,rgb"  # Test filtering (v0.14.1+)
 ```
 
 ### Performance Testing Profile
@@ -331,7 +339,7 @@ Color-rs follows [Semantic Versioning (SemVer)](https://semver.org/):
 #### Version Lifecycle
 
 ```
-0.11.1 (current) → 0.11.2 (patch) → 0.12.0 (minor) → 1.0.0 (major)
+0.14.1 (current) → 0.14.2 (patch) → 0.15.0 (minor) → 1.0.0 (major)
 ```
 
 ### Release Checklist
@@ -355,8 +363,8 @@ Color-rs follows [Semantic Versioning (SemVer)](https://semver.org/):
 
 #### Distribution
 
-- [ ] Create Git tag: `git tag v0.11.1`
-- [ ] Push tag: `git push origin v0.11.1`
+- [ ] Create Git tag: `git tag v0.14.1`
+- [ ] Push tag: `git push origin v0.14.1`
 - [ ] Publish to crates.io: `cargo publish`
 - [ ] Create GitHub release with binaries
 - [ ] Update documentation sites
@@ -551,6 +559,7 @@ cargo doc --all-features
 cargo run --example library_usage
 cargo install --path . --force
 color-rs gradient red blue --svg
+color-rs gradient red blue --func "hex,hsl"  # Test filtering (v0.14.1+)
 ```
 
 This comprehensive build and release documentation ensures consistent, reproducible builds across all supported platforms and provides clear guidelines for both development and production deployment.

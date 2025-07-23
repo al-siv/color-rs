@@ -67,6 +67,132 @@ color_schemes:
   tetradic: ["#ff5733", "#57ff33", "#33c4ff", "#c433ff"]
 ```
 
+## Selective Output Control
+
+Use the `--func` parameter to display only specific blocks or fields from the analysis output.
+
+### Basic Block Filtering
+
+```bash
+# Show only color conversion data
+color-rs color red --func "[conversion]"
+
+# Show only WCAG contrast information  
+color-rs color "#FF5733" --func "[contrast]"
+
+# Show multiple blocks
+color-rs color blue --func "[input,conversion,contrast]"
+```
+
+#### Block Filter Output Example
+```yaml
+# color-rs color red --func "[conversion]"
+metadata:
+  program_name: color-rs
+  version: '0.14.1'
+  generated_at: '2025-07-23T13:00:00.000Z'
+  distance_strategy: Delta E 2000
+
+conversion:
+  hex: '#FF0000'
+  rgb: rgb(255, 0, 0)
+  hsl: hsl(0.0, 100.00%, 50.00%)
+  hsb: hsv(0.0, 100.00%, 100.00%)
+  lab: lab(53.24, 80.092, 67.203)
+  lch: lch(53.24, 104.552, 40.0)
+  cmyk: cmyk(0.00%, 100.00%, 100.00%, 0.00%)
+  xyz: xyz(0.412, 0.213, 0.019)
+  oklch: oklch(0.628, 0.258, 29.2)
+```
+
+### Field-Level Filtering
+
+```bash
+# Show only WCAG relative luminance value
+color-rs color "#FF0000" --func "[contrast.wcag21_relative_luminance]"
+
+# Show specific grayscale variants
+color-rs color green --func "[grayscale.lch0,grayscale.lch0_hex]"
+
+# Show specific conversion formats
+color-rs color blue --func "[conversion.hex,conversion.rgb,conversion.hsl]"
+```
+
+#### Field Filter Output Example
+```yaml
+# color-rs color "#FF0000" --func "[contrast.wcag21_relative_luminance]"
+metadata:
+  program_name: color-rs
+  version: '0.14.1'
+  generated_at: '2025-07-23T13:00:00.000Z'
+  distance_strategy: Delta E 2000
+
+contrast:
+  wcag21_relative_luminance: 0.21267294883728027
+```
+
+### Exclusion Filtering
+
+```bash
+# Show all data except color collections
+color-rs color red --func "[all,!color_collections]"
+
+# Show contrast data but exclude brightness assessment
+color-rs color "#FF5733" --func "[contrast,!contrast.brightness]"
+
+# Exclude multiple blocks
+color-rs color blue --func "[all,!color_collections,!color_schemes]"
+```
+
+#### Exclusion Filter Output Example
+```yaml
+# color-rs color red --func "[all,!color_collections]" 
+# (Shows all blocks except color_collections)
+metadata:
+  program_name: color-rs
+  version: '0.14.1'
+  
+input:
+  input_color: red
+  base_color: '#FF0000'
+  
+conversion:
+  hex: '#FF0000'
+  # ... full conversion data
+  
+contrast:
+  wcag21_relative_luminance: 0.21267294883728027
+  # ... full contrast data
+  
+grayscale:
+  lch0_hex: '#7F7F7F'
+  # ... full grayscale data
+  
+color_schemes:
+  complementary:
+    hex: '#00A2F3'
+    # ... full scheme data
+```
+
+### Practical Filtering Examples
+
+```bash
+# Quick WCAG compliance check
+color-rs color "#333333" --func "[contrast.wcag21_relative_luminance]"
+
+# Extract only hex codes for web development
+color-rs color "forestgreen" --func "[conversion.hex]"
+
+# Get color scheme without collection matches (faster)
+color-rs color "#FF5733" --func "[input,color_schemes]"
+
+# Focus on specific color space conversions
+color-rs color blue --func "[conversion.lab,conversion.lch,conversion.oklch]"
+
+# Grayscale analysis only
+color-rs color "#E74C3C" --func "[grayscale]"
+```
+
 ## RAL Color System
 
 ```bash

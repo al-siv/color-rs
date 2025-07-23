@@ -35,6 +35,11 @@ pub const DEFAULT_SVG_NAME: &str = "gradient.svg";
 pub const DEFAULT_PNG_NAME: &str = "gradient.png";
 pub const DEFAULT_GRAD_STEP: &str = "5";
 
+// Output filtering defaults (v0.14.1+)
+pub const DEFAULT_FILTER_EXPRESSION: &str = "[all]";
+pub const FILTER_EXPRESSION_MAX_LENGTH: usize = 1000;
+pub const MAX_FILTER_RULES_PER_EXPRESSION: usize = 50;
+
 // Constraints and limits
 pub const MAX_PERCENTAGE: u8 = 100;
 pub const BEZIER_MIN: f64 = 0.0;
@@ -127,6 +132,48 @@ table_style = "modern"
 color_names = true
 decimal_places = 2
 contrast_warnings = true
+
+# Output filtering preferences (v0.14.1+)
+default_filter = "[all]"
+max_filter_complexity = 50
+field_validation = true
+block_validation = true
+
+[filtering]
+# Filter expression validation rules
+max_expression_length = 1000
+max_rules_per_expression = 50
+allow_nested_exclusions = true
+case_sensitive_fields = false
+
+# Valid block names for filter validation
+valid_blocks = [
+    "input", 
+    "conversion", 
+    "contrast", 
+    "grayscale", 
+    "color_collections", 
+    "color_schemes"
+]
+
+# Valid field patterns for each block
+[filtering.valid_fields]
+contrast = [
+    "wcag21_relative_luminance",
+    "contrast_vs_white", 
+    "contrast_vs_black",
+    "brightness"
+]
+grayscale = [
+    "lch0_hex", "lch0",
+    "lch2_hex", "lch2", 
+    "lch4_hex", "lch4",
+    "lch6_hex", "lch6"
+]
+conversion = [
+    "hex", "rgb", "hsl", "hsb", 
+    "lab", "lch", "cmyk", "xyz", "oklch"
+]
 
 [paths]
 # Custom paths for collections and output
@@ -246,18 +293,22 @@ Configuration values are resolved in this order (highest to lowest precedence):
 1. **CLI Arguments**
    ```bash
    color-rs gradient red blue --ease-in 0.5
+   color-rs color red --func "[input,contrast.wcag21_relative_luminance]"
    ```
 
 2. **Environment Variables**
    ```bash
    export COLOR_RS_EASE_IN=0.5
+   export COLOR_RS_DEFAULT_FILTER="[input,conversion]"
    color-rs gradient red blue
+   color-rs color red
    ```
 
 3. **User Configuration File**
    ```toml
    [defaults]
    ease_in = 0.5
+   default_filter = "[input,conversion]"
    ```
 
 4. **Project Configuration File**
@@ -335,6 +386,13 @@ gradient_step = 5
 - `COLOR_RS_DEFAULT_PNG` - Generate PNG by default (true/false)
 - `COLOR_RS_SHOW_LEGEND` - Show legend on images by default (true/false)
 - `COLOR_RS_TABLE_STYLE` - Default table style (modern/classic/minimal)
+
+#### Output Filtering (v0.14.1+)
+- `COLOR_RS_DEFAULT_FILTER` - Default filter expression (e.g., "[all]", "[input,conversion]")
+- `COLOR_RS_MAX_FILTER_LENGTH` - Maximum filter expression length (default: 1000)
+- `COLOR_RS_MAX_FILTER_RULES` - Maximum filter rules per expression (default: 50)
+- `COLOR_RS_FILTER_VALIDATION` - Enable filter expression validation (true/false)
+- `COLOR_RS_CASE_SENSITIVE_FIELDS` - Case-sensitive field matching (true/false)
 
 ### Environment Variable Examples
 

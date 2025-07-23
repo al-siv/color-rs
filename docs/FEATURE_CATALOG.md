@@ -1,6 +1,6 @@
 # Color-rs Feature Catalog v0.14.1
 
-Comprehensive catalog of color analysis, gradient generation, and structured output capabilities.
+Comprehensive catalog of color analysis, gradient generation, structured output capabilities, and selective output filtering.
 
 ## Core Features
 
@@ -22,6 +22,7 @@ Comprehensive catalog of color analysis, gradient generation, and structured out
 - **Multiple Formats**: YAML and TOML structured output
 
 ### Output Formats
+- **Selective Filtering**: `--func` parameter for choosing specific output formats (v0.14.1+)
 - **YAML Output**: Default structured format with metadata, conversions, analysis
 - **TOML Output**: Alternative structured format for configuration workflows
 - **File Output**: Save analysis results to files with automatic extension handling
@@ -53,18 +54,19 @@ metadata:
   version: "0.14.1"
   timestamp: "ISO 8601 format"
   analysis_type: "color"
+  filter_expression: "hex,rgb,hsl,lab"  # Applied when --func is used
 
 input:
   value: "input color string"
   format: "detected format type"
 
 conversion:
-  rgb: [r, g, b]
-  hsl: [h, s, l]
-  hex: "#rrggbb"
-  lab: [l, a, b]
-  lch: [l, c, h]
-  xyz: [x, y, z]
+  rgb: [r, g, b]          # Only included if 'rgb' in filter
+  hsl: [h, s, l]          # Only included if 'hsl' in filter
+  hex: "#rrggbb"          # Only included if 'hex' in filter
+  lab: [l, a, b]          # Only included if 'lab' in filter
+  lch: [l, c, h]          # Future: conditional inclusion
+  xyz: [x, y, z]          # Future: conditional inclusion
 
 contrast:
   wcag_relative_luminance: float
@@ -130,6 +132,7 @@ color-rs color [OPTIONS] <COLOR>
 ```
 
 **Options:**
+- `--func`: Select output formats (hex,rgb,hsl,lab) for filtered results (v0.14.1+)
 - `--distance-method`: delta-e-2000, delta-e-76, euclidean-lab, lch
 - `--schemes`: lab, hsl
 - `--relative-luminance`: Replace with WCAG luminance (0.0-1.0)
@@ -150,6 +153,7 @@ color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
 ```
 
 **Options:**
+- `--func`: Select output formats (hex,rgb,hsl,lab) for filtered results (v0.14.1+)
 - `--start-position`, `--end-position`: Position control (0-100)
 - `--ease-in`, `--ease-out`: Cubic-bezier control points (0.0-1.0)
 - `--step`: Output every X percent
@@ -193,6 +197,7 @@ color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
 ## Architecture
 
 ### Modular Design
+- **Output Filtering**: Selective format inclusion with `FilterEngine` and `FilterConfig` (v0.14.1+)
 - **Color Operations**: RGB/HSL/LAB conversions with palette integration
 - **Collection Management**: RAL and CSS color systems with unified interface
 - **Distance Calculations**: Multiple algorithms with strategy pattern
@@ -241,7 +246,10 @@ color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
 ## Version Features
 
 ### v0.14.1 (Current)
-- **YAML/TOML Output**: Structured data formats replacing table output
+- **Selective Output Filtering**: `--func` parameter for choosing specific color formats
+- **FilterEngine Architecture**: Modular filtering system with expression parsing
+- **Enhanced CLI**: Output format control with hex, rgb, hsl, lab options
+- **YAML/TOML Output**: Structured data formats with optional filtering
 - **Complete Metadata**: Program version, timestamp, analysis parameters  
 - **RAL Design System+**: Extended support for 1825+ colors
 - **Enhanced Color Schemes**: LAB and HSL strategy options
@@ -371,6 +379,45 @@ let invalid_colors = vec![
 ```
 
 ### Color Output Formats
+
+#### Selective Output Filtering (v0.14.1+)
+
+**Filter Expression Syntax**
+```bash
+# Single format
+color-rs gradient red blue --func "hex"
+
+# Multiple formats (comma-separated)
+color-rs gradient red blue --func "hex,rgb"
+color-rs gradient red blue --func "hex,rgb,hsl"
+color-rs gradient red blue --func "hex,rgb,hsl,lab"
+
+# Case insensitive
+color-rs gradient red blue --func "HEX,RGB"
+color-rs gradient red blue --func "Hex,Rgb,Hsl"
+```
+
+**Supported Filter Values**
+- `hex`: HEX color codes (#RRGGBB)
+- `rgb`: RGB color values [r, g, b]
+- `hsl`: HSL color values [h, s, l]  
+- `lab`: LAB color values [l, a, b]
+
+**Filtered Output Example**
+```yaml
+# --func "hex,hsl" output
+metadata:
+  filter_expression: "hex,hsl"
+
+conversion:
+  hex: "#FF0000"
+  hsl: [0.0, 100.0, 50.0]
+  # rgb and lab sections omitted
+
+# Metadata always preserved regardless of filter
+contrast:
+  wcag_relative_luminance: 0.2126
+```
 
 #### Standard Output Formats
 
@@ -926,8 +973,14 @@ let (lab, format) = parser.parse("RAL 3020")?;
 # Generate gradient
 color-rs gradient red blue --svg
 
+# Generate gradient with filtered output
+color-rs gradient red blue --func "hex,rgb" --svg
+
 # Find closest color
 color-rs color-match "#FF5733"
+
+# Find closest color with filtered output  
+color-rs color-match "#FF5733" --func "hex"
 
 # List collections
 color-rs collections
@@ -942,14 +995,26 @@ color-rs gradient --help
 # Web design: Generate CSS gradient
 color-rs gradient "#FF6B6B" "#4ECDC4" --svg-name hero-gradient.svg
 
+# Web design: Generate gradient with HEX output only
+color-rs gradient "#FF6B6B" "#4ECDC4" --func "hex" --svg-name hero-gradient.svg
+
 # Print design: Match to RAL colors  
 color-rs color-match "#FF5733" --collection ral-classic
+
+# Print design: Match with RGB output only
+color-rs color-match "#FF5733" --func "rgb" --collection ral-classic
 
 # Data visualization: Custom color steps
 color-rs gradient red blue --grad-stops "red:0,orange:25,yellow:50,blue:100"
 
+# Data visualization: Custom steps with HSL output
+color-rs gradient red blue --func "hsl" --grad-stops "red:0,orange:25,yellow:50,blue:100"
+
 # Brand colors: Multiple format output
 color-rs gradient "#FF0000" "#0000FF" --png --width 1200
+
+# Brand colors: Filtered output for specific use
+color-rs gradient "#FF0000" "#0000FF" --func "hex,rgb" --png --width 1200
 ```
 
 This feature catalog provides a comprehensive overview of all color-rs capabilities, from basic color parsing to advanced gradient generation and image export functionality.
