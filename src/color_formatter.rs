@@ -47,12 +47,7 @@ impl ColorFormatter {
             label: label.to_string(),
             hex: format!("#{:02X}{:02X}{:02X}", r, g, b),
             rgb: Utils::rgb_to_string(r, g, b),
-            hsl: format!(
-                "hsl({:.0}, {:.1}%, {:.1}%)",
-                h,
-                s * 100.0,
-                l * 100.0
-            ),
+            hsl: format!("hsl({:.0}, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0),
             lab: format!(
                 "lab({:.2}, {:.2}, {:.2})",
                 lab_color.l, lab_color.a, lab_color.b
@@ -167,9 +162,12 @@ impl ColorFormatter {
         let lch = ColorUtils::lab_to_lch(lab_color);
 
         let lch0_lab = ColorUtils::lch_tulip_to_lab((lch.l, 0.0, lch.hue.into_degrees()));
-        let lch2_lab = ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.02, lch.hue.into_degrees()));
-        let lch4_lab = ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.04, lch.hue.into_degrees()));
-        let lch6_lab = ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.06, lch.hue.into_degrees()));
+        let lch2_lab =
+            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.02, lch.hue.into_degrees()));
+        let lch4_lab =
+            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.04, lch.hue.into_degrees()));
+        let lch6_lab =
+            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.06, lch.hue.into_degrees()));
 
         let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
         let lch2_hex = ColorUtils::lab_to_hex(lch2_lab);

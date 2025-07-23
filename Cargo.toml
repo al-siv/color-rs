@@ -1,6 +1,6 @@
 [package]
 name = "color-rs"
-version = "0.14.1"
+version = "0.15.0"
 edition = "2024" # DO NOT EDIT THIS LINE!!!
 description = "CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations"
 authors = ["al-siv <https://github.com/al-siv>"]

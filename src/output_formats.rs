@@ -90,9 +90,13 @@ pub struct GradientColors {
 /// Individual color information
 #[derive(Debug, Clone, Serialize)]
 pub struct ColorInfo {
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub hex: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub rgb: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub lab: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
     pub wcag21_relative_luminance: f64,
 }
@@ -101,9 +105,13 @@ pub struct ColorInfo {
 #[derive(Debug, Clone, Serialize)]
 pub struct GradientStop {
     pub position: f64,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub hex: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub rgb: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub lab: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
     pub wcag21_relative_luminance: f64,
     pub color_name: Option<ColorNameInfo>,

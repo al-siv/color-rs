@@ -313,7 +313,6 @@ impl GradientCalculator {
 
         Ok(gradient_values)
     }
-
 }
 
 /// Main gradient generation function
@@ -374,14 +373,162 @@ pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     let gradient_output =
         create_gradient_analysis_output(&args, start_lab, end_lab, &gradient_values)?;
 
+    // Apply filtering if func_filter is specified for simple color format filtering
+    // Note: Gradient filtering currently supports simple format only (hex,rgb,hsl,lab)
+    let filtered_gradient_output = if let Some(filter_expr) = &args.func_filter {
+        // For now, only support simple format filtering in gradients
+        apply_simple_gradient_filtering(&gradient_output, filter_expr)?
+    } else {
+        gradient_output
+    };
+
     // Display structured output to terminal
     let format = args
         .output_format
         .as_ref()
         .unwrap_or(&crate::cli::OutputFormat::Yaml);
-    format_gradient_structured_output(&gradient_output, format, args.output_file.as_ref())?;
+    format_gradient_structured_output(
+        &filtered_gradient_output,
+        format,
+        args.output_file.as_ref(),
+    )?;
 
     Ok(())
+}
+
+/// Apply simple filtering to gradient output for color format filtering
+/// Only supports simple format: hex,rgb,hsl,lab (not bracket format)
+fn apply_simple_gradient_filtering(
+    gradient_output: &crate::output_formats::GradientAnalysisOutput,
+    filter_expr: &str,
+) -> Result<crate::output_formats::GradientAnalysisOutput> {
+    use crate::output_formats::*;
+
+    // Parse simple format expression
+    let trimmed = filter_expr.trim();
+
+    // Check if it's a simple format (no brackets)
+    if trimmed.starts_with('[') && trimmed.ends_with(']') {
+        return Err(ColorError::InvalidArguments(
+            "Gradient filtering currently supports simple format only (hex,rgb,hsl,lab), not bracket format".to_string(),
+        ));
+    }
+
+    // Parse supported color formats
+    let parts: Vec<&str> = trimmed.split(',').map(|s| s.trim()).collect();
+    let mut include_hex = false;
+    let mut include_rgb = false;
+    let mut include_lab = false;
+    let mut include_lch = false;
+
+    for part in parts {
+        match part.to_lowercase().as_str() {
+            "hex" => include_hex = true,
+            "rgb" => include_rgb = true,
+            "lab" => include_lab = true,
+            "lch" => include_lch = true,
+            "hsl" => {
+                return Err(ColorError::InvalidArguments(
+                    "HSL format not available in gradient output. Available formats: hex, rgb, lab, lch".to_string(),
+                ));
+            }
+            _ => {
+                return Err(ColorError::InvalidArguments(format!(
+                    "Invalid color format '{}' for gradient filtering. Supported: hex, rgb, lab, lch",
+                    part
+                )));
+            }
+        }
+    }
+
+    // Filter the gradient stops
+    let filtered_stops: Vec<GradientStop> = gradient_output
+        .gradient_stops
+        .iter()
+        .map(|stop| GradientStop {
+            position: stop.position,
+            hex: if include_hex {
+                stop.hex.clone()
+            } else {
+                String::new()
+            },
+            rgb: if include_rgb {
+                stop.rgb.clone()
+            } else {
+                String::new()
+            },
+            lab: if include_lab {
+                stop.lab.clone()
+            } else {
+                String::new()
+            },
+            lch: if include_lch {
+                stop.lch.clone()
+            } else {
+                String::new()
+            },
+            wcag21_relative_luminance: stop.wcag21_relative_luminance,
+            color_name: stop.color_name.clone(),
+        })
+        .collect();
+
+    // Filter the start/end color info
+    let filtered_colors = GradientColors {
+        start: ColorInfo {
+            hex: if include_hex {
+                gradient_output.colors.start.hex.clone()
+            } else {
+                String::new()
+            },
+            rgb: if include_rgb {
+                gradient_output.colors.start.rgb.clone()
+            } else {
+                String::new()
+            },
+            lab: if include_lab {
+                gradient_output.colors.start.lab.clone()
+            } else {
+                String::new()
+            },
+            lch: if include_lch {
+                gradient_output.colors.start.lch.clone()
+            } else {
+                String::new()
+            },
+            wcag21_relative_luminance: gradient_output.colors.start.wcag21_relative_luminance,
+        },
+        end: ColorInfo {
+            hex: if include_hex {
+                gradient_output.colors.end.hex.clone()
+            } else {
+                String::new()
+            },
+            rgb: if include_rgb {
+                gradient_output.colors.end.rgb.clone()
+            } else {
+                String::new()
+            },
+            lab: if include_lab {
+                gradient_output.colors.end.lab.clone()
+            } else {
+                String::new()
+            },
+            lch: if include_lch {
+                gradient_output.colors.end.lch.clone()
+            } else {
+                String::new()
+            },
+            wcag21_relative_luminance: gradient_output.colors.end.wcag21_relative_luminance,
+        },
+    };
+
+    // Create filtered output
+    Ok(GradientAnalysisOutput {
+        metadata: gradient_output.metadata.clone(),
+        configuration: gradient_output.configuration.clone(),
+        colors: filtered_colors,
+        gradient_stops: filtered_stops,
+    })
 }
 
 #[cfg(test)]
@@ -441,7 +588,7 @@ pub fn create_gradient_analysis_output(
 ) -> Result<crate::output_formats::GradientAnalysisOutput> {
     use crate::ColorUtils;
     use crate::output_formats::*;
-    use palette::{Srgb};
+    use palette::Srgb;
 
     // Convert Lab colors to RGB for color info using ColorUtils
     let start_srgb = ColorUtils::lab_to_srgb(start_lab);
@@ -462,14 +609,8 @@ pub fn create_gradient_analysis_output(
         },
         colors: GradientColors {
             start: ColorInfo {
-                hex: format!(
-                    "#{:02X}{:02X}{:02X}",
-                    start_rgb.0, start_rgb.1, start_rgb.2
-                ),
-                rgb: format!(
-                    "rgb({}, {}, {})",
-                    start_rgb.0, start_rgb.1, start_rgb.2
-                ),
+                hex: format!("#{:02X}{:02X}{:02X}", start_rgb.0, start_rgb.1, start_rgb.2),
+                rgb: format!("rgb({}, {}, {})", start_rgb.0, start_rgb.1, start_rgb.2),
                 lab: format!(
                     "lab({:.2}, {:.2}, {:.2})",
                     start_lab.l, start_lab.a, start_lab.b
@@ -478,10 +619,7 @@ pub fn create_gradient_analysis_output(
                 wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(start_srgb),
             },
             end: ColorInfo {
-                hex: format!(
-                    "#{:02X}{:02X}{:02X}",
-                    end_rgb.0, end_rgb.1, end_rgb.2
-                ),
+                hex: format!("#{:02X}{:02X}{:02X}", end_rgb.0, end_rgb.1, end_rgb.2),
                 rgb: Utils::rgb_to_string(end_rgb.0, end_rgb.1, end_rgb.2),
                 lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: crate::format_utils::FormatUtils::lab_to_lch(end_lab),
@@ -749,12 +887,7 @@ fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> Stri
                 // Key = value pairs
                 let key = &trimmed[..eq_pos];
                 let value = &trimmed[eq_pos + 3..];
-                format!(
-                    "{}{} = {}",
-                    indent,
-                    key.green(),
-                    value
-                )
+                format!("{}{} = {}", indent, key.green(), value)
             } else {
                 line.to_string()
             }
@@ -767,19 +900,10 @@ fn colorize_gradient_line(line: &str, format: &crate::cli::OutputFormat) -> Stri
                 // Key: value pairs
                 let key = &trimmed[..colon_pos + 1];
                 let value = &trimmed[colon_pos + 2..];
-                format!(
-                    "{}{} {}",
-                    indent,
-                    key.green(),
-                    value
-                )
+                format!("{}{} {}", indent, key.green(), value)
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
-                format!(
-                    "{}- {}",
-                    indent,
-                    stripped
-                )
+                format!("{}- {}", indent, stripped)
             } else {
                 line.to_string()
             }

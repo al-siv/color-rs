@@ -339,7 +339,7 @@ pub enum FilterRule {
 }
 ```
 
-**Rationale**: Separates inclusion and exclusion logic explicitly. String-based field names provide flexibility for dynamic filtering without compile-time field knowledge.
+**Rationale**: Supports inclusion-only filtering logic with simplified rule processing. String-based field names provide flexibility for dynamic filtering without compile-time field knowledge.
 
 **Invariants**:
 - Field names must match actual struct field names for filtering to work
@@ -358,12 +358,12 @@ pub struct FilterConfig {
 }
 ```
 
-**Rationale**: Aggregates multiple filter rules and maintains global inclusion state. Separation between parsing (rules) and evaluation logic.
+**Rationale**: Aggregates multiple filter rules and maintains global inclusion state. Separation between parsing (rules) and evaluation logic with inclusion-only approach.
 
 **Invariants**:
-- `include_all = true` means show all blocks unless explicitly excluded
+- `include_all = true` means show all blocks by default  
 - `include_all = false` means show only explicitly included blocks/fields
-- Rules are processed in order, with exclusions taking precedence over inclusions
+- Rules are processed to determine which blocks and fields to include
 
 **Constructor**: Use `FilterConfig::from_expression()` for expression parsing or `FilterConfig::new()` for manual construction.
 

@@ -128,6 +128,14 @@ pub struct GradientArgs {
         help = "Output filename (extension added automatically based on format)"
     )]
     pub output_file: Option<String>,
+
+    /// Filter functionality blocks and fields to display (default: all)
+    #[arg(
+        long = "func",
+        value_name = "FILTERS",
+        help = "Filter blocks/fields: [all], [input], [conversion], [contrast], [grayscale], [color_collections], [color_schemes], [block.field], [!exclude]. Simple format: hex,rgb,hsl,lab. Examples: [input,conversion], hex,rgb, [contrast.wcag21_relative_luminance], [all,!color_collections.css_colors]"
+    )]
+    pub func_filter: Option<String>,
 }
 
 impl GradientArgs {

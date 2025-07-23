@@ -324,6 +324,7 @@ impl GradientBuilder {
             stops_simple: self.stops_simple,
             output_format: self.output_format,
             output_file: self.output_file,
+            func_filter: None, // Gradient builder doesn't support filter expressions yet
         })
     }
 }
@@ -439,6 +440,6 @@ mod tests {
         let args = builder.build().unwrap();
         assert_eq!(args.stops, 10);
         assert_eq!(args.step, None); // Should be None when cleared
-        assert_eq!(args.stops_simple, false);
+        assert!(!args.stops_simple);
     }
 }

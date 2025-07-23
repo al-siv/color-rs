@@ -61,6 +61,7 @@ fn main() -> Result<()> {
         stops_simple: true,
         output_format: None,
         output_file: None,
+        func_filter: None,
     };
 
     // This will generate the gradient and save SVG file

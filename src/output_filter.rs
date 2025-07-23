@@ -106,17 +106,13 @@ impl FilteredColorAnalysisOutput {
     }
 }
 
-/// Represents a filter rule that can include or exclude specific blocks or fields
+/// Represents a filter rule that can include specific blocks or fields
 #[derive(Debug, Clone, PartialEq)]
 pub enum FilterRule {
     /// Include a specific block (e.g., "input", "conversion")
     IncludeBlock(String),
     /// Include a specific field within a block (e.g., "contrast.wcag21_relative_luminance")
     IncludeField(String, String), // (block, field)
-    /// Exclude a specific block
-    ExcludeBlock(String),
-    /// Exclude a specific field within a block
-    ExcludeField(String, String), // (block, field)
     /// Include all blocks (default behavior)
     IncludeAll,
 }
@@ -145,16 +141,7 @@ impl FilterConfig {
 
     /// Check if a block should be included based on the filter rules
     pub fn should_include_block(&self, block_name: &str) -> bool {
-        // If explicitly excluded, return false
-        for rule in &self.rules {
-            if let FilterRule::ExcludeBlock(excluded_block) = rule {
-                if excluded_block == block_name {
-                    return false;
-                }
-            }
-        }
-
-        // If include_all is true and no exclusions, include
+        // If include_all is true, include by default
         if self.include_all {
             return true;
         }
@@ -181,15 +168,6 @@ impl FilterConfig {
 
     /// Check if a field within a block should be included
     pub fn should_include_field(&self, block_name: &str, field_name: &str) -> bool {
-        // If explicitly excluded, return false
-        for rule in &self.rules {
-            if let FilterRule::ExcludeField(excluded_block, excluded_field) = rule {
-                if excluded_block == block_name && excluded_field == field_name {
-                    return false;
-                }
-            }
-        }
-
         // Check for explicit field inclusion
         for rule in &self.rules {
             if let FilterRule::IncludeField(included_block, included_field) = rule {
@@ -204,15 +182,25 @@ impl FilterConfig {
             matches!(rule, FilterRule::IncludeField(included_block, _) if included_block == block_name)
         });
 
-        // If we have field-specific inclusions for this block, 
+        // If we have field-specific inclusions for this block,
         // only include explicitly mentioned fields
         if has_field_inclusions_for_block {
             return false;
         }
 
-        // If include_all or block is included, include field by default
-        if self.include_all || self.should_include_block(block_name) {
+        // If the block itself is included (either by include_all or explicit inclusion),
+        // include the field by default
+        if self.include_all {
             return true;
+        }
+
+        // Check if block is explicitly included
+        for rule in &self.rules {
+            if let FilterRule::IncludeBlock(included_block) = rule {
+                if included_block == block_name {
+                    return true;
+                }
+            }
         }
 
         false
@@ -228,6 +216,12 @@ impl Default for FilterConfig {
 /// Parser for filter expressions like "[input,conversion,!color_collections.css_colors]"
 pub struct FilterExpressionParser;
 
+impl Default for FilterExpressionParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FilterExpressionParser {
     pub fn new() -> Self {
         Self
@@ -236,21 +230,87 @@ impl FilterExpressionParser {
     /// Parse a filter expression string into FilterConfig
     pub fn parse(&self, expr: &str) -> Result<FilterConfig> {
         let trimmed = expr.trim();
-        
+
         // Handle empty or default cases
-        if trimmed.is_empty() || trimmed == "[all]" {
+        if trimmed.is_empty() {
             return Ok(FilterConfig::new());
         }
 
-        // Check if expression is wrapped in brackets
-        if !trimmed.starts_with('[') || !trimmed.ends_with(']') {
-            return Err(ColorError::InvalidArguments(
-                "Filter expression must be wrapped in brackets, e.g., [input,conversion]".to_string(),
-            ));
+        // Detect format: bracket format vs simple format
+        if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            // Bracket format: [input,conversion,!field] or [all]
+            self.parse_bracket_format(trimmed)
+        } else {
+            // Simple format: hex,rgb,hsl,lab (color format filtering only)
+            self.parse_simple_format(trimmed)
+        }
+    }
+
+    /// Parse simple comma-separated color format expressions
+    /// Examples: "hex", "hex,rgb", "hex,rgb,hsl,lab", "RGB,HSL" (case insensitive)
+    fn parse_simple_format(&self, expr: &str) -> Result<FilterConfig> {
+        // Handle special case for "all"
+        if expr.trim().to_lowercase() == "all" {
+            return Ok(FilterConfig::new());
+        }
+
+        let parts: Vec<&str> = expr.split(',').map(|s| s.trim()).collect();
+        let mut rules = Vec::new();
+
+        for part in parts {
+            if part.is_empty() {
+                continue;
+            }
+
+            // Validate and normalize color format names
+            let normalized = part.to_lowercase();
+            match normalized.as_str() {
+                "hex" => rules.push(FilterRule::IncludeField(
+                    "conversion".to_string(),
+                    "hex".to_string(),
+                )),
+                "rgb" => rules.push(FilterRule::IncludeField(
+                    "conversion".to_string(),
+                    "rgb".to_string(),
+                )),
+                "hsl" => rules.push(FilterRule::IncludeField(
+                    "conversion".to_string(),
+                    "hsl".to_string(),
+                )),
+                "lab" => rules.push(FilterRule::IncludeField(
+                    "conversion".to_string(),
+                    "lab".to_string(),
+                )),
+                _ => {
+                    return Err(ColorError::InvalidArguments(format!(
+                        "Invalid color format '{}'. Supported: hex, rgb, hsl, lab",
+                        part
+                    )));
+                }
+            }
+        }
+
+        // For simple format, we always include metadata and input, plus the specified conversion fields
+        rules.push(FilterRule::IncludeBlock("metadata".to_string()));
+        rules.push(FilterRule::IncludeBlock("input".to_string()));
+        rules.push(FilterRule::IncludeBlock("conversion".to_string()));
+
+        Ok(FilterConfig {
+            rules,
+            include_all: false,
+        })
+    }
+
+    /// Parse bracket format expressions (inclusion-only)
+    /// Examples: [input,conversion], [all], [contrast.field,other.field]
+    fn parse_bracket_format(&self, expr: &str) -> Result<FilterConfig> {
+        // Handle default case
+        let content = &expr[1..expr.len() - 1].trim();
+        if *content == "all" {
+            return Ok(FilterConfig::new());
         }
 
         // Remove brackets and split by comma
-        let content = &trimmed[1..trimmed.len()-1];
         let parts: Vec<&str> = content.split(',').map(|s| s.trim()).collect();
 
         let mut rules = Vec::new();
@@ -267,49 +327,45 @@ impl FilterExpressionParser {
                 continue;
             }
 
+            // Skip parts that start with '!' since we no longer support exclusions
             if part.starts_with('!') {
-                // Exclusion rule
-                let excluded = &part[1..];
-                if excluded.contains('.') {
-                    // Field exclusion
-                    let field_parts: Vec<&str> = excluded.split('.').collect();
-                    if field_parts.len() != 2 {
-                        return Err(ColorError::InvalidArguments(
-                            format!("Invalid field exclusion format: {}", part),
-                        ));
-                    }
-                    rules.push(FilterRule::ExcludeField(
-                        field_parts[0].to_string(),
-                        field_parts[1].to_string(),
-                    ));
-                } else {
-                    // Block exclusion
-                    rules.push(FilterRule::ExcludeBlock(excluded.to_string()));
+                return Err(ColorError::InvalidArguments(format!(
+                    "Exclusion operator '!' is no longer supported. Use inclusion-only format: [a,b,c]. Found: {}",
+                    part
+                )));
+            }
+
+            // Inclusion rule
+            if part.contains('.') {
+                // Field inclusion
+                let field_parts: Vec<&str> = part.split('.').collect();
+                if field_parts.len() != 2 {
+                    return Err(ColorError::InvalidArguments(format!(
+                        "Invalid field inclusion format: {}",
+                        part
+                    )));
                 }
+                rules.push(FilterRule::IncludeField(
+                    field_parts[0].to_string(),
+                    field_parts[1].to_string(),
+                ));
             } else {
-                // Inclusion rule
-                if part.contains('.') {
-                    // Field inclusion
-                    let field_parts: Vec<&str> = part.split('.').collect();
-                    if field_parts.len() != 2 {
-                        return Err(ColorError::InvalidArguments(
-                            format!("Invalid field inclusion format: {}", part),
-                        ));
-                    }
-                    rules.push(FilterRule::IncludeField(
-                        field_parts[0].to_string(),
-                        field_parts[1].to_string(),
-                    ));
-                } else {
-                    // Block inclusion
-                    rules.push(FilterRule::IncludeBlock(part.to_string()));
-                }
+                // Block inclusion
+                rules.push(FilterRule::IncludeBlock(part.to_string()));
             }
         }
 
-        // If no explicit inclusions and no "all", set include_all to false
-        if !include_all && !rules.iter().any(|r| matches!(r, FilterRule::IncludeBlock(_) | FilterRule::IncludeField(_, _))) {
-            include_all = true;
+        // Set include_all based on whether we have explicit inclusions
+        if !include_all {
+            // If we have explicit inclusions, only include those (include_all = false)
+            // If we have no inclusions, include everything (include_all = true)
+            let has_inclusions = rules.iter().any(|r| {
+                matches!(
+                    r,
+                    FilterRule::IncludeBlock(_) | FilterRule::IncludeField(_, _)
+                )
+            });
+            include_all = !has_inclusions;
         }
 
         Ok(FilterConfig { rules, include_all })
@@ -381,7 +437,10 @@ impl FilterEngine {
     }
 
     /// Filter the input block fields
-    fn filter_input_block(&self, input: &crate::output_formats::InputInfo) -> Result<crate::output_formats::InputInfo> {
+    fn filter_input_block(
+        &self,
+        input: &crate::output_formats::InputInfo,
+    ) -> Result<crate::output_formats::InputInfo> {
         let mut filtered = crate::output_formats::InputInfo::default();
 
         // Check if we have specific field inclusions for this block
@@ -406,7 +465,10 @@ impl FilterEngine {
     }
 
     /// Filter the conversion block fields
-    fn filter_conversion_block(&self, conversion: &crate::output_formats::ColorFormats) -> Result<crate::output_formats::ColorFormats> {
+    fn filter_conversion_block(
+        &self,
+        conversion: &crate::output_formats::ColorFormats,
+    ) -> Result<crate::output_formats::ColorFormats> {
         let mut filtered = crate::output_formats::ColorFormats::default();
 
         // Check if we have specific field inclusions for this block
@@ -452,7 +514,10 @@ impl FilterEngine {
     }
 
     /// Filter the contrast block fields
-    fn filter_contrast_block(&self, contrast: &crate::output_formats::ContrastData) -> Result<FilteredContrastData> {
+    fn filter_contrast_block(
+        &self,
+        contrast: &crate::output_formats::ContrastData,
+    ) -> Result<FilteredContrastData> {
         // Check if we have specific field inclusions for this block
         let has_field_inclusions = self.config.rules.iter().any(|rule| {
             matches!(rule, crate::output_filter::FilterRule::IncludeField(block, _) if block == "contrast")
@@ -467,13 +532,22 @@ impl FilterEngine {
 
         // If we have field-specific inclusions, only include those fields
         if has_field_inclusions {
-            if self.config.should_include_field("contrast", "wcag21_relative_luminance") {
+            if self
+                .config
+                .should_include_field("contrast", "wcag21_relative_luminance")
+            {
                 filtered.wcag21_relative_luminance = Some(contrast.wcag21_relative_luminance);
             }
-            if self.config.should_include_field("contrast", "contrast_vs_white") {
+            if self
+                .config
+                .should_include_field("contrast", "contrast_vs_white")
+            {
                 filtered.contrast_vs_white = Some(contrast.contrast_vs_white.clone());
             }
-            if self.config.should_include_field("contrast", "contrast_vs_black") {
+            if self
+                .config
+                .should_include_field("contrast", "contrast_vs_black")
+            {
                 filtered.contrast_vs_black = Some(contrast.contrast_vs_black.clone());
             }
             if self.config.should_include_field("contrast", "brightness") {
@@ -491,7 +565,10 @@ impl FilterEngine {
     }
 
     /// Filter the grayscale block fields
-    fn filter_grayscale_block(&self, grayscale: &crate::output_formats::GrayscaleData) -> Result<FilteredGrayscaleData> {
+    fn filter_grayscale_block(
+        &self,
+        grayscale: &crate::output_formats::GrayscaleData,
+    ) -> Result<FilteredGrayscaleData> {
         // Check if we have specific field inclusions for this block
         let has_field_inclusions = self.config.rules.iter().any(|rule| {
             matches!(rule, crate::output_filter::FilterRule::IncludeField(block, _) if block == "grayscale")
@@ -550,7 +627,10 @@ impl FilterEngine {
     }
 
     /// Filter the color_collections block
-    fn filter_color_collections_block(&self, collections: &crate::output_formats::ColorCollections) -> Result<crate::output_formats::ColorCollections> {
+    fn filter_color_collections_block(
+        &self,
+        collections: &crate::output_formats::ColorCollections,
+    ) -> Result<crate::output_formats::ColorCollections> {
         let mut filtered = crate::output_formats::ColorCollections::default();
 
         // Check if specific sub-collections should be included
@@ -568,19 +648,31 @@ impl FilterEngine {
     }
 
     /// Filter the color schemes block fields
-    fn filter_color_schemes_block(&self, schemes: &crate::output_formats::ColorSchemes) -> Result<crate::output_formats::ColorSchemes> {
+    fn filter_color_schemes_block(
+        &self,
+        schemes: &crate::output_formats::ColorSchemes,
+    ) -> Result<crate::output_formats::ColorSchemes> {
         let mut filtered = crate::output_formats::ColorSchemes::default();
 
-        if self.config.should_include_field("color_schemes", "complementary") {
+        if self
+            .config
+            .should_include_field("color_schemes", "complementary")
+        {
             filtered.complementary = schemes.complementary.clone();
         }
-        if self.config.should_include_field("color_schemes", "split_complementary") {
+        if self
+            .config
+            .should_include_field("color_schemes", "split_complementary")
+        {
             filtered.split_complementary = schemes.split_complementary.clone();
         }
         if self.config.should_include_field("color_schemes", "triadic") {
             filtered.triadic = schemes.triadic.clone();
         }
-        if self.config.should_include_field("color_schemes", "tetradic") {
+        if self
+            .config
+            .should_include_field("color_schemes", "tetradic")
+        {
             filtered.tetradic = schemes.tetradic.clone();
         }
 
@@ -589,15 +681,6 @@ impl FilterEngine {
 
     /// Check if a subcollection should be included
     fn should_include_subcollection(&self, block_name: &str, subblock_name: &str) -> bool {
-        // Check for explicit exclusion of this subblock
-        for rule in &self.config.rules {
-            if let FilterRule::ExcludeField(excluded_block, excluded_field) = rule {
-                if excluded_block == block_name && excluded_field == subblock_name {
-                    return false;
-                }
-            }
-        }
-
         // Check for explicit inclusion of this subblock
         for rule in &self.config.rules {
             if let FilterRule::IncludeField(included_block, included_field) = rule {
@@ -607,7 +690,7 @@ impl FilterEngine {
             }
         }
 
-        // If the parent block is included and no specific exclusions, include by default
+        // If the parent block is included and no specific field inclusions, include by default
         self.config.should_include_block(block_name)
     }
 }
@@ -621,7 +704,10 @@ mod tests {
         let config = FilterConfig::from_expression("[input]").unwrap();
         assert!(!config.include_all);
         assert_eq!(config.rules.len(), 1);
-        assert_eq!(config.rules[0], FilterRule::IncludeBlock("input".to_string()));
+        assert_eq!(
+            config.rules[0],
+            FilterRule::IncludeBlock("input".to_string())
+        );
     }
 
     #[test]
@@ -636,14 +722,25 @@ mod tests {
         let config = FilterConfig::from_expression("[contrast.wcag21_relative_luminance]").unwrap();
         assert!(!config.include_all);
         assert_eq!(config.rules.len(), 1);
-        assert_eq!(config.rules[0], FilterRule::IncludeField("contrast".to_string(), "wcag21_relative_luminance".to_string()));
+        assert_eq!(
+            config.rules[0],
+            FilterRule::IncludeField(
+                "contrast".to_string(),
+                "wcag21_relative_luminance".to_string()
+            )
+        );
     }
 
     #[test]
-    fn test_parse_exclusion() {
-        let config = FilterConfig::from_expression("[all,!color_collections.css_colors]").unwrap();
-        assert!(config.include_all);
-        assert_eq!(config.rules.len(), 2);
+    fn test_parse_exclusion_error() {
+        // Test that exclusion operator now returns an error
+        let result = FilterConfig::from_expression("[all,!color_collections.css_colors]");
+        assert!(result.is_err());
+        if let Err(ColorError::InvalidArguments(msg)) = result {
+            assert!(msg.contains("Exclusion operator '!' is no longer supported"));
+        } else {
+            panic!("Expected InvalidArguments error for exclusion operator");
+        }
     }
 
     #[test]

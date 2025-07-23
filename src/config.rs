@@ -43,3 +43,8 @@ pub const DEFAULT_TEXT_Y_RATIO: f64 = 0.75;
 
 /// Font configuration for image generation
 pub const FONT_FAMILY: &str = "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+
+/// Output filtering defaults (v0.14.1+)
+pub const DEFAULT_FILTER_EXPRESSION: &str = "[all]";
+pub const FILTER_EXPRESSION_MAX_LENGTH: usize = 1000;
+pub const MAX_FILTER_RULES_PER_EXPRESSION: usize = 50;

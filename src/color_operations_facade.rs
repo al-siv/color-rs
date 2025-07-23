@@ -23,11 +23,11 @@ use palette::{Lab, Srgb};
 ///
 /// // Color analysis
 /// let analysis = facade.analyze_color("#FF5733")?;
-/// 
+///
 /// // Calculate luminance
 /// let srgb = Srgb::new(1.0, 0.341, 0.2);
 /// let luminance = facade.calculate_luminance(srgb)?;
-/// 
+///
 /// // Calculate distance between colors
 /// let srgb1 = Srgb::new(1.0, 0.0, 0.0);
 /// let srgb2 = Srgb::new(0.0, 1.0, 0.0);
@@ -46,14 +46,14 @@ impl ColorOperationsFacade {
     // CRITICAL DUPLICATION ELIMINATION: ColorOperationsFacade removed all wrapper functions
     // These were duplicating ColorUtils functions with unnecessary Result<> wrappers
     // Direct usage of ColorUtils is preferred - this facade adds no value and creates confusion
-    
+
     // Use ColorUtils::parse_hex_color() directly instead of hex_to_rgb()
-    // Use ColorUtils::rgb_to_lab() directly instead of rgb_to_lab()  
+    // Use ColorUtils::rgb_to_lab() directly instead of rgb_to_lab()
     // Use ColorUtils::lab_to_hex() directly instead of lab_to_hex()
     // Use ColorUtils::rgb_to_hsl_tuple() directly instead of rgb_to_hsl()
     // Use ColorUtils::wcag_contrast_ratio() directly instead of calculate_contrast()
     // Use ColorUtils::wcag_relative_luminance_rgb() directly instead of calculate_luminance_rgb()
-    
+
     // This facade pattern was creating massive code duplication without adding functionality
 
     /// Calculate relative luminance for WCAG compliance

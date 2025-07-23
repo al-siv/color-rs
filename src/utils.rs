@@ -152,7 +152,8 @@ mod tests {
 
     #[test]
     fn test_round_to_decimals() {
-        assert_eq!(Utils::round_to_decimals(std::f64::consts::PI, 2), 3.14);
+        let pi_rounded = Utils::round_to_decimals(std::f64::consts::PI, 2);
+        assert_eq!(pi_rounded, 3.14);
         assert_eq!(Utils::round_to_decimals(2.5, 0), 3.0);
     }
 

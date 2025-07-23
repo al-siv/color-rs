@@ -131,23 +131,23 @@ contrast:
   wcag21_relative_luminance: 0.21267294883728027
 ```
 
-### Exclusion Filtering
+### Multiple Block Selection
 
 ```bash
-# Show all data except color collections
-color-rs color red --func "[all,!color_collections]"
+# Show input and conversion data only
+color-rs color red --func "[input,conversion]"
 
-# Show contrast data but exclude brightness assessment
-color-rs color "#FF5733" --func "[contrast,!contrast.brightness]"
+# Show contrast data only  
+color-rs color "#FF5733" --func "[contrast]"
 
-# Exclude multiple blocks
-color-rs color blue --func "[all,!color_collections,!color_schemes]"
+# Show multiple specific blocks
+color-rs color blue --func "[input,conversion,contrast]"
 ```
 
-#### Exclusion Filter Output Example
+#### Multiple Block Filter Output Example
 ```yaml
-# color-rs color red --func "[all,!color_collections]" 
-# (Shows all blocks except color_collections)
+# color-rs color red --func "[input,conversion]" 
+# (Shows only input and conversion blocks)
 metadata:
   program_name: color-rs
   version: '0.14.1'

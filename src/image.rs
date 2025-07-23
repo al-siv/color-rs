@@ -259,6 +259,7 @@ mod tests {
             stops_simple: false,
             output_format: None,
             output_file: None,
+            func_filter: None,
         }
     }
 

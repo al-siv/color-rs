@@ -5,6 +5,29 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2025-07-23
+
+### Changed
+- **BREAKING CHANGE**: Simplified filtering system to inclusion-only approach
+  - Removed exclusion operator (`!`) support for easier maintenance and user understanding
+  - Filter expressions now support only inclusion: `[input,conversion]`, `[contrast.wcag21_relative_luminance]`
+  - Simple format filtering: `hex,rgb,lab,lch` for both color and gradient commands
+
+### Fixed
+- **Gradient Filtering**: Fixed gradient filtering to properly omit empty fields instead of showing empty strings
+- **Missing Constants**: Added documented constants that were missing from codebase:
+  - `DEFAULT_FILTER_EXPRESSION = "[all]"`
+  - `FILTER_EXPRESSION_MAX_LENGTH = 1000`
+  - `MAX_FILTER_RULES_PER_EXPRESSION = 50`
+- **Code Quality**: Fixed all clippy warnings and improved code formatting consistency
+- **Test Coverage**: Updated tests to reflect inclusion-only filtering approach
+
+### Technical
+- **Simplified Architecture**: Removed complex exclusion logic, cleaner codebase maintenance
+- **Enhanced Output Control**: Added `skip_serializing_if` attributes for clean field omission
+- **Gradient Filtering**: Extended filtering support to gradient command with format-specific filtering
+- **Documentation Improvements**: Added filtering differences explanation between color and gradient commands
+
 ## [0.14.1] - 2025-07-23
 
 ### Added

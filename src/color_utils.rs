@@ -8,7 +8,7 @@ use crate::error::{ColorError, Result};
 use palette::{
     FromColor, Hsl, Hsv, IntoColor, Lab, Mix, Srgb,
     color_difference::{ImprovedCiede2000, Wcag21RelativeContrast},
-    color_theory::{Complementary, SplitComplementary, Triadic, Tetradic},
+    color_theory::{Complementary, SplitComplementary, Tetradic, Triadic},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -758,7 +758,11 @@ impl ColorUtils {
     pub fn tetradic_lab(color: Lab) -> (Lab, Lab, Lab) {
         let lch = Self::lab_to_lch(color);
         let (tet1, tet2, tet3) = lch.tetradic();
-        (Lab::from_color(tet1), Lab::from_color(tet2), Lab::from_color(tet3))
+        (
+            Lab::from_color(tet1),
+            Lab::from_color(tet2),
+            Lab::from_color(tet3),
+        )
     }
 
     /// Calculate complementary color using HSL color space via palette's built-in method
@@ -810,7 +814,11 @@ impl ColorUtils {
     pub fn tetradic_hsl(color: Lab) -> (Lab, Lab, Lab) {
         let hsl = Self::lab_to_hsl(color);
         let (tet1, tet2, tet3) = hsl.tetradic();
-        (Self::hsl_to_lab(tet1), Self::hsl_to_lab(tet2), Self::hsl_to_lab(tet3))
+        (
+            Self::hsl_to_lab(tet1),
+            Self::hsl_to_lab(tet2),
+            Self::hsl_to_lab(tet3),
+        )
     }
 }
 

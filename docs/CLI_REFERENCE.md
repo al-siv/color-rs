@@ -57,8 +57,8 @@ color-rs color [OPTIONS] <COLOR>
   - `[color_collections]` - Show only color_collections block
   - `[contrast.wcag21_relative_luminance]` - Show specific field from contrast block
   - `[conversion, color_collections]` - Show multiple blocks
-  - `[all,!color_collections]` - Show all except color_collections block
-  - `[!contrast.wcag21_relative_luminance]` - Exclude specific field
+  - `[input,conversion,contrast]` - Show multiple specific blocks
+  - `[color_collections.css_colors]` - Show specific sub-collection
 
 - `-f, --file <FILENAME>` - Output filename (extension added automatically based on format)
 
@@ -101,8 +101,25 @@ color-rs color "blue" --luminance 60
 # Selective output filtering
 color-rs color "#FF5733" --func "[input,conversion]"
 color-rs color "blue" --func "[contrast.wcag21_relative_luminance]"
-color-rs color "red" --func "[all,!color_collections]"
 color-rs color "green" --output toml --func "[conversion,grayscale]" --file filtered
+```
+
+### Important Note: Filtering Differences
+The `--func` filtering option works differently between the `color` and `gradient` commands:
+
+- **Color Command**: Filters apply to analysis blocks (input, conversion, contrast, grayscale, color_collections, color_schemes)
+- **Gradient Command**: Filters apply to gradient fields (start_color, end_color, steps, timing_function, stop_data)
+
+**Color Command Filters:**
+```bash
+color-rs color "red" --func "[input,conversion]"        # Shows only input and conversion blocks
+color-rs color "blue" --func "[contrast,grayscale]"     # Shows only contrast and grayscale analysis
+```
+
+**Gradient Command Filters:**
+```bash
+color-rs gradient red blue --func "[start_color,end_color]"  # Shows only start/end colors
+color-rs gradient red blue --func "[steps,timing_function]" # Shows only steps and timing info
 ```
 
 ## Gradient Command

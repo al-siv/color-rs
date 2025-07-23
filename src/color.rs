@@ -100,7 +100,7 @@ pub fn color_match(color_input: &str) {
         let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
 
         // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
-        let _ = ColorFormatter::format_comprehensive_report(lab_color, color_input, &ral_color_name);
+        ColorFormatter::format_comprehensive_report(lab_color, color_input, &ral_color_name);
     }
 
     // Parse the input color
@@ -122,7 +122,7 @@ pub fn color_match(color_input: &str) {
     };
 
     // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
-    let _ = ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name);
+    ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name);
 }
 
 /// Parse color input using the integrated parser
@@ -198,8 +198,6 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 }
 
 /// Generate comprehensive report using the unified collection approach
-
-
 /// Enhanced color matching with color schemes and luminance adjustments
 pub fn color_match_with_schemes(
     args: &crate::cli::ColorArgs,
@@ -399,12 +397,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 // Key = value pairs
                 let key = &trimmed[..eq_pos];
                 let value = &trimmed[eq_pos + 3..];
-                format!(
-                    "{}{} = {}",
-                    indent,
-                    key.green(),
-                    value
-                )
+                format!("{}{} = {}", indent, key.green(), value)
             } else {
                 line.to_string()
             }
@@ -417,19 +410,10 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 // Key: value pairs
                 let key = &trimmed[..colon_pos + 1];
                 let value = &trimmed[colon_pos + 2..];
-                format!(
-                    "{}{} {}",
-                    indent,
-                    key.green(),
-                    value
-                )
+                format!("{}{} {}", indent, key.green(), value)
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
-                format!(
-                    "{}- {}",
-                    indent,
-                    stripped
-                )
+                format!("{}- {}", indent, stripped)
             } else {
                 line.to_string()
             }
@@ -445,9 +429,7 @@ fn collect_enhanced_color_schemes_data(
 ) -> crate::output_formats::ColorSchemes {
     use crate::color_parser::ColorParser;
     use crate::color_utils::ColorUtils;
-    use crate::output_formats::{
-        CollectionMatch, EnhancedColorSchemeItem, ColorSchemes,
-    };
+    use crate::output_formats::{CollectionMatch, ColorSchemes, EnhancedColorSchemeItem};
     use palette::Lab;
 
     // Create parser for color name matching
@@ -461,7 +443,13 @@ fn collect_enhanced_color_schemes_data(
             schemes.hsl_triadic,
             schemes.hsl_tetradic,
         ),
-        "lab" | _ => (
+        "lab" => (
+            schemes.lab_complementary,
+            schemes.lab_split_complementary,
+            schemes.lab_triadic,
+            schemes.lab_tetradic,
+        ),
+        _ => (
             schemes.lab_complementary,
             schemes.lab_split_complementary,
             schemes.lab_triadic,
@@ -470,7 +458,10 @@ fn collect_enhanced_color_schemes_data(
     };
 
     /// Convert a Lab color to an EnhancedColorSchemeItem with full color information
-    fn lab_to_enhanced_color_scheme_item(lab: Lab, parser: &ColorParser) -> EnhancedColorSchemeItem {
+    fn lab_to_enhanced_color_scheme_item(
+        lab: Lab,
+        parser: &ColorParser,
+    ) -> EnhancedColorSchemeItem {
         let hex = ColorUtils::lab_to_hex(lab);
         let hsl_tuple = ColorUtils::lab_to_hsl_tuple(lab);
         let hsl = format!(
@@ -483,7 +474,8 @@ fn collect_enhanced_color_schemes_data(
 
         // Get color name information with enhanced collection matches
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
-        let (css_match, ral_classic_match, ral_design_match) = get_collection_matches((r, g, b), parser);
+        let (css_match, ral_classic_match, ral_design_match) =
+            get_collection_matches((r, g, b), parser);
 
         EnhancedColorSchemeItem {
             hex,
@@ -496,7 +488,14 @@ fn collect_enhanced_color_schemes_data(
     }
 
     /// Get collection matches for all color collections
-    fn get_collection_matches(rgb: (u8, u8, u8), parser: &ColorParser) -> (Option<CollectionMatch>, Option<CollectionMatch>, Option<CollectionMatch>) {
+    fn get_collection_matches(
+        rgb: (u8, u8, u8),
+        parser: &ColorParser,
+    ) -> (
+        Option<CollectionMatch>,
+        Option<CollectionMatch>,
+        Option<CollectionMatch>,
+    ) {
         let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
         let input_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
 
@@ -512,8 +511,15 @@ fn collect_enhanced_color_schemes_data(
             });
 
             if let Some(exact) = exact_css {
-                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]));
-                let exact_hex = format!("#{:02X}{:02X}{:02X}", exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]);
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    exact.color.rgb[0],
+                    exact.color.rgb[1],
+                    exact.color.rgb[2],
+                ));
+                let exact_hex = format!(
+                    "#{:02X}{:02X}{:02X}",
+                    exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]
+                );
                 Some(CollectionMatch {
                     name: exact.metadata.name.clone(),
                     hex: exact_hex,
@@ -523,8 +529,17 @@ fn collect_enhanced_color_schemes_data(
             } else {
                 let nearest_css = css_collection.find_closest(&target, 1, None);
                 if let Some(closest) = nearest_css.first() {
-                    let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]));
-                    let nearest_hex = format!("#{:02X}{:02X}{:02X}", closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]);
+                    let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                        closest.entry.color.rgb[0],
+                        closest.entry.color.rgb[1],
+                        closest.entry.color.rgb[2],
+                    ));
+                    let nearest_hex = format!(
+                        "#{:02X}{:02X}{:02X}",
+                        closest.entry.color.rgb[0],
+                        closest.entry.color.rgb[1],
+                        closest.entry.color.rgb[2]
+                    );
                     Some(CollectionMatch {
                         name: closest.entry.metadata.name.clone(),
                         hex: nearest_hex,
@@ -553,7 +568,11 @@ fn collect_enhanced_color_schemes_data(
                 } else {
                     closest.distance
                 };
-                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]));
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    closest.entry.color.rgb[0],
+                    closest.entry.color.rgb[1],
+                    closest.entry.color.rgb[2],
+                ));
 
                 Some(CollectionMatch {
                     name: closest.entry.metadata.name.clone(),
@@ -582,7 +601,11 @@ fn collect_enhanced_color_schemes_data(
                 } else {
                     closest.distance
                 };
-                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]));
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    closest.entry.color.rgb[0],
+                    closest.entry.color.rgb[1],
+                    closest.entry.color.rgb[2],
+                ));
 
                 Some(CollectionMatch {
                     name: closest.entry.metadata.name.clone(),

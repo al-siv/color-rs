@@ -220,7 +220,7 @@ pub trait ColorMatchingTemplate {
 
 ### 6. Interpreter Pattern ⭐ (NEW in v0.14.1)
 
-**Problem & Forces**: Need to parse and evaluate filter expressions like `[input,contrast.wcag21_relative_luminance,!color_collections]` for selective output control. Expression syntax should be intuitive for users but powerful enough for complex filtering.
+**Problem & Forces**: Need to parse and evaluate filter expressions like `[input,contrast.wcag21_relative_luminance,conversion]` for selective output control. Expression syntax should be intuitive for users but powerful enough for complex filtering using inclusion-only approach.
 
 **Where it lives**:
 - Module: `src/output_filter.rs`
@@ -233,8 +233,6 @@ pub trait ColorMatchingTemplate {
 pub enum FilterRule {
     IncludeBlock(String),
     IncludeField(String, String), // (block, field)
-    ExcludeBlock(String),
-    ExcludeField(String, String),
     IncludeAll,
 }
 
@@ -242,38 +240,28 @@ impl FilterExpressionParser {
     pub fn parse(&self, expr: &str) -> Result<FilterConfig> {
         // Grammar: '[' filter_list ']'
         // filter_list: filter_item (',' filter_item)*
-        // filter_item: 'all' | block_name | field_name | exclusion
-        // exclusion: '!' (block_name | field_name)
+        // filter_item: 'all' | block_name | field_name
         
         let content = &expr[1..expr.len()-1]; // Remove brackets
         let parts: Vec<&str> = content.split(',').map(|s| s.trim()).collect();
         
         let mut rules = Vec::new();
         for part in parts {
-            if part.starts_with('!') {
-                // Parse exclusion rules
-                let excluded = &part[1..];
-                if excluded.contains('.') {
-                    let field_parts: Vec<&str> = excluded.split('.').collect();
-                    rules.push(FilterRule::ExcludeField(
-                        field_parts[0].to_string(),
-                        field_parts[1].to_string(),
-                    ));
-                } else {
-                    rules.push(FilterRule::ExcludeBlock(excluded.to_string()));
-                }
+            // Parse inclusion rules only
+            if part.contains('.') {
+                let field_parts: Vec<&str> = part.split('.').collect();
+                rules.push(FilterRule::IncludeField(
+                    field_parts[0].to_string(),
+                    field_parts[1].to_string(),
+                ));
             } else {
-                // Parse inclusion rules
-                if part.contains('.') {
-                    let field_parts: Vec<&str> = part.split('.').collect();
-                    rules.push(FilterRule::IncludeField(
-                        field_parts[0].to_string(),
-                        field_parts[1].to_string(),
-                    ));
-                } else {
-                    rules.push(FilterRule::IncludeBlock(part.to_string()));
-                }
+                rules.push(FilterRule::IncludeBlock(part.to_string()));
             }
+        }
+        
+        Ok(FilterConfig { rules, include_all: false })
+    }
+}
         }
         
         Ok(FilterConfig { rules, include_all: false })
