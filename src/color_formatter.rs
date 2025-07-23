@@ -20,7 +20,7 @@
 //! - Additional information (grayscale, WCAG metrics, brightness)
 //! - Color collection matches (CSS names, RAL Classic, RAL Design)
 
-use crate::color_utils::*;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::Result;
 use crate::output_formats::*;
 use crate::utils::Utils;
@@ -160,16 +160,14 @@ impl ColorFormatter {
     /// Collect grayscale variations data
     fn collect_grayscale_data(lab_color: Lab) -> GrayscaleData {
         let lch = ColorUtils::lab_to_lch(lab_color);
-
-        let lch0_lab = ColorUtils::lch_tulip_to_lab((lch.l, 0.0, lch.hue.into_degrees()));
+        
+        let lch0_lab = ColorUtils::lch_tulip_to_lab((lch.l as f64, 0.0, lch.hue.into_degrees() as f64));
         let lch2_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.02, lch.hue.into_degrees()));
+            ColorUtils::lch_tulip_to_lab((lch.l as f64, lch.chroma as f64 * 0.02, lch.hue.into_degrees() as f64));
         let lch4_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.04, lch.hue.into_degrees()));
+            ColorUtils::lch_tulip_to_lab((lch.l as f64, lch.chroma as f64 * 0.04, lch.hue.into_degrees() as f64));
         let lch6_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l, lch.chroma * 0.06, lch.hue.into_degrees()));
-
-        let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
+            ColorUtils::lch_tulip_to_lab((lch.l as f64, lch.chroma as f64 * 0.06, lch.hue.into_degrees() as f64));        let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
         let lch2_hex = ColorUtils::lab_to_hex(lch2_lab);
         let lch4_hex = ColorUtils::lab_to_hex(lch4_lab);
         let lch6_hex = ColorUtils::lab_to_hex(lch6_lab);

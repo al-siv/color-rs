@@ -7,7 +7,7 @@
 use super::csv_loader::CsvLoader;
 use super::parse_utils::ParseUtils;
 use super::types::{ColorFormat, ParsedColor};
-use crate::color_utils::*;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
 use palette::*;
 use std::collections::HashMap;

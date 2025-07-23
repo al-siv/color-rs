@@ -23,7 +23,7 @@ pub mod unified_manager;
 
 pub use css_parser::CssColorParser;
 pub use ral_matcher::*;
-pub use types::{ColorFormat, ParsedColor};
+pub use types::{ColorFormat, ParsedColor, ColorParseResult};
 
 // New unified collection system exports
 pub use collections::*;
@@ -32,7 +32,7 @@ pub use ral_classic_collection::RalClassicCollection;
 pub use ral_design_collection::RalDesignCollection;
 pub use unified_manager::UnifiedColorManager;
 
-use crate::color_utils::*;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
 use palette::Lab;
 
@@ -233,5 +233,19 @@ impl ColorParser {
 impl Default for ColorParser {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Comprehensive color parsing function
+pub fn parse_color_comprehensive(input: &str) -> Result<ColorParseResult> {
+    let parser = ColorParser::new();
+    match parser.parse(input) {
+        Ok((lab, _format)) => {
+            // Convert back to ParsedColor for compatibility
+            let (r, g, b) = ColorUtils::lab_to_rgb(lab);
+            let color = ParsedColor::from_rgb(r, g, b, ColorFormat::Hex);
+            Ok(ColorParseResult::Single(color))
+        }
+        Err(e) => Err(e),
     }
 }

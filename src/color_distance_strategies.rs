@@ -103,7 +103,7 @@ pub struct LchStrategy;
 
 impl ColorDistanceStrategy for LchStrategy {
     fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
-        use crate::color_utils::ColorUtils;
+        use crate::color_utils::LegacyColorUtils as ColorUtils;
 
         // Convert LAB to LCH using ColorUtils
         let lch1 = ColorUtils::lab_to_lch(lab1);
@@ -167,7 +167,7 @@ pub fn available_strategies() -> Vec<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color_utils::ColorUtils;
+    use crate::color_utils::LegacyColorUtils as ColorUtils;
 
     #[test]
     fn test_strategy_creation() {

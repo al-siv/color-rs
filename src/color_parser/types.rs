@@ -1,5 +1,32 @@
 //! Types for the color parser module
 
+/// Result of color parsing - can be single color or multiple colors
+#[derive(Debug, Clone, PartialEq)]
+pub enum ColorParseResult {
+    /// Single color result
+    Single(ParsedColor),
+    /// Multiple colors result
+    Multiple(Vec<ParsedColor>),
+}
+
+impl ColorParseResult {
+    /// Get the first color from the result
+    pub fn first(&self) -> Option<&ParsedColor> {
+        match self {
+            ColorParseResult::Single(color) => Some(color),
+            ColorParseResult::Multiple(colors) => colors.first(),
+        }
+    }
+    
+    /// Get all colors as a vector
+    pub fn all(&self) -> Vec<&ParsedColor> {
+        match self {
+            ColorParseResult::Single(color) => vec![color],
+            ColorParseResult::Multiple(colors) => colors.iter().collect(),
+        }
+    }
+}
+
 /// Represents a parsed color with its original format
 #[derive(Debug, Clone, PartialEq)]
 pub struct ParsedColor {

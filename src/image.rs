@@ -10,7 +10,7 @@ use usvg::{Options, Tree, fontdb};
 use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
-use crate::{ColorUtils, config::*};
+use crate::{color_utils::LegacyColorUtils as ColorUtils, config::*};
 
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]

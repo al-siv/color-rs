@@ -3,7 +3,7 @@
 //! This module implements the Facade pattern to provide a simplified interface
 //! for complex color operations, making the library easier to use for common tasks.
 
-use crate::color_utils::*;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::Result;
 use palette::{Lab, Srgb};
 
@@ -138,7 +138,7 @@ impl ColorOperationsFacade {
             srgb: srgb1,
             hex: ColorUtils::lab_to_hex(lab),
             lab,
-            hsl,
+            hsl: (hsl.0 as f32, hsl.1 as f32, hsl.2 as f32),
             luminance,
             contrast_white,
             contrast_black,

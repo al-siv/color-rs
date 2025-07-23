@@ -4,7 +4,7 @@
 //! Supports different native color spaces while using LAB for perceptually accurate comparisons.
 
 use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
-use crate::color_utils::ColorUtils;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use palette::Lab;
 use std::collections::HashMap;
 

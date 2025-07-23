@@ -8,7 +8,7 @@ use super::compat::{
     find_closest_ral_classic_compat, find_closest_ral_colors_compat,
     find_closest_ral_design_compat, find_ral_by_code_compat, find_ral_by_name_pattern_compat,
 };
-use crate::color_utils::*;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use palette::Lab;
 use regex::Regex;
 use std::sync::OnceLock;
@@ -180,13 +180,13 @@ mod tests {
 
         // Calculate distances manually
         let green_6038_dist =
-            crate::color_utils::ColorUtils::lab_array_distance(input_lab, green_6038_lab);
+            ColorUtils::lab_array_distance(input_lab, green_6038_lab);
         let green_6018_dist =
-            crate::color_utils::ColorUtils::lab_array_distance(input_lab, green_6018_lab);
+            ColorUtils::lab_array_distance(input_lab, green_6018_lab);
         let blue_5000_dist =
-            crate::color_utils::ColorUtils::lab_array_distance(input_lab, blue_5000_lab);
+            ColorUtils::lab_array_distance(input_lab, blue_5000_lab);
         let blue_5007_dist =
-            crate::color_utils::ColorUtils::lab_array_distance(input_lab, blue_5007_lab);
+            ColorUtils::lab_array_distance(input_lab, blue_5007_lab);
 
         println!(
             "Input: LAB({:.2}, {:.2}, {:.2})",

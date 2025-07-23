@@ -2,7 +2,7 @@
 
 use crate::color_formatter::ColorFormatter;
 use crate::color_parser::{ColorCollection, UniversalColor};
-use crate::color_utils::*;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
 use crate::utils::Utils;
@@ -264,15 +264,6 @@ fn format_comprehensive_report_with_structured_output(
     let color_schemes = collect_enhanced_color_schemes_data(&schemes, &args.scheme_strategy);
     analysis_data = analysis_data.with_color_schemes(color_schemes);
 
-    // Apply filtering if func_filter is specified
-    let filtered_analysis_data = if let Some(filter_expr) = &args.func_filter {
-        let filter_config = crate::output_filter::FilterConfig::from_expression(filter_expr)?;
-        let filter_engine = crate::output_filter::FilterEngine::new(filter_config);
-        filter_engine.apply(&analysis_data)?
-    } else {
-        crate::output_filter::AnalysisOutput::Unfiltered(analysis_data)
-    };
-
     // Determine output format (default to YAML if not specified)
     let format = args
         .output_format
@@ -281,13 +272,13 @@ fn format_comprehensive_report_with_structured_output(
 
     // Create output service and generate formatted output
     let formatted_output = match format {
-        crate::cli::OutputFormat::Toml => filtered_analysis_data.to_toml().map_err(|e| {
+        crate::cli::OutputFormat::Toml => analysis_data.to_toml().map_err(|e| {
             crate::error::ColorError::InvalidArguments(format!(
                 "Failed to serialize to TOML: {}",
                 e
             ))
         })?,
-        crate::cli::OutputFormat::Yaml => filtered_analysis_data.to_yaml().map_err(|e| {
+        crate::cli::OutputFormat::Yaml => analysis_data.to_yaml().map_err(|e| {
             crate::error::ColorError::InvalidArguments(format!(
                 "Failed to serialize to YAML: {}",
                 e
@@ -312,7 +303,7 @@ fn format_comprehensive_report_with_structured_output(
                 } else {
                     format!("{}.toml", filename)
                 };
-                let toml_content = filtered_analysis_data.to_toml().map_err(|e| {
+                let toml_content = analysis_data.to_toml().map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
                         "Failed to serialize to TOML: {}",
                         e
@@ -341,7 +332,7 @@ fn format_comprehensive_report_with_structured_output(
                 } else {
                     format!("{}.yaml", filename)
                 };
-                let yaml_content = filtered_analysis_data.to_yaml().map_err(|e| {
+                let yaml_content = analysis_data.to_yaml().map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
                         "Failed to serialize to YAML: {}",
                         e
@@ -428,7 +419,7 @@ fn collect_enhanced_color_schemes_data(
     strategy: &str,
 ) -> crate::output_formats::ColorSchemes {
     use crate::color_parser::ColorParser;
-    use crate::color_utils::ColorUtils;
+    use crate::color_utils::LegacyColorUtils as ColorUtils;
     use crate::output_formats::{CollectionMatch, ColorSchemes, EnhancedColorSchemeItem};
     use palette::Lab;
 

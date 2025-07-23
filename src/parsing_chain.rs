@@ -4,7 +4,7 @@
 //! different color input formats. Each handler in the chain attempts to parse
 //! the input and either handles it or passes it to the next handler.
 
-use crate::{ColorUtils, error::ColorError};
+use crate::{color_utils::LegacyColorUtils as ColorUtils, error::ColorError};
 use palette::Lab;
 use std::sync::Arc;
 

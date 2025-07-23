@@ -19,9 +19,7 @@ pub mod error;
 pub mod file_output;
 pub mod format_utils;
 pub mod gradient;
-pub mod gradient_builder;
 pub mod image;
-pub mod output_filter;
 pub mod output_formats;
 pub mod precision_utils;
 pub mod utils;
@@ -43,10 +41,10 @@ pub use color_parser_factory::{
 pub use color_schemes::{
     ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
 };
-pub use color_utils::ColorUtils;
+pub use color_utils::LegacyColorUtils as ColorUtils;
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
-pub use gradient_builder::GradientBuilder;
+
 pub use image::{ImageFormat, ImageGenerator};
 pub use utils::Utils;
 

@@ -5,7 +5,6 @@
 
 use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
-use crate::gradient::GradientCalculator;
 use std::collections::HashMap;
 
 /// Result of executing a command
@@ -113,15 +112,16 @@ impl Command for GenerateGradientCommand {
             }
         };
 
-        // Generate gradient values
-        let gradient_data =
-            GradientCalculator::generate_gradient_values(&self.args, start_lab, end_lab)?;
-
+        // Generate simple gradient output using basic interpolation
+        let steps = self.args.stops;
         let mut output = String::new();
         output.push_str("Generated gradient:\n");
-
-        for item in &gradient_data {
-            output.push_str(&format!("Position {}: {}\n", item.position, item.hex));
+        
+        for i in 0..steps {
+            let t = i as f64 / (steps - 1) as f64;
+            let interpolated = crate::color_utils::LegacyColorUtils::interpolate_lab(start_lab, end_lab, t);
+            let hex = crate::color_utils::LegacyColorUtils::lab_to_hex(interpolated);
+            output.push_str(&format!("Step {}: {}\n", i, hex));
         }
 
         // Generate SVG if requested
@@ -160,7 +160,7 @@ impl Command for GenerateGradientCommand {
         let mut metadata = HashMap::new();
         metadata.insert("start_color".to_string(), self.args.start_color.clone());
         metadata.insert("end_color".to_string(), self.args.end_color.clone());
-        metadata.insert("steps".to_string(), gradient_data.len().to_string());
+        metadata.insert("steps".to_string(), steps.to_string());
 
         Ok(CommandResult::success_with_metadata(output, metadata))
     }

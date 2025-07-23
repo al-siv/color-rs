@@ -68,11 +68,12 @@ fn main() -> Result<()> {
     color_rs.generate_gradient(args)?;
 
     println!("\n4. Intelligent Stop Calculation:");
-    let intelligent_stops =
-        GradientCalculator::calculate_intelligent_stops_integer(8, 0.9, 0.1, 0, 100);
+    let calculator = GradientCalculator::with_intelligent_stops(0.9, 0.1);
+    let intelligent_stops = calculator.calculate_stops_integer(8, 0, 100);
     println!("Intelligent stops: {:?}", intelligent_stops);
 
-    let equal_stops: Vec<u8> = (0..8).map(|i| (i * 100 / 7) as u8).collect();
+    let equal_calculator = GradientCalculator::with_equal_spacing();
+    let equal_stops = equal_calculator.calculate_stops_integer(8, 0, 100);
     println!("Equal stops:       {:?}", equal_stops);
 
     println!("\nExample completed successfully!");

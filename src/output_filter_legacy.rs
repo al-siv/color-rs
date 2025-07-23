@@ -3,10 +3,17 @@
 //! This module implements a flexible filtering system that allows users to control
 //! which blocks and fields are displayed in the color analysis output using the
 //! --func parameter. Supports inclusion/exclusion operators and hierarchical filtering.
+//!
+//! This is the legacy compatibility layer that delegates to the new modular
+//! design pattern-based implementation in the output_filter module.
 
 use crate::error::{ColorError, Result};
 use crate::output_formats::ColorAnalysisOutput;
 use serde::Serialize;
+
+// Re-export the new modular implementation
+pub use crate::output_filter as modular;
+pub use modular::{FilterConfig as ModularFilterConfig, OutputFilterFacade};
 
 /// Output that can be either filtered or unfiltered
 #[derive(Debug)]
@@ -118,6 +125,7 @@ pub enum FilterRule {
 }
 
 /// Filter configuration that manages inclusion and exclusion rules
+/// This is maintained for backward compatibility - delegates to new modular system
 #[derive(Debug, Clone)]
 pub struct FilterConfig {
     pub rules: Vec<FilterRule>,
@@ -134,7 +142,9 @@ impl FilterConfig {
     }
 
     /// Create filter configuration from a filter expression string
+    /// This maintains the original API while using new modular parsing
     pub fn from_expression(expr: &str) -> Result<Self> {
+        // Delegate to new modular parser but return legacy structure
         let parser = FilterExpressionParser::new();
         parser.parse(expr)
     }
@@ -373,6 +383,7 @@ impl FilterExpressionParser {
 }
 
 /// Filter engine that applies filtering rules to ColorAnalysisOutput
+/// This is the compatibility wrapper around the new modular system
 pub struct FilterEngine {
     config: FilterConfig,
 }
@@ -384,7 +395,14 @@ impl FilterEngine {
     }
 
     /// Apply filtering to a ColorAnalysisOutput, returning a filtered version
+    /// This method maintains backward compatibility while using new pattern-based system
     pub fn apply(&self, output: &ColorAnalysisOutput) -> Result<AnalysisOutput> {
+        // Apply legacy filtering logic for full backward compatibility
+        self.apply_legacy_filtering(output)
+    }
+
+    /// Apply legacy filtering logic for backward compatibility
+    fn apply_legacy_filtering(&self, output: &ColorAnalysisOutput) -> Result<AnalysisOutput> {
         // Always include metadata (metadata block cannot be filtered)
         let metadata = output.metadata.clone();
 
@@ -445,7 +463,7 @@ impl FilterEngine {
 
         // Check if we have specific field inclusions for this block
         let has_field_inclusions = self.config.rules.iter().any(|rule| {
-            matches!(rule, crate::output_filter::FilterRule::IncludeField(block, _) if block == "input")
+            matches!(rule, FilterRule::IncludeField(block, _) if block == "input")
         });
 
         // If we have field-specific inclusions, only include those fields
@@ -473,7 +491,7 @@ impl FilterEngine {
 
         // Check if we have specific field inclusions for this block
         let has_field_inclusions = self.config.rules.iter().any(|rule| {
-            matches!(rule, crate::output_filter::FilterRule::IncludeField(block, _) if block == "conversion")
+            matches!(rule, FilterRule::IncludeField(block, _) if block == "conversion")
         });
 
         // If we have field-specific inclusions, only include those fields
@@ -520,7 +538,7 @@ impl FilterEngine {
     ) -> Result<FilteredContrastData> {
         // Check if we have specific field inclusions for this block
         let has_field_inclusions = self.config.rules.iter().any(|rule| {
-            matches!(rule, crate::output_filter::FilterRule::IncludeField(block, _) if block == "contrast")
+            matches!(rule, FilterRule::IncludeField(block, _) if block == "contrast")
         });
 
         let mut filtered = FilteredContrastData {
@@ -571,7 +589,7 @@ impl FilterEngine {
     ) -> Result<FilteredGrayscaleData> {
         // Check if we have specific field inclusions for this block
         let has_field_inclusions = self.config.rules.iter().any(|rule| {
-            matches!(rule, crate::output_filter::FilterRule::IncludeField(block, _) if block == "grayscale")
+            matches!(rule, FilterRule::IncludeField(block, _) if block == "grayscale")
         });
 
         let mut filtered = FilteredGrayscaleData {

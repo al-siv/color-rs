@@ -5,6 +5,36 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.1] - 2025-07-23
+
+### Changed
+- **Architecture Simplification**: Major codebase cleanup and simplification
+  - Removed over-engineered GoF pattern implementations where they added unnecessary complexity
+  - Simplified gradient module from 4-file complex system to single clean module
+  - Eliminated excessive abstraction layers for better maintainability
+  - Flattened module structures and removed circular dependencies
+
+### Removed
+- **Dead Code Elimination**: Removed 1000+ lines of over-engineered code
+  - Deleted complex gradient workflow system (workflow.rs)
+  - Removed entire output_filter module with excessive Strategy/Observer patterns
+  - Eliminated duplicate ColorUtils implementations
+  - Removed unused easing strategies and factory patterns
+
+### Fixed
+- **Build System**: Achieved zero compilation errors and warnings
+  - Fixed f32/f64 type mismatches in gradient calculations
+  - Corrected Lab struct construction and into_color() calls
+  - Resolved missing function implementations
+  - Fixed method call patterns (static vs instance)
+
+### Internal
+- **Code Quality**: Improved maintainability without breaking public API
+  - Consolidated color operations to LegacyColorUtils for backward compatibility
+  - Simplified command pattern implementation
+  - Retained essential GoF patterns while removing over-engineering
+  - Standardized function signatures and interfaces
+
 ## [0.15.0] - 2025-07-23
 
 ### Changed

@@ -4,7 +4,7 @@
 //! complementary, split-complementary, and triadic colors using both HSV and
 //! Lab color spaces, with support for luminance matching.
 
-use crate::color_utils::ColorUtils;
+use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
 use palette::Lab;
 
@@ -31,19 +31,39 @@ pub struct HslColorSchemeStrategy;
 
 impl ColorSchemeStrategy for HslColorSchemeStrategy {
     fn complementary(&self, color: Lab) -> Lab {
-        ColorUtils::complementary_hsl(color)
+        let colors = ColorUtils::complementary_hsl(color);
+        if colors.len() >= 2 {
+            colors[1] // Return the actual complementary color, not the original
+        } else {
+            color
+        }
     }
 
     fn split_complementary(&self, color: Lab) -> (Lab, Lab) {
-        ColorUtils::split_complementary_hsl(color)
+        let colors = ColorUtils::split_complementary_hsl(color);
+        if colors.len() >= 2 {
+            (colors[0], colors[1])
+        } else {
+            (color, color)
+        }
     }
 
     fn triadic(&self, color: Lab) -> (Lab, Lab) {
-        ColorUtils::triadic_hsl(color)
+        let colors = ColorUtils::triadic_hsl(color);
+        if colors.len() >= 2 {
+            (colors[0], colors[1])
+        } else {
+            (color, color)
+        }
     }
 
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
-        ColorUtils::tetradic_hsl(color)
+        let colors = ColorUtils::tetradic_hsl(color);
+        if colors.len() >= 3 {
+            (colors[0], colors[1], colors[2])
+        } else {
+            (color, color, color)
+        }
     }
 
     fn name(&self) -> &'static str {
@@ -56,19 +76,39 @@ pub struct LabColorSchemeStrategy;
 
 impl ColorSchemeStrategy for LabColorSchemeStrategy {
     fn complementary(&self, color: Lab) -> Lab {
-        ColorUtils::complementary_lab(color)
+        let colors = ColorUtils::complementary_lab(color);
+        if colors.len() >= 2 {
+            colors[1] // Return the actual complementary color, not the original
+        } else {
+            color
+        }
     }
 
     fn split_complementary(&self, color: Lab) -> (Lab, Lab) {
-        ColorUtils::split_complementary_lab(color)
+        let colors = ColorUtils::split_complementary_lab(color);
+        if colors.len() >= 2 {
+            (colors[0], colors[1])
+        } else {
+            (color, color)
+        }
     }
 
     fn triadic(&self, color: Lab) -> (Lab, Lab) {
-        ColorUtils::triadic_lab(color)
+        let colors = ColorUtils::triadic_lab(color);
+        if colors.len() >= 2 {
+            (colors[0], colors[1])
+        } else {
+            (color, color)
+        }
     }
 
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
-        ColorUtils::tetradic_lab(color)
+        let colors = ColorUtils::tetradic_lab(color);
+        if colors.len() >= 3 {
+            (colors[0], colors[1], colors[2])
+        } else {
+            (color, color, color)
+        }
     }
 
     fn name(&self) -> &'static str {
