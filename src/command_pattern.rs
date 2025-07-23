@@ -96,8 +96,7 @@ impl Command for GenerateGradientCommand {
             Ok(lab) => lab,
             Err(e) => {
                 return Ok(CommandResult::failure(format!(
-                    "Failed to parse start color: {}",
-                    e
+                    "Failed to parse start color: {e}"
                 )));
             }
         };
@@ -106,8 +105,7 @@ impl Command for GenerateGradientCommand {
             Ok(lab) => lab,
             Err(e) => {
                 return Ok(CommandResult::failure(format!(
-                    "Failed to parse end color: {}",
-                    e
+                    "Failed to parse end color: {e}"
                 )));
             }
         };
@@ -121,7 +119,7 @@ impl Command for GenerateGradientCommand {
             let t = i as f64 / (steps - 1) as f64;
             let interpolated = crate::color_utils::LegacyColorUtils::interpolate_lab(start_lab, end_lab, t);
             let hex = crate::color_utils::LegacyColorUtils::lab_to_hex(interpolated);
-            output.push_str(&format!("Step {}: {}\n", i, hex));
+            output.push_str(&format!("Step {i}: {hex}\n"));
         }
 
         // Generate SVG if requested
@@ -130,13 +128,12 @@ impl Command for GenerateGradientCommand {
                 Ok(_svg_content) => {
                     output.push_str("\nSVG generated successfully\n");
                     if let Some(path) = &self.output_path {
-                        output.push_str(&format!("SVG saved to: {}\n", path));
+                        output.push_str(&format!("SVG saved to: {path}\n"));
                     }
                 }
                 Err(e) => {
                     return Ok(CommandResult::failure(format!(
-                        "Failed to generate SVG: {}",
-                        e
+                        "Failed to generate SVG: {e}"
                     )));
                 }
             }
@@ -150,8 +147,7 @@ impl Command for GenerateGradientCommand {
                 }
                 Err(e) => {
                     return Ok(CommandResult::failure(format!(
-                        "Failed to generate PNG: {}",
-                        e
+                        "Failed to generate PNG: {e}"
                     )));
                 }
             }
@@ -236,8 +232,7 @@ impl Command for FindClosestColorCommand {
             Ok(lab) => lab,
             Err(e) => {
                 return Ok(CommandResult::failure(format!(
-                    "Failed to parse color: {}",
-                    e
+                    "Failed to parse color: {e}"
                 )));
             }
         };
@@ -282,6 +277,7 @@ impl Default for CommandInvoker {
 }
 
 impl CommandInvoker {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             history: Vec::new(),
@@ -321,6 +317,7 @@ impl CommandInvoker {
     }
 
     /// Get command history
+    #[must_use]
     pub fn get_history(&self) -> Vec<&str> {
         self.history.iter().map(|cmd| cmd.name()).collect()
     }

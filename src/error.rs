@@ -31,15 +31,15 @@ pub enum ColorError {
 impl fmt::Display for ColorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ColorError::InvalidColor(msg) => write!(f, "Invalid color: {}", msg),
-            ColorError::InvalidGradient(msg) => write!(f, "Invalid gradient: {}", msg),
-            ColorError::ImageError(msg) => write!(f, "Image error: {}", msg),
-            ColorError::IoError(err) => write!(f, "I/O error: {}", err),
-            ColorError::SvgError(msg) => write!(f, "SVG error: {}", msg),
-            ColorError::InvalidArguments(msg) => write!(f, "Invalid arguments: {}", msg),
-            ColorError::ParseError(msg) => write!(f, "Color parse error: {}", msg),
-            ColorError::InvalidOperation(msg) => write!(f, "Invalid operation: {}", msg),
-            ColorError::General(msg) => write!(f, "Error: {}", msg),
+            ColorError::InvalidColor(msg) => write!(f, "Invalid color: {msg}"),
+            ColorError::InvalidGradient(msg) => write!(f, "Invalid gradient: {msg}"),
+            ColorError::ImageError(msg) => write!(f, "Image error: {msg}"),
+            ColorError::IoError(err) => write!(f, "I/O error: {err}"),
+            ColorError::SvgError(msg) => write!(f, "SVG error: {msg}"),
+            ColorError::InvalidArguments(msg) => write!(f, "Invalid arguments: {msg}"),
+            ColorError::ParseError(msg) => write!(f, "Color parse error: {msg}"),
+            ColorError::InvalidOperation(msg) => write!(f, "Invalid operation: {msg}"),
+            ColorError::General(msg) => write!(f, "Error: {msg}"),
         }
     }
 }
@@ -61,13 +61,13 @@ impl From<std::io::Error> for ColorError {
 
 impl From<std::num::ParseIntError> for ColorError {
     fn from(err: std::num::ParseIntError) -> Self {
-        ColorError::InvalidColor(format!("Parse error: {}", err))
+        ColorError::InvalidColor(format!("Parse error: {err}"))
     }
 }
 
 impl From<image::ImageError> for ColorError {
     fn from(err: image::ImageError) -> Self {
-        ColorError::ImageError(format!("Image processing error: {}", err))
+        ColorError::ImageError(format!("Image processing error: {err}"))
     }
 }
 
@@ -81,7 +81,7 @@ impl From<anyhow::Error> for ColorError {
 // For formatting errors
 impl From<std::fmt::Error> for ColorError {
     fn from(err: std::fmt::Error) -> Self {
-        ColorError::General(format!("Formatting error: {}", err))
+        ColorError::General(format!("Formatting error: {err}"))
     }
 }
 
@@ -114,7 +114,7 @@ pub trait IoResultExt<T> {
 
 impl<T> IoResultExt<T> for std::io::Result<T> {
     fn to_err(self) -> Result<T> {
-        self.map_err(|e| ColorError::InvalidColor(format!("IO error: {}", e)))
+        self.map_err(|e| ColorError::InvalidColor(format!("IO error: {e}")))
     }
 }
 
@@ -146,6 +146,6 @@ pub trait Utf8ResultExt {
 
 impl Utf8ResultExt for std::result::Result<String, std::string::FromUtf8Error> {
     fn to_err(self) -> Result<String> {
-        self.map_err(|e| ColorError::InvalidColor(format!("UTF-8 conversion error: {}", e)))
+        self.map_err(|e| ColorError::InvalidColor(format!("UTF-8 conversion error: {e}")))
     }
 }

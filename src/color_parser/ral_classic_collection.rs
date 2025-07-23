@@ -43,7 +43,7 @@ impl RalClassicCollection {
             if number_part.len() >= 4 {
                 // Group by first digit (1000-1999, 2000-2999, etc.)
                 let group_number = &number_part[..1];
-                format!("RAL {}000", group_number)
+                format!("RAL {group_number}000")
             } else {
                 code.to_string()
             }

@@ -166,6 +166,7 @@ impl GradientCalculator {
     }
     
     /// Cubic bezier easing function for backwards compatibility
+    #[must_use]
     pub fn cubic_bezier_ease(t: f64, ease_in: f64, ease_out: f64) -> f64 {
         // Simple cubic bezier approximation
         let t2 = t * t;
@@ -250,7 +251,7 @@ impl GradientCalculator {
                 position: format!("{}%", position.round() as u8),
                 hex: hex_color,
                 rgb: Utils::rgb_to_string(rgb_values.0, rgb_values.1, rgb_values.2),
-                wcag_luminance: format!("{:.3}", wcag_luminance),
+                wcag_luminance: format!("{wcag_luminance:.3}"),
             });
         }
 

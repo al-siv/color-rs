@@ -8,17 +8,14 @@ use kurbo::{CubicBez, ParamCurve, Point};
 
 /// Enum representing different types of easing functions
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum EasingType {
+    #[default]
     Linear,
     CubicBezier,
     Smooth,
 }
 
-impl Default for EasingType {
-    fn default() -> Self {
-        EasingType::Linear
-    }
-}
 
 /// Strategy trait for different easing functions
 pub trait EasingStrategy {

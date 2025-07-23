@@ -22,7 +22,10 @@
 
 use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::Result;
-use crate::output_formats::*;
+use crate::output_formats::{
+    BrightnessInfo, ColorAnalysisOutput, ColorCollections, ColorFormats, 
+    ColorMatch, ContrastData, ContrastInfo, GrayscaleData
+};
 use crate::utils::Utils;
 use palette::Lab;
 
@@ -38,6 +41,7 @@ impl ColorFormatter {
     }
 
     /// Format a simple color info for table display
+    #[must_use]
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
         let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
 
@@ -45,7 +49,7 @@ impl ColorFormatter {
 
         crate::color::ColorInfo {
             label: label.to_string(),
-            hex: format!("#{:02X}{:02X}{:02X}", r, g, b),
+            hex: format!("#{r:02X}{g:02X}{b:02X}"),
             rgb: Utils::rgb_to_string(r, g, b),
             hsl: format!("hsl({:.0}, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0),
             lab: format!(

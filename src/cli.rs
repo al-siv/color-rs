@@ -1,6 +1,12 @@
 //! Command-line interface for color-rs
 
-use crate::config::*;
+use crate::config::{
+    APP_NAME, APP_DESCRIPTION, APP_AUTHOR, APP_VERSION, 
+    DEFAULT_START_POSITION, DEFAULT_END_POSITION, 
+    DEFAULT_EASE_IN, DEFAULT_EASE_OUT, DEFAULT_WIDTH, 
+    DEFAULT_SVG_NAME, DEFAULT_PNG_NAME, MAX_PERCENTAGE, 
+    BEZIER_MIN, BEZIER_MAX
+};
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
@@ -21,7 +27,7 @@ fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
     trimmed
         .parse::<u8>()
-        .map_err(|_| format!("Invalid percentage value: {}", s))
+        .map_err(|_| format!("Invalid percentage value: {s}"))
 }
 
 /// Main CLI structure
@@ -203,11 +209,13 @@ impl GradientArgs {
     }
 
     /// Check if SVG generation should be enabled (explicit flag or custom name)
+    #[must_use]
     pub fn should_generate_svg(&self) -> bool {
         self.svg || self.svg_name != DEFAULT_SVG_NAME
     }
 
     /// Check if PNG generation should be enabled (explicit flag or custom name)
+    #[must_use]
     pub fn should_generate_png(&self) -> bool {
         self.png || self.png_name != DEFAULT_PNG_NAME
     }

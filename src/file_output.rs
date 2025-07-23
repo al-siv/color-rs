@@ -27,7 +27,7 @@ pub struct TomlOutputStrategy;
 impl FileOutputStrategy for TomlOutputStrategy {
     fn serialize(&self, data: &ColorAnalysisOutput) -> Result<String> {
         data.to_toml().map_err(|e| {
-            ColorError::InvalidArguments(format!("Failed to serialize to TOML: {}", e))
+            ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}"))
         })
     }
 
@@ -46,7 +46,7 @@ pub struct YamlOutputStrategy;
 impl FileOutputStrategy for YamlOutputStrategy {
     fn serialize(&self, data: &ColorAnalysisOutput) -> Result<String> {
         data.to_yaml().map_err(|e| {
-            ColorError::InvalidArguments(format!("Failed to serialize to YAML: {}", e))
+            ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}"))
         })
     }
 
@@ -110,12 +110,12 @@ impl FileOutputService {
         let filename = if filename.ends_with(".toml") {
             filename.to_string()
         } else {
-            format!("{}.toml", filename)
+            format!("{filename}.toml")
         };
 
         let toml_string = data
             .to_toml()
-            .map_err(|e| ColorError::General(format!("Failed to serialize to TOML: {}", e)))?;
+            .map_err(|e| ColorError::General(format!("Failed to serialize to TOML: {e}")))?;
 
         fs::write(&filename, toml_string).map_err(ColorError::IoError)?;
 
@@ -133,12 +133,12 @@ impl FileOutputService {
         let filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
             filename.to_string()
         } else {
-            format!("{}.yaml", filename)
+            format!("{filename}.yaml")
         };
 
         let yaml_string = data
             .to_yaml()
-            .map_err(|e| ColorError::General(format!("Failed to serialize to YAML: {}", e)))?;
+            .map_err(|e| ColorError::General(format!("Failed to serialize to YAML: {e}")))?;
 
         fs::write(&filename, yaml_string).map_err(ColorError::IoError)?;
 
@@ -158,8 +158,7 @@ impl FileOutputService {
         for ch in invalid_chars {
             if filename.contains(ch) {
                 return Err(ColorError::InvalidArguments(format!(
-                    "Filename contains invalid character: '{}'",
-                    ch
+                    "Filename contains invalid character: '{ch}'"
                 )));
             }
         }
@@ -182,7 +181,7 @@ impl FileOutputService {
             Some(ext) if ext == extension => filename.to_string(),
             _ => format!(
                 "{}.{}",
-                filename.trim_end_matches(&format!(".{}", extension)),
+                filename.trim_end_matches(&format!(".{extension}")),
                 extension
             ),
         }
@@ -192,15 +191,13 @@ impl FileOutputService {
     fn write_file_content(filename: &str, content: &str, format_name: &str) -> Result<()> {
         let mut file = File::create(filename).map_err(|e| {
             ColorError::InvalidArguments(format!(
-                "Failed to create {} file '{}': {}",
-                format_name, filename, e
+                "Failed to create {format_name} file '{filename}': {e}"
             ))
         })?;
 
         file.write_all(content.as_bytes()).map_err(|e| {
             ColorError::InvalidArguments(format!(
-                "Failed to write {} content to '{}': {}",
-                format_name, filename, e
+                "Failed to write {format_name} content to '{filename}': {e}"
             ))
         })?;
 

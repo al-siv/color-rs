@@ -12,8 +12,9 @@ pub struct PrecisionUtils;
 impl PrecisionUtils {
     /// Format a floating point value with maximum 5 decimal places
     /// Removes trailing zeros for cleaner output
+    #[must_use]
     pub fn format_f64(value: f64) -> String {
-        let formatted = format!("{:.5}", value);
+        let formatted = format!("{value:.5}");
         // Remove trailing zeros and decimal point if not needed
         formatted
             .trim_end_matches('0')
@@ -22,17 +23,20 @@ impl PrecisionUtils {
     }
 
     /// Format a floating point value with exactly the specified decimal places
+    #[must_use]
     pub fn format_f64_fixed(value: f64, decimals: usize) -> String {
         let decimals = decimals.min(MAX_DECIMAL_PLACES);
-        format!("{:.prec$}", value, prec = decimals)
+        format!("{value:.decimals$}")
     }
 
     /// Format percentage with 2 decimal places maximum
+    #[must_use]
     pub fn format_percentage(value: f64) -> String {
         Self::format_f64_fixed(value * 100.0, 2)
     }
 
     /// Format LAB values with standardized precision
+    #[must_use]
     pub fn format_lab(l: f64, a: f64, b: f64) -> String {
         format!(
             "lab({}, {}, {})",
@@ -43,6 +47,7 @@ impl PrecisionUtils {
     }
 
     /// Format LCH values with standardized precision
+    #[must_use]
     pub fn format_lch(l: f64, c: f64, h: f64) -> String {
         format!(
             "lch({}, {}, {})",
@@ -53,6 +58,7 @@ impl PrecisionUtils {
     }
 
     /// Format OKLCh values with standardized precision
+    #[must_use]
     pub fn format_oklch(l: f64, c: f64, h: f64) -> String {
         format!(
             "oklch({}, {}, {})",
@@ -63,6 +69,7 @@ impl PrecisionUtils {
     }
 
     /// Format XYZ values with standardized precision
+    #[must_use]
     pub fn format_xyz(x: f64, y: f64, z: f64) -> String {
         format!(
             "xyz({}, {}, {})",
@@ -73,6 +80,7 @@ impl PrecisionUtils {
     }
 
     /// Format HSL values with standardized precision
+    #[must_use]
     pub fn format_hsl(h: f64, s: f64, l: f64) -> String {
         format!(
             "hsl({}, {}%, {}%)",
@@ -83,6 +91,7 @@ impl PrecisionUtils {
     }
 
     /// Format HSV/HSB values with standardized precision
+    #[must_use]
     pub fn format_hsv(h: f64, s: f64, v: f64) -> String {
         format!(
             "hsv({}, {}%, {}%)",
@@ -93,6 +102,7 @@ impl PrecisionUtils {
     }
 
     /// Format CMYK values with standardized precision
+    #[must_use]
     pub fn format_cmyk(c: f64, m: f64, y: f64, k: f64) -> String {
         format!(
             "cmyk({}%, {}%, {}%, {}%)",

@@ -56,6 +56,7 @@ impl Default for GradientBuilder {
 
 impl GradientBuilder {
     /// Create a new gradient builder with default values
+    #[must_use]
     pub fn new() -> Self {
         Self {
             start_color: None,

@@ -9,7 +9,7 @@ use super::parse_utils::ParseUtils;
 use super::types::{ColorFormat, ParsedColor};
 use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
-use palette::*;
+use palette::{Hsl, IntoColor};
 use std::collections::HashMap;
 
 /// CSS color parser that handles various CSS color formats
@@ -56,8 +56,7 @@ impl CssColorParser {
         }
 
         Err(ColorError::InvalidColor(format!(
-            "Unrecognized color format: {}",
-            input
+            "Unrecognized color format: {input}"
         )))
     }
 
@@ -72,9 +71,9 @@ impl CssColorParser {
                 let g_hex = &hex_part[1..2];
                 let b_hex = &hex_part[2..3];
 
-                let r = ParseUtils::parse_hex_component(&format!("{}{}", r_hex, r_hex))?;
-                let g = ParseUtils::parse_hex_component(&format!("{}{}", g_hex, g_hex))?;
-                let b = ParseUtils::parse_hex_component(&format!("{}{}", b_hex, b_hex))?;
+                let r = ParseUtils::parse_hex_component(&format!("{r_hex}{r_hex}"))?;
+                let g = ParseUtils::parse_hex_component(&format!("{g_hex}{g_hex}"))?;
+                let b = ParseUtils::parse_hex_component(&format!("{b_hex}{b_hex}"))?;
 
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Hex))
             }
@@ -152,8 +151,7 @@ impl CssColorParser {
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Lch))
             }
             _ => Err(ColorError::InvalidColor(format!(
-                "Unknown function: {}",
-                function_name
+                "Unknown function: {function_name}"
             ))),
         }
     }

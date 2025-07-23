@@ -97,7 +97,7 @@ impl ColorParser {
 
         // Try hex color without # symbol
         if self.is_hex_without_hash(input) {
-            let hex_with_hash = format!("#{}", input);
+            let hex_with_hash = format!("#{input}");
             if let Ok(parsed) = self.css_parser.parse(&hex_with_hash) {
                 let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Hex));
@@ -111,8 +111,7 @@ impl ColorParser {
 
         // If all parsing methods failed, return error
         Err(ColorError::InvalidColor(format!(
-            "Unable to parse color: {}",
-            input
+            "Unable to parse color: {input}"
         )))
     }
 
@@ -186,6 +185,7 @@ impl ColorParser {
     }
 
     /// Get the closest color name for given RGB values
+    #[must_use]
     pub fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
         let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
         let matches = self.css_collection.find_closest(&target, 1, None);

@@ -40,25 +40,25 @@ impl FormatUtils {
     /// Convert LAB to HSL format string with standardized precision
     pub fn lab_to_hsl(lab: Lab) -> String {
         let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab);
-        PrecisionUtils::format_hsl(h as f64, s as f64, l as f64)
+        PrecisionUtils::format_hsl(h, s, l)
     }
 
     /// Convert LAB to HSV/HSB format string with standardized precision
     pub fn lab_to_hsv(lab: Lab) -> String {
         let (h, s, v) = ColorUtils::lab_to_hsv_tuple(lab);
-        PrecisionUtils::format_hsv(h as f64, s as f64, v as f64)
+        PrecisionUtils::format_hsv(h, s, v)
     }
 
     /// Convert LAB to CMYK format string with standardized precision
     pub fn lab_to_cmyk(lab: Lab) -> String {
         let (c, m, y, k) = ColorUtils::lab_to_cmyk_tuple(lab);
-        PrecisionUtils::format_cmyk(c as f64, m as f64, y as f64, k as f64)
+        PrecisionUtils::format_cmyk(c, m, y, k)
     }
 
     /// Convert LAB to XYZ format string with standardized precision
     pub fn lab_to_xyz(lab: Lab) -> String {
         let (x, y, z) = ColorUtils::lab_to_xyz_tuple(lab);
-        PrecisionUtils::format_xyz(x as f64, y as f64, z as f64)
+        PrecisionUtils::format_xyz(x, y, z)
     }
 
     /// Convert LAB to LAB format string with standardized precision
@@ -69,17 +69,18 @@ impl FormatUtils {
     /// Convert LAB to LCH format string with standardized precision
     pub fn lab_to_lch(lab: Lab) -> String {
         let (l, c, h) = ColorUtils::lab_to_lch_tuple(lab);
-        PrecisionUtils::format_lch(l as f64, c as f64, h as f64)
+        PrecisionUtils::format_lch(l, c, h)
     }
 
     /// Convert LAB to OKLCH format string with standardized precision
     pub fn lab_to_oklch(lab: Lab) -> String {
         let (l, c, h) = ColorUtils::lab_to_oklch_tuple(lab);
-        PrecisionUtils::format_oklch(l as f64, c as f64, h as f64)
+        PrecisionUtils::format_oklch(l, c, h)
     }
 
     /// Get all color format strings - this is the ONLY non-duplicate function in FormatUtils
     /// It actually adds value by collecting all formats into a structured output
+    #[must_use]
     pub fn get_all_formats(lab: Lab) -> crate::output_formats::ColorFormats {
         crate::output_formats::ColorFormats {
             hex: Self::lab_to_hex(lab),

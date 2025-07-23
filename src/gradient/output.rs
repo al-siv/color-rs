@@ -14,9 +14,9 @@ pub fn format_as_json(values: &[GradientValue]) -> Result<String> {
         })
     }).collect();
     
-    Ok(serde_json::to_string_pretty(&json_values).map_err(|e| {
-        crate::error::ColorError::General(format!("JSON serialization error: {}", e))
-    })?)
+    serde_json::to_string_pretty(&json_values).map_err(|e| {
+        crate::error::ColorError::General(format!("JSON serialization error: {e}"))
+    })
 }
 
 /// Simple text output formatter  

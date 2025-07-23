@@ -9,7 +9,7 @@ use palette::{Lab, Srgb, Hsl, Hsv, Lch, Xyz, IntoColor};
 /// Strategy interface for color space conversions
 pub trait ColorConversionStrategy {
     /// Convert from LAB to target color space
-    fn from_lab(&self, lab: Lab) -> ConversionResult;
+    fn convert_from_lab(&self, lab: Lab) -> ConversionResult;
     
     /// Convert to LAB from source color space  
     fn to_lab(&self, color: &dyn ColorValue) -> Result<Lab>;
@@ -85,7 +85,7 @@ impl ConversionResult {
 pub struct RgbConversionStrategy;
 
 impl ColorConversionStrategy for RgbConversionStrategy {
-    fn from_lab(&self, lab: Lab) -> ConversionResult {
+    fn convert_from_lab(&self, lab: Lab) -> ConversionResult {
         ConversionResult::from_lab(lab)
     }
     
@@ -113,7 +113,7 @@ impl ColorConversionStrategy for RgbConversionStrategy {
 pub struct LabConversionStrategy;
 
 impl ColorConversionStrategy for LabConversionStrategy {
-    fn from_lab(&self, lab: Lab) -> ConversionResult {
+    fn convert_from_lab(&self, lab: Lab) -> ConversionResult {
         ConversionResult::from_lab(lab)
     }
     
@@ -140,7 +140,7 @@ impl ColorConversionStrategy for LabConversionStrategy {
 pub struct FastConversionStrategy;
 
 impl ColorConversionStrategy for FastConversionStrategy {
-    fn from_lab(&self, lab: Lab) -> ConversionResult {
+    fn convert_from_lab(&self, lab: Lab) -> ConversionResult {
         ConversionResult::from_lab(lab)
     }
     
@@ -275,8 +275,8 @@ mod tests {
         let rgb_strategy = RgbConversionStrategy;
         let lab_strategy = LabConversionStrategy;
         
-        let rgb_result = rgb_strategy.from_lab(lab);
-        let lab_result = lab_strategy.from_lab(lab);
+        let rgb_result = rgb_strategy.convert_from_lab(lab);
+        let lab_result = lab_strategy.convert_from_lab(lab);
         
         assert_eq!(rgb_strategy.strategy_name(), "RGB");
         assert_eq!(lab_strategy.strategy_name(), "LAB");

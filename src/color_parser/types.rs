@@ -85,6 +85,7 @@ impl ParsedColor {
     }
 
     /// Check if color has transparency
+    #[must_use]
     pub fn has_alpha(&self) -> bool {
         self.a < 1.0
     }

@@ -24,7 +24,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let t = i as f64 / (steps - 1) as f64;
         let interpolated = ColorUtils::interpolate_lab(start_lab, end_lab, t);
         let hex = ColorUtils::lab_to_hex(interpolated);
-        println!("Step {}: {}", i, hex);
+        println!("Step {i}: {hex}");
     }
     
     Ok(())

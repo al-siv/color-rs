@@ -78,7 +78,7 @@ impl ColorParsingHandler for HexColorParsingHandler {
                 hex_pattern.chars().nth(2).unwrap()
             )
         } else {
-            format!("#{}", hex_pattern)
+            format!("#{hex_pattern}")
         };
 
         // Try to parse using the existing color processor
@@ -246,8 +246,7 @@ impl ColorParsingChain {
         }
 
         Err(ColorError::ParseError(format!(
-            "No parser could handle input: {}",
-            input
+            "No parser could handle input: {input}"
         )))
     }
 

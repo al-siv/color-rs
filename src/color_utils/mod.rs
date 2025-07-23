@@ -39,7 +39,7 @@ impl ColorUtilsFacade {
         use_case: ConversionUseCase,
     ) -> ConversionResult {
         let strategy = ConversionStrategyFactory::create_for_use_case(use_case);
-        strategy.from_lab(lab)
+        strategy.convert_from_lab(lab)
     }
     
     /// Get comprehensive contrast analysis between two colors
@@ -74,7 +74,7 @@ impl ColorUtilsFacade {
     
     /// Quick color conversion for common use cases
     pub fn quick_convert(color: Lab) -> QuickConversionResult {
-        let result = ConversionStrategyFactory::create_strategy("fast").from_lab(color);
+        let result = ConversionStrategyFactory::create_strategy("fast").convert_from_lab(color);
         QuickConversionResult {
             hex: result.hex,
             rgb: result.rgb_tuple,
@@ -139,6 +139,7 @@ pub struct ColorOperationBuilder {
 }
 
 impl ColorOperationBuilder {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             conversion_strategy: None,
@@ -206,7 +207,7 @@ pub struct ColorOperationService {
 impl ColorOperationService {
     /// Convert color using configured strategy
     pub fn convert(&self, lab: Lab) -> ConversionResult {
-        self.conversion_strategy.from_lab(lab)
+        self.conversion_strategy.convert_from_lab(lab)
     }
     
     /// Calculate contrast using configured algorithm
@@ -230,6 +231,7 @@ pub struct LegacyColorUtils;
 
 impl LegacyColorUtils {
     /// Legacy method: Get contrast assessment
+    #[must_use]
     pub fn get_contrast_assessment(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> (f32, String) {
         let srgb1 = Srgb::new(rgb1.0 as f32 / 255.0, rgb1.1 as f32 / 255.0, rgb1.2 as f32 / 255.0);
         let srgb2 = Srgb::new(rgb2.0 as f32 / 255.0, rgb2.1 as f32 / 255.0, rgb2.2 as f32 / 255.0);

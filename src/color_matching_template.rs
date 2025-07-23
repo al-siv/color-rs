@@ -113,6 +113,7 @@ pub struct CssColorMatcher<'a> {
 }
 
 impl<'a> CssColorMatcher<'a> {
+    #[must_use]
     pub fn new(collection: &'a crate::color_parser::css_collection::CssColorCollection) -> Self {
         Self { collection }
     }

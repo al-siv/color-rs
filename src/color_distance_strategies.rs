@@ -143,6 +143,7 @@ impl ColorDistanceStrategy for LchStrategy {
 ///
 /// # Returns
 /// * Boxed strategy instance, defaults to Delta E 2000 for unknown names
+#[must_use]
 pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorDistanceStrategy> {
     match strategy_name.to_lowercase().as_str() {
         "delta-e-76" | "deltae76" | "cie76" => Box::new(DeltaE76Strategy),
@@ -151,8 +152,7 @@ pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorDistanceStrategy> {
         "lch" | "lch-space" | "lch-color-space" => Box::new(LchStrategy),
         _ => {
             eprintln!(
-                "Warning: Unknown strategy '{}', using Delta E 2000",
-                strategy_name
+                "Warning: Unknown strategy '{strategy_name}', using Delta E 2000"
             );
             Box::new(DeltaE2000Strategy)
         }
@@ -160,6 +160,7 @@ pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorDistanceStrategy> {
 }
 
 /// Get all available strategy names for CLI help
+#[must_use]
 pub fn available_strategies() -> Vec<&'static str> {
     vec!["delta-e-76", "delta-e-2000", "euclidean-lab", "lch"]
 }

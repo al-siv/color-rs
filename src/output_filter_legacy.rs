@@ -150,6 +150,7 @@ impl FilterConfig {
     }
 
     /// Check if a block should be included based on the filter rules
+    #[must_use]
     pub fn should_include_block(&self, block_name: &str) -> bool {
         // If include_all is true, include by default
         if self.include_all {
@@ -177,6 +178,7 @@ impl FilterConfig {
     }
 
     /// Check if a field within a block should be included
+    #[must_use]
     pub fn should_include_field(&self, block_name: &str, field_name: &str) -> bool {
         // Check for explicit field inclusion
         for rule in &self.rules {

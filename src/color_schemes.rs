@@ -126,6 +126,7 @@ pub struct ColorSchemeBuilder {
 
 impl ColorSchemeBuilder {
     /// Create a new color scheme builder
+    #[must_use]
     pub fn new() -> Self {
         Self {
             preserve_relative_luminance: false,
@@ -148,12 +149,14 @@ impl ColorSchemeBuilder {
     }
 
     /// Set target relative luminance for replacement color
+    #[must_use]
     pub fn with_target_relative_luminance(mut self, luminance: f64) -> Self {
         self.target_relative_luminance = Some(luminance);
         self
     }
 
     /// Set target Lab luminance for replacement color
+    #[must_use]
     pub fn with_target_lab_luminance(mut self, luminance: f64) -> Self {
         self.target_lab_luminance = Some(luminance);
         self
@@ -365,8 +368,7 @@ impl ColorSchemeCalculator {
 pub fn adjust_color_lab_luminance(color: Lab, target_luminance: f64) -> Result<Lab> {
     if !(0.0..=100.0).contains(&target_luminance) {
         return Err(ColorError::InvalidArguments(format!(
-            "Lab luminance must be in [0.0, 100.0], got {}",
-            target_luminance
+            "Lab luminance must be in [0.0, 100.0], got {target_luminance}"
         )));
     }
     Ok(Lab::new(target_luminance as f32, color.a, color.b))

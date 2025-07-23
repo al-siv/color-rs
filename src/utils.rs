@@ -19,6 +19,7 @@ impl Utils {
     }
 
     /// Round a float to a specified number of decimal places
+    #[must_use]
     pub fn round_to_decimals(value: f64, decimals: u32) -> f64 {
         let multiplier = 10f64.powi(decimals as i32);
         (value * multiplier).round() / multiplier
@@ -28,8 +29,7 @@ impl Utils {
     pub fn validate_percentage(value: u8) -> Result<()> {
         if value > MAX_PERCENTAGE {
             return Err(ColorError::InvalidArguments(format!(
-                "Percentage value {} exceeds maximum of {}",
-                value, MAX_PERCENTAGE
+                "Percentage value {value} exceeds maximum of {MAX_PERCENTAGE}"
             )));
         }
         Ok(())
@@ -39,27 +39,29 @@ impl Utils {
     pub fn validate_bezier_point(value: f64) -> Result<()> {
         if !(BEZIER_MIN..=BEZIER_MAX).contains(&value) {
             return Err(ColorError::InvalidArguments(format!(
-                "Cubic-bezier control point {} must be between {} and {}",
-                value, BEZIER_MIN, BEZIER_MAX
+                "Cubic-bezier control point {value} must be between {BEZIER_MIN} and {BEZIER_MAX}"
             )));
         }
         Ok(())
     }
 
     /// Convert RGB values to HSL representation string
+    #[must_use]
     pub fn rgb_to_string(r: u8, g: u8, b: u8) -> String {
-        format!("rgb({}, {}, {})", r, g, b)
+        format!("rgb({r}, {g}, {b})")
     }
 
     /// Convert HSL values to string representation
+    #[must_use]
     pub fn hsl_to_string(h: f64, s: f64, l: f64) -> String {
         format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0)
     }
 
     /// DUPLICATION ELIMINATED: Use PrecisionUtils::format_percentage() instead
     /// Format a percentage value as string - Simple u8 version for legacy compatibility
+    #[must_use]
     pub fn format_percentage(value: u8) -> String {
-        format!("{}%", value)
+        format!("{value}%")
     }
 
     /// Check if a string is a valid filename
@@ -75,8 +77,7 @@ impl Utils {
         for ch in invalid_chars {
             if filename.contains(ch) {
                 return Err(ColorError::InvalidArguments(format!(
-                    "Filename contains invalid character: {}",
-                    ch
+                    "Filename contains invalid character: {ch}"
                 )));
             }
         }
@@ -97,26 +98,31 @@ impl Utils {
     }
 
     /// Get available easing presets
+    #[must_use]
     pub fn get_easing_presets() -> Vec<&'static str> {
         vec!["linear", "ease", "ease-in", "ease-out", "ease-in-out"]
     }
 
     /// Calculate aspect ratio for image dimensions
+    #[must_use]
     pub fn calculate_image_height(width: u32) -> u32 {
         (width as f64 * HEIGHT_RATIO) as u32
     }
 
     /// Calculate legend height based on gradient height
+    #[must_use]
     pub fn calculate_legend_height(gradient_height: u32) -> u32 {
         (gradient_height as f64 * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
     }
 
     /// Calculate font size based on legend height
+    #[must_use]
     pub fn calculate_font_size(legend_height: u32) -> u32 {
         (legend_height as f64 * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32
     }
 
     /// Sanitize a color hex string
+    #[must_use]
     pub fn sanitize_hex_color(hex: &str) -> String {
         let mut cleaned = hex.trim().to_uppercase();
 

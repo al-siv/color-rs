@@ -48,7 +48,7 @@ impl ImageGenerator {
 
         // Parse SVG with font resolution
         let tree = Tree::from_str(&svg_content, &options)
-            .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG: {}", e)))?;
+            .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG: {e}")))?;
 
         let width = args.width;
         let gradient_height = (width as f64 * HEIGHT_RATIO) as u32;
@@ -74,7 +74,7 @@ impl ImageGenerator {
 
         // Save PNG
         img.save(&args.png_name)
-            .map_err(|e| ColorError::ImageError(format!("Failed to save PNG: {}", e)))?;
+            .map_err(|e| ColorError::ImageError(format!("Failed to save PNG: {e}")))?;
 
         Ok(())
     }
@@ -104,8 +104,7 @@ impl ImageGenerator {
 
         let mut svg = String::new();
         svg.push_str(&format!(
-            r#"<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">"#,
-            width, total_height
+            r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
         ));
         svg.push('\n');
 
@@ -128,8 +127,7 @@ impl ImageGenerator {
             let offset = t * 100.0;
 
             svg.push_str(&format!(
-                "      <stop offset=\"{}%\" stop-color=\"{}\" />\n",
-                offset, hex_color
+                "      <stop offset=\"{offset}%\" stop-color=\"{hex_color}\" />\n"
             ));
         }
 
@@ -139,8 +137,7 @@ impl ImageGenerator {
         // Left fill (0% to start_position) with start color
         if start_pixel > 0 {
             svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
-                start_pixel, gradient_height, start_hex
+                "  <rect x=\"0\" y=\"0\" width=\"{start_pixel}\" height=\"{gradient_height}\" fill=\"{start_hex}\" />\n"
             ));
         }
 
@@ -171,8 +168,7 @@ impl ImageGenerator {
             let text_y = gradient_height + (legend_height as f64 * DEFAULT_TEXT_Y_RATIO) as u32;
 
             svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"{}\" width=\"100%\" height=\"{}\" fill=\"rgb(0,0,0)\" />\n",
-                gradient_height, legend_height
+                "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
             ));
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\">\n",

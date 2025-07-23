@@ -46,9 +46,9 @@ pub trait ColorInterpolationTemplate {
     
     /// Validate interpolation parameters (hook method)
     fn validate_parameters(&self, t: f64) -> Result<()> {
-        if t < 0.0 || t > 1.0 {
+        if !(0.0..=1.0).contains(&t) {
             Err(crate::error::ColorError::InvalidArguments(
-                format!("Interpolation parameter t must be between 0.0 and 1.0, got {}", t)
+                format!("Interpolation parameter t must be between 0.0 and 1.0, got {t}")
             ))
         } else {
             Ok(())

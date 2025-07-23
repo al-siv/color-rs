@@ -80,11 +80,11 @@ impl CsvLoader {
         }
 
         let r = u8::from_str_radix(&hex[0..2], 16)
-            .with_context(|| format!("Invalid red component in hex color: #{}", hex))?;
+            .with_context(|| format!("Invalid red component in hex color: #{hex}"))?;
         let g = u8::from_str_radix(&hex[2..4], 16)
-            .with_context(|| format!("Invalid green component in hex color: #{}", hex))?;
+            .with_context(|| format!("Invalid green component in hex color: #{hex}"))?;
         let b = u8::from_str_radix(&hex[4..6], 16)
-            .with_context(|| format!("Invalid blue component in hex color: #{}", hex))?;
+            .with_context(|| format!("Invalid blue component in hex color: #{hex}"))?;
 
         Ok([r, g, b])
     }

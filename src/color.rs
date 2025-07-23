@@ -37,6 +37,7 @@ pub struct ColorProcessor;
 
 impl ColorProcessor {
     /// Create color information structure for a given LAB color
+    #[must_use]
     pub fn create_color_info(label: String, lab: Lab) -> ColorInfo {
         let hex = ColorUtils::lab_to_hex(lab);
         let rgb = ColorUtils::lab_to_rgb(lab);
@@ -78,6 +79,7 @@ impl ColorProcessor {
     }
 
     /// Format color information for table display
+    #[must_use]
     pub fn format_color_info(lab_color: Lab, label: &str) -> ColorInfo {
         ColorFormatter::format_color_info(lab_color, label)
     }
@@ -107,7 +109,7 @@ pub fn color_match(color_input: &str) {
     let (lab_color, _format) = match parse_color_with_parser(color_input) {
         Ok((lab, format)) => (lab, format),
         Err(e) => {
-            println!("Error parsing color: {}", e);
+            println!("Error parsing color: {e}");
             return;
         }
     };
@@ -116,7 +118,7 @@ pub fn color_match(color_input: &str) {
     let color_name = match get_color_name_for_lab(lab_color) {
         Ok(name) => name,
         Err(e) => {
-            println!("Error getting color name: {}", e);
+            println!("Error getting color name: {e}");
             return;
         }
     };
@@ -131,7 +133,7 @@ fn parse_color_with_parser(color_input: &str) -> Result<(Lab, crate::color_parse
 
     let parser = ColorParser::new();
     parser.parse(color_input).map_err(|e| {
-        ColorError::InvalidColor(format!("Failed to parse color '{}': {}", color_input, e))
+        ColorError::InvalidColor(format!("Failed to parse color '{color_input}': {e}"))
     })
 }
 
@@ -274,14 +276,12 @@ fn format_comprehensive_report_with_structured_output(
     let formatted_output = match format {
         crate::cli::OutputFormat::Toml => analysis_data.to_toml().map_err(|e| {
             crate::error::ColorError::InvalidArguments(format!(
-                "Failed to serialize to TOML: {}",
-                e
+                "Failed to serialize to TOML: {e}"
             ))
         })?,
         crate::cli::OutputFormat::Yaml => analysis_data.to_yaml().map_err(|e| {
             crate::error::ColorError::InvalidArguments(format!(
-                "Failed to serialize to YAML: {}",
-                e
+                "Failed to serialize to YAML: {e}"
             ))
         })?,
     };
@@ -292,7 +292,7 @@ fn format_comprehensive_report_with_structured_output(
     // Write to file if requested
     if let Some(filename) = &args.output_file {
         use crate::cli::OutputFormat;
-        use colored::*;
+        use colored::Colorize;
         use std::fs::File;
         use std::io::Write;
 
@@ -301,24 +301,21 @@ fn format_comprehensive_report_with_structured_output(
                 let toml_filename = if filename.ends_with(".toml") {
                     filename.clone()
                 } else {
-                    format!("{}.toml", filename)
+                    format!("{filename}.toml")
                 };
                 let toml_content = analysis_data.to_toml().map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
-                        "Failed to serialize to TOML: {}",
-                        e
+                        "Failed to serialize to TOML: {e}"
                     ))
                 })?;
                 let mut file = File::create(&toml_filename).map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
-                        "Failed to create file {}: {}",
-                        toml_filename, e
+                        "Failed to create file {toml_filename}: {e}"
                     ))
                 })?;
                 file.write_all(toml_content.as_bytes()).map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
-                        "Failed to write to file {}: {}",
-                        toml_filename, e
+                        "Failed to write to file {toml_filename}: {e}"
                     ))
                 })?;
                 println!(
@@ -330,24 +327,21 @@ fn format_comprehensive_report_with_structured_output(
                 let yaml_filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
                     filename.clone()
                 } else {
-                    format!("{}.yaml", filename)
+                    format!("{filename}.yaml")
                 };
                 let yaml_content = analysis_data.to_yaml().map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
-                        "Failed to serialize to YAML: {}",
-                        e
+                        "Failed to serialize to YAML: {e}"
                     ))
                 })?;
                 let mut file = File::create(&yaml_filename).map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
-                        "Failed to create file {}: {}",
-                        yaml_filename, e
+                        "Failed to create file {yaml_filename}: {e}"
                     ))
                 })?;
                 file.write_all(yaml_content.as_bytes()).map_err(|e| {
                     crate::error::ColorError::InvalidArguments(format!(
-                        "Failed to write to file {}: {}",
-                        yaml_filename, e
+                        "Failed to write to file {yaml_filename}: {e}"
                     ))
                 })?;
                 println!(
@@ -365,7 +359,7 @@ fn format_comprehensive_report_with_structured_output(
 fn display_colorized_structured_output(content: &str, format: &crate::cli::OutputFormat) {
     for line in content.lines() {
         let colored_line = colorize_structured_line(line, format);
-        println!("{}", colored_line);
+        println!("{colored_line}");
     }
 }
 
@@ -404,7 +398,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 format!("{}{} {}", indent, key.green(), value)
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {
                 // Array items
-                format!("{}- {}", indent, stripped)
+                format!("{indent}- {stripped}")
             } else {
                 line.to_string()
             }
