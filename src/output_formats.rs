@@ -68,6 +68,19 @@ pub struct GradientAnalysisOutput {
     pub gradient_stops: Vec<GradientStop>,
 }
 
+/// Enhanced gradient analysis output with nested color structure
+#[derive(Debug, Clone, Serialize)]
+pub struct EnhancedGradientAnalysisOutput {
+    /// Program metadata
+    pub metadata: ProgramMetadata,
+    /// Gradient configuration
+    pub configuration: GradientConfiguration,
+    /// Start and end color information
+    pub colors: GradientColors,
+    /// Enhanced gradient steps/stops with nested structure
+    pub gradient_stops: Vec<EnhancedGradientStop>,
+}
+
 /// Gradient configuration section
 #[derive(Debug, Clone, Serialize)]
 pub struct GradientConfiguration {
@@ -98,13 +111,57 @@ pub struct ColorInfo {
     pub lab: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contrast: Option<ContrastAnalysis>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collections: Option<ColorCollectionMatches>,
+}
+
+/// Contrast analysis between two colors
+#[derive(Debug, Clone, Serialize)]
+pub struct ContrastAnalysis {
+    pub distance: f64,
+    pub wcag21_relative_luminance: f64,
+    pub relative_contrast: f32,
+}
+
+/// Color collection matches for gradient stops
+#[derive(Debug, Clone, Serialize)]
+pub struct ColorCollectionMatches {
+    pub css: String,
+    pub css_distance: f64,
+    pub ralc: String,
+    pub ralc_distance: f64,
+    pub raldsp: String,
+    pub raldsp_distance: f64,
+}
+
+/// Enhanced gradient stop with nested color structure
+#[derive(Debug, Clone, Serialize)]
+pub struct EnhancedGradientStop {
+    pub position: u32,  // Integer position without decimals
+    pub color: NestedColorInfo,  // Simplified color info for nesting
+    pub collections: ColorCollectionMatches,
+}
+
+/// Simplified color information for nested structures (no contrast/collections)
+#[derive(Debug, Clone, Serialize)]
+pub struct NestedColorInfo {
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub hex: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub rgb: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub lab: String,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub lch: String,
     pub wcag21_relative_luminance: f64,
 }
 
-/// Individual gradient stop
+/// Individual gradient stop (legacy format)
 #[derive(Debug, Clone, Serialize)]
 pub struct GradientStop {
-    pub position: f64,
+    pub position: u32,  // Changed to integer for cleaner display
     #[serde(skip_serializing_if = "String::is_empty")]
     pub hex: String,
     #[serde(skip_serializing_if = "String::is_empty")]
@@ -322,6 +379,18 @@ impl ColorAnalysisOutput {
 }
 
 impl GradientAnalysisOutput {
+    /// Serialize to TOML format
+    pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string_pretty(self)
+    }
+
+    /// Serialize to YAML format
+    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
+        serde_yml::to_string(self)
+    }
+}
+
+impl EnhancedGradientAnalysisOutput {
     /// Serialize to TOML format
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
         toml::to_string_pretty(self)

@@ -1,4 +1,5 @@
 //! Main entry point for the color-rs CLI application
+#![allow(clippy::multiple_crate_versions)]
 
 use clap::Parser;
 use color_rs::{ColorRs, cli};
