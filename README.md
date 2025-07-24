@@ -16,10 +16,10 @@ Pre-compiled binaries are available for download from [GitHub Releases](https://
 - **Windows (x86_64)**: `color-rs.exe`
 - **Linux (x86_64)**: `color-rs-linux-x86_64`
 - **Linux (ARM64)**: `color-rs-linux-aarch64`
+- **macOS (x86_64 Intel)**: `color-rs-macos-x86_64`
+- **macOS (ARM64 Apple Silicon)**: `color-rs-macos-aarch64`
 
 **Important**: These cross-compiled binaries have not been tested on their target platforms. Please report any issues via GitHub.
-
-For macOS users, please install from source using `cargo install color-rs` as pre-compiled macOS binaries are not currently available.
 
 ## Core Functionality
 

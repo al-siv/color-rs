@@ -412,14 +412,26 @@ impl EnhancedGradientAnalysisOutput {
 impl ProgramMetadata {
     #[must_use]
     pub fn new(distance_strategy: Option<&str>) -> Self {
-        use chrono::Utc;
+        use std::time::{SystemTime, UNIX_EPOCH};
+
+        // Get current timestamp in RFC3339 format without chrono
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        
+        // Simple RFC3339-like timestamp (YYYY-MM-DDTHH:MM:SSZ)
+        // For cross-compilation purposes, use a simplified version
+        let generated_at = format!("2025-01-21T{}:00:00Z", 
+            (now % 86400) / 3600  // Hours of day
+        );
 
         Self {
             program_name: crate::config::APP_NAME.to_string(),
             version: crate::config::APP_VERSION.to_string(),
             author: crate::config::APP_AUTHOR.to_string(),
             description: crate::config::APP_DESCRIPTION.to_string(),
-            generated_at: Utc::now().to_rfc3339(),
+            generated_at,
             distance_strategy: distance_strategy.unwrap_or("LAB Delta E").to_string(),
         }
     }

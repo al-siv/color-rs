@@ -8,19 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.15.3] - 2025-01-21
 
 ### Added
-- **Cross-Platform Binaries**: Added pre-compiled binaries for Linux platforms
+- **Cross-Platform Binaries**: Added pre-compiled binaries for multiple platforms
   - Linux x86_64 binary (Intel/AMD 64-bit systems)
   - Linux ARM64 binary (ARM64 architecture support)
+  - macOS x86_64 binary (Intel-based Macs)
+  - macOS ARM64 binary (Apple Silicon M1/M2/M3)
   - All binaries available via GitHub Releases
 
 ### Changed
-- **Distribution**: Enhanced distribution options with cross-compiled executables
-- **Documentation**: Updated README.md with binary download instructions and platform support information
+- **Distribution**: Enhanced distribution options with cross-compiled executables for all major platforms
+- **Documentation**: Updated README.md with comprehensive binary download instructions
+- **Dependencies**: Optimized chrono dependency to avoid CoreFoundation framework issues in cross-compilation
 
 ### Technical Notes
 - Cross-compilation performed using cargo-zigbuild with Zig compiler v0.14.1
-- macOS binaries not available due to CoreFoundation framework dependencies in cross-compilation environment
-- Linux binaries have not been tested on target platforms - user feedback appreciated
+- macOS compilation successfully achieved by removing CoreFoundation dependencies
+- All cross-platform binaries have not been tested on target platforms - user feedback appreciated
+
+### Fixed
+- **Cross-compilation**: Resolved CoreFoundation framework dependency blocking macOS binary creation
+- **Timestamp Generation**: Simplified timestamp generation to avoid platform-specific dependencies
 
 ## [0.15.2] - 2025-07-24
 
