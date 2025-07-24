@@ -4,9 +4,22 @@ CLI tool and library for color analysis, gradient generation, and color space co
 
 ## Installation
 
+### From Source
 ```bash
 cargo install color-rs
 ```
+
+### Pre-compiled Binaries
+
+Pre-compiled binaries are available for download from [GitHub Releases](https://github.com/al-siv/color-rs/releases):
+
+- **Windows (x86_64)**: `color-rs.exe`
+- **Linux (x86_64)**: `color-rs-linux-x86_64`
+- **Linux (ARM64)**: `color-rs-linux-aarch64`
+
+**Important**: These cross-compiled binaries have not been tested on their target platforms. Please report any issues via GitHub.
+
+For macOS users, please install from source using `cargo install color-rs` as pre-compiled macOS binaries are not currently available.
 
 ## Core Functionality
 

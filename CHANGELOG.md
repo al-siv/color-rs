@@ -5,6 +5,23 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.3] - 2025-01-21
+
+### Added
+- **Cross-Platform Binaries**: Added pre-compiled binaries for Linux platforms
+  - Linux x86_64 binary (Intel/AMD 64-bit systems)
+  - Linux ARM64 binary (ARM64 architecture support)
+  - All binaries available via GitHub Releases
+
+### Changed
+- **Distribution**: Enhanced distribution options with cross-compiled executables
+- **Documentation**: Updated README.md with binary download instructions and platform support information
+
+### Technical Notes
+- Cross-compilation performed using cargo-zigbuild with Zig compiler v0.14.1
+- macOS binaries not available due to CoreFoundation framework dependencies in cross-compilation environment
+- Linux binaries have not been tested on target platforms - user feedback appreciated
+
 ## [0.15.2] - 2025-07-24
 
 ### Added
