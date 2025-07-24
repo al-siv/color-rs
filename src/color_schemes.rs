@@ -127,7 +127,7 @@ pub struct ColorSchemeBuilder {
 impl ColorSchemeBuilder {
     /// Create a new color scheme builder
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             preserve_relative_luminance: false,
             preserve_lab_luminance: false,
@@ -137,33 +137,33 @@ impl ColorSchemeBuilder {
     }
 
     /// Preserve relative luminance for color scheme calculations
-    pub fn preserve_relative_luminance(mut self) -> Self {
+    #[must_use] pub const fn preserve_relative_luminance(mut self) -> Self {
         self.preserve_relative_luminance = true;
         self
     }
 
     /// Preserve Lab luminance for color scheme calculations
-    pub fn preserve_lab_luminance(mut self) -> Self {
+    #[must_use] pub const fn preserve_lab_luminance(mut self) -> Self {
         self.preserve_lab_luminance = true;
         self
     }
 
     /// Set target relative luminance for replacement color
     #[must_use]
-    pub fn with_target_relative_luminance(mut self, luminance: f64) -> Self {
+    pub const fn with_target_relative_luminance(mut self, luminance: f64) -> Self {
         self.target_relative_luminance = Some(luminance);
         self
     }
 
     /// Set target Lab luminance for replacement color
     #[must_use]
-    pub fn with_target_lab_luminance(mut self, luminance: f64) -> Self {
+    pub const fn with_target_lab_luminance(mut self, luminance: f64) -> Self {
         self.target_lab_luminance = Some(luminance);
         self
     }
 
     /// Build the color scheme calculator
-    pub fn build(self) -> ColorSchemeCalculator {
+    #[must_use] pub const fn build(self) -> ColorSchemeCalculator {
         ColorSchemeCalculator {
             preserve_relative_luminance: self.preserve_relative_luminance,
             preserve_lab_luminance: self.preserve_lab_luminance,
@@ -383,7 +383,7 @@ pub fn preserve_wcag_relative_luminance(color: Lab, reference: Lab) -> Result<La
 
 /// Preserve Lab luminance from reference color in target color
 pub fn preserve_lab_luminance(color: Lab, reference: Lab) -> Result<Lab> {
-    adjust_color_lab_luminance(color, reference.l as f64)
+    adjust_color_lab_luminance(color, f64::from(reference.l))
 }
 
 #[cfg(test)]

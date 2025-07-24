@@ -17,7 +17,7 @@ pub struct CommandResult {
 }
 
 impl CommandResult {
-    pub fn success(output: String) -> Self {
+    #[must_use] pub fn success(output: String) -> Self {
         Self {
             success: true,
             output,
@@ -26,7 +26,7 @@ impl CommandResult {
         }
     }
 
-    pub fn success_with_metadata(output: String, metadata: HashMap<String, String>) -> Self {
+    #[must_use] pub const fn success_with_metadata(output: String, metadata: HashMap<String, String>) -> Self {
         Self {
             success: true,
             output,
@@ -35,7 +35,7 @@ impl CommandResult {
         }
     }
 
-    pub fn failure(error: String) -> Self {
+    #[must_use] pub fn failure(error: String) -> Self {
         Self {
             success: false,
             output: String::new(),
@@ -76,14 +76,14 @@ pub struct GenerateGradientCommand {
 }
 
 impl GenerateGradientCommand {
-    pub fn new(args: GradientArgs) -> Self {
+    #[must_use] pub const fn new(args: GradientArgs) -> Self {
         Self {
             args,
             output_path: None,
         }
     }
 
-    pub fn with_output_path(mut self, path: String) -> Self {
+    #[must_use] pub fn with_output_path(mut self, path: String) -> Self {
         self.output_path = Some(path);
         self
     }
@@ -146,11 +146,11 @@ impl Command for GenerateGradientCommand {
         Ok(CommandResult::success_with_metadata(output, metadata))
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "generate_gradient"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Generate a color gradient between two colors"
     }
 }
@@ -170,7 +170,7 @@ impl GenerateGradientCommand {
         )
     }
 
-    fn generate_png(&self) -> Vec<u8> {
+    const fn generate_png(&self) -> Vec<u8> {
         // Placeholder for PNG generation
         vec![] // Would use actual image generation
     }
@@ -185,7 +185,7 @@ pub struct FindClosestColorCommand {
 }
 
 impl FindClosestColorCommand {
-    pub fn new(color_input: String) -> Self {
+    #[must_use] pub fn new(color_input: String) -> Self {
         Self {
             color_input,
             collection: None,
@@ -194,17 +194,17 @@ impl FindClosestColorCommand {
         }
     }
 
-    pub fn with_collection(mut self, collection: String) -> Self {
+    #[must_use] pub fn with_collection(mut self, collection: String) -> Self {
         self.collection = Some(collection);
         self
     }
 
-    pub fn with_algorithm(mut self, algorithm: String) -> Self {
+    #[must_use] pub fn with_algorithm(mut self, algorithm: String) -> Self {
         self.algorithm = algorithm;
         self
     }
 
-    pub fn with_count(mut self, count: usize) -> Self {
+    #[must_use] pub const fn with_count(mut self, count: usize) -> Self {
         self.count = count;
         self
     }
@@ -240,11 +240,11 @@ impl Command for FindClosestColorCommand {
         Ok(CommandResult::success_with_metadata(output, metadata))
     }
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "find_closest_color"
     }
 
-    fn description(&self) -> &str {
+    fn description(&self) -> &'static str {
         "Find the closest matching colors in collections"
     }
 }

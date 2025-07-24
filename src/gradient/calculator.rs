@@ -54,7 +54,7 @@ pub struct IntelligentStopCalculator {
 }
 
 impl IntelligentStopCalculator {
-    pub fn new(ease_in: f64, ease_out: f64) -> Self {
+    #[must_use] pub const fn new(ease_in: f64, ease_out: f64) -> Self {
         Self { ease_in, ease_out }
     }
 }
@@ -110,7 +110,7 @@ impl GradientCalculationTemplate for IntelligentStopCalculator {
             let mut high = INTELLIGENT_STOP_SAMPLE_POINTS;
 
             while high - low > 1 {
-                let mid = (low + high) / 2;
+                let mid = usize::midpoint(low, high);
                 if cumulative_importance[mid] < target_importance {
                     low = mid;
                 } else {
@@ -177,7 +177,7 @@ impl GradientCalculator {
         let inv_t2 = inv_t * inv_t;
         let inv_t3 = inv_t2 * inv_t;
 
-        inv_t3 + 3.0 * inv_t2 * t * ease_in + 3.0 * inv_t * t2 * ease_out + t3
+        (3.0 * inv_t * t2).mul_add(ease_out, (3.0 * inv_t2 * t).mul_add(ease_in, inv_t3)) + t3
     }
 
     /// Calculate stop positions
@@ -190,12 +190,12 @@ impl GradientCalculator {
     #[must_use]
     pub fn calculate_stops_integer(&self, num_stops: usize, start_pos: u8, end_pos: u8) -> Vec<u8> {
         let stops = self.calculate_stops(num_stops);
-        let range = end_pos as f64 - start_pos as f64;
+        let range = f64::from(end_pos) - f64::from(start_pos);
 
         stops
             .into_iter()
             .map(|stop| {
-                let position = start_pos as f64 + stop * range;
+                let position = stop.mul_add(range, f64::from(start_pos));
                 position.round().clamp(0.0, 255.0) as u8
             })
             .collect()
@@ -222,7 +222,7 @@ impl GradientCalculator {
         };
 
         let mut gradient_values = Vec::new();
-        let position_range = end_position as f64 - start_position as f64;
+        let position_range = f64::from(end_position) - f64::from(start_position);
 
         for &stop in &stops {
             // Apply easing function
@@ -230,9 +230,9 @@ impl GradientCalculator {
 
             // Interpolate color in LAB space
             let interpolated_lab = Lab {
-                l: start_lab.l + (eased_t as f32) * (end_lab.l - start_lab.l),
-                a: start_lab.a + (eased_t as f32) * (end_lab.a - start_lab.a),
-                b: start_lab.b + (eased_t as f32) * (end_lab.b - start_lab.b),
+                l: (eased_t as f32).mul_add(end_lab.l - start_lab.l, start_lab.l),
+                a: (eased_t as f32).mul_add(end_lab.a - start_lab.a, start_lab.a),
+                b: (eased_t as f32).mul_add(end_lab.b - start_lab.b, start_lab.b),
                 white_point: start_lab.white_point,
             };
 
@@ -246,7 +246,7 @@ impl GradientCalculator {
                 ColorUtils::wcag_relative_luminance_rgb((rgb_values.0, rgb_values.1, rgb_values.2));
 
             // Calculate position
-            let position = start_position as f64 + stop * position_range;
+            let position = stop.mul_add(position_range, f64::from(start_position));
 
             gradient_values.push(GradientValue {
                 position: format!("{}%", position.round() as u8),

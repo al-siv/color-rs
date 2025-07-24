@@ -37,7 +37,7 @@ pub struct DeltaE76Strategy;
 
 impl ColorDistanceStrategy for DeltaE76Strategy {
     fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
-        lab1.improved_delta_e(lab2) as f64
+        f64::from(lab1.improved_delta_e(lab2))
     }
 
     fn name(&self) -> &'static str {
@@ -61,7 +61,7 @@ pub struct DeltaE2000Strategy;
 impl ColorDistanceStrategy for DeltaE2000Strategy {
     fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
         // Use the improved CIEDE2000 implementation from palette
-        lab1.improved_difference(lab2) as f64
+        f64::from(lab1.improved_difference(lab2))
     }
 
     fn name(&self) -> &'static str {
@@ -81,7 +81,7 @@ pub struct EuclideanLabStrategy;
 
 impl ColorDistanceStrategy for EuclideanLabStrategy {
     fn calculate_distance(&self, lab1: Lab, lab2: Lab) -> f64 {
-        lab1.distance_squared(lab2).sqrt() as f64
+        f64::from(lab1.distance_squared(lab2).sqrt())
     }
 
     fn name(&self) -> &'static str {
@@ -124,7 +124,7 @@ impl ColorDistanceStrategy for LchStrategy {
         // Calculate Euclidean distance in LCH space
         // Note: Hue is weighted less since it's in degrees while L and C are in different scales
         let hue_weight = 0.1; // Adjust this weight as needed
-        (delta_l.powi(2) + delta_c.powi(2) + (delta_h * hue_weight).powi(2)).sqrt() as f64
+        f64::from((delta_h * hue_weight).mul_add(delta_h * hue_weight, delta_c.mul_add(delta_c, delta_l.powi(2))).sqrt())
     }
 
     fn name(&self) -> &'static str {

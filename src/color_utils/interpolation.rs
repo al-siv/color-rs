@@ -46,12 +46,12 @@ pub trait ColorInterpolationTemplate {
 
     /// Validate interpolation parameters (hook method)
     fn validate_parameters(&self, t: f64) -> Result<()> {
-        if !(0.0..=1.0).contains(&t) {
+        if (0.0..=1.0).contains(&t) {
+            Ok(())
+        } else {
             Err(crate::error::ColorError::InvalidArguments(format!(
                 "Interpolation parameter t must be between 0.0 and 1.0, got {t}"
             )))
-        } else {
-            Ok(())
         }
     }
 
@@ -100,9 +100,9 @@ impl ColorInterpolationTemplate for LinearLabInterpolator {
     fn perform_interpolation(&self, start: Lab, end: Lab, t: f64) -> Lab {
         // Simple linear interpolation in LAB space
         Lab {
-            l: start.l + t as f32 * (end.l - start.l),
-            a: start.a + t as f32 * (end.a - start.a),
-            b: start.b + t as f32 * (end.b - start.b),
+            l: (t as f32).mul_add(end.l - start.l, start.l),
+            a: (t as f32).mul_add(end.a - start.a, start.a),
+            b: (t as f32).mul_add(end.b - start.b, start.b),
             white_point: start.white_point,
         }
     }
@@ -134,9 +134,9 @@ impl ColorInterpolationTemplate for RgbInterpolator {
         let end_rgb: Srgb = end.into_color();
 
         let interpolated_rgb = Srgb::new(
-            start_rgb.red + t as f32 * (end_rgb.red - start_rgb.red),
-            start_rgb.green + t as f32 * (end_rgb.green - start_rgb.green),
-            start_rgb.blue + t as f32 * (end_rgb.blue - start_rgb.blue),
+            (t as f32).mul_add(end_rgb.red - start_rgb.red, start_rgb.red),
+            (t as f32).mul_add(end_rgb.green - start_rgb.green, start_rgb.green),
+            (t as f32).mul_add(end_rgb.blue - start_rgb.blue, start_rgb.blue),
         );
 
         interpolated_rgb.into_color()
@@ -169,12 +169,12 @@ impl ColorInterpolationTemplate for HslInterpolator {
             end_hue - start_hue
         };
 
-        let interpolated_hue = (start_hue + t as f32 * hue_diff + 360.0) % 360.0;
+        let interpolated_hue = ((t as f32).mul_add(hue_diff, start_hue) + 360.0) % 360.0;
 
         let interpolated_hsl: Hsl<palette::encoding::Srgb> = Hsl::new(
             interpolated_hue,
-            start_hsl.saturation + t as f32 * (end_hsl.saturation - start_hsl.saturation),
-            start_hsl.lightness + t as f32 * (end_hsl.lightness - start_hsl.lightness),
+            (t as f32).mul_add(end_hsl.saturation - start_hsl.saturation, start_hsl.saturation),
+            (t as f32).mul_add(end_hsl.lightness - start_hsl.lightness, start_hsl.lightness),
         );
 
         let rgb: Srgb = interpolated_hsl.into_color();
@@ -193,7 +193,7 @@ pub struct SmoothInterpolator {
 }
 
 impl SmoothInterpolator {
-    pub fn new(base: Box<dyn ColorInterpolationTemplate>, easing: EasingFunction) -> Self {
+    #[must_use] pub fn new(base: Box<dyn ColorInterpolationTemplate>, easing: EasingFunction) -> Self {
         Self {
             base_interpolator: base,
             easing_function: easing,
@@ -230,19 +230,19 @@ impl EasingFunction {
     #[must_use]
     pub fn apply(&self, t: f64) -> f64 {
         match self {
-            EasingFunction::Linear => t,
-            EasingFunction::EaseIn => t * t,
-            EasingFunction::EaseOut => 1.0 - (1.0 - t) * (1.0 - t),
-            EasingFunction::EaseInOut => {
+            Self::Linear => t,
+            Self::EaseIn => t * t,
+            Self::EaseOut => (1.0 - t).mul_add(-(1.0 - t), 1.0),
+            Self::EaseInOut => {
                 if t < 0.5 {
                     2.0 * t * t
                 } else {
-                    1.0 - 2.0 * (1.0 - t) * (1.0 - t)
+                    (2.0 * (1.0 - t)).mul_add(-(1.0 - t), 1.0)
                 }
             }
-            EasingFunction::Smooth => {
+            Self::Smooth => {
                 // Smoothstep function: 3t² - 2t³
-                t * t * (3.0 - 2.0 * t)
+                t * t * 2.0f64.mul_add(-t, 3.0)
             }
         }
     }
@@ -252,23 +252,23 @@ impl EasingFunction {
 pub struct InterpolationFactory;
 
 impl InterpolationFactory {
-    pub fn create_linear_lab() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use] pub fn create_linear_lab() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(LinearLabInterpolator)
     }
 
-    pub fn create_perceptual() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use] pub fn create_perceptual() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(PerceptualInterpolator)
     }
 
-    pub fn create_rgb() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use] pub fn create_rgb() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(RgbInterpolator)
     }
 
-    pub fn create_hsl() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use] pub fn create_hsl() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(HslInterpolator)
     }
 
-    pub fn create_smooth(
+    #[must_use] pub fn create_smooth(
         base_type: &str,
         easing: EasingFunction,
     ) -> Box<dyn ColorInterpolationTemplate> {
@@ -283,7 +283,7 @@ impl InterpolationFactory {
         Box::new(SmoothInterpolator::new(base, easing))
     }
 
-    pub fn create_by_name(name: &str) -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use] pub fn create_by_name(name: &str) -> Box<dyn ColorInterpolationTemplate> {
         match name.to_lowercase().as_str() {
             "linear" | "lab" => Self::create_linear_lab(),
             "perceptual" => Self::create_perceptual(),
@@ -306,14 +306,14 @@ pub struct InterpolationService {
 }
 
 impl InterpolationService {
-    pub fn new(primary: Box<dyn ColorInterpolationTemplate>) -> Self {
+    #[must_use] pub fn new(primary: Box<dyn ColorInterpolationTemplate>) -> Self {
         Self {
             primary_algorithm: primary,
             fallback_algorithm: None,
         }
     }
 
-    pub fn with_fallback(mut self, fallback: Box<dyn ColorInterpolationTemplate>) -> Self {
+    #[must_use] pub fn with_fallback(mut self, fallback: Box<dyn ColorInterpolationTemplate>) -> Self {
         self.fallback_algorithm = Some(fallback);
         self
     }

@@ -1,8 +1,8 @@
 //! CSS Color Parser
 //!
 //! Modernized and integrated version of css-color-parser-rs
-//! Original: https://github.com/7thSigil/css-color-parser-rs
-//! Authors: Dean McNamee, Katkov Oleksandr
+//! Original: <https://github.com/7thSigil/css-color-parser-rs>
+//! Authors: Dean `McNamee`, Katkov Oleksandr
 
 use super::csv_loader::CsvLoader;
 use super::parse_utils::ParseUtils;
@@ -19,7 +19,7 @@ pub struct CssColorParser {
 
 impl CssColorParser {
     /// Create a new CSS color parser
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self {
             named_colors: Self::create_named_css_colors_from_data(),
         }
@@ -179,8 +179,11 @@ impl CssColorParser {
             ));
         }
 
+        #[allow(clippy::many_single_char_names)]
         let h = ParseUtils::parse_hue(params[0])?;
+        #[allow(clippy::many_single_char_names)]
         let s = ParseUtils::parse_percentage(params[1])?;
+        #[allow(clippy::many_single_char_names)]
         let l = ParseUtils::parse_percentage(params[2])?;
 
         // Normalize hue to 0-1 range
@@ -200,14 +203,17 @@ impl CssColorParser {
             ));
         }
 
+        #[allow(clippy::many_single_char_names)]
         let l: f32 = params[0]
             .trim()
             .parse()
             .map_err(|_| ColorError::InvalidColor("Invalid LCH L value".to_string()))?;
+        #[allow(clippy::many_single_char_names)]
         let c: f32 = params[1]
             .trim()
             .parse()
             .map_err(|_| ColorError::InvalidColor("Invalid LCH C value".to_string()))?;
+        #[allow(clippy::many_single_char_names)]
         let h: f32 = params[2]
             .trim()
             .parse()
@@ -218,6 +224,7 @@ impl CssColorParser {
         let lab = ColorUtils::lch_to_lab(lch);
 
         // Convert LAB to RGB
+        #[allow(clippy::many_single_char_names)]
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
         Ok((r, g, b))
     }

@@ -8,7 +8,7 @@ use crate::error::Result;
 use crate::utils::Utils;
 
 /// Enum defining different types of color parsers available
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ColorParserType {
     /// Standard CSS color parser with basic color support
     Css,

@@ -22,6 +22,7 @@
 
 /// Safely convert a clamped f32 color component to u8
 #[inline]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn f32_to_u8_clamped(value: f32) -> u8 {
     (value * 255.0).round().clamp(0.0, 255.0) as u8
 }
@@ -40,7 +41,7 @@ pub struct ColorFormatter;
 
 impl ColorFormatter {
     /// Format a color into a comprehensive analysis report (deprecated)
-    pub fn format_comprehensive_report(lab_color: Lab, original_input: &str, color_name: &str) {
+    pub const fn format_comprehensive_report(lab_color: Lab, original_input: &str, color_name: &str) {
         // This function is deprecated in favor of collect_color_analysis_data
         // Keep for backward compatibility but doesn't actually format anything
         let _ = (lab_color, original_input, color_name);
@@ -49,8 +50,10 @@ impl ColorFormatter {
     /// Format a simple color info for table display
     #[must_use]
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
+        #[allow(clippy::many_single_char_names)]
         let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
 
+        #[allow(clippy::many_single_char_names)]
         let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab_color);
 
         crate::color::ColorInfo {
@@ -66,6 +69,10 @@ impl ColorFormatter {
     }
 
     /// Collect color analysis data for file output instead of printing
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an error if color conversion or analysis fails
     pub fn collect_color_analysis_data(
         lab_color: Lab,
         original_input: &str,
@@ -172,21 +179,21 @@ impl ColorFormatter {
         let lch = ColorUtils::lab_to_lch(lab_color);
 
         let lch0_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l as f64, 0.0, lch.hue.into_degrees() as f64));
+            ColorUtils::lch_tulip_to_lab((f64::from(lch.l), 0.0, f64::from(lch.hue.into_degrees())));
         let lch2_lab = ColorUtils::lch_tulip_to_lab((
-            lch.l as f64,
-            lch.chroma as f64 * 0.02,
-            lch.hue.into_degrees() as f64,
+            f64::from(lch.l),
+            f64::from(lch.chroma) * 0.02,
+            f64::from(lch.hue.into_degrees()),
         ));
         let lch4_lab = ColorUtils::lch_tulip_to_lab((
-            lch.l as f64,
-            lch.chroma as f64 * 0.04,
-            lch.hue.into_degrees() as f64,
+            f64::from(lch.l),
+            f64::from(lch.chroma) * 0.04,
+            f64::from(lch.hue.into_degrees()),
         ));
         let lch6_lab = ColorUtils::lch_tulip_to_lab((
-            lch.l as f64,
-            lch.chroma as f64 * 0.06,
-            lch.hue.into_degrees() as f64,
+            f64::from(lch.l),
+            f64::from(lch.chroma) * 0.06,
+            f64::from(lch.hue.into_degrees()),
         ));
         let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
         let lch2_hex = ColorUtils::lab_to_hex(lch2_lab);

@@ -1,6 +1,6 @@
 //! Modular color utilities with design patterns
 //!
-//! This module refactors the original color_utils.rs into a modular structure using
+//! This module refactors the original `color_utils.rs` into a modular structure using
 //! several Gang of Four design patterns:
 //! - Strategy Pattern: For color conversion and interpolation algorithms
 //! - Template Method Pattern: For consistent algorithm structure
@@ -34,7 +34,7 @@ pub struct ColorUtilsFacade;
 
 impl ColorUtilsFacade {
     /// Convert colors using the optimal strategy for the use case
-    pub fn convert_color_optimized(lab: Lab, use_case: ConversionUseCase) -> ConversionResult {
+    #[must_use] pub fn convert_color_optimized(lab: Lab, use_case: ConversionUseCase) -> ConversionResult {
         let strategy = ConversionStrategyFactory::create_for_use_case(use_case);
         strategy.convert_from_lab(lab)
     }
@@ -66,7 +66,7 @@ impl ColorUtilsFacade {
     }
 
     /// Quick color conversion for common use cases
-    pub fn quick_convert(color: Lab) -> QuickConversionResult {
+    #[must_use] pub fn quick_convert(color: Lab) -> QuickConversionResult {
         let result = ConversionStrategyFactory::create_strategy("fast").convert_from_lab(color);
         QuickConversionResult {
             hex: result.hex,
@@ -101,7 +101,7 @@ impl ColorUtilsFacade {
         let dl = color1.l - color2.l;
         let da = color1.a - color2.a;
         let db = color1.b - color2.b;
-        (dl * dl + da * da + db * db).sqrt() as f64
+        f64::from(db.mul_add(db, dl.mul_add(dl, da * da)).sqrt())
     }
 }
 
@@ -131,7 +131,7 @@ pub struct ColorOperationBuilder {
 
 impl ColorOperationBuilder {
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             conversion_strategy: None,
             contrast_algorithm: None,
@@ -140,27 +140,27 @@ impl ColorOperationBuilder {
         }
     }
 
-    pub fn with_conversion_strategy(mut self, strategy: &str) -> Self {
+    #[must_use] pub fn with_conversion_strategy(mut self, strategy: &str) -> Self {
         self.conversion_strategy = Some(strategy.to_string());
         self
     }
 
-    pub fn with_contrast_algorithm(mut self, algorithm: &str) -> Self {
+    #[must_use] pub fn with_contrast_algorithm(mut self, algorithm: &str) -> Self {
         self.contrast_algorithm = Some(algorithm.to_string());
         self
     }
 
-    pub fn with_interpolation_method(mut self, method: &str) -> Self {
+    #[must_use] pub fn with_interpolation_method(mut self, method: &str) -> Self {
         self.interpolation_method = Some(method.to_string());
         self
     }
 
-    pub fn with_easing(mut self, easing: EasingFunction) -> Self {
+    #[must_use] pub const fn with_easing(mut self, easing: EasingFunction) -> Self {
         self.easing_function = Some(easing);
         self
     }
 
-    pub fn build(self) -> ColorOperationService {
+    #[must_use] pub fn build(self) -> ColorOperationService {
         ColorOperationService {
             conversion_strategy: ConversionStrategyFactory::create_strategy(
                 &self
@@ -205,7 +205,7 @@ pub struct ColorOperationService {
 
 impl ColorOperationService {
     /// Convert color using configured strategy
-    pub fn convert(&self, lab: Lab) -> ConversionResult {
+    #[must_use] pub fn convert(&self, lab: Lab) -> ConversionResult {
         self.conversion_strategy.convert_from_lab(lab)
     }
 
@@ -225,7 +225,7 @@ impl ColorOperationService {
     }
 }
 
-/// Compatibility layer for legacy color_utils.rs interface
+/// Compatibility layer for legacy `color_utils.rs` interface
 pub struct LegacyColorUtils;
 
 impl LegacyColorUtils {
@@ -233,14 +233,14 @@ impl LegacyColorUtils {
     #[must_use]
     pub fn get_contrast_assessment(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> (f32, String) {
         let srgb1 = Srgb::new(
-            rgb1.0 as f32 / 255.0,
-            rgb1.1 as f32 / 255.0,
-            rgb1.2 as f32 / 255.0,
+            f32::from(rgb1.0) / 255.0,
+            f32::from(rgb1.1) / 255.0,
+            f32::from(rgb1.2) / 255.0,
         );
         let srgb2 = Srgb::new(
-            rgb2.0 as f32 / 255.0,
-            rgb2.1 as f32 / 255.0,
-            rgb2.2 as f32 / 255.0,
+            f32::from(rgb2.0) / 255.0,
+            f32::from(rgb2.1) / 255.0,
+            f32::from(rgb2.2) / 255.0,
         );
 
         if let Ok(analysis) = ColorUtilsFacade::analyze_contrast_comprehensive(srgb1, srgb2) {
@@ -260,7 +260,7 @@ impl LegacyColorUtils {
     }
 
     /// Legacy method: Interpolate LAB
-    pub fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
+    #[must_use] pub fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
         ColorUtilsFacade::interpolate_perceptual(start, end, t)
             .map(|result| result.interpolated_color)
             .unwrap_or(start)
@@ -276,54 +276,54 @@ impl LegacyColorUtils {
     #[must_use]
     pub fn wcag_relative_luminance_rgb(rgb: (u8, u8, u8)) -> f64 {
         let srgb = Srgb::new(
-            rgb.0 as f32 / 255.0,
-            rgb.1 as f32 / 255.0,
-            rgb.2 as f32 / 255.0,
+            f32::from(rgb.0) / 255.0,
+            f32::from(rgb.1) / 255.0,
+            f32::from(rgb.2) / 255.0,
         );
         Self::wcag_relative_luminance(srgb)
     }
 
     /// Legacy method: LAB to hex
-    pub fn lab_to_hex(lab: Lab) -> String {
+    #[must_use] pub fn lab_to_hex(lab: Lab) -> String {
         ColorUtilsFacade::quick_convert(lab).hex
     }
 
     /// Legacy method: LAB to RGB
-    pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
+    #[must_use] pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
         ColorUtilsFacade::quick_convert(lab).rgb
     }
 
     /// Legacy method: LAB to sRGB
-    pub fn lab_to_srgb(lab: Lab) -> Srgb {
+    #[must_use] pub fn lab_to_srgb(lab: Lab) -> Srgb {
         lab.into_color()
     }
 
     /// Legacy method: sRGB to LAB
-    pub fn srgb_to_lab(srgb: Srgb) -> Lab {
+    #[must_use] pub fn srgb_to_lab(srgb: Srgb) -> Lab {
         srgb.into_color()
     }
 
     /// Legacy method: RGB to LAB
-    pub fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
+    #[must_use] pub fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
         let srgb = Srgb::new(
-            rgb.0 as f32 / 255.0,
-            rgb.1 as f32 / 255.0,
-            rgb.2 as f32 / 255.0,
+            f32::from(rgb.0) / 255.0,
+            f32::from(rgb.1) / 255.0,
+            f32::from(rgb.2) / 255.0,
         );
         srgb.into_color()
     }
 
     /// Legacy method: RGB to sRGB
-    pub fn rgb_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
+    #[must_use] pub fn rgb_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
         Srgb::new(
-            rgb.0 as f32 / 255.0,
-            rgb.1 as f32 / 255.0,
-            rgb.2 as f32 / 255.0,
+            f32::from(rgb.0) / 255.0,
+            f32::from(rgb.1) / 255.0,
+            f32::from(rgb.2) / 255.0,
         )
     }
 
     /// Legacy method: sRGB to RGB
-    pub fn srgb_to_rgb(srgb: Srgb) -> (u8, u8, u8) {
+    #[must_use] pub fn srgb_to_rgb(srgb: Srgb) -> (u8, u8, u8) {
         (
             (srgb.red * 255.0) as u8,
             (srgb.green * 255.0) as u8,
@@ -332,18 +332,18 @@ impl LegacyColorUtils {
     }
 
     /// Array-based functions for collections compatibility
-    pub fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
+    #[must_use] pub fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
         let lab = Self::rgb_to_lab((rgb[0], rgb[1], rgb[2]));
         [lab.l, lab.a, lab.b]
     }
 
-    pub fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
+    #[must_use] pub fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
         let lab_color = Lab::new(lab[0], lab[1], lab[2]);
         let (r, g, b) = Self::lab_to_rgb(lab_color);
         [r, g, b]
     }
 
-    pub fn lab_array_distance(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
+    #[must_use] pub fn lab_array_distance(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
         let lab1_color = Lab::new(lab1[0], lab1[1], lab1[2]);
         let lab2_color = Lab::new(lab2[0], lab2[1], lab2[2]);
         Self::lab_distance(lab1_color, lab2_color)
@@ -355,38 +355,38 @@ impl LegacyColorUtils {
     }
 
     /// Legacy method: LAB to HSL tuple
-    pub fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
+    #[must_use] pub fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
         let srgb: Srgb = lab.into_color();
         let hsl: Hsl = srgb.into_color();
         (
-            hsl.hue.into_degrees() as f64,
-            hsl.saturation as f64,
-            hsl.lightness as f64,
+            f64::from(hsl.hue.into_degrees()),
+            f64::from(hsl.saturation),
+            f64::from(hsl.lightness),
         )
     }
 
     /// Legacy method: sRGB to HSL tuple
-    pub fn srgb_to_hsl_tuple(srgb: Srgb) -> (f64, f64, f64) {
+    #[must_use] pub fn srgb_to_hsl_tuple(srgb: Srgb) -> (f64, f64, f64) {
         let hsl: Hsl = srgb.into_color();
         (
-            hsl.hue.into_degrees() as f64,
-            hsl.saturation as f64,
-            hsl.lightness as f64,
+            f64::from(hsl.hue.into_degrees()),
+            f64::from(hsl.saturation),
+            f64::from(hsl.lightness),
         )
     }
 
     /// Legacy method: LAB to LCH
-    pub fn lab_to_lch(lab: Lab) -> palette::Lch {
+    #[must_use] pub fn lab_to_lch(lab: Lab) -> palette::Lch {
         lab.into_color()
     }
 
     /// Legacy method: LCH to LAB
-    pub fn lch_to_lab(lch: palette::Lch) -> Lab {
+    #[must_use] pub fn lch_to_lab(lch: palette::Lch) -> Lab {
         lch.into_color()
     }
 
     /// Legacy method: LCH tulip format to LAB
-    pub fn lch_tulip_to_lab(lch: (f64, f64, f64)) -> Lab {
+    #[must_use] pub fn lch_tulip_to_lab(lch: (f64, f64, f64)) -> Lab {
         let lch_color = palette::Lch::new(lch.0 as f32, lch.1 as f32, lch.2 as f32);
         lch_color.into_color()
     }
@@ -420,53 +420,59 @@ impl LegacyColorUtils {
     }
 
     // Additional missing functions for format_utils
-    pub fn lab_to_hsv_tuple(lab: Lab) -> (f64, f64, f64) {
+    #[must_use] pub fn lab_to_hsv_tuple(lab: Lab) -> (f64, f64, f64) {
         let srgb: Srgb = lab.into_color();
         let hsv: palette::Hsv = srgb.into_color();
         (
-            hsv.hue.into_degrees() as f64,
-            hsv.saturation as f64,
-            hsv.value as f64,
+            f64::from(hsv.hue.into_degrees()),
+            f64::from(hsv.saturation),
+            f64::from(hsv.value),
         )
     }
 
-    pub fn lab_to_cmyk_tuple(lab: Lab) -> (f64, f64, f64, f64) {
+    #[must_use] pub fn lab_to_cmyk_tuple(lab: Lab) -> (f64, f64, f64, f64) {
+        #[allow(clippy::many_single_char_names)]
         let (r, g, b) = Self::lab_to_rgb(lab);
-        let (rf, gf, bf) = (r as f64 / 255.0, g as f64 / 255.0, b as f64 / 255.0);
+        #[allow(clippy::many_single_char_names)]
+        let (rf, gf, bf) = (f64::from(r) / 255.0, f64::from(g) / 255.0, f64::from(b) / 255.0);
+        #[allow(clippy::many_single_char_names)]
         let k = 1.0 - rf.max(gf).max(bf);
         if k == 1.0 {
             (0.0, 0.0, 0.0, 1.0)
         } else {
+            #[allow(clippy::many_single_char_names)]
             let c = (1.0 - rf - k) / (1.0 - k);
+            #[allow(clippy::many_single_char_names)]
             let m = (1.0 - gf - k) / (1.0 - k);
+            #[allow(clippy::many_single_char_names)]
             let y = (1.0 - bf - k) / (1.0 - k);
             (c, m, y, k)
         }
     }
 
-    pub fn lab_to_xyz_tuple(lab: Lab) -> (f64, f64, f64) {
+    #[must_use] pub fn lab_to_xyz_tuple(lab: Lab) -> (f64, f64, f64) {
         let xyz: palette::Xyz = lab.into_color();
-        (xyz.x as f64, xyz.y as f64, xyz.z as f64)
+        (f64::from(xyz.x), f64::from(xyz.y), f64::from(xyz.z))
     }
 
-    pub fn lab_to_lch_tuple(lab: Lab) -> (f64, f64, f64) {
+    #[must_use] pub fn lab_to_lch_tuple(lab: Lab) -> (f64, f64, f64) {
         let lch = Self::lab_to_lch(lab);
         (
-            lch.l as f64,
-            lch.chroma as f64,
-            lch.hue.into_degrees() as f64,
+            f64::from(lch.l),
+            f64::from(lch.chroma),
+            f64::from(lch.hue.into_degrees()),
         )
     }
 
-    pub fn lab_to_oklch_tuple(lab: Lab) -> (f64, f64, f64) {
+    #[must_use] pub fn lab_to_oklch_tuple(lab: Lab) -> (f64, f64, f64) {
         // Convert LAB -> sRGB -> Oklab -> Oklch
         let srgb: Srgb = lab.into_color();
         let oklab: palette::Oklab = srgb.into_color();
         let oklch: palette::Oklch = oklab.into_color();
         (
-            oklch.l as f64,
-            oklch.chroma as f64,
-            oklch.hue.into_degrees() as f64,
+            f64::from(oklch.l),
+            f64::from(oklch.chroma),
+            f64::from(oklch.hue.into_degrees()),
         )
     }
 

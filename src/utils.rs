@@ -1,6 +1,6 @@
 //! Utility functions for color-rs
 
-use crate::config::*;
+use crate::config::{MAX_PERCENTAGE, BEZIER_MIN, BEZIER_MAX, HEIGHT_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_FONT_SIZE_RATIO};
 use crate::error::{ColorError, Result};
 
 /// Utility functions for various operations
@@ -58,7 +58,7 @@ impl Utils {
         format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0)
     }
 
-    /// DUPLICATION ELIMINATED: Use PrecisionUtils::format_percentage() instead
+    /// DUPLICATION ELIMINATED: Use `PrecisionUtils::format_percentage()` instead
     /// Format a percentage value as string - Simple u8 version for legacy compatibility
     #[must_use]
     pub fn format_percentage(value: u8) -> String {
@@ -108,19 +108,19 @@ impl Utils {
     /// Calculate aspect ratio for image dimensions
     #[must_use]
     pub fn calculate_image_height(width: u32) -> u32 {
-        (width as f64 * HEIGHT_RATIO) as u32
+        (f64::from(width) * HEIGHT_RATIO) as u32
     }
 
     /// Calculate legend height based on gradient height
     #[must_use]
     pub fn calculate_legend_height(gradient_height: u32) -> u32 {
-        (gradient_height as f64 * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
+        (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
     }
 
     /// Calculate font size based on legend height
     #[must_use]
     pub fn calculate_font_size(legend_height: u32) -> u32 {
-        (legend_height as f64 * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32
+        (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32
     }
 
     /// Sanitize a color hex string

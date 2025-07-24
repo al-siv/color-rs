@@ -12,7 +12,7 @@ static UNIFIED_MANAGER: std::sync::LazyLock<UnifiedColorManager> = std::sync::La
     UnifiedColorManager::new().expect("Failed to create UnifiedColorManager")
 });
 
-/// Convert new ColorMatch to old RalMatch for backward compatibility
+/// Convert new `ColorMatch` to old `RalMatch` for backward compatibility
 fn color_match_to_ral_match(
     color_match: &NewColorMatch,
     classification: RalClassification,

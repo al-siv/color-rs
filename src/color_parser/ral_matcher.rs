@@ -24,7 +24,7 @@ pub struct RalMatch {
 }
 
 /// RAL color classification type
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RalClassification {
     Classic,
     DesignSystem,
@@ -39,28 +39,28 @@ pub struct RgbColor {
 }
 
 impl RgbColor {
-    pub fn new(r: u8, g: u8, b: u8) -> Self {
+    #[must_use] pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 
     /// Convert RGB to LAB color space for accurate distance calculation
-    pub fn to_lab(&self) -> Lab {
+    #[must_use] pub fn to_lab(&self) -> Lab {
         ColorUtils::rgb_to_lab((self.r, self.g, self.b))
     }
 }
 
 /// Find the two closest RAL Classic colors to the given RGB color
-pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
+#[must_use] pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_classic_compat(rgb, max_results)
 }
 
 /// Find the two closest RAL Design System+ colors to the given RGB color
-pub fn find_closest_ral_design(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
+#[must_use] pub fn find_closest_ral_design(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_design_compat(rgb, max_results)
 }
 
 /// Find closest colors from both RAL classifications
-pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
+#[must_use] pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_colors_compat(rgb, max_results)
 }
 
@@ -98,7 +98,7 @@ pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
 }
 
 /// Find RAL color by name (case-insensitive partial match)
-pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
+#[must_use] pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
     find_ral_by_name_pattern_compat(name)
 }
 

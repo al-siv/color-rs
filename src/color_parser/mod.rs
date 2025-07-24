@@ -1,8 +1,8 @@
 //! Integrated color parser module for color-rs
 //!
 //! This module combines and modernizes functionality from:
-//! - css-color-parser-rs (https://github.com/7thSigil/css-color-parser-rs) by Katkov Oleksandr
-//! - color-name (https://github.com/annymosse/color-name) by annymosse
+//! - css-color-parser-rs (<https://github.com/7thSigil/css-color-parser-rs>) by Katkov Oleksandr
+//! - color-name (<https://github.com/annymosse/color-name>) by annymosse
 //!
 //! We are heavily inspired by these libraries and have integrated and modernized
 //! their functionality for our use case.
@@ -45,7 +45,7 @@ pub struct ColorParser {
 
 impl ColorParser {
     /// Create a new color parser
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         let unified_manager = UnifiedColorManager::new().unwrap_or_else(|_| {
             // Fallback to default if creation fails
             UnifiedColorManager::default()
@@ -199,18 +199,18 @@ impl ColorParser {
 
     /// Get access to the CSS color collection
     #[must_use]
-    pub fn css_collection(&self) -> &CssColorCollection {
+    pub const fn css_collection(&self) -> &CssColorCollection {
         &self.css_collection
     }
 
     /// Get access to the unified color manager for all collections
     #[must_use]
-    pub fn unified_manager(&self) -> &UnifiedColorManager {
+    pub const fn unified_manager(&self) -> &UnifiedColorManager {
         &self.unified_manager
     }
 
     /// Find closest colors from all collections (CSS, RAL Classic, RAL Design)
-    pub fn find_closest_all_collections(
+    #[must_use] pub fn find_closest_all_collections(
         &self,
         rgb: [u8; 3],
         max_results: usize,
@@ -220,13 +220,13 @@ impl ColorParser {
     }
 
     /// Find closest RAL Classic colors
-    pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
+    #[must_use] pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         self.unified_manager
             .find_closest_ral_classic(rgb, max_results)
     }
 
     /// Find closest RAL Design colors
-    pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
+    #[must_use] pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         self.unified_manager
             .find_closest_ral_design(rgb, max_results)
     }

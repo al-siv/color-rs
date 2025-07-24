@@ -168,6 +168,13 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 
 /// Generate comprehensive report using the unified collection approach
 /// Enhanced color matching with color schemes and luminance adjustments
+/// 
+/// # Errors
+/// 
+/// Returns an error if:
+/// - The input color cannot be parsed
+/// - Color scheme calculation fails
+/// - Output serialization fails
 pub fn color_match_with_schemes(
     args: &crate::cli::ColorArgs,
     strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
@@ -202,7 +209,7 @@ pub fn color_match_with_schemes(
 
     // Always use structured TOML/YAML output (terminal + optional file)
     format_comprehensive_report_with_structured_output(
-        schemes,
+        &schemes,
         &args.color,
         &color_name,
         strategy,
@@ -213,7 +220,7 @@ pub fn color_match_with_schemes(
 /// Generate comprehensive report with structured TOML/YAML output for terminal and optional file
 /// Generate comprehensive report with file output support
 fn format_comprehensive_report_with_structured_output(
-    schemes: crate::color_schemes::ColorSchemeResult,
+    schemes: &crate::color_schemes::ColorSchemeResult,
     input: &str,
     color_name: &str,
     strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
@@ -261,7 +268,10 @@ fn format_comprehensive_report_with_structured_output(
 
         match format {
             OutputFormat::Toml => {
-                let toml_filename = if filename.ends_with(".toml") {
+                let toml_filename = if std::path::Path::new(filename)
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("toml"))
+                {
                     filename.clone()
                 } else {
                     format!("{filename}.toml")
@@ -287,7 +297,13 @@ fn format_comprehensive_report_with_structured_output(
                 );
             }
             OutputFormat::Yaml => {
-                let yaml_filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
+                let yaml_filename = if std::path::Path::new(filename)
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("yaml"))
+                    || std::path::Path::new(filename)
+                        .extension()
+                        .is_some_and(|ext| ext.eq_ignore_ascii_case("yml"))
+                {
                     filename.clone()
                 } else {
                     format!("{filename}.yaml")
@@ -328,7 +344,7 @@ fn display_colorized_structured_output(content: &str, format: &crate::cli::Outpu
 
 /// Colorize a single line of TOML/YAML output
 fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> String {
-    use colored::*;
+    use colored::Colorize;
 
     let trimmed = line.trim_start();
     let indent = &line[..line.len() - trimmed.len()];
@@ -356,7 +372,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 format!("{}{}", indent, trimmed.bold().cyan())
             } else if let Some(colon_pos) = trimmed.find(": ") {
                 // Key: value pairs
-                let key = &trimmed[..colon_pos + 1];
+                let key = &trimmed[..=colon_pos];
                 let value = &trimmed[colon_pos + 2..];
                 format!("{}{} {}", indent, key.green(), value)
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {
@@ -371,6 +387,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
 
 /// Colorize values based on their type
 /// Collect enhanced color schemes data for new flattened file output
+#[allow(clippy::too_many_lines)]
 fn collect_enhanced_color_schemes_data(
     schemes: &crate::color_schemes::ColorSchemeResult,
     strategy: &str,
@@ -383,19 +400,13 @@ fn collect_enhanced_color_schemes_data(
     // Create parser for color name matching
     let parser = ColorParser::new();
 
-    // Select the appropriate strategy schemes
+    // Select the appropriate strategy schemes  
     let selected_schemes = match strategy {
         "hsl" => (
             schemes.hsl_complementary,
             schemes.hsl_split_complementary,
             schemes.hsl_triadic,
             schemes.hsl_tetradic,
-        ),
-        "lab" => (
-            schemes.lab_complementary,
-            schemes.lab_split_complementary,
-            schemes.lab_triadic,
-            schemes.lab_tetradic,
         ),
         _ => (
             schemes.lab_complementary,
@@ -405,7 +416,8 @@ fn collect_enhanced_color_schemes_data(
         ),
     };
 
-    /// Convert a Lab color to an EnhancedColorSchemeItem with full color information
+    /// Convert a Lab color to an `EnhancedColorSchemeItem` with full color information
+    #[allow(clippy::items_after_statements)]
     fn lab_to_enhanced_color_scheme_item(
         lab: Lab,
         parser: &ColorParser,
@@ -436,6 +448,8 @@ fn collect_enhanced_color_schemes_data(
     }
 
     /// Get collection matches for all color collections
+    #[allow(clippy::items_after_statements)]
+    #[allow(clippy::too_many_lines)]
     fn get_collection_matches(
         rgb: (u8, u8, u8),
         parser: &ColorParser,

@@ -16,36 +16,36 @@ pub enum ContrastLevel {
 }
 
 impl ContrastLevel {
-    pub fn to_string(&self) -> &'static str {
+    #[must_use] pub const fn to_string(&self) -> &'static str {
         match self {
-            ContrastLevel::High => "High",
-            ContrastLevel::Medium => "Medium",
-            ContrastLevel::Marginal => "Marginal",
-            ContrastLevel::Low => "Low",
+            Self::High => "High",
+            Self::Medium => "Medium",
+            Self::Marginal => "Marginal",
+            Self::Low => "Low",
         }
     }
 
-    pub fn from_wcag_ratio(ratio: f64) -> Self {
+    #[must_use] pub fn from_wcag_ratio(ratio: f64) -> Self {
         if ratio >= 7.0 {
-            ContrastLevel::High
+            Self::High
         } else if ratio >= 4.5 {
-            ContrastLevel::Medium
+            Self::Medium
         } else if ratio >= 3.0 {
-            ContrastLevel::Marginal
+            Self::Marginal
         } else {
-            ContrastLevel::Low
+            Self::Low
         }
     }
 
-    pub fn from_delta_e(delta_e: f64) -> Self {
+    #[must_use] pub fn from_delta_e(delta_e: f64) -> Self {
         if delta_e >= 40.0 {
-            ContrastLevel::High
+            Self::High
         } else if delta_e >= 20.0 {
-            ContrastLevel::Medium
+            Self::Medium
         } else if delta_e >= 10.0 {
-            ContrastLevel::Marginal
+            Self::Marginal
         } else {
-            ContrastLevel::Low
+            Self::Low
         }
     }
 }
@@ -125,7 +125,7 @@ impl ContrastCalculationTemplate for WcagContrastCalculator {
     fn calculate_luminance(&self, color: Srgb) -> f64 {
         // WCAG 2.1 relative luminance calculation
         let to_linear = |c: f32| -> f64 {
-            let c = c as f64;
+            let c = f64::from(c);
             if c <= 0.03928 {
                 c / 12.92
             } else {
@@ -137,7 +137,7 @@ impl ContrastCalculationTemplate for WcagContrastCalculator {
         let g = to_linear(color.green);
         let b = to_linear(color.blue);
 
-        0.2126 * r + 0.7152 * g + 0.0722 * b
+        0.0722f64.mul_add(b, 0.2126f64.mul_add(r, 0.7152 * g))
     }
 
     fn compute_contrast_value(&self, luminance1: f64, luminance2: f64) -> f64 {
@@ -161,7 +161,7 @@ pub struct LabContrastCalculator;
 impl ContrastCalculationTemplate for LabContrastCalculator {
     fn calculate_luminance(&self, color: Srgb) -> f64 {
         let lab: Lab = color.into_color();
-        lab.l as f64 / 100.0 // Normalize to 0-1 range
+        f64::from(lab.l) / 100.0 // Normalize to 0-1 range
     }
 
     fn compute_contrast_value(&self, luminance1: f64, luminance2: f64) -> f64 {
@@ -191,7 +191,7 @@ pub struct DeltaEContrastCalculator;
 impl ContrastCalculationTemplate for DeltaEContrastCalculator {
     fn calculate_luminance(&self, color: Srgb) -> f64 {
         let lab: Lab = color.into_color();
-        lab.l as f64
+        f64::from(lab.l)
     }
 
     fn compute_contrast_value(&self, _luminance1: f64, _luminance2: f64) -> f64 {
@@ -207,22 +207,22 @@ impl ContrastCalculationTemplate for DeltaEContrastCalculator {
         "CIEDE2000 Delta E"
     }
 
-    /// Specialized method for Delta E calculation - override of calculate_contrast
+    /// Specialized method for Delta E calculation - override of `calculate_contrast`
     fn calculate_contrast(&self, color1: Srgb, color2: Srgb) -> Result<ContrastAnalysis> {
         let lab1: Lab = color1.into_color();
         let lab2: Lab = color2.into_color();
 
         let delta_e = lab1.difference(lab2);
-        let level = self.determine_contrast_level(delta_e as f64);
+        let level = self.determine_contrast_level(f64::from(delta_e));
 
         Ok(ContrastAnalysis {
-            contrast_ratio: delta_e as f64,
+            contrast_ratio: f64::from(delta_e),
             contrast_level: level,
             algorithm_used: self.algorithm_name(),
             meets_wcag_aa: delta_e >= 20.0, // Different thresholds for Delta E
             meets_wcag_aaa: delta_e >= 40.0,
-            color1_luminance: lab1.l as f64,
-            color2_luminance: lab2.l as f64,
+            color1_luminance: f64::from(lab1.l),
+            color2_luminance: f64::from(lab2.l),
         })
     }
 }
@@ -234,14 +234,14 @@ pub struct EnhancedContrastCalculator {
 }
 
 impl EnhancedContrastCalculator {
-    pub fn new(primary: Box<dyn ContrastCalculationTemplate>) -> Self {
+    #[must_use] pub fn new(primary: Box<dyn ContrastCalculationTemplate>) -> Self {
         Self {
             primary_algorithm: primary,
             secondary_algorithm: None,
         }
     }
 
-    pub fn with_secondary(mut self, secondary: Box<dyn ContrastCalculationTemplate>) -> Self {
+    #[must_use] pub fn with_secondary(mut self, secondary: Box<dyn ContrastCalculationTemplate>) -> Self {
         self.secondary_algorithm = Some(secondary);
         self
     }
@@ -312,24 +312,24 @@ pub struct ContrastAssessment {
 pub struct ContrastCalculatorFactory;
 
 impl ContrastCalculatorFactory {
-    pub fn create_wcag_calculator() -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use] pub fn create_wcag_calculator() -> Box<dyn ContrastCalculationTemplate> {
         Box::new(WcagContrastCalculator)
     }
 
-    pub fn create_lab_calculator() -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use] pub fn create_lab_calculator() -> Box<dyn ContrastCalculationTemplate> {
         Box::new(LabContrastCalculator)
     }
 
-    pub fn create_delta_e_calculator() -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use] pub fn create_delta_e_calculator() -> Box<dyn ContrastCalculationTemplate> {
         Box::new(DeltaEContrastCalculator)
     }
 
-    pub fn create_enhanced_calculator() -> EnhancedContrastCalculator {
+    #[must_use] pub fn create_enhanced_calculator() -> EnhancedContrastCalculator {
         EnhancedContrastCalculator::new(Self::create_wcag_calculator())
             .with_secondary(Self::create_lab_calculator())
     }
 
-    pub fn create_by_name(name: &str) -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use] pub fn create_by_name(name: &str) -> Box<dyn ContrastCalculationTemplate> {
         match name.to_lowercase().as_str() {
             "wcag" => Self::create_wcag_calculator(),
             "lab" => Self::create_lab_calculator(),

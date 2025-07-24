@@ -23,6 +23,10 @@ pub trait ColorMatchingTemplate {
     ///
     /// This is the main template method that orchestrates the matching process.
     /// Subclasses should not override this method.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an error if color matching fails
     fn match_color(
         &self,
         target: &UniversalColor,
@@ -114,12 +118,12 @@ pub struct CssColorMatcher<'a> {
 
 impl<'a> CssColorMatcher<'a> {
     #[must_use]
-    pub fn new(collection: &'a crate::color_parser::css_collection::CssColorCollection) -> Self {
+    pub const fn new(collection: &'a crate::color_parser::css_collection::CssColorCollection) -> Self {
         Self { collection }
     }
 }
 
-impl<'a> ColorMatchingTemplate for CssColorMatcher<'a> {
+impl ColorMatchingTemplate for CssColorMatcher<'_> {
     fn find_matches(
         &self,
         target: &UniversalColor,
@@ -141,14 +145,14 @@ pub struct RalClassicMatcher<'a> {
 }
 
 impl<'a> RalClassicMatcher<'a> {
-    pub fn new(
+    #[must_use] pub const fn new(
         collection: &'a crate::color_parser::ral_classic_collection::RalClassicCollection,
     ) -> Self {
         Self { collection }
     }
 }
 
-impl<'a> ColorMatchingTemplate for RalClassicMatcher<'a> {
+impl ColorMatchingTemplate for RalClassicMatcher<'_> {
     fn validate_input(&self, target: &UniversalColor) -> Result<()> {
         // Call parent validation first using explicit syntax
         <dyn ColorMatchingTemplate>::validate_input(self, target)?;
@@ -185,14 +189,14 @@ pub struct RalDesignMatcher<'a> {
 }
 
 impl<'a> RalDesignMatcher<'a> {
-    pub fn new(
+    #[must_use] pub const fn new(
         collection: &'a crate::color_parser::ral_design_collection::RalDesignCollection,
     ) -> Self {
         Self { collection }
     }
 }
 
-impl<'a> ColorMatchingTemplate for RalDesignMatcher<'a> {
+impl ColorMatchingTemplate for RalDesignMatcher<'_> {
     fn validate_input(&self, target: &UniversalColor) -> Result<()> {
         // Call parent validation first using explicit syntax
         <dyn ColorMatchingTemplate>::validate_input(self, target)?;
@@ -253,6 +257,7 @@ fn extract_hue_from_code(code: &str) -> u32 {
 }
 
 /// Unified color matcher that uses template method pattern
+#[allow(clippy::struct_field_names)]
 pub struct UnifiedColorMatcher {
     css_collection: crate::color_parser::css_collection::CssColorCollection,
     ral_classic_collection: crate::color_parser::ral_classic_collection::RalClassicCollection,
@@ -281,16 +286,22 @@ impl UnifiedColorMatcher {
         let mut all_matches = Vec::new();
 
         // Use template method for each collection
+        #[allow(clippy::similar_names)]
         let css_matcher = CssColorMatcher::new(&self.css_collection);
+        #[allow(clippy::similar_names)]
         let css_matches = css_matcher.match_color(target, limit_per_collection, strategy)?;
         all_matches.extend(css_matches);
 
+        #[allow(clippy::similar_names)]
         let ral_classic_matcher = RalClassicMatcher::new(&self.ral_classic_collection);
+        #[allow(clippy::similar_names)]
         let ral_classic_matches =
             ral_classic_matcher.match_color(target, limit_per_collection, strategy)?;
         all_matches.extend(ral_classic_matches);
 
+        #[allow(clippy::similar_names)]
         let ral_design_matcher = RalDesignMatcher::new(&self.ral_design_collection);
+        #[allow(clippy::similar_names)]
         let ral_design_matches =
             ral_design_matcher.match_color(target, limit_per_collection, strategy)?;
         all_matches.extend(ral_design_matches);

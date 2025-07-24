@@ -77,7 +77,9 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let ral_classic_matches = color_manager.find_closest_ral_classic(rgb, 1);
         let ral_design_matches = color_manager.find_closest_ral_design(rgb, 1);
 
-        let css = if !css_matches.is_empty() {
+        let css = if css_matches.is_empty() {
+            "Unknown | Unknown | #000000".to_string()
+        } else {
             let m = &css_matches[0];
             let hex = format!(
                 "#{:02X}{:02X}{:02X}",
@@ -89,11 +91,11 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 m.entry.metadata.name,
                 hex
             )
-        } else {
-            "Unknown | Unknown | #000000".to_string()
         };
 
-        let ralc = if !ral_classic_matches.is_empty() {
+        let ralc = if ral_classic_matches.is_empty() {
+            "Unknown | Unknown | #000000".to_string()
+        } else {
             let m = &ral_classic_matches[0];
             let hex = format!(
                 "#{:02X}{:02X}{:02X}",
@@ -105,11 +107,11 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 m.entry.metadata.name,
                 hex
             )
-        } else {
-            "Unknown | Unknown | #000000".to_string()
         };
 
-        let raldsp = if !ral_design_matches.is_empty() {
+        let raldsp = if ral_design_matches.is_empty() {
+            "Unknown | Unknown | #000000".to_string()
+        } else {
             let m = &ral_design_matches[0];
             let hex = format!(
                 "#{:02X}{:02X}{:02X}",
@@ -121,8 +123,6 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 m.entry.metadata.name,
                 hex
             )
-        } else {
-            "Unknown | Unknown | #000000".to_string()
         };
 
         ColorCollectionMatches {
@@ -150,7 +150,9 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
 
         // Find closest color names
         let closest_css = color_manager.find_closest_css_colors([r, g, b], 1);
-        let color_name = if !closest_css.is_empty() {
+        let color_name = if closest_css.is_empty() {
+            None
+        } else {
             Some(crate::output_formats::ColorNameInfo {
                 exact: None,
                 nearest: Some(crate::output_formats::NearestColorMatch {
@@ -160,8 +162,6 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 }),
                 all_collections: None,
             })
-        } else {
-            None
         };
 
         let stop = GradientStop {
@@ -175,7 +175,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
             lch: format!(
                 "lch({:.2}, {:.3}, {:.1})",
                 interpolated.l,
-                (interpolated.a * interpolated.a + interpolated.b * interpolated.b).sqrt(),
+                interpolated.a.hypot(interpolated.b),
                 interpolated.b.atan2(interpolated.a).to_degrees()
             ),
             wcag21_relative_luminance: luminance,
@@ -209,7 +209,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 lch: format!(
                     "lch({:.2}, {:.3}, {:.1})",
                     interpolated.l,
-                    (interpolated.a * interpolated.a + interpolated.b * interpolated.b).sqrt(),
+                    interpolated.a.hypot(interpolated.b),
                     interpolated.b.atan2(interpolated.a).to_degrees()
                 ),
                 wcag21_relative_luminance: luminance,
@@ -246,7 +246,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 lch: format!(
                     "lch({:.2}, {:.3}, {:.1})",
                     start_lab.l,
-                    (start_lab.a * start_lab.a + start_lab.b * start_lab.b).sqrt(),
+                    start_lab.a.hypot(start_lab.b),
                     start_lab.b.atan2(start_lab.a).to_degrees()
                 ),
                 contrast: Some(ContrastAnalysis {
@@ -263,7 +263,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 lch: format!(
                     "lch({:.2}, {:.3}, {:.1})",
                     end_lab.l,
-                    (end_lab.a * end_lab.a + end_lab.b * end_lab.b).sqrt(),
+                    end_lab.a.hypot(end_lab.b),
                     end_lab.b.atan2(end_lab.a).to_degrees()
                 ),
                 contrast: Some(ContrastAnalysis {
@@ -303,7 +303,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 lch: format!(
                     "lch({:.2}, {:.3}, {:.1})",
                     start_lab.l,
-                    (start_lab.a * start_lab.a + start_lab.b * start_lab.b).sqrt(),
+                    start_lab.a.hypot(start_lab.b),
                     start_lab.b.atan2(start_lab.a).to_degrees()
                 ),
                 contrast: Some(ContrastAnalysis {
@@ -311,7 +311,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                     wcag21_relative_luminance: start_luminance,
                     relative_contrast,
                 }),
-                collections: Some(start_collections.clone()),
+                collections: Some(start_collections),
             },
             end: ColorInfo {
                 hex: ColorUtils::lab_to_hex(end_lab),
@@ -320,7 +320,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 lch: format!(
                     "lch({:.2}, {:.3}, {:.1})",
                     end_lab.l,
-                    (end_lab.a * end_lab.a + end_lab.b * end_lab.b).sqrt(),
+                    end_lab.a.hypot(end_lab.b),
                     end_lab.b.atan2(end_lab.a).to_degrees()
                 ),
                 contrast: Some(ContrastAnalysis {
@@ -328,7 +328,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                     wcag21_relative_luminance: end_luminance,
                     relative_contrast,
                 }),
-                collections: Some(end_collections.clone()),
+                collections: Some(end_collections),
             },
         },
         gradient_stops,
@@ -385,7 +385,7 @@ fn display_colorized_gradient_output(content: &str, format: &crate::cli::OutputF
 
 /// Colorize a single line of TOML/YAML output (copied from color.rs)
 fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> String {
-    use colored::*;
+    use colored::Colorize;
 
     let trimmed = line.trim_start();
     let indent = &line[..line.len() - trimmed.len()];
@@ -413,7 +413,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
                 format!("{}{}", indent, trimmed.bold().cyan())
             } else if let Some(colon_pos) = trimmed.find(": ") {
                 // Key: value pairs
-                let key = &trimmed[..colon_pos + 1];
+                let key = &trimmed[..=colon_pos];
                 let value = &trimmed[colon_pos + 2..];
                 format!("{}{} {}", indent, key.green(), value)
             } else if let Some(stripped) = trimmed.strip_prefix("- ") {

@@ -57,7 +57,7 @@ impl PrecisionUtils {
         )
     }
 
-    /// Format OKLCh values with standardized precision
+    /// Format `OKLCh` values with standardized precision
     #[must_use]
     pub fn format_oklch(l: f64, c: f64, h: f64) -> String {
         format!(

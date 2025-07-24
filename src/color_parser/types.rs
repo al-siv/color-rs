@@ -14,8 +14,8 @@ impl ColorParseResult {
     #[must_use]
     pub fn first(&self) -> Option<&ParsedColor> {
         match self {
-            ColorParseResult::Single(color) => Some(color),
-            ColorParseResult::Multiple(colors) => colors.first(),
+            Self::Single(color) => Some(color),
+            Self::Multiple(colors) => colors.first(),
         }
     }
 
@@ -23,8 +23,8 @@ impl ColorParseResult {
     #[must_use]
     pub fn all(&self) -> Vec<&ParsedColor> {
         match self {
-            ColorParseResult::Single(color) => vec![color],
-            ColorParseResult::Multiple(colors) => colors.iter().collect(),
+            Self::Single(color) => vec![color],
+            Self::Multiple(colors) => colors.iter().collect(),
         }
     }
 }
@@ -45,7 +45,7 @@ pub struct ParsedColor {
 }
 
 /// Color format detection
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ColorFormat {
     /// Hex format (#rgb or #rrggbb)
     Hex,
@@ -67,22 +67,22 @@ pub enum ColorFormat {
 
 impl ParsedColor {
     /// Create a new parsed color
-    pub fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self {
+    #[must_use] pub const fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self {
         Self { r, g, b, a, format }
     }
 
     /// Create from RGB values with full opacity
-    pub fn from_rgb(r: u8, g: u8, b: u8, format: ColorFormat) -> Self {
+    #[must_use] pub const fn from_rgb(r: u8, g: u8, b: u8, format: ColorFormat) -> Self {
         Self::new(r, g, b, 1.0, format)
     }
 
     /// Get RGB tuple
-    pub fn rgb(&self) -> (u8, u8, u8) {
+    #[must_use] pub const fn rgb(&self) -> (u8, u8, u8) {
         (self.r, self.g, self.b)
     }
 
     /// Get RGBA tuple
-    pub fn rgba(&self) -> (u8, u8, u8, f64) {
+    #[must_use] pub const fn rgba(&self) -> (u8, u8, u8, f64) {
         (self.r, self.g, self.b, self.a)
     }
 

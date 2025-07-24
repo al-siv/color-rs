@@ -39,7 +39,7 @@ pub struct ColorOperationsFacade;
 
 impl ColorOperationsFacade {
     /// Create a new color operations facade
-    pub fn new() -> Self {
+    #[must_use] pub const fn new() -> Self {
         Self
     }
 
@@ -122,7 +122,7 @@ impl ColorOperationsFacade {
     /// * `hex` - Hex color string
     ///
     /// # Returns
-    /// * ColorAnalysis struct with all calculated values
+    /// * `ColorAnalysis` struct with all calculated values
     pub fn analyze_color(&self, hex: &str) -> Result<ColorAnalysis> {
         let lab = ColorUtils::parse_hex_color(hex)?;
         let srgb1 = ColorUtils::lab_to_srgb(lab);

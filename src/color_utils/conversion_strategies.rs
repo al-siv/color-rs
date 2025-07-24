@@ -51,9 +51,11 @@ pub struct ConversionResult {
 
 impl ConversionResult {
     /// Create conversion result from LAB color
-    pub fn from_lab(lab: Lab) -> Self {
+    #[must_use] pub fn from_lab(lab: Lab) -> Self {
         let srgb: Srgb = lab.into_color();
+        #[allow(clippy::similar_names)]
         let hsl: Hsl = srgb.into_color();
+        #[allow(clippy::similar_names)]
         let hsv: Hsv = srgb.into_color();
         let lch: Lch = lab.into_color();
         let xyz: Xyz = lab.into_color();
@@ -175,7 +177,7 @@ pub struct ConversionStrategyFactory;
 
 impl ConversionStrategyFactory {
     /// Create strategy by name
-    pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorConversionStrategy> {
+    #[must_use] pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorConversionStrategy> {
         match strategy_name.to_lowercase().as_str() {
             "rgb" => Box::new(RgbConversionStrategy),
             "lab" => Box::new(LabConversionStrategy),
@@ -191,7 +193,7 @@ impl ConversionStrategyFactory {
     }
 
     /// Create strategy optimized for specific use case
-    pub fn create_for_use_case(use_case: ConversionUseCase) -> Box<dyn ColorConversionStrategy> {
+    #[must_use] pub fn create_for_use_case(use_case: ConversionUseCase) -> Box<dyn ColorConversionStrategy> {
         match use_case {
             ConversionUseCase::HighPrecision => Box::new(LabConversionStrategy),
             ConversionUseCase::WebDisplay => Box::new(RgbConversionStrategy),

@@ -7,7 +7,7 @@ use crate::config::{BEZIER_MAX, BEZIER_MIN};
 use kurbo::{CubicBez, ParamCurve, Point};
 
 /// Enum representing different types of easing functions
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum EasingType {
     #[default]
     Linear,
@@ -34,7 +34,7 @@ pub struct CubicBezierEasing {
 
 impl CubicBezierEasing {
     /// Create a new cubic bezier easing with control points
-    pub fn new(x1: f64, x2: f64) -> Self {
+    #[must_use] pub const fn new(x1: f64, x2: f64) -> Self {
         Self {
             x1: x1.clamp(BEZIER_MIN, BEZIER_MAX),
             x2: x2.clamp(BEZIER_MIN, BEZIER_MAX),
@@ -42,17 +42,17 @@ impl CubicBezierEasing {
     }
 
     /// Create ease-in-out timing function
-    pub fn ease_in_out() -> Self {
+    #[must_use] pub const fn ease_in_out() -> Self {
         Self::new(0.42, 0.58)
     }
 
     /// Create ease-in timing function
-    pub fn ease_in() -> Self {
+    #[must_use] pub const fn ease_in() -> Self {
         Self::new(0.42, 1.0)
     }
 
     /// Create ease-out timing function
-    pub fn ease_out() -> Self {
+    #[must_use] pub const fn ease_out() -> Self {
         Self::new(0.0, 0.58)
     }
 }
@@ -81,7 +81,7 @@ impl EasingStrategy for CubicBezierEasing {
         let epsilon = 1e-7;
 
         while high - low > epsilon {
-            let mid = (low + high) / 2.0;
+            let mid = f64::midpoint(low, high);
             let point = curve.eval(mid);
 
             if point.x < t {
@@ -91,7 +91,7 @@ impl EasingStrategy for CubicBezierEasing {
             }
         }
 
-        let final_param = (low + high) / 2.0;
+        let final_param = f64::midpoint(low, high);
         curve.eval(final_param).y
     }
 
@@ -118,7 +118,7 @@ pub struct EasingFactory;
 
 impl EasingFactory {
     /// Create an easing strategy from type and parameters
-    pub fn create_easing(
+    #[must_use] pub fn create_easing(
         easing_type: EasingType,
         ease_in: f64,
         ease_out: f64,
@@ -131,17 +131,17 @@ impl EasingFactory {
     }
 
     /// Create an easing strategy from parameters
-    pub fn create_cubic_bezier(x1: f64, x2: f64) -> Box<dyn EasingStrategy> {
+    #[must_use] pub fn create_cubic_bezier(x1: f64, x2: f64) -> Box<dyn EasingStrategy> {
         Box::new(CubicBezierEasing::new(x1, x2))
     }
 
     /// Create a linear easing strategy
-    pub fn create_linear() -> Box<dyn EasingStrategy> {
+    #[must_use] pub fn create_linear() -> Box<dyn EasingStrategy> {
         Box::new(LinearEasing)
     }
 
     /// Create ease-in-out strategy
-    pub fn create_ease_in_out() -> Box<dyn EasingStrategy> {
+    #[must_use] pub fn create_ease_in_out() -> Box<dyn EasingStrategy> {
         Box::new(CubicBezierEasing::ease_in_out())
     }
 }

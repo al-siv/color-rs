@@ -7,7 +7,7 @@ pub const APP_AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Image dimensions
-/// Height ratio: gradient height = width * HEIGHT_RATIO
+/// Height ratio: gradient height = width * `HEIGHT_RATIO`
 pub const HEIGHT_RATIO: f64 = 0.2; // 1/5 of width
 
 /// Default values for CLI arguments

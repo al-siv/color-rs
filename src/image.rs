@@ -4,13 +4,13 @@ use image::{ImageBuffer, Rgba, RgbaImage};
 use palette::Lab;
 use resvg;
 use std::fs;
-use tiny_skia::*;
+use tiny_skia::{Pixmap, Transform};
 use usvg::{Options, Tree, fontdb};
 
 use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
-use crate::{color_utils::LegacyColorUtils as ColorUtils, config::*};
+use crate::{color_utils::LegacyColorUtils as ColorUtils, config::{HEIGHT_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_FONT_SIZE_RATIO, DEFAULT_TEXT_Y_RATIO, FONT_FAMILY}};
 
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]
@@ -24,7 +24,7 @@ pub struct ImageGenerator;
 
 impl ImageGenerator {
     /// Create a new image generator
-    pub fn new() -> Self {
+    #[must_use] pub const fn new() -> Self {
         Self
     }
 
@@ -51,11 +51,11 @@ impl ImageGenerator {
             .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG: {e}")))?;
 
         let width = args.width;
-        let gradient_height = (width as f64 * HEIGHT_RATIO) as u32;
+        let gradient_height = (f64::from(width) * HEIGHT_RATIO) as u32;
         let legend_height = if args.no_legend {
             0
         } else {
-            (gradient_height as f64 * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
+            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -87,11 +87,11 @@ impl ImageGenerator {
         end_lab: Lab,
     ) -> Result<String> {
         let width = args.width;
-        let gradient_height = (width as f64 * HEIGHT_RATIO) as u32;
+        let gradient_height = (f64::from(width) * HEIGHT_RATIO) as u32;
         let legend_height = if args.no_legend {
             0
         } else {
-            (gradient_height as f64 * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
+            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -99,8 +99,8 @@ impl ImageGenerator {
         let end_hex = ColorUtils::lab_to_hex(end_lab);
 
         // Calculate positions as pixels
-        let start_pixel = (args.start_position as f64 / 100.0 * width as f64) as u32;
-        let end_pixel = (args.end_position as f64 / 100.0 * width as f64) as u32;
+        let start_pixel = (f64::from(args.start_position) / 100.0 * f64::from(width)) as u32;
+        let end_pixel = (f64::from(args.end_position) / 100.0 * f64::from(width)) as u32;
 
         let mut svg = String::new();
         svg.push_str(&format!(
@@ -164,8 +164,8 @@ impl ImageGenerator {
 
         // Add legend if not disabled
         if !args.no_legend {
-            let font_size = (legend_height as f64 * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32;
-            let text_y = gradient_height + (legend_height as f64 * DEFAULT_TEXT_Y_RATIO) as u32;
+            let font_size = (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32;
+            let text_y = gradient_height + (f64::from(legend_height) * DEFAULT_TEXT_Y_RATIO) as u32;
 
             svg.push_str(&format!(
                 "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
