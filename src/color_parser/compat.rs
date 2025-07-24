@@ -101,6 +101,7 @@ pub fn find_closest_ral_colors_compat(
 }
 
 /// Find RAL color by exact code (backward compatibility)
+#[must_use]
 pub fn find_ral_by_code_compat(code: &str) -> Option<RalMatch> {
     if let Some((collection_name, entry)) = UNIFIED_MANAGER.find_by_code(code) {
         let classification = if collection_name == "RAL Classic" {

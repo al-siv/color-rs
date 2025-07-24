@@ -143,6 +143,7 @@ impl FilterConfig {
 
     /// Create filter configuration from a filter expression string
     /// This maintains the original API while using new modular parsing
+    #[must_use]
     pub fn from_expression(expr: &str) -> Result<Self> {
         // Delegate to new modular parser but return legacy structure
         let parser = FilterExpressionParser::new();

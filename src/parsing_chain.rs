@@ -251,6 +251,7 @@ impl ColorParsingChain {
     }
 
     /// Returns the names of all handlers in the chain
+    #[must_use]
     pub fn handler_names(&self) -> Vec<&str> {
         self.handlers.iter().map(|h| h.handler_name()).collect()
     }

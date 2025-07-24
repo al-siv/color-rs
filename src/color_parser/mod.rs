@@ -198,11 +198,13 @@ impl ColorParser {
     }
 
     /// Get access to the CSS color collection
+    #[must_use]
     pub fn css_collection(&self) -> &CssColorCollection {
         &self.css_collection
     }
 
     /// Get access to the unified color manager for all collections
+    #[must_use]
     pub fn unified_manager(&self) -> &UnifiedColorManager {
         &self.unified_manager
     }

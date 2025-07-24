@@ -65,6 +65,7 @@ pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMat
 }
 
 /// Parse RAL Classic code (e.g., "RAL2013", "RAL 2013")
+#[must_use]
 pub fn parse_ral_classic_code(input: &str) -> Option<RalMatch> {
     static RAL_CLASSIC_REGEX: OnceLock<Regex> = OnceLock::new();
     let regex = RAL_CLASSIC_REGEX.get_or_init(|| Regex::new(r"(?i)^RAL\s*(\d{4})$").unwrap());
@@ -79,6 +80,7 @@ pub fn parse_ral_classic_code(input: &str) -> Option<RalMatch> {
 }
 
 /// Parse RAL Design System+ code (e.g., "RAL 010 20 10")
+#[must_use]
 pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
     static RAL_DESIGN_REGEX: OnceLock<Regex> = OnceLock::new();
     let regex = RAL_DESIGN_REGEX
@@ -101,6 +103,7 @@ pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
 }
 
 /// Main RAL color parsing function - tries all formats
+#[must_use]
 pub fn parse_ral_color(input: &str) -> Option<RalMatch> {
     // Try RAL Classic code first (RAL XXXX format)
     if let Some(color) = parse_ral_classic_code(input) {

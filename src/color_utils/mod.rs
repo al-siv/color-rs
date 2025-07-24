@@ -84,6 +84,7 @@ impl ColorUtilsFacade {
     }
     
     /// Calculate WCAG luminance efficiently
+    #[must_use]
     pub fn calculate_wcag_luminance(color: Srgb) -> f64 {
         let calculator = ContrastCalculatorFactory::create_wcag_calculator();
         calculator.calculate_luminance(color)
@@ -105,6 +106,7 @@ impl ColorUtilsFacade {
     }
     
     /// Get color distance using perceptual algorithm
+    #[must_use]
     pub fn calculate_perceptual_distance(color1: Lab, color2: Lab) -> f64 {
         // Simple Euclidean distance in LAB space as fallback
         let dl = color1.l - color2.l;
@@ -244,6 +246,7 @@ impl LegacyColorUtils {
     }
     
     /// Legacy method: LAB distance
+    #[must_use]
     pub fn lab_distance(lab1: Lab, lab2: Lab) -> f64 {
         ColorUtilsFacade::calculate_perceptual_distance(lab1, lab2)
     }
@@ -256,11 +259,13 @@ impl LegacyColorUtils {
     }
     
     /// Legacy method: WCAG relative luminance
+    #[must_use]
     pub fn wcag_relative_luminance(srgb: Srgb) -> f64 {
         ColorUtilsFacade::calculate_wcag_luminance(srgb)
     }
     
     /// Legacy method: WCAG relative luminance from RGB
+    #[must_use]
     pub fn wcag_relative_luminance_rgb(rgb: (u8, u8, u8)) -> f64 {
         let srgb = Srgb::new(rgb.0 as f32 / 255.0, rgb.1 as f32 / 255.0, rgb.2 as f32 / 255.0);
         Self::wcag_relative_luminance(srgb)
@@ -355,6 +360,7 @@ impl LegacyColorUtils {
     }
     
     /// Legacy method: WCAG contrast ratio
+    #[must_use]
     pub fn wcag_contrast_ratio(color1: Srgb, color2: Srgb) -> f64 {
         let l1 = Self::wcag_relative_luminance(color1);
         let l2 = Self::wcag_relative_luminance(color2);
@@ -419,6 +425,7 @@ impl LegacyColorUtils {
     }
     
     // Color scheme functions for backward compatibility
+    #[must_use]
     pub fn complementary_hsl(color: Lab) -> Vec<Lab> {
         let srgb: Srgb = color.into_color();
         let hsl: palette::Hsl = srgb.into_color();
@@ -428,6 +435,7 @@ impl LegacyColorUtils {
         vec![color, comp_srgb.into_color()]
     }
     
+    #[must_use]
     pub fn split_complementary_hsl(color: Lab) -> Vec<Lab> {
         let srgb: Srgb = color.into_color();
         let hsl: palette::Hsl = srgb.into_color();
@@ -441,6 +449,7 @@ impl LegacyColorUtils {
         ]
     }
     
+    #[must_use]
     pub fn triadic_hsl(color: Lab) -> Vec<Lab> {
         let srgb: Srgb = color.into_color();
         let hsl: palette::Hsl = srgb.into_color();
@@ -454,6 +463,7 @@ impl LegacyColorUtils {
         ]
     }
     
+    #[must_use]
     pub fn tetradic_hsl(color: Lab) -> Vec<Lab> {
         let srgb: Srgb = color.into_color();
         let hsl: palette::Hsl = srgb.into_color();
@@ -469,18 +479,22 @@ impl LegacyColorUtils {
         ]
     }
     
+    #[must_use]
     pub fn complementary_lab(color: Lab) -> Vec<Lab> {
         Self::complementary_hsl(color) // Same logic, different entry point
     }
     
+    #[must_use]
     pub fn split_complementary_lab(color: Lab) -> Vec<Lab> {
         Self::split_complementary_hsl(color)
     }
     
+    #[must_use]
     pub fn triadic_lab(color: Lab) -> Vec<Lab> {
         Self::triadic_hsl(color)
     }
     
+    #[must_use]
     pub fn tetradic_lab(color: Lab) -> Vec<Lab> {
         Self::tetradic_hsl(color)
     }

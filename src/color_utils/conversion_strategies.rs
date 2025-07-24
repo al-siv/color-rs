@@ -177,6 +177,7 @@ impl ConversionStrategyFactory {
     }
     
     /// Get list of available strategies
+    #[must_use]
     pub fn available_strategies() -> Vec<&'static str> {
         vec!["RGB", "LAB", "Fast"]
     }

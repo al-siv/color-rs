@@ -8,6 +8,7 @@ pub struct Utils;
 
 impl Utils {
     /// Clamp a value between min and max
+    #[must_use]
     pub fn clamp<T: PartialOrd>(value: T, min: T, max: T) -> T {
         if value < min {
             min
@@ -86,6 +87,7 @@ impl Utils {
     }
 
     /// Convert easing function name to control points
+    #[must_use]
     pub fn easing_preset_to_points(preset: &str) -> Option<(f64, f64)> {
         match preset.to_lowercase().as_str() {
             "linear" => Some((0.0, 1.0)),

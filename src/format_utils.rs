@@ -13,6 +13,7 @@ pub struct FormatUtils;
 
 impl FormatUtils {
     /// Parse hex color string to RGB values
+    #[must_use]
     pub fn parse_hex_color(hex: &str) -> Option<palette::Srgb> {
         let hex_clean = hex.trim_start_matches('#');
         if hex_clean.len() != 6 {

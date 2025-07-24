@@ -11,6 +11,7 @@ pub enum ColorParseResult {
 
 impl ColorParseResult {
     /// Get the first color from the result
+    #[must_use]
     pub fn first(&self) -> Option<&ParsedColor> {
         match self {
             ColorParseResult::Single(color) => Some(color),
@@ -19,6 +20,7 @@ impl ColorParseResult {
     }
     
     /// Get all colors as a vector
+    #[must_use]
     pub fn all(&self) -> Vec<&ParsedColor> {
         match self {
             ColorParseResult::Single(color) => vec![color],

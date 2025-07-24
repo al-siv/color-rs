@@ -152,6 +152,7 @@ pub struct GradientCalculator {
 
 impl GradientCalculator {
     /// Create calculator with intelligent stop algorithm
+    #[must_use]
     pub fn with_intelligent_stops(ease_in: f64, ease_out: f64) -> Self {
         Self {
             calculator: Box::new(IntelligentStopCalculator::new(ease_in, ease_out)),
@@ -159,6 +160,7 @@ impl GradientCalculator {
     }
     
     /// Create calculator with equal spacing
+    #[must_use]
     pub fn with_equal_spacing() -> Self {
         Self {
             calculator: Box::new(EqualSpacingCalculator),
@@ -179,11 +181,13 @@ impl GradientCalculator {
     }
     
     /// Calculate stop positions
+    #[must_use]
     pub fn calculate_stops(&self, num_stops: usize) -> Vec<f64> {
         self.calculator.calculate_stops(num_stops)
     }
     
     /// Calculate integer stop positions (0-100 range)
+    #[must_use]
     pub fn calculate_stops_integer(&self, num_stops: usize, start_pos: u8, end_pos: u8) -> Vec<u8> {
         let stops = self.calculate_stops(num_stops);
         let range = end_pos as f64 - start_pos as f64;

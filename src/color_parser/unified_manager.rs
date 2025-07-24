@@ -54,12 +54,14 @@ impl UnifiedColorManager {
     }
 
     /// Find closest CSS named colors (backward compatibility)
+    #[must_use]
     pub fn find_closest_css_colors(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
         self.css_collection.find_closest(&target, max_results, None)
     }
 
     /// Find closest RAL Classic colors (backward compatibility)
+    #[must_use]
     pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
         self.ral_classic_collection
@@ -67,6 +69,7 @@ impl UnifiedColorManager {
     }
 
     /// Find closest RAL Design System+ colors (backward compatibility)
+    #[must_use]
     pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
         self.ral_design_collection
@@ -74,11 +77,13 @@ impl UnifiedColorManager {
     }
 
     /// Search by exact name across all collections
+    #[must_use]
     pub fn find_by_name(&self, name: &str) -> Vec<(String, super::collections::ColorEntry)> {
         self.manager.search_by_name(name)
     }
 
     /// Find color by exact code (RAL codes, etc.)
+    #[must_use]
     pub fn find_by_code(&self, code: &str) -> Option<(String, super::collections::ColorEntry)> {
         if let Some(entry) = self.ral_classic_collection.find_by_code(code) {
             return Some(("RAL Classic".to_string(), entry));

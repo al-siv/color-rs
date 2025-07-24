@@ -304,6 +304,7 @@ impl GradientBuilder {
     ///
     /// # Errors
     /// Returns an error if required fields are missing or values are invalid
+    #[must_use]
     pub fn build(self) -> Result<GradientArgs> {
         self.validate()?;
 

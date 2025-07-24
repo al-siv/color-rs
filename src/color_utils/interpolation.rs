@@ -227,6 +227,7 @@ pub enum EasingFunction {
 }
 
 impl EasingFunction {
+    #[must_use]
     pub fn apply(&self, t: f64) -> f64 {
         match self {
             EasingFunction::Linear => t,
@@ -292,6 +293,7 @@ impl InterpolationFactory {
         }
     }
     
+    #[must_use]
     pub fn available_algorithms() -> Vec<&'static str> {
         vec!["Linear LAB", "Perceptual", "RGB", "HSL", "Smooth"]
     }

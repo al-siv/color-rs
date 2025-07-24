@@ -109,6 +109,7 @@ impl ColorParserFactory {
     }
 
     /// Get available parser types
+    #[must_use]
     pub fn available_types() -> Vec<ColorParserType> {
         vec![
             ColorParserType::Css,
