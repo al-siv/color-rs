@@ -168,9 +168,9 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 
 /// Generate comprehensive report using the unified collection approach
 /// Enhanced color matching with color schemes and luminance adjustments
-/// 
+///
 /// # Errors
-/// 
+///
 /// Returns an error if:
 /// - The input color cannot be parsed
 /// - Color scheme calculation fails
@@ -237,7 +237,7 @@ fn format_comprehensive_report_with_structured_output(
     )?;
 
     // Add color schemes data with selected strategy
-    let color_schemes = collect_enhanced_color_schemes_data(&schemes, &args.scheme_strategy);
+    let color_schemes = collect_enhanced_color_schemes_data(schemes, &args.scheme_strategy);
     analysis_data = analysis_data.with_color_schemes(color_schemes);
 
     // Determine output format (default to YAML if not specified)
@@ -387,7 +387,6 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
 
 /// Colorize values based on their type
 /// Collect enhanced color schemes data for new flattened file output
-#[allow(clippy::too_many_lines)]
 fn collect_enhanced_color_schemes_data(
     schemes: &crate::color_schemes::ColorSchemeResult,
     strategy: &str,
@@ -400,24 +399,7 @@ fn collect_enhanced_color_schemes_data(
     // Create parser for color name matching
     let parser = ColorParser::new();
 
-    // Select the appropriate strategy schemes  
-    let selected_schemes = match strategy {
-        "hsl" => (
-            schemes.hsl_complementary,
-            schemes.hsl_split_complementary,
-            schemes.hsl_triadic,
-            schemes.hsl_tetradic,
-        ),
-        _ => (
-            schemes.lab_complementary,
-            schemes.lab_split_complementary,
-            schemes.lab_triadic,
-            schemes.lab_tetradic,
-        ),
-    };
-
     /// Convert a Lab color to an `EnhancedColorSchemeItem` with full color information
-    #[allow(clippy::items_after_statements)]
     fn lab_to_enhanced_color_scheme_item(
         lab: Lab,
         parser: &ColorParser,
@@ -447,9 +429,135 @@ fn collect_enhanced_color_schemes_data(
         }
     }
 
+    /// Get CSS collection match for the given RGB values
+    fn get_css_collection_match(
+        target: &UniversalColor,
+        input_hex: &str,
+        parser: &ColorParser,
+    ) -> Option<CollectionMatch> {
+        let css_collection = parser.css_collection();
+        let exact_css = css_collection.colors().iter().find(|color| {
+            let color_hex = format!(
+                "#{:02X}{:02X}{:02X}",
+                color.color.rgb[0], color.color.rgb[1], color.color.rgb[2]
+            );
+            color_hex.to_uppercase() == input_hex.to_uppercase()
+        });
+
+        exact_css.map_or_else(
+            || {
+                let nearest_css = css_collection.find_closest(target, 1, None);
+                nearest_css.first().map(|closest| {
+                    let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                        closest.entry.color.rgb[0],
+                        closest.entry.color.rgb[1],
+                        closest.entry.color.rgb[2],
+                    ));
+                    let nearest_hex = format!(
+                        "#{:02X}{:02X}{:02X}",
+                        closest.entry.color.rgb[0],
+                        closest.entry.color.rgb[1],
+                        closest.entry.color.rgb[2]
+                    );
+                    CollectionMatch {
+                        name: closest.entry.metadata.name.clone(),
+                        hex: nearest_hex,
+                        distance: closest.distance,
+                        wcag_relative_luminance: wcag_luminance,
+                    }
+                })
+            },
+            |exact| {
+                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                    exact.color.rgb[0],
+                    exact.color.rgb[1],
+                    exact.color.rgb[2],
+                ));
+                let exact_hex = format!(
+                    "#{:02X}{:02X}{:02X}",
+                    exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]
+                );
+                Some(CollectionMatch {
+                    name: exact.metadata.name.clone(),
+                    hex: exact_hex,
+                    distance: 0.0,
+                    wcag_relative_luminance: wcag_luminance,
+                })
+            },
+        )
+    }
+
+    /// Get RAL Classic collection match for the given RGB values
+    fn get_ral_classic_match(
+        target: &UniversalColor,
+        input_hex: &str,
+        parser: &ColorParser,
+    ) -> Option<CollectionMatch> {
+        let ral_classic_matches =
+            parser.find_closest_ral_classic([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
+        ral_classic_matches.first().map(|closest| {
+            let color_hex = format!(
+                "#{:02X}{:02X}{:02X}",
+                closest.entry.color.rgb[0],
+                closest.entry.color.rgb[1],
+                closest.entry.color.rgb[2]
+            );
+            let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                0.0
+            } else {
+                closest.distance
+            };
+            let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                closest.entry.color.rgb[0],
+                closest.entry.color.rgb[1],
+                closest.entry.color.rgb[2],
+            ));
+
+            CollectionMatch {
+                name: closest.entry.metadata.name.clone(),
+                hex: color_hex,
+                distance,
+                wcag_relative_luminance: wcag_luminance,
+            }
+        })
+    }
+
+    /// Get RAL Design collection match for the given RGB values
+    fn get_ral_design_match(
+        target: &UniversalColor,
+        input_hex: &str,
+        parser: &ColorParser,
+    ) -> Option<CollectionMatch> {
+        let ral_design_matches =
+            parser.find_closest_ral_design([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
+        ral_design_matches.first().map(|closest| {
+            let color_hex = format!(
+                "#{:02X}{:02X}{:02X}",
+                closest.entry.color.rgb[0],
+                closest.entry.color.rgb[1],
+                closest.entry.color.rgb[2]
+            );
+            let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
+                0.0
+            } else {
+                closest.distance
+            };
+            let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                closest.entry.color.rgb[0],
+                closest.entry.color.rgb[1],
+                closest.entry.color.rgb[2],
+            ));
+
+            CollectionMatch {
+                name: closest.entry.metadata.name.clone(),
+                hex: color_hex,
+                distance,
+                wcag_relative_luminance: wcag_luminance,
+            }
+        })
+    }
+
     /// Get collection matches for all color collections
-    #[allow(clippy::items_after_statements)]
-    #[allow(clippy::too_many_lines)]
     fn get_collection_matches(
         rgb: (u8, u8, u8),
         parser: &ColorParser,
@@ -461,124 +569,28 @@ fn collect_enhanced_color_schemes_data(
         let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
         let input_hex = format!("#{:02X}{:02X}{:02X}", rgb.0, rgb.1, rgb.2);
 
-        // CSS collection matches
-        let css_match = {
-            let css_collection = parser.css_collection();
-            let exact_css = css_collection.colors().iter().find(|color| {
-                let color_hex = format!(
-                    "#{:02X}{:02X}{:02X}",
-                    color.color.rgb[0], color.color.rgb[1], color.color.rgb[2]
-                );
-                color_hex.to_uppercase() == input_hex.to_uppercase()
-            });
-
-            exact_css.map_or_else(
-                || {
-                    let nearest_css = css_collection.find_closest(&target, 1, None);
-                    nearest_css.first().map(|closest| {
-                        let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                            closest.entry.color.rgb[0],
-                            closest.entry.color.rgb[1],
-                            closest.entry.color.rgb[2],
-                        ));
-                        let nearest_hex = format!(
-                            "#{:02X}{:02X}{:02X}",
-                            closest.entry.color.rgb[0],
-                            closest.entry.color.rgb[1],
-                            closest.entry.color.rgb[2]
-                        );
-                        CollectionMatch {
-                            name: closest.entry.metadata.name.clone(),
-                            hex: nearest_hex,
-                            distance: closest.distance,
-                            wcag_relative_luminance: wcag_luminance,
-                        }
-                    })
-                },
-                |exact| {
-                    let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                        exact.color.rgb[0],
-                        exact.color.rgb[1],
-                        exact.color.rgb[2],
-                    ));
-                    let exact_hex = format!(
-                        "#{:02X}{:02X}{:02X}",
-                        exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]
-                    );
-                    Some(CollectionMatch {
-                        name: exact.metadata.name.clone(),
-                        hex: exact_hex,
-                        distance: 0.0,
-                        wcag_relative_luminance: wcag_luminance,
-                    })
-                },
-            )
-        };
-
-        // RAL Classic collection matches
-        let ral_classic_match = {
-            let ral_classic_matches =
-                parser.find_closest_ral_classic([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
-            ral_classic_matches.first().map(|closest| {
-                let color_hex = format!(
-                    "#{:02X}{:02X}{:02X}",
-                    closest.entry.color.rgb[0],
-                    closest.entry.color.rgb[1],
-                    closest.entry.color.rgb[2]
-                );
-                let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
-                    0.0
-                } else {
-                    closest.distance
-                };
-                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                    closest.entry.color.rgb[0],
-                    closest.entry.color.rgb[1],
-                    closest.entry.color.rgb[2],
-                ));
-
-                CollectionMatch {
-                    name: closest.entry.metadata.name.clone(),
-                    hex: color_hex,
-                    distance,
-                    wcag_relative_luminance: wcag_luminance,
-                }
-            })
-        };
-
-        // RAL Design collection matches
-        let ral_design_match = {
-            let ral_design_matches =
-                parser.find_closest_ral_design([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
-            ral_design_matches.first().map(|closest| {
-                let color_hex = format!(
-                    "#{:02X}{:02X}{:02X}",
-                    closest.entry.color.rgb[0],
-                    closest.entry.color.rgb[1],
-                    closest.entry.color.rgb[2]
-                );
-                let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
-                    0.0
-                } else {
-                    closest.distance
-                };
-                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                    closest.entry.color.rgb[0],
-                    closest.entry.color.rgb[1],
-                    closest.entry.color.rgb[2],
-                ));
-
-                CollectionMatch {
-                    name: closest.entry.metadata.name.clone(),
-                    hex: color_hex,
-                    distance,
-                    wcag_relative_luminance: wcag_luminance,
-                }
-            })
-        };
+        let css_match = get_css_collection_match(&target, &input_hex, parser);
+        let ral_classic_match = get_ral_classic_match(&target, &input_hex, parser);
+        let ral_design_match = get_ral_design_match(&target, &input_hex, parser);
 
         (css_match, ral_classic_match, ral_design_match)
     }
+
+    // Select the appropriate strategy schemes
+    let selected_schemes = match strategy {
+        "hsl" => (
+            schemes.hsl_complementary,
+            schemes.hsl_split_complementary,
+            schemes.hsl_triadic,
+            schemes.hsl_tetradic,
+        ),
+        _ => (
+            schemes.lab_complementary,
+            schemes.lab_split_complementary,
+            schemes.lab_triadic,
+            schemes.lab_tetradic,
+        ),
+    };
 
     ColorSchemes {
         complementary: lab_to_enhanced_color_scheme_item(selected_schemes.0, &parser),

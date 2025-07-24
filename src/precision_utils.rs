@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_format_f64() {
-        assert_eq!(PrecisionUtils::format_f64(1.23456789), "1.23457");
+        assert_eq!(PrecisionUtils::format_f64(1.234_567_89), "1.23457");
         assert_eq!(PrecisionUtils::format_f64(1.0), "1");
         assert_eq!(PrecisionUtils::format_f64(1.10000), "1.1");
         assert_eq!(PrecisionUtils::format_f64(0.0), "0");
@@ -136,7 +136,7 @@ mod tests {
     #[test]
     fn test_format_lab() {
         assert_eq!(
-            PrecisionUtils::format_lab(50.123456, 25.789012, -15.345678),
+            PrecisionUtils::format_lab(50.123_456, 25.789_012, -15.345_678),
             "lab(50.12, 25.789, -15.346)"
         );
     }

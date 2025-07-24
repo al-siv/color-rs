@@ -1,6 +1,9 @@
 //! Utility functions for color-rs
 
-use crate::config::{MAX_PERCENTAGE, BEZIER_MIN, BEZIER_MAX, HEIGHT_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_FONT_SIZE_RATIO};
+use crate::config::{
+    BEZIER_MAX, BEZIER_MIN, DEFAULT_FONT_SIZE_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, HEIGHT_RATIO,
+    MAX_PERCENTAGE,
+};
 use crate::error::{ColorError, Result};
 
 /// Utility functions for various operations
@@ -161,8 +164,9 @@ mod tests {
     #[test]
     fn test_round_to_decimals() {
         let pi_rounded = Utils::round_to_decimals(std::f64::consts::PI, 2);
-        assert_eq!(pi_rounded, 3.14);
-        assert_eq!(Utils::round_to_decimals(2.5, 0), 3.0);
+        // Use approximately equal comparison instead of exact
+        assert!((pi_rounded - (std::f64::consts::PI * 100.0).round() / 100.0).abs() < f64::EPSILON * 10.0);
+        assert!((Utils::round_to_decimals(2.5, 0) - 3.0).abs() < f64::EPSILON);
     }
 
     #[test]

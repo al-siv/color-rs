@@ -316,7 +316,8 @@ impl Default for ColorAnalysisOutput {
 
 impl ColorAnalysisOutput {
     /// Create a new empty color analysis output
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             metadata: ProgramMetadata::new(None),
             input: InputInfo::default(),
@@ -329,7 +330,8 @@ impl ColorAnalysisOutput {
     }
 
     /// Set input information
-    #[must_use] pub fn with_input(mut self, input_color: String, base_color: String) -> Self {
+    #[must_use]
+    pub fn with_input(mut self, input_color: String, base_color: String) -> Self {
         self.input = InputInfo {
             input_color,
             base_color,
@@ -338,31 +340,36 @@ impl ColorAnalysisOutput {
     }
 
     /// Set color formats
-    #[must_use] pub fn with_conversion(mut self, conversion: ColorFormats) -> Self {
+    #[must_use]
+    pub fn with_conversion(mut self, conversion: ColorFormats) -> Self {
         self.conversion = conversion;
         self
     }
 
     /// Set contrast information
-    #[must_use] pub fn with_contrast(mut self, contrast: ContrastData) -> Self {
+    #[must_use]
+    pub fn with_contrast(mut self, contrast: ContrastData) -> Self {
         self.contrast = contrast;
         self
     }
 
     /// Set grayscale information
-    #[must_use] pub fn with_grayscale(mut self, grayscale: GrayscaleData) -> Self {
+    #[must_use]
+    pub fn with_grayscale(mut self, grayscale: GrayscaleData) -> Self {
         self.grayscale = grayscale;
         self
     }
 
     /// Set color collections
-    #[must_use] pub fn with_color_collections(mut self, color_collections: ColorCollections) -> Self {
+    #[must_use]
+    pub fn with_color_collections(mut self, color_collections: ColorCollections) -> Self {
         self.color_collections = color_collections;
         self
     }
 
     /// Set color schemes
-    #[must_use] pub fn with_color_schemes(mut self, color_schemes: ColorSchemes) -> Self {
+    #[must_use]
+    pub fn with_color_schemes(mut self, color_schemes: ColorSchemes) -> Self {
         self.color_schemes = color_schemes;
         self
     }
@@ -403,7 +410,8 @@ impl EnhancedGradientAnalysisOutput {
 }
 
 impl ProgramMetadata {
-    #[must_use] pub fn new(distance_strategy: Option<&str>) -> Self {
+    #[must_use]
+    pub fn new(distance_strategy: Option<&str>) -> Self {
         use chrono::Utc;
 
         Self {

@@ -44,8 +44,8 @@ fn main() -> Result<()> {
     let color_rs = ColorRs::new();
 
     let args = GradientArgs {
-        start_color: "FF6B35".to_string(), // Orange
-        end_color: "7209B7".to_string(),   // Purple
+        start_color: "#FF6B35".to_string(), // Orange
+        end_color: "#7209B7".to_string(),   // Purple
         start_position: 20,
         end_position: 80,
         ease_in: 0.42,

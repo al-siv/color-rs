@@ -41,7 +41,11 @@ pub struct ColorFormatter;
 
 impl ColorFormatter {
     /// Format a color into a comprehensive analysis report (deprecated)
-    pub const fn format_comprehensive_report(lab_color: Lab, original_input: &str, color_name: &str) {
+    pub const fn format_comprehensive_report(
+        lab_color: Lab,
+        original_input: &str,
+        color_name: &str,
+    ) {
         // This function is deprecated in favor of collect_color_analysis_data
         // Keep for backward compatibility but doesn't actually format anything
         let _ = (lab_color, original_input, color_name);
@@ -50,17 +54,15 @@ impl ColorFormatter {
     /// Format a simple color info for table display
     #[must_use]
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
-        #[allow(clippy::many_single_char_names)]
-        let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
+        let (red, green, blue) = ColorUtils::lab_to_rgb(lab_color);
 
-        #[allow(clippy::many_single_char_names)]
-        let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab_color);
+        let (hue, saturation, lightness) = ColorUtils::lab_to_hsl_tuple(lab_color);
 
         crate::color::ColorInfo {
             label: label.to_string(),
-            hex: format!("#{r:02X}{g:02X}{b:02X}"),
-            rgb: Utils::rgb_to_string(r, g, b),
-            hsl: format!("hsl({:.0}, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0),
+            hex: format!("#{red:02X}{green:02X}{blue:02X}"),
+            rgb: Utils::rgb_to_string(red, green, blue),
+            hsl: format!("hsl({:.0}, {:.1}%, {:.1}%)", hue, saturation * 100.0, lightness * 100.0),
             lab: format!(
                 "lab({:.2}, {:.2}, {:.2})",
                 lab_color.l, lab_color.a, lab_color.b
@@ -69,9 +71,9 @@ impl ColorFormatter {
     }
 
     /// Collect color analysis data for file output instead of printing
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns an error if color conversion or analysis fails
     pub fn collect_color_analysis_data(
         lab_color: Lab,
@@ -178,8 +180,11 @@ impl ColorFormatter {
     fn collect_grayscale_data(lab_color: Lab) -> GrayscaleData {
         let lch = ColorUtils::lab_to_lch(lab_color);
 
-        let lch0_lab =
-            ColorUtils::lch_tulip_to_lab((f64::from(lch.l), 0.0, f64::from(lch.hue.into_degrees())));
+        let lch0_lab = ColorUtils::lch_tulip_to_lab((
+            f64::from(lch.l),
+            0.0,
+            f64::from(lch.hue.into_degrees()),
+        ));
         let lch2_lab = ColorUtils::lch_tulip_to_lab((
             f64::from(lch.l),
             f64::from(lch.chroma) * 0.02,

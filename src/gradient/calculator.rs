@@ -54,7 +54,8 @@ pub struct IntelligentStopCalculator {
 }
 
 impl IntelligentStopCalculator {
-    #[must_use] pub const fn new(ease_in: f64, ease_out: f64) -> Self {
+    #[must_use]
+    pub const fn new(ease_in: f64, ease_out: f64) -> Self {
         Self { ease_in, ease_out }
     }
 }

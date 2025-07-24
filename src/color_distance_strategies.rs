@@ -124,7 +124,14 @@ impl ColorDistanceStrategy for LchStrategy {
         // Calculate Euclidean distance in LCH space
         // Note: Hue is weighted less since it's in degrees while L and C are in different scales
         let hue_weight = 0.1; // Adjust this weight as needed
-        f64::from((delta_h * hue_weight).mul_add(delta_h * hue_weight, delta_c.mul_add(delta_c, delta_l.powi(2))).sqrt())
+        f64::from(
+            (delta_h * hue_weight)
+                .mul_add(
+                    delta_h * hue_weight,
+                    delta_c.mul_add(delta_c, delta_l.powi(2)),
+                )
+                .sqrt(),
+        )
     }
 
     fn name(&self) -> &'static str {

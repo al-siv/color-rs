@@ -34,7 +34,8 @@ pub struct CubicBezierEasing {
 
 impl CubicBezierEasing {
     /// Create a new cubic bezier easing with control points
-    #[must_use] pub const fn new(x1: f64, x2: f64) -> Self {
+    #[must_use]
+    pub const fn new(x1: f64, x2: f64) -> Self {
         Self {
             x1: x1.clamp(BEZIER_MIN, BEZIER_MAX),
             x2: x2.clamp(BEZIER_MIN, BEZIER_MAX),
@@ -42,17 +43,20 @@ impl CubicBezierEasing {
     }
 
     /// Create ease-in-out timing function
-    #[must_use] pub const fn ease_in_out() -> Self {
+    #[must_use]
+    pub const fn ease_in_out() -> Self {
         Self::new(0.42, 0.58)
     }
 
     /// Create ease-in timing function
-    #[must_use] pub const fn ease_in() -> Self {
+    #[must_use]
+    pub const fn ease_in() -> Self {
         Self::new(0.42, 1.0)
     }
 
     /// Create ease-out timing function
-    #[must_use] pub const fn ease_out() -> Self {
+    #[must_use]
+    pub const fn ease_out() -> Self {
         Self::new(0.0, 0.58)
     }
 }
@@ -118,7 +122,8 @@ pub struct EasingFactory;
 
 impl EasingFactory {
     /// Create an easing strategy from type and parameters
-    #[must_use] pub fn create_easing(
+    #[must_use]
+    pub fn create_easing(
         easing_type: EasingType,
         ease_in: f64,
         ease_out: f64,
@@ -131,17 +136,20 @@ impl EasingFactory {
     }
 
     /// Create an easing strategy from parameters
-    #[must_use] pub fn create_cubic_bezier(x1: f64, x2: f64) -> Box<dyn EasingStrategy> {
+    #[must_use]
+    pub fn create_cubic_bezier(x1: f64, x2: f64) -> Box<dyn EasingStrategy> {
         Box::new(CubicBezierEasing::new(x1, x2))
     }
 
     /// Create a linear easing strategy
-    #[must_use] pub fn create_linear() -> Box<dyn EasingStrategy> {
+    #[must_use]
+    pub fn create_linear() -> Box<dyn EasingStrategy> {
         Box::new(LinearEasing)
     }
 
     /// Create ease-in-out strategy
-    #[must_use] pub fn create_ease_in_out() -> Box<dyn EasingStrategy> {
+    #[must_use]
+    pub fn create_ease_in_out() -> Box<dyn EasingStrategy> {
         Box::new(CubicBezierEasing::ease_in_out())
     }
 }

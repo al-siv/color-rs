@@ -51,12 +51,11 @@ pub struct ConversionResult {
 
 impl ConversionResult {
     /// Create conversion result from LAB color
-    #[must_use] pub fn from_lab(lab: Lab) -> Self {
+    #[must_use]
+    pub fn from_lab(lab: Lab) -> Self {
         let srgb: Srgb = lab.into_color();
-        #[allow(clippy::similar_names)]
-        let hsl: Hsl = srgb.into_color();
-        #[allow(clippy::similar_names)]
-        let hsv: Hsv = srgb.into_color();
+        let hsl_space: Hsl = srgb.into_color();
+        let hsv_space: Hsv = srgb.into_color();
         let lch: Lch = lab.into_color();
         let xyz: Xyz = lab.into_color();
 
@@ -73,14 +72,14 @@ impl ConversionResult {
             f32_to_u8_clamped(srgb.blue),
         );
 
-        let hsl_tuple = (hsl.hue.into_inner(), hsl.saturation, hsl.lightness);
+        let hsl_tuple = (hsl_space.hue.into_inner(), hsl_space.saturation, hsl_space.lightness);
         let lch_tuple = (lch.l, lch.chroma, lch.hue.into_inner());
 
         Self {
             lab,
             srgb,
-            hsl,
-            hsv,
+            hsl: hsl_space,
+            hsv: hsv_space,
             lch,
             xyz,
             hex,
@@ -177,7 +176,8 @@ pub struct ConversionStrategyFactory;
 
 impl ConversionStrategyFactory {
     /// Create strategy by name
-    #[must_use] pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorConversionStrategy> {
+    #[must_use]
+    pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorConversionStrategy> {
         match strategy_name.to_lowercase().as_str() {
             "rgb" => Box::new(RgbConversionStrategy),
             "lab" => Box::new(LabConversionStrategy),
@@ -193,7 +193,8 @@ impl ConversionStrategyFactory {
     }
 
     /// Create strategy optimized for specific use case
-    #[must_use] pub fn create_for_use_case(use_case: ConversionUseCase) -> Box<dyn ColorConversionStrategy> {
+    #[must_use]
+    pub fn create_for_use_case(use_case: ConversionUseCase) -> Box<dyn ColorConversionStrategy> {
         match use_case {
             ConversionUseCase::HighPrecision => Box::new(LabConversionStrategy),
             ConversionUseCase::WebDisplay => Box::new(RgbConversionStrategy),

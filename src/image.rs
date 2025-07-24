@@ -10,7 +10,13 @@ use usvg::{Options, Tree, fontdb};
 use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
-use crate::{color_utils::LegacyColorUtils as ColorUtils, config::{HEIGHT_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_FONT_SIZE_RATIO, DEFAULT_TEXT_Y_RATIO, FONT_FAMILY}};
+use crate::{
+    color_utils::LegacyColorUtils as ColorUtils,
+    config::{
+        DEFAULT_FONT_SIZE_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_TEXT_Y_RATIO, FONT_FAMILY,
+        HEIGHT_RATIO,
+    },
+};
 
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]
@@ -24,7 +30,8 @@ pub struct ImageGenerator;
 
 impl ImageGenerator {
     /// Create a new image generator
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 

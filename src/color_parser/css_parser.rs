@@ -19,7 +19,8 @@ pub struct CssColorParser {
 
 impl CssColorParser {
     /// Create a new CSS color parser
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             named_colors: Self::create_named_css_colors_from_data(),
         }
@@ -43,7 +44,7 @@ impl CssColorParser {
 
         // Check for hex colors
         if cleaned.starts_with('#') {
-            return self.parse_hex(&cleaned);
+            return Self::parse_hex(&cleaned);
         }
 
         // Check for functional notation (rgb, rgba, hsl, hsla)
@@ -61,7 +62,7 @@ impl CssColorParser {
     }
 
     /// Parse hex color (#rgb or #rrggbb)
-    fn parse_hex(&self, input: &str) -> Result<ParsedColor> {
+    fn parse_hex(input: &str) -> Result<ParsedColor> {
         let hex_part = &input[1..]; // Remove #
 
         match hex_part.len() {
@@ -109,7 +110,7 @@ impl CssColorParser {
                         "RGB requires 3 parameters".to_string(),
                     ));
                 }
-                let (r, g, b) = self.parse_rgb_params(&params)?;
+                let (r, g, b) = Self::parse_rgb_params(&params)?;
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Rgb))
             }
             "rgba" => {
@@ -118,7 +119,7 @@ impl CssColorParser {
                         "RGBA requires 4 parameters".to_string(),
                     ));
                 }
-                let (r, g, b) = self.parse_rgb_params(&params)?;
+                let (r, g, b) = Self::parse_rgb_params(&params)?;
                 let a = ParseUtils::parse_alpha(params[3])?;
                 Ok(ParsedColor::new(r, g, b, a, ColorFormat::Rgba))
             }
@@ -157,7 +158,7 @@ impl CssColorParser {
     }
 
     /// Parse RGB parameters
-    fn parse_rgb_params(&self, params: &[&str]) -> Result<(u8, u8, u8)> {
+    fn parse_rgb_params(params: &[&str]) -> Result<(u8, u8, u8)> {
         if params.len() != 3 {
             return Err(ColorError::InvalidColor(
                 "Expected 3 RGB parameters".to_string(),
@@ -179,20 +180,19 @@ impl CssColorParser {
             ));
         }
 
-        #[allow(clippy::many_single_char_names)]
-        let h = ParseUtils::parse_hue(params[0])?;
-        #[allow(clippy::many_single_char_names)]
-        let s = ParseUtils::parse_percentage(params[1])?;
-        #[allow(clippy::many_single_char_names)]
-        let l = ParseUtils::parse_percentage(params[2])?;
+        let hue = ParseUtils::parse_hue(params[0])?;
+
+        let saturation = ParseUtils::parse_percentage(params[1])?;
+
+        let lightness = ParseUtils::parse_percentage(params[2])?;
 
         // Normalize hue to 0-1 range
-        let h_norm = (((h % 360.0) + 360.0) % 360.0) / 360.0;
-        let hsl: Hsl = Hsl::new(h_norm as f32, s as f32, l as f32);
+        let hue_normalized = (((hue % 360.0) + 360.0) % 360.0) / 360.0;
+        let hsl: Hsl = Hsl::new(hue_normalized as f32, saturation as f32, lightness as f32);
 
         // Convert HSL to RGB using the reliable color_utils implementation
-        let (r, g, b) = ColorUtils::srgb_to_rgb(hsl.into_color());
-        Ok((r, g, b))
+        let (red, green, blue) = ColorUtils::srgb_to_rgb(hsl.into_color());
+        Ok((red, green, blue))
     }
 
     /// Parse LCH parameters and convert to RGB
@@ -203,30 +203,29 @@ impl CssColorParser {
             ));
         }
 
-        #[allow(clippy::many_single_char_names)]
-        let l: f32 = params[0]
+        let lightness: f32 = params[0]
             .trim()
             .parse()
             .map_err(|_| ColorError::InvalidColor("Invalid LCH L value".to_string()))?;
-        #[allow(clippy::many_single_char_names)]
-        let c: f32 = params[1]
+
+        let chroma: f32 = params[1]
             .trim()
             .parse()
             .map_err(|_| ColorError::InvalidColor("Invalid LCH C value".to_string()))?;
-        #[allow(clippy::many_single_char_names)]
-        let h: f32 = params[2]
+
+        let hue: f32 = params[2]
             .trim()
             .parse()
             .map_err(|_| ColorError::InvalidColor("Invalid LCH H value".to_string()))?;
 
         // Convert LCH to LAB using color_utils
-        let lch = palette::Lch::new(l, c, h);
+        let lch = palette::Lch::new(lightness, chroma, hue);
         let lab = ColorUtils::lch_to_lab(lch);
 
         // Convert LAB to RGB
-        #[allow(clippy::many_single_char_names)]
-        let (r, g, b) = ColorUtils::lab_to_rgb(lab);
-        Ok((r, g, b))
+
+        let (red, green, blue) = ColorUtils::lab_to_rgb(lab);
+        Ok((red, green, blue))
     }
 
     /// Create named colors map from CSS colors CSV file

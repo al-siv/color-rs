@@ -39,7 +39,8 @@ pub struct ColorOperationsFacade;
 
 impl ColorOperationsFacade {
     /// Create a new color operations facade
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 
@@ -138,7 +139,11 @@ impl ColorOperationsFacade {
             srgb: srgb1,
             hex: ColorUtils::lab_to_hex(lab),
             lab,
-            hsl: (hsl.0 as f32, hsl.1 as f32, hsl.2 as f32),
+            hsl: (
+                hsl.0.clamp(f32::MIN.into(), f32::MAX.into()) as f32,
+                hsl.1.clamp(f32::MIN.into(), f32::MAX.into()) as f32,
+                hsl.2.clamp(f32::MIN.into(), f32::MAX.into()) as f32,
+            ),
             luminance,
             contrast_white,
             contrast_black,

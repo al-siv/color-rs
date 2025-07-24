@@ -16,7 +16,8 @@ pub enum ContrastLevel {
 }
 
 impl ContrastLevel {
-    #[must_use] pub const fn to_string(&self) -> &'static str {
+    #[must_use]
+    pub const fn to_string(&self) -> &'static str {
         match self {
             Self::High => "High",
             Self::Medium => "Medium",
@@ -25,7 +26,8 @@ impl ContrastLevel {
         }
     }
 
-    #[must_use] pub fn from_wcag_ratio(ratio: f64) -> Self {
+    #[must_use]
+    pub fn from_wcag_ratio(ratio: f64) -> Self {
         if ratio >= 7.0 {
             Self::High
         } else if ratio >= 4.5 {
@@ -37,7 +39,8 @@ impl ContrastLevel {
         }
     }
 
-    #[must_use] pub fn from_delta_e(delta_e: f64) -> Self {
+    #[must_use]
+    pub fn from_delta_e(delta_e: f64) -> Self {
         if delta_e >= 40.0 {
             Self::High
         } else if delta_e >= 20.0 {
@@ -234,14 +237,16 @@ pub struct EnhancedContrastCalculator {
 }
 
 impl EnhancedContrastCalculator {
-    #[must_use] pub fn new(primary: Box<dyn ContrastCalculationTemplate>) -> Self {
+    #[must_use]
+    pub fn new(primary: Box<dyn ContrastCalculationTemplate>) -> Self {
         Self {
             primary_algorithm: primary,
             secondary_algorithm: None,
         }
     }
 
-    #[must_use] pub fn with_secondary(mut self, secondary: Box<dyn ContrastCalculationTemplate>) -> Self {
+    #[must_use]
+    pub fn with_secondary(mut self, secondary: Box<dyn ContrastCalculationTemplate>) -> Self {
         self.secondary_algorithm = Some(secondary);
         self
     }
@@ -312,24 +317,29 @@ pub struct ContrastAssessment {
 pub struct ContrastCalculatorFactory;
 
 impl ContrastCalculatorFactory {
-    #[must_use] pub fn create_wcag_calculator() -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use]
+    pub fn create_wcag_calculator() -> Box<dyn ContrastCalculationTemplate> {
         Box::new(WcagContrastCalculator)
     }
 
-    #[must_use] pub fn create_lab_calculator() -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use]
+    pub fn create_lab_calculator() -> Box<dyn ContrastCalculationTemplate> {
         Box::new(LabContrastCalculator)
     }
 
-    #[must_use] pub fn create_delta_e_calculator() -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use]
+    pub fn create_delta_e_calculator() -> Box<dyn ContrastCalculationTemplate> {
         Box::new(DeltaEContrastCalculator)
     }
 
-    #[must_use] pub fn create_enhanced_calculator() -> EnhancedContrastCalculator {
+    #[must_use]
+    pub fn create_enhanced_calculator() -> EnhancedContrastCalculator {
         EnhancedContrastCalculator::new(Self::create_wcag_calculator())
             .with_secondary(Self::create_lab_calculator())
     }
 
-    #[must_use] pub fn create_by_name(name: &str) -> Box<dyn ContrastCalculationTemplate> {
+    #[must_use]
+    pub fn create_by_name(name: &str) -> Box<dyn ContrastCalculationTemplate> {
         match name.to_lowercase().as_str() {
             "wcag" => Self::create_wcag_calculator(),
             "lab" => Self::create_lab_calculator(),

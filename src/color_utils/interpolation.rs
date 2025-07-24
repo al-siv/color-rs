@@ -173,7 +173,10 @@ impl ColorInterpolationTemplate for HslInterpolator {
 
         let interpolated_hsl: Hsl<palette::encoding::Srgb> = Hsl::new(
             interpolated_hue,
-            (t as f32).mul_add(end_hsl.saturation - start_hsl.saturation, start_hsl.saturation),
+            (t as f32).mul_add(
+                end_hsl.saturation - start_hsl.saturation,
+                start_hsl.saturation,
+            ),
             (t as f32).mul_add(end_hsl.lightness - start_hsl.lightness, start_hsl.lightness),
         );
 
@@ -193,7 +196,8 @@ pub struct SmoothInterpolator {
 }
 
 impl SmoothInterpolator {
-    #[must_use] pub fn new(base: Box<dyn ColorInterpolationTemplate>, easing: EasingFunction) -> Self {
+    #[must_use]
+    pub fn new(base: Box<dyn ColorInterpolationTemplate>, easing: EasingFunction) -> Self {
         Self {
             base_interpolator: base,
             easing_function: easing,
@@ -252,23 +256,28 @@ impl EasingFunction {
 pub struct InterpolationFactory;
 
 impl InterpolationFactory {
-    #[must_use] pub fn create_linear_lab() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use]
+    pub fn create_linear_lab() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(LinearLabInterpolator)
     }
 
-    #[must_use] pub fn create_perceptual() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use]
+    pub fn create_perceptual() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(PerceptualInterpolator)
     }
 
-    #[must_use] pub fn create_rgb() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use]
+    pub fn create_rgb() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(RgbInterpolator)
     }
 
-    #[must_use] pub fn create_hsl() -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use]
+    pub fn create_hsl() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(HslInterpolator)
     }
 
-    #[must_use] pub fn create_smooth(
+    #[must_use]
+    pub fn create_smooth(
         base_type: &str,
         easing: EasingFunction,
     ) -> Box<dyn ColorInterpolationTemplate> {
@@ -283,7 +292,8 @@ impl InterpolationFactory {
         Box::new(SmoothInterpolator::new(base, easing))
     }
 
-    #[must_use] pub fn create_by_name(name: &str) -> Box<dyn ColorInterpolationTemplate> {
+    #[must_use]
+    pub fn create_by_name(name: &str) -> Box<dyn ColorInterpolationTemplate> {
         match name.to_lowercase().as_str() {
             "linear" | "lab" => Self::create_linear_lab(),
             "perceptual" => Self::create_perceptual(),
@@ -306,14 +316,16 @@ pub struct InterpolationService {
 }
 
 impl InterpolationService {
-    #[must_use] pub fn new(primary: Box<dyn ColorInterpolationTemplate>) -> Self {
+    #[must_use]
+    pub fn new(primary: Box<dyn ColorInterpolationTemplate>) -> Self {
         Self {
             primary_algorithm: primary,
             fallback_algorithm: None,
         }
     }
 
-    #[must_use] pub fn with_fallback(mut self, fallback: Box<dyn ColorInterpolationTemplate>) -> Self {
+    #[must_use]
+    pub fn with_fallback(mut self, fallback: Box<dyn ColorInterpolationTemplate>) -> Self {
         self.fallback_algorithm = Some(fallback);
         self
     }

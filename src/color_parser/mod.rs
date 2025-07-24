@@ -45,7 +45,8 @@ pub struct ColorParser {
 
 impl ColorParser {
     /// Create a new color parser
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         let unified_manager = UnifiedColorManager::new().unwrap_or_else(|_| {
             // Fallback to default if creation fails
             UnifiedColorManager::default()
@@ -210,7 +211,8 @@ impl ColorParser {
     }
 
     /// Find closest colors from all collections (CSS, RAL Classic, RAL Design)
-    #[must_use] pub fn find_closest_all_collections(
+    #[must_use]
+    pub fn find_closest_all_collections(
         &self,
         rgb: [u8; 3],
         max_results: usize,
@@ -220,13 +222,15 @@ impl ColorParser {
     }
 
     /// Find closest RAL Classic colors
-    #[must_use] pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
+    #[must_use]
+    pub fn find_closest_ral_classic(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         self.unified_manager
             .find_closest_ral_classic(rgb, max_results)
     }
 
     /// Find closest RAL Design colors
-    #[must_use] pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
+    #[must_use]
+    pub fn find_closest_ral_design(&self, rgb: [u8; 3], max_results: usize) -> Vec<ColorMatch> {
         self.unified_manager
             .find_closest_ral_design(rgb, max_results)
     }

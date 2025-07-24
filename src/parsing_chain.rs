@@ -40,7 +40,8 @@ impl Default for HexColorParsingHandler {
 }
 
 impl HexColorParsingHandler {
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -107,7 +108,8 @@ impl Default for RgbColorParsingHandler {
 }
 
 impl RgbColorParsingHandler {
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -148,7 +150,8 @@ impl Default for CssNamedColorParsingHandler {
 }
 
 impl CssNamedColorParsingHandler {
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -188,7 +191,8 @@ impl Default for RalColorParsingHandler {
 }
 
 impl RalColorParsingHandler {
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 }
@@ -220,7 +224,8 @@ pub struct ColorParsingChain {
 
 impl ColorParsingChain {
     /// Creates a new parsing chain with default handlers
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         let handlers: Vec<Arc<dyn ColorParsingHandler>> = vec![
             Arc::new(HexColorParsingHandler::new()),
             Arc::new(RgbColorParsingHandler::new()),
@@ -232,7 +237,8 @@ impl ColorParsingChain {
     }
 
     /// Creates a custom parsing chain with specified handlers
-    #[must_use] pub fn with_handlers(handlers: Vec<Arc<dyn ColorParsingHandler>>) -> Self {
+    #[must_use]
+    pub fn with_handlers(handlers: Vec<Arc<dyn ColorParsingHandler>>) -> Self {
         Self { handlers }
     }
 

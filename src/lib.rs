@@ -53,7 +53,8 @@ pub struct ColorRs;
 
 impl ColorRs {
     /// Create a new instance of the color-rs library
-    #[must_use] pub const fn new() -> Self {
+    #[must_use]
+    pub const fn new() -> Self {
         Self
     }
 

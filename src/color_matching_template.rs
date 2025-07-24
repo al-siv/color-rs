@@ -23,9 +23,9 @@ pub trait ColorMatchingTemplate {
     ///
     /// This is the main template method that orchestrates the matching process.
     /// Subclasses should not override this method.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns an error if color matching fails
     fn match_color(
         &self,
@@ -56,10 +56,14 @@ pub trait ColorMatchingTemplate {
         Ok(matches)
     }
 
-    /// Validate the input color (hook method)
+    /// Validate input color values before processing.
     ///
     /// Default implementation performs basic validation.
     /// Subclasses can override for collection-specific validation.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ColorError::InvalidColor` if the LAB L* component is out of range (0-100).
     fn validate_input(&self, target: &UniversalColor) -> Result<()> {
         // Basic LAB validation
         let lab = target.lab;
@@ -85,6 +89,10 @@ pub trait ColorMatchingTemplate {
     ///
     /// Default implementation returns the target unchanged.
     /// Subclasses can override for collection-specific preprocessing.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an error if color preprocessing fails. Default implementation never fails.
     fn preprocess_target(&self, target: &UniversalColor) -> Result<UniversalColor> {
         Ok(target.clone())
     }
@@ -93,6 +101,10 @@ pub trait ColorMatchingTemplate {
     ///
     /// This method must be implemented by concrete classes to perform
     /// the actual matching against their specific color collections.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an error if color matching fails or the collection cannot be accessed.
     fn find_matches(
         &self,
         target: &UniversalColor,
@@ -103,6 +115,10 @@ pub trait ColorMatchingTemplate {
     ///
     /// Default implementation returns results unchanged.
     /// Subclasses can override for collection-specific post-processing.
+    /// 
+    /// # Errors
+    /// 
+    /// Returns an error if post-processing fails. Default implementation never fails.
     fn post_process_matches(&self, matches: Vec<ColorMatch>) -> Result<Vec<ColorMatch>> {
         Ok(matches)
     }
@@ -118,7 +134,9 @@ pub struct CssColorMatcher<'a> {
 
 impl<'a> CssColorMatcher<'a> {
     #[must_use]
-    pub const fn new(collection: &'a crate::color_parser::css_collection::CssColorCollection) -> Self {
+    pub const fn new(
+        collection: &'a crate::color_parser::css_collection::CssColorCollection,
+    ) -> Self {
         Self { collection }
     }
 }
@@ -145,7 +163,8 @@ pub struct RalClassicMatcher<'a> {
 }
 
 impl<'a> RalClassicMatcher<'a> {
-    #[must_use] pub const fn new(
+    #[must_use]
+    pub const fn new(
         collection: &'a crate::color_parser::ral_classic_collection::RalClassicCollection,
     ) -> Self {
         Self { collection }
@@ -189,7 +208,8 @@ pub struct RalDesignMatcher<'a> {
 }
 
 impl<'a> RalDesignMatcher<'a> {
-    #[must_use] pub const fn new(
+    #[must_use]
+    pub const fn new(
         collection: &'a crate::color_parser::ral_design_collection::RalDesignCollection,
     ) -> Self {
         Self { collection }
@@ -257,21 +277,20 @@ fn extract_hue_from_code(code: &str) -> u32 {
 }
 
 /// Unified color matcher that uses template method pattern
-#[allow(clippy::struct_field_names)]
 pub struct UnifiedColorMatcher {
-    css_collection: crate::color_parser::css_collection::CssColorCollection,
-    ral_classic_collection: crate::color_parser::ral_classic_collection::RalClassicCollection,
-    ral_design_collection: crate::color_parser::ral_design_collection::RalDesignCollection,
+    css: crate::color_parser::css_collection::CssColorCollection,
+    ral_classic: crate::color_parser::ral_classic_collection::RalClassicCollection,
+    ral_design: crate::color_parser::ral_design_collection::RalDesignCollection,
 }
 
 impl UnifiedColorMatcher {
     /// Create a new unified matcher with all collections
     pub fn new() -> Result<Self> {
         Ok(Self {
-            css_collection: crate::color_parser::css_collection::CssColorCollection::new()?,
-            ral_classic_collection:
+            css: crate::color_parser::css_collection::CssColorCollection::new()?,
+            ral_classic:
                 crate::color_parser::ral_classic_collection::RalClassicCollection::new()?,
-            ral_design_collection:
+            ral_design:
                 crate::color_parser::ral_design_collection::RalDesignCollection::new()?,
         })
     }
@@ -286,25 +305,19 @@ impl UnifiedColorMatcher {
         let mut all_matches = Vec::new();
 
         // Use template method for each collection
-        #[allow(clippy::similar_names)]
-        let css_matcher = CssColorMatcher::new(&self.css_collection);
-        #[allow(clippy::similar_names)]
-        let css_matches = css_matcher.match_color(target, limit_per_collection, strategy)?;
-        all_matches.extend(css_matches);
+        let css_color_matcher = CssColorMatcher::new(&self.css);
+        let css_color_results = css_color_matcher.match_color(target, limit_per_collection, strategy)?;
+        all_matches.extend(css_color_results);
 
-        #[allow(clippy::similar_names)]
-        let ral_classic_matcher = RalClassicMatcher::new(&self.ral_classic_collection);
-        #[allow(clippy::similar_names)]
-        let ral_classic_matches =
-            ral_classic_matcher.match_color(target, limit_per_collection, strategy)?;
-        all_matches.extend(ral_classic_matches);
+        let ral_classic_color_matcher = RalClassicMatcher::new(&self.ral_classic);
+        let ral_classic_color_results =
+            ral_classic_color_matcher.match_color(target, limit_per_collection, strategy)?;
+        all_matches.extend(ral_classic_color_results);
 
-        #[allow(clippy::similar_names)]
-        let ral_design_matcher = RalDesignMatcher::new(&self.ral_design_collection);
-        #[allow(clippy::similar_names)]
-        let ral_design_matches =
-            ral_design_matcher.match_color(target, limit_per_collection, strategy)?;
-        all_matches.extend(ral_design_matches);
+        let ral_design_color_matcher = RalDesignMatcher::new(&self.ral_design);
+        let ral_design_color_results =
+            ral_design_color_matcher.match_color(target, limit_per_collection, strategy)?;
+        all_matches.extend(ral_design_color_results);
 
         // Final sorting and limiting
         all_matches.sort_by(|a, b| {
@@ -332,18 +345,18 @@ mod tests {
     #[test]
     fn test_template_method_css_matcher() {
         let collection = crate::color_parser::css_collection::CssColorCollection::new().unwrap();
-        let matcher = CssColorMatcher::new(&collection);
+        let color_matcher = CssColorMatcher::new(&collection);
         let strategy = create_strategy("deltae76");
 
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
-        let matches = matcher.match_color(&target, 5, strategy.as_ref()).unwrap();
+        let color_results = color_matcher.match_color(&target, 5, strategy.as_ref()).unwrap();
 
-        assert!(!matches.is_empty());
-        assert!(matches.len() <= 5);
+        assert!(!color_results.is_empty());
+        assert!(color_results.len() <= 5);
 
         // Verify sorting by distance
-        for i in 1..matches.len() {
-            assert!(matches[i].distance >= matches[i - 1].distance);
+        for i in 1..color_results.len() {
+            assert!(color_results[i].distance >= color_results[i - 1].distance);
         }
     }
 

@@ -434,6 +434,6 @@ mod tests {
     fn test_basic_gradient() {
         // Basic test - just ensure types are accessible
         let _easing_type = EasingType::Linear;
-        assert!(true);
+        // Test passes if compilation succeeds
     }
 }

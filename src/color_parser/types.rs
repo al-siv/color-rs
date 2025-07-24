@@ -67,22 +67,26 @@ pub enum ColorFormat {
 
 impl ParsedColor {
     /// Create a new parsed color
-    #[must_use] pub const fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self {
+    #[must_use]
+    pub const fn new(r: u8, g: u8, b: u8, a: f64, format: ColorFormat) -> Self {
         Self { r, g, b, a, format }
     }
 
     /// Create from RGB values with full opacity
-    #[must_use] pub const fn from_rgb(r: u8, g: u8, b: u8, format: ColorFormat) -> Self {
+    #[must_use]
+    pub const fn from_rgb(r: u8, g: u8, b: u8, format: ColorFormat) -> Self {
         Self::new(r, g, b, 1.0, format)
     }
 
     /// Get RGB tuple
-    #[must_use] pub const fn rgb(&self) -> (u8, u8, u8) {
+    #[must_use]
+    pub const fn rgb(&self) -> (u8, u8, u8) {
         (self.r, self.g, self.b)
     }
 
     /// Get RGBA tuple
-    #[must_use] pub const fn rgba(&self) -> (u8, u8, u8, f64) {
+    #[must_use]
+    pub const fn rgba(&self) -> (u8, u8, u8, f64) {
         (self.r, self.g, self.b, self.a)
     }
 

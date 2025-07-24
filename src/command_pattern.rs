@@ -17,7 +17,8 @@ pub struct CommandResult {
 }
 
 impl CommandResult {
-    #[must_use] pub fn success(output: String) -> Self {
+    #[must_use]
+    pub fn success(output: String) -> Self {
         Self {
             success: true,
             output,
@@ -26,7 +27,8 @@ impl CommandResult {
         }
     }
 
-    #[must_use] pub const fn success_with_metadata(output: String, metadata: HashMap<String, String>) -> Self {
+    #[must_use]
+    pub const fn success_with_metadata(output: String, metadata: HashMap<String, String>) -> Self {
         Self {
             success: true,
             output,
@@ -35,7 +37,8 @@ impl CommandResult {
         }
     }
 
-    #[must_use] pub fn failure(error: String) -> Self {
+    #[must_use]
+    pub fn failure(error: String) -> Self {
         Self {
             success: false,
             output: String::new(),
@@ -76,14 +79,16 @@ pub struct GenerateGradientCommand {
 }
 
 impl GenerateGradientCommand {
-    #[must_use] pub const fn new(args: GradientArgs) -> Self {
+    #[must_use]
+    pub const fn new(args: GradientArgs) -> Self {
         Self {
             args,
             output_path: None,
         }
     }
 
-    #[must_use] pub fn with_output_path(mut self, path: String) -> Self {
+    #[must_use]
+    pub fn with_output_path(mut self, path: String) -> Self {
         self.output_path = Some(path);
         self
     }
@@ -120,7 +125,8 @@ impl Command for GenerateGradientCommand {
             let interpolated =
                 crate::color_utils::LegacyColorUtils::interpolate_lab(start_lab, end_lab, t);
             let hex = crate::color_utils::LegacyColorUtils::lab_to_hex(interpolated);
-            output.push_str(&format!("Step {i}: {hex}\n"));
+            use std::fmt::Write;
+            writeln!(output, "Step {i}: {hex}").unwrap(); // Writing to String never fails
         }
 
         // Generate SVG if requested
@@ -128,7 +134,8 @@ impl Command for GenerateGradientCommand {
             let _svg_content = self.generate_svg();
             output.push_str("\nSVG generated successfully\n");
             if let Some(path) = &self.output_path {
-                output.push_str(&format!("SVG saved to: {path}\n"));
+                use std::fmt::Write;
+                writeln!(output, "SVG saved to: {path}").unwrap(); // Writing to String never fails
             }
         }
 
@@ -185,7 +192,8 @@ pub struct FindClosestColorCommand {
 }
 
 impl FindClosestColorCommand {
-    #[must_use] pub fn new(color_input: String) -> Self {
+    #[must_use]
+    pub fn new(color_input: String) -> Self {
         Self {
             color_input,
             collection: None,
@@ -194,17 +202,20 @@ impl FindClosestColorCommand {
         }
     }
 
-    #[must_use] pub fn with_collection(mut self, collection: String) -> Self {
+    #[must_use]
+    pub fn with_collection(mut self, collection: String) -> Self {
         self.collection = Some(collection);
         self
     }
 
-    #[must_use] pub fn with_algorithm(mut self, algorithm: String) -> Self {
+    #[must_use]
+    pub fn with_algorithm(mut self, algorithm: String) -> Self {
         self.algorithm = algorithm;
         self
     }
 
-    #[must_use] pub const fn with_count(mut self, count: usize) -> Self {
+    #[must_use]
+    pub const fn with_count(mut self, count: usize) -> Self {
         self.count = count;
         self
     }

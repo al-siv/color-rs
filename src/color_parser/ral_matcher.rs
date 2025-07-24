@@ -39,28 +39,33 @@ pub struct RgbColor {
 }
 
 impl RgbColor {
-    #[must_use] pub const fn new(r: u8, g: u8, b: u8) -> Self {
+    #[must_use]
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
     }
 
     /// Convert RGB to LAB color space for accurate distance calculation
-    #[must_use] pub fn to_lab(&self) -> Lab {
+    #[must_use]
+    pub fn to_lab(&self) -> Lab {
         ColorUtils::rgb_to_lab((self.r, self.g, self.b))
     }
 }
 
 /// Find the two closest RAL Classic colors to the given RGB color
-#[must_use] pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
+#[must_use]
+pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_classic_compat(rgb, max_results)
 }
 
 /// Find the two closest RAL Design System+ colors to the given RGB color
-#[must_use] pub fn find_closest_ral_design(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
+#[must_use]
+pub fn find_closest_ral_design(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_design_compat(rgb, max_results)
 }
 
 /// Find closest colors from both RAL classifications
-#[must_use] pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
+#[must_use]
+pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_colors_compat(rgb, max_results)
 }
 
@@ -98,7 +103,8 @@ pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
 }
 
 /// Find RAL color by name (case-insensitive partial match)
-#[must_use] pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
+#[must_use]
+pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
     find_ral_by_name_pattern_compat(name)
 }
 
@@ -171,7 +177,7 @@ mod tests {
     #[test]
     fn test_manual_distance_verification() {
         // Manual verification of distance calculations
-        let input_lab = [60.52568f32, 5.942374f32, -61.562084f32];
+        let input_lab = [60.52568f32, 5.942_374_f32, -61.562_084_f32];
 
         // Green colors that are showing up first
         let green_6038_lab = [35.69f32, 62.308f32, -84.293f32]; // Luminous green

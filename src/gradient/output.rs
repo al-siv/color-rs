@@ -23,15 +23,17 @@ pub fn format_as_json(values: &[GradientValue]) -> Result<String> {
 
 /// Simple text output formatter  
 pub fn format_as_text(values: &[GradientValue]) -> Result<String> {
+    use std::fmt::Write;
     let mut output = String::new();
     output.push_str("Position | Hex     | RGB          | WCAG Luminance\n");
     output.push_str("---------|---------|--------------|---------------\n");
 
     for value in values {
-        output.push_str(&format!(
-            "{:8} | {:7} | {:12} | {}\n",
+        writeln!(
+            output,
+            "{:8} | {:7} | {:12} | {}",
             value.position, value.hex, value.rgb, value.wcag_luminance
-        ));
+        ).unwrap(); // Writing to String never fails
     }
 
     Ok(output)

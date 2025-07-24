@@ -21,7 +21,8 @@ pub struct UniversalColor {
 
 impl UniversalColor {
     /// Create from RGB values
-    #[must_use] pub fn from_rgb(rgb: [u8; 3]) -> Self {
+    #[must_use]
+    pub fn from_rgb(rgb: [u8; 3]) -> Self {
         let lab = ColorUtils::rgb_array_to_lab(rgb);
         Self {
             lab,
@@ -31,7 +32,8 @@ impl UniversalColor {
     }
 
     /// Create from LAB values
-    #[must_use] pub fn from_lab(lab: [f32; 3]) -> Self {
+    #[must_use]
+    pub fn from_lab(lab: [f32; 3]) -> Self {
         let rgb = ColorUtils::lab_array_to_rgb(lab);
         Self {
             lab,
@@ -41,7 +43,8 @@ impl UniversalColor {
     }
 
     /// Create from HLC values (for RAL Design System+)
-    #[must_use] pub fn from_hlc(hue: f64, lightness: f64, chroma: f64) -> Self {
+    #[must_use]
+    pub fn from_hlc(hue: f64, lightness: f64, chroma: f64) -> Self {
         // Convert HLC to LAB (HLC is similar to LCH but with different scaling)
         let h_rad = hue.to_radians();
         let a = chroma * h_rad.cos();
@@ -60,7 +63,8 @@ impl UniversalColor {
     }
 
     /// Calculate LAB distance to another color using the specified strategy
-    #[must_use] pub fn distance_to(&self, other: &Self) -> f64 {
+    #[must_use]
+    pub fn distance_to(&self, other: &Self) -> f64 {
         // Use the default strategy (Delta E 2000) for backward compatibility
         self.distance_to_with_strategy(other, &DeltaE2000Strategy)
     }
@@ -103,7 +107,8 @@ pub struct ColorEntry {
 
 impl ColorEntry {
     /// Create a new color entry
-    #[must_use] pub fn new(color: UniversalColor, name: String) -> Self {
+    #[must_use]
+    pub fn new(color: UniversalColor, name: String) -> Self {
         Self {
             color,
             metadata: ColorMetadata {
@@ -117,25 +122,29 @@ impl ColorEntry {
     }
 
     /// Set code for this color entry
-    #[must_use] pub fn with_code(mut self, code: String) -> Self {
+    #[must_use]
+    pub fn with_code(mut self, code: String) -> Self {
         self.metadata.code = Some(code);
         self
     }
 
     /// Set group for this color entry
-    #[must_use] pub fn with_group(mut self, group: String) -> Self {
+    #[must_use]
+    pub fn with_group(mut self, group: String) -> Self {
         self.metadata.group = Some(group);
         self
     }
 
     /// Set original format
-    #[must_use] pub fn with_original_format(mut self, format: String) -> Self {
+    #[must_use]
+    pub fn with_original_format(mut self, format: String) -> Self {
         self.metadata.original_format = Some(format);
         self
     }
 
     /// Add extra metadata
-    #[must_use] pub fn with_extra_data(mut self, key: String, value: String) -> Self {
+    #[must_use]
+    pub fn with_extra_data(mut self, key: String, value: String) -> Self {
         self.metadata.extra_data.insert(key, value);
         self
     }
@@ -167,7 +176,8 @@ pub struct ColorMatch {
 
 impl ColorMatch {
     /// Create a new color match
-    #[must_use] pub fn new(entry: ColorEntry, distance: f64) -> Self {
+    #[must_use]
+    pub fn new(entry: ColorEntry, distance: f64) -> Self {
         // Calculate confidence based on distance (closer = higher confidence)
         let confidence = (50.0 - distance.min(50.0)) / 50.0;
         Self {
@@ -331,7 +341,8 @@ impl Default for ColorCollectionManager {
 
 impl ColorCollectionManager {
     /// Create a new collection manager
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self {
             collections: Vec::new(),
         }
@@ -343,12 +354,14 @@ impl ColorCollectionManager {
     }
 
     /// Get all collection names
-    #[must_use] pub fn collection_names(&self) -> Vec<&'static str> {
+    #[must_use]
+    pub fn collection_names(&self) -> Vec<&'static str> {
         self.collections.iter().map(|c| c.name()).collect()
     }
 
     /// Find closest colors across all collections
-    #[must_use] pub fn find_closest_across_all(
+    #[must_use]
+    pub fn find_closest_across_all(
         &self,
         target: &UniversalColor,
         max_results_per_collection: usize,
@@ -386,7 +399,8 @@ impl ColorCollectionManager {
     }
 
     /// Find closest colors from a specific collection
-    #[must_use] pub fn find_closest_from_collection(
+    #[must_use]
+    pub fn find_closest_from_collection(
         &self,
         collection_name: &str,
         target: &UniversalColor,
@@ -400,7 +414,8 @@ impl ColorCollectionManager {
     }
 
     /// Search by name across all collections
-    #[must_use] pub fn search_by_name(&self, name: &str) -> Vec<(String, ColorEntry)> {
+    #[must_use]
+    pub fn search_by_name(&self, name: &str) -> Vec<(String, ColorEntry)> {
         self.collections
             .iter()
             .filter_map(|collection| {

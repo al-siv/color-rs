@@ -32,53 +32,62 @@ impl FormatUtils {
     }
 
     /// Convert LAB to hex format string - DIRECT DELEGATION to `ColorUtils`
-    #[must_use] pub fn lab_to_hex(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_hex(lab: Lab) -> String {
         ColorUtils::lab_to_hex(lab)
     }
 
     /// Convert LAB to RGB format string
-    #[must_use] pub fn lab_to_rgb(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_rgb(lab: Lab) -> String {
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
         Utils::rgb_to_string(r, g, b)
     }
 
     /// Convert LAB to HSL format string with standardized precision
-    #[must_use] pub fn lab_to_hsl(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_hsl(lab: Lab) -> String {
         let (h, s, l) = ColorUtils::lab_to_hsl_tuple(lab);
         PrecisionUtils::format_hsl(h, s, l)
     }
 
     /// Convert LAB to HSV/HSB format string with standardized precision
-    #[must_use] pub fn lab_to_hsv(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_hsv(lab: Lab) -> String {
         let (h, s, v) = ColorUtils::lab_to_hsv_tuple(lab);
         PrecisionUtils::format_hsv(h, s, v)
     }
 
     /// Convert LAB to CMYK format string with standardized precision
-    #[must_use] pub fn lab_to_cmyk(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_cmyk(lab: Lab) -> String {
         let (c, m, y, k) = ColorUtils::lab_to_cmyk_tuple(lab);
         PrecisionUtils::format_cmyk(c, m, y, k)
     }
 
     /// Convert LAB to XYZ format string with standardized precision
-    #[must_use] pub fn lab_to_xyz(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_xyz(lab: Lab) -> String {
         let (x, y, z) = ColorUtils::lab_to_xyz_tuple(lab);
         PrecisionUtils::format_xyz(x, y, z)
     }
 
     /// Convert LAB to LAB format string with standardized precision
-    #[must_use] pub fn lab_to_lab(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_lab(lab: Lab) -> String {
         PrecisionUtils::format_lab(f64::from(lab.l), f64::from(lab.a), f64::from(lab.b))
     }
 
     /// Convert LAB to LCH format string with standardized precision
-    #[must_use] pub fn lab_to_lch(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_lch(lab: Lab) -> String {
         let (l, c, h) = ColorUtils::lab_to_lch_tuple(lab);
         PrecisionUtils::format_lch(l, c, h)
     }
 
     /// Convert LAB to OKLCH format string with standardized precision
-    #[must_use] pub fn lab_to_oklch(lab: Lab) -> String {
+    #[must_use]
+    pub fn lab_to_oklch(lab: Lab) -> String {
         let (l, c, h) = ColorUtils::lab_to_oklch_tuple(lab);
         PrecisionUtils::format_oklch(l, c, h)
     }
@@ -117,7 +126,8 @@ pub enum ColorFormat {
 
 impl FormatUtils {
     /// Format a color according to the specified format type
-    #[must_use] pub fn format_color(lab: Lab, color_format: &ColorFormat) -> String {
+    #[must_use]
+    pub fn format_color(lab: Lab, color_format: &ColorFormat) -> String {
         match color_format {
             ColorFormat::Lab => Self::lab_to_lab(lab),
             ColorFormat::Rgb => Self::lab_to_rgb(lab),

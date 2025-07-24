@@ -43,7 +43,8 @@ impl UnifiedColorManager {
     }
 
     /// Find closest colors across all collections (new unified API)
-    #[must_use] pub fn find_closest_across_all(
+    #[must_use]
+    pub fn find_closest_across_all(
         &self,
         rgb: [u8; 3],
         max_results_per_collection: usize,
@@ -95,7 +96,8 @@ impl UnifiedColorManager {
     }
 
     /// Search with advanced filtering
-    #[must_use] pub fn search_with_filter(
+    #[must_use]
+    pub fn search_with_filter(
         &self,
         rgb: [u8; 3],
         filter: &SearchFilter,
