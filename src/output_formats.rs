@@ -139,8 +139,8 @@ pub struct ColorCollectionMatches {
 /// Enhanced gradient stop with nested color structure
 #[derive(Debug, Clone, Serialize)]
 pub struct EnhancedGradientStop {
-    pub position: u32,  // Integer position without decimals
-    pub color: NestedColorInfo,  // Simplified color info for nesting
+    pub position: u32,          // Integer position without decimals
+    pub color: NestedColorInfo, // Simplified color info for nesting
     pub collections: ColorCollectionMatches,
 }
 
@@ -161,7 +161,7 @@ pub struct NestedColorInfo {
 /// Individual gradient stop (legacy format)
 #[derive(Debug, Clone, Serialize)]
 pub struct GradientStop {
-    pub position: u32,  // Changed to integer for cleaner display
+    pub position: u32, // Changed to integer for cleaner display
     #[serde(skip_serializing_if = "String::is_empty")]
     pub hex: String,
     #[serde(skip_serializing_if = "String::is_empty")]

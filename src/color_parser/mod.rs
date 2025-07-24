@@ -23,7 +23,7 @@ pub mod unified_manager;
 
 pub use css_parser::CssColorParser;
 pub use ral_matcher::*;
-pub use types::{ColorFormat, ParsedColor, ColorParseResult};
+pub use types::{ColorFormat, ColorParseResult, ParsedColor};
 
 // New unified collection system exports
 pub use collections::*;

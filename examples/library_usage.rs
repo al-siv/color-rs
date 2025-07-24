@@ -36,7 +36,7 @@ fn main() -> Result<()> {
         let interpolated = ColorUtils::interpolate_lab(red_lab, blue_lab, eased_t);
         let hex = ColorUtils::lab_to_hex(interpolated);
 
-        println!("t={:.1} -> eased_t={:.3} -> color={}", t, eased_t, hex);
+        println!("t={t:.1} -> eased_t={eased_t:.3} -> color={hex}");
     }
 
     // Example 3: Generate gradient using high-level API
@@ -70,11 +70,11 @@ fn main() -> Result<()> {
     println!("\n4. Intelligent Stop Calculation:");
     let calculator = GradientCalculator::with_intelligent_stops(0.9, 0.1);
     let intelligent_stops = calculator.calculate_stops_integer(8, 0, 100);
-    println!("Intelligent stops: {:?}", intelligent_stops);
+    println!("Intelligent stops: {intelligent_stops:?}");
 
     let equal_calculator = GradientCalculator::with_equal_spacing();
     let equal_stops = equal_calculator.calculate_stops_integer(8, 0, 100);
-    println!("Equal stops:       {:?}", equal_stops);
+    println!("Equal stops:       {equal_stops:?}");
 
     println!("\nExample completed successfully!");
     println!("Check 'example-gradient.svg' for the generated output.");

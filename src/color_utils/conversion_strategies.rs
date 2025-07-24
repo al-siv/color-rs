@@ -4,16 +4,23 @@
 //! allowing dynamic selection of conversion algorithms.
 
 use crate::error::Result;
-use palette::{Lab, Srgb, Hsl, Hsv, Lch, Xyz, IntoColor};
+use palette::{Hsl, Hsv, IntoColor, Lab, Lch, Srgb, Xyz};
+
+/// Safely convert a clamped f32 color component to u8
+/// Safely convert a clamped f32 color component to u8
+#[inline]
+fn f32_to_u8_clamped(value: f32) -> u8 {
+    (value * 255.0).round().clamp(0.0, 255.0) as u8
+}
 
 /// Strategy interface for color space conversions
 pub trait ColorConversionStrategy {
     /// Convert from LAB to target color space
     fn convert_from_lab(&self, lab: Lab) -> ConversionResult;
-    
+
     /// Convert to LAB from source color space  
     fn to_lab(&self, color: &dyn ColorValue) -> Result<Lab>;
-    
+
     /// Get the name of this conversion strategy
     fn strategy_name(&self) -> &'static str;
 }
@@ -50,22 +57,23 @@ impl ConversionResult {
         let hsv: Hsv = srgb.into_color();
         let lch: Lch = lab.into_color();
         let xyz: Xyz = lab.into_color();
-        
-        let hex = format!("#{:02X}{:02X}{:02X}", 
-            (srgb.red * 255.0) as u8,
-            (srgb.green * 255.0) as u8, 
-            (srgb.blue * 255.0) as u8
+
+        let hex = format!(
+            "#{:02X}{:02X}{:02X}",
+            f32_to_u8_clamped(srgb.red),
+            f32_to_u8_clamped(srgb.green),
+            f32_to_u8_clamped(srgb.blue)
         );
-        
+
         let rgb_tuple = (
-            (srgb.red * 255.0) as u8,
-            (srgb.green * 255.0) as u8,
-            (srgb.blue * 255.0) as u8,
+            f32_to_u8_clamped(srgb.red),
+            f32_to_u8_clamped(srgb.green),
+            f32_to_u8_clamped(srgb.blue),
         );
-        
+
         let hsl_tuple = (hsl.hue.into_inner(), hsl.saturation, hsl.lightness);
         let lch_tuple = (lch.l, lch.chroma, lch.hue.into_inner());
-        
+
         Self {
             lab,
             srgb,
@@ -88,7 +96,7 @@ impl ColorConversionStrategy for RgbConversionStrategy {
     fn convert_from_lab(&self, lab: Lab) -> ConversionResult {
         ConversionResult::from_lab(lab)
     }
-    
+
     fn to_lab(&self, color: &dyn ColorValue) -> Result<Lab> {
         if let Some(lab) = color.as_lab() {
             Ok(lab)
@@ -99,11 +107,11 @@ impl ColorConversionStrategy for RgbConversionStrategy {
             Ok(srgb.into_color())
         } else {
             Err(crate::error::ColorError::ParseError(
-                "Unsupported color format for conversion".to_string()
+                "Unsupported color format for conversion".to_string(),
             ))
         }
     }
-    
+
     fn strategy_name(&self) -> &'static str {
         "RGB"
     }
@@ -116,7 +124,7 @@ impl ColorConversionStrategy for LabConversionStrategy {
     fn convert_from_lab(&self, lab: Lab) -> ConversionResult {
         ConversionResult::from_lab(lab)
     }
-    
+
     fn to_lab(&self, color: &dyn ColorValue) -> Result<Lab> {
         if let Some(lab) = color.as_lab() {
             Ok(lab)
@@ -126,11 +134,11 @@ impl ColorConversionStrategy for LabConversionStrategy {
             Ok(xyz.into_color())
         } else {
             Err(crate::error::ColorError::ParseError(
-                "Unsupported color format for LAB conversion".to_string()
+                "Unsupported color format for LAB conversion".to_string(),
             ))
         }
     }
-    
+
     fn strategy_name(&self) -> &'static str {
         "LAB"
     }
@@ -143,7 +151,7 @@ impl ColorConversionStrategy for FastConversionStrategy {
     fn convert_from_lab(&self, lab: Lab) -> ConversionResult {
         ConversionResult::from_lab(lab)
     }
-    
+
     fn to_lab(&self, color: &dyn ColorValue) -> Result<Lab> {
         if let Some(lab) = color.as_lab() {
             Ok(lab)
@@ -152,11 +160,11 @@ impl ColorConversionStrategy for FastConversionStrategy {
             Ok(srgb.into_color())
         } else {
             Err(crate::error::ColorError::ParseError(
-                "Unsupported color format for fast conversion".to_string()
+                "Unsupported color format for fast conversion".to_string(),
             ))
         }
     }
-    
+
     fn strategy_name(&self) -> &'static str {
         "Fast"
     }
@@ -175,13 +183,13 @@ impl ConversionStrategyFactory {
             _ => Box::new(RgbConversionStrategy), // Default
         }
     }
-    
+
     /// Get list of available strategies
     #[must_use]
     pub fn available_strategies() -> Vec<&'static str> {
         vec!["RGB", "LAB", "Fast"]
     }
-    
+
     /// Create strategy optimized for specific use case
     pub fn create_for_use_case(use_case: ConversionUseCase) -> Box<dyn ColorConversionStrategy> {
         match use_case {
@@ -205,9 +213,13 @@ pub enum ConversionUseCase {
 pub struct LabColor(pub Lab);
 
 impl ColorValue for LabColor {
-    fn as_lab(&self) -> Option<Lab> { Some(self.0) }
-    fn as_srgb(&self) -> Option<Srgb> { Some(self.0.into_color()) }
-    fn as_hsl(&self) -> Option<Hsl> { 
+    fn as_lab(&self) -> Option<Lab> {
+        Some(self.0)
+    }
+    fn as_srgb(&self) -> Option<Srgb> {
+        Some(self.0.into_color())
+    }
+    fn as_hsl(&self) -> Option<Hsl> {
         let srgb: Srgb = self.0.into_color();
         Some(srgb.into_color())
     }
@@ -217,9 +229,10 @@ impl ColorValue for LabColor {
     }
     fn as_hex(&self) -> Option<String> {
         let srgb: Srgb = self.0.into_color();
-        Some(format!("#{:02X}{:02X}{:02X}", 
+        Some(format!(
+            "#{:02X}{:02X}{:02X}",
             (srgb.red * 255.0) as u8,
-            (srgb.green * 255.0) as u8, 
+            (srgb.green * 255.0) as u8,
             (srgb.blue * 255.0) as u8
         ))
     }
@@ -229,14 +242,23 @@ impl ColorValue for LabColor {
 pub struct RgbColor(pub Srgb);
 
 impl ColorValue for RgbColor {
-    fn as_lab(&self) -> Option<Lab> { Some(self.0.into_color()) }
-    fn as_srgb(&self) -> Option<Srgb> { Some(self.0) }
-    fn as_hsl(&self) -> Option<Hsl> { Some(self.0.into_color()) }
-    fn as_hsv(&self) -> Option<Hsv> { Some(self.0.into_color()) }
+    fn as_lab(&self) -> Option<Lab> {
+        Some(self.0.into_color())
+    }
+    fn as_srgb(&self) -> Option<Srgb> {
+        Some(self.0)
+    }
+    fn as_hsl(&self) -> Option<Hsl> {
+        Some(self.0.into_color())
+    }
+    fn as_hsv(&self) -> Option<Hsv> {
+        Some(self.0.into_color())
+    }
     fn as_hex(&self) -> Option<String> {
-        Some(format!("#{:02X}{:02X}{:02X}", 
+        Some(format!(
+            "#{:02X}{:02X}{:02X}",
             (self.0.red * 255.0) as u8,
-            (self.0.green * 255.0) as u8, 
+            (self.0.green * 255.0) as u8,
             (self.0.blue * 255.0) as u8
         ))
     }
@@ -246,21 +268,26 @@ impl ColorValue for RgbColor {
 pub struct HslColor(pub Hsl);
 
 impl ColorValue for HslColor {
-    fn as_lab(&self) -> Option<Lab> { 
+    fn as_lab(&self) -> Option<Lab> {
         let srgb: Srgb = self.0.into_color();
         Some(srgb.into_color())
     }
-    fn as_srgb(&self) -> Option<Srgb> { Some(self.0.into_color()) }
-    fn as_hsl(&self) -> Option<Hsl> { Some(self.0) }
-    fn as_hsv(&self) -> Option<Hsv> { 
+    fn as_srgb(&self) -> Option<Srgb> {
+        Some(self.0.into_color())
+    }
+    fn as_hsl(&self) -> Option<Hsl> {
+        Some(self.0)
+    }
+    fn as_hsv(&self) -> Option<Hsv> {
         let srgb: Srgb = self.0.into_color();
         Some(srgb.into_color())
     }
     fn as_hex(&self) -> Option<String> {
         let srgb: Srgb = self.0.into_color();
-        Some(format!("#{:02X}{:02X}{:02X}", 
+        Some(format!(
+            "#{:02X}{:02X}{:02X}",
             (srgb.red * 255.0) as u8,
-            (srgb.green * 255.0) as u8, 
+            (srgb.green * 255.0) as u8,
             (srgb.blue * 255.0) as u8
         ))
     }
@@ -275,31 +302,31 @@ mod tests {
         let lab = Lab::new(50.0, 20.0, -30.0);
         let rgb_strategy = RgbConversionStrategy;
         let lab_strategy = LabConversionStrategy;
-        
+
         let rgb_result = rgb_strategy.convert_from_lab(lab);
         let lab_result = lab_strategy.convert_from_lab(lab);
-        
+
         assert_eq!(rgb_strategy.strategy_name(), "RGB");
         assert_eq!(lab_strategy.strategy_name(), "LAB");
         assert!(!rgb_result.hex.is_empty());
         assert!(!lab_result.hex.is_empty());
     }
-    
+
     #[test]
     fn test_conversion_factory() {
         let strategies = ConversionStrategyFactory::available_strategies();
         assert!(strategies.contains(&"RGB"));
         assert!(strategies.contains(&"LAB"));
-        
+
         let strategy = ConversionStrategyFactory::create_strategy("RGB");
         assert_eq!(strategy.strategy_name(), "RGB");
     }
-    
+
     #[test]
     fn test_color_values() {
         let lab = Lab::new(50.0, 0.0, 0.0);
         let lab_color = LabColor(lab);
-        
+
         assert!(lab_color.as_lab().is_some());
         assert!(lab_color.as_srgb().is_some());
         assert!(lab_color.as_hex().is_some());

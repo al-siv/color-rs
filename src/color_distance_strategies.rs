@@ -151,9 +151,7 @@ pub fn create_strategy(strategy_name: &str) -> Box<dyn ColorDistanceStrategy> {
         "euclidean-lab" | "euclidean" | "lab" => Box::new(EuclideanLabStrategy),
         "lch" | "lch-space" | "lch-color-space" => Box::new(LchStrategy),
         _ => {
-            eprintln!(
-                "Warning: Unknown strategy '{strategy_name}', using Delta E 2000"
-            );
+            eprintln!("Warning: Unknown strategy '{strategy_name}', using Delta E 2000");
             Box::new(DeltaE2000Strategy)
         }
     }

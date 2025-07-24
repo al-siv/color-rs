@@ -1,11 +1,9 @@
 //! Command-line interface for color-rs
 
 use crate::config::{
-    APP_NAME, APP_DESCRIPTION, APP_AUTHOR, APP_VERSION, 
-    DEFAULT_START_POSITION, DEFAULT_END_POSITION, 
-    DEFAULT_EASE_IN, DEFAULT_EASE_OUT, DEFAULT_WIDTH, 
-    DEFAULT_SVG_NAME, DEFAULT_PNG_NAME, MAX_PERCENTAGE, 
-    BEZIER_MIN, BEZIER_MAX
+    APP_AUTHOR, APP_DESCRIPTION, APP_NAME, APP_VERSION, BEZIER_MAX, BEZIER_MIN, DEFAULT_EASE_IN,
+    DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_PNG_NAME, DEFAULT_START_POSITION,
+    DEFAULT_SVG_NAME, DEFAULT_WIDTH, MAX_PERCENTAGE,
 };
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -146,6 +144,14 @@ pub struct GradientArgs {
 
 impl GradientArgs {
     /// Validate the gradient arguments
+    ///
+    /// # Errors
+    ///
+    /// Returns `ColorError::InvalidArguments` if:
+    /// - Start or end positions are outside 0-100 range
+    /// - Start position is greater than or equal to end position
+    /// - Ease-in or ease-out values are outside 0.0-1.0 range
+    /// - Width or steps values are zero or negative
     pub fn validate(&self) -> Result<()> {
         // Validate position bounds
         if self.start_position > MAX_PERCENTAGE || self.end_position > MAX_PERCENTAGE {
@@ -295,6 +301,13 @@ pub struct ColorArgs {
 
 impl ColorArgs {
     /// Validate the color arguments
+    ///
+    /// # Errors
+    ///
+    /// Returns `ColorError::InvalidArguments` if:
+    /// - Scheme strategy is not 'hsl' or 'lab'
+    /// - Relative luminance is outside 0.0-100.0 range
+    /// - Limit per collection is zero or negative
     pub fn validate(&self) -> Result<()> {
         // Validate scheme strategy
         if !matches!(self.scheme_strategy.as_str(), "hsl" | "lab") {

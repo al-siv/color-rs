@@ -32,15 +32,15 @@ pub trait GradientCalculationTemplate {
         let stops = self.generate_stops(num_stops);
         self.post_process_stops(stops)
     }
-    
+
     /// Validate input parameters (hook method)
     fn validate_input(&self, num_stops: usize) {
         assert!(num_stops > 0, "Number of stops must be positive");
     }
-    
+
     /// Generate the actual stop positions (abstract method)
     fn generate_stops(&self, num_stops: usize) -> Vec<f64>;
-    
+
     /// Post-process stops if needed (hook method)
     fn post_process_stops(&self, stops: Vec<f64>) -> Vec<f64> {
         stops
@@ -158,7 +158,7 @@ impl GradientCalculator {
             calculator: Box::new(IntelligentStopCalculator::new(ease_in, ease_out)),
         }
     }
-    
+
     /// Create calculator with equal spacing
     #[must_use]
     pub fn with_equal_spacing() -> Self {
@@ -166,7 +166,7 @@ impl GradientCalculator {
             calculator: Box::new(EqualSpacingCalculator),
         }
     }
-    
+
     /// Cubic bezier easing function for backwards compatibility
     #[must_use]
     pub fn cubic_bezier_ease(t: f64, ease_in: f64, ease_out: f64) -> f64 {
@@ -176,22 +176,22 @@ impl GradientCalculator {
         let inv_t = 1.0 - t;
         let inv_t2 = inv_t * inv_t;
         let inv_t3 = inv_t2 * inv_t;
-        
+
         inv_t3 + 3.0 * inv_t2 * t * ease_in + 3.0 * inv_t * t2 * ease_out + t3
     }
-    
+
     /// Calculate stop positions
     #[must_use]
     pub fn calculate_stops(&self, num_stops: usize) -> Vec<f64> {
         self.calculator.calculate_stops(num_stops)
     }
-    
+
     /// Calculate integer stop positions (0-100 range)
     #[must_use]
     pub fn calculate_stops_integer(&self, num_stops: usize, start_pos: u8, end_pos: u8) -> Vec<u8> {
         let stops = self.calculate_stops(num_stops);
         let range = end_pos as f64 - start_pos as f64;
-        
+
         stops
             .into_iter()
             .map(|stop| {
@@ -200,7 +200,7 @@ impl GradientCalculator {
             })
             .collect()
     }
-    
+
     /// Generate gradient values using Template Method pattern
     pub fn generate_gradient_values(
         &self,
@@ -227,7 +227,7 @@ impl GradientCalculator {
         for &stop in &stops {
             // Apply easing function
             let eased_t = easing_strategy.ease(stop);
-            
+
             // Interpolate color in LAB space
             let interpolated_lab = Lab {
                 l: start_lab.l + (eased_t as f32) * (end_lab.l - start_lab.l),
@@ -242,11 +242,8 @@ impl GradientCalculator {
                 "#{:02X}{:02X}{:02X}",
                 rgb_values.0, rgb_values.1, rgb_values.2,
             );
-            let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                rgb_values.0,
-                rgb_values.1,
-                rgb_values.2,
-            ));
+            let wcag_luminance =
+                ColorUtils::wcag_relative_luminance_rgb((rgb_values.0, rgb_values.1, rgb_values.2));
 
             // Calculate position
             let position = start_position as f64 + stop * position_range;
@@ -272,40 +269,40 @@ mod tests {
     fn test_intelligent_stop_calculator() {
         let calculator = IntelligentStopCalculator::new(0.42, 0.58);
         let stops = calculator.calculate_stops(5);
-        
+
         assert_eq!(stops.len(), 5);
         assert_eq!(stops[0], 0.0);
         assert_eq!(stops[stops.len() - 1], 1.0);
     }
-    
+
     #[test]
     fn test_equal_spacing_calculator() {
         let calculator = EqualSpacingCalculator;
         let stops = calculator.calculate_stops(4);
-        
-        assert_eq!(stops, vec![0.0, 1.0/3.0, 2.0/3.0, 1.0]);
+
+        assert_eq!(stops, vec![0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0]);
     }
-    
+
     #[test]
     fn test_gradient_calculator() {
         let calculator = GradientCalculator::with_equal_spacing();
         let stops = calculator.calculate_stops(3);
-        
+
         assert_eq!(stops, vec![0.0, 0.5, 1.0]);
     }
-    
+
     #[test]
     fn test_gradient_values_generation() {
         let calculator = GradientCalculator::with_equal_spacing();
         let easing = LinearEasing;
-        
+
         let start_lab = Lab::new(50.0, 0.0, 0.0);
         let end_lab = Lab::new(70.0, 0.0, 0.0);
-        
-        let values = calculator.generate_gradient_values(
-            start_lab, end_lab, 3, 0, 100, &easing
-        ).unwrap();
-        
+
+        let values = calculator
+            .generate_gradient_values(start_lab, end_lab, 3, 0, 100, &easing)
+            .unwrap();
+
         assert_eq!(values.len(), 3);
         assert_eq!(values[0].position, "0%");
         assert_eq!(values[2].position, "100%");

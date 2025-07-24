@@ -20,11 +20,17 @@
 //! - Additional information (grayscale, WCAG metrics, brightness)
 //! - Color collection matches (CSS names, RAL Classic, RAL Design)
 
+/// Safely convert a clamped f32 color component to u8
+#[inline]
+fn f32_to_u8_clamped(value: f32) -> u8 {
+    (value * 255.0).round().clamp(0.0, 255.0) as u8
+}
+
 use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::Result;
 use crate::output_formats::{
-    BrightnessInfo, ColorAnalysisOutput, ColorCollections, ColorFormats, 
-    ColorMatch, ContrastData, ContrastInfo, GrayscaleData
+    BrightnessInfo, ColorAnalysisOutput, ColorCollections, ColorFormats, ColorMatch, ContrastData,
+    ContrastInfo, GrayscaleData,
 };
 use crate::utils::Utils;
 use palette::Lab;
@@ -164,14 +170,25 @@ impl ColorFormatter {
     /// Collect grayscale variations data
     fn collect_grayscale_data(lab_color: Lab) -> GrayscaleData {
         let lch = ColorUtils::lab_to_lch(lab_color);
-        
-        let lch0_lab = ColorUtils::lch_tulip_to_lab((lch.l as f64, 0.0, lch.hue.into_degrees() as f64));
-        let lch2_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l as f64, lch.chroma as f64 * 0.02, lch.hue.into_degrees() as f64));
-        let lch4_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l as f64, lch.chroma as f64 * 0.04, lch.hue.into_degrees() as f64));
-        let lch6_lab =
-            ColorUtils::lch_tulip_to_lab((lch.l as f64, lch.chroma as f64 * 0.06, lch.hue.into_degrees() as f64));        let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
+
+        let lch0_lab =
+            ColorUtils::lch_tulip_to_lab((lch.l as f64, 0.0, lch.hue.into_degrees() as f64));
+        let lch2_lab = ColorUtils::lch_tulip_to_lab((
+            lch.l as f64,
+            lch.chroma as f64 * 0.02,
+            lch.hue.into_degrees() as f64,
+        ));
+        let lch4_lab = ColorUtils::lch_tulip_to_lab((
+            lch.l as f64,
+            lch.chroma as f64 * 0.04,
+            lch.hue.into_degrees() as f64,
+        ));
+        let lch6_lab = ColorUtils::lch_tulip_to_lab((
+            lch.l as f64,
+            lch.chroma as f64 * 0.06,
+            lch.hue.into_degrees() as f64,
+        ));
+        let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
         let lch2_hex = ColorUtils::lab_to_hex(lch2_lab);
         let lch4_hex = ColorUtils::lab_to_hex(lch4_lab);
         let lch6_hex = ColorUtils::lab_to_hex(lch6_lab);
@@ -215,9 +232,9 @@ impl ColorFormatter {
         let manager = UnifiedColorManager::new().unwrap_or_default();
         let srgb = ColorUtils::lab_to_srgb(lab_color);
         let rgb = [
-            (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
-            (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
-            (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+            f32_to_u8_clamped(srgb.red),
+            f32_to_u8_clamped(srgb.green),
+            f32_to_u8_clamped(srgb.blue),
         ];
 
         // Get CSS colors

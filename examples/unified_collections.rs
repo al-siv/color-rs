@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ral_classic_groups.len()
     );
     for group in ral_classic_groups.iter().take(5) {
-        println!("     - {}", group);
+        println!("     - {group}");
     }
 
     let ral_design_groups = ral_design_collection.groups();
@@ -129,7 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ral_design_groups.len()
     );
     for group in ral_design_groups.iter().take(5) {
-        println!("     - {}", group);
+        println!("     - {group}");
     }
 
     println!("\n=== Demo Complete ===");

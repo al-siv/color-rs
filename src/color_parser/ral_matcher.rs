@@ -182,14 +182,10 @@ mod tests {
         let blue_5007_lab = [40.39f32, 42.93f32, -6.80f32]; // Brilliant blue
 
         // Calculate distances manually
-        let green_6038_dist =
-            ColorUtils::lab_array_distance(input_lab, green_6038_lab);
-        let green_6018_dist =
-            ColorUtils::lab_array_distance(input_lab, green_6018_lab);
-        let blue_5000_dist =
-            ColorUtils::lab_array_distance(input_lab, blue_5000_lab);
-        let blue_5007_dist =
-            ColorUtils::lab_array_distance(input_lab, blue_5007_lab);
+        let green_6038_dist = ColorUtils::lab_array_distance(input_lab, green_6038_lab);
+        let green_6018_dist = ColorUtils::lab_array_distance(input_lab, green_6018_lab);
+        let blue_5000_dist = ColorUtils::lab_array_distance(input_lab, blue_5000_lab);
+        let blue_5007_dist = ColorUtils::lab_array_distance(input_lab, blue_5007_lab);
 
         println!(
             "Input: LAB({:.2}, {:.2}, {:.2})",

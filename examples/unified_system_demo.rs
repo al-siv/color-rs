@@ -151,7 +151,7 @@ fn demo_code_lookups(
     ];
 
     for (code, collection_name) in test_codes {
-        print!("   Looking up '{}' in {}: ", code, collection_name);
+        print!("   Looking up '{code}' in {collection_name}: ");
 
         let result = match collection_name {
             "CSS" => css.find_by_code(code),
@@ -183,7 +183,7 @@ fn demo_collection_stats(
     );
 
     let total_colors = css.colors().len() + ral_classic.colors().len() + ral_design.colors().len();
-    println!("   Total colors available: {}", total_colors);
+    println!("   Total colors available: {total_colors}");
 
     // Group statistics
     let ral_classic_groups = ral_classic.groups();

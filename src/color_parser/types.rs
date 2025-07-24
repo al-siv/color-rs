@@ -18,7 +18,7 @@ impl ColorParseResult {
             ColorParseResult::Multiple(colors) => colors.first(),
         }
     }
-    
+
     /// Get all colors as a vector
     #[must_use]
     pub fn all(&self) -> Vec<&ParsedColor> {

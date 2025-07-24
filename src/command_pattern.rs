@@ -114,43 +114,28 @@ impl Command for GenerateGradientCommand {
         let steps = self.args.stops;
         let mut output = String::new();
         output.push_str("Generated gradient:\n");
-        
+
         for i in 0..steps {
             let t = i as f64 / (steps - 1) as f64;
-            let interpolated = crate::color_utils::LegacyColorUtils::interpolate_lab(start_lab, end_lab, t);
+            let interpolated =
+                crate::color_utils::LegacyColorUtils::interpolate_lab(start_lab, end_lab, t);
             let hex = crate::color_utils::LegacyColorUtils::lab_to_hex(interpolated);
             output.push_str(&format!("Step {i}: {hex}\n"));
         }
 
         // Generate SVG if requested
         if self.args.should_generate_svg() {
-            match self.generate_svg() {
-                Ok(_svg_content) => {
-                    output.push_str("\nSVG generated successfully\n");
-                    if let Some(path) = &self.output_path {
-                        output.push_str(&format!("SVG saved to: {path}\n"));
-                    }
-                }
-                Err(e) => {
-                    return Ok(CommandResult::failure(format!(
-                        "Failed to generate SVG: {e}"
-                    )));
-                }
+            let _svg_content = self.generate_svg();
+            output.push_str("\nSVG generated successfully\n");
+            if let Some(path) = &self.output_path {
+                output.push_str(&format!("SVG saved to: {path}\n"));
             }
         }
 
         // Generate PNG if requested
         if self.args.should_generate_png() {
-            match self.generate_png() {
-                Ok(_) => {
-                    output.push_str("PNG generated successfully\n");
-                }
-                Err(e) => {
-                    return Ok(CommandResult::failure(format!(
-                        "Failed to generate PNG: {e}"
-                    )));
-                }
-            }
+            let _ = self.generate_png();
+            output.push_str("PNG generated successfully\n");
         }
 
         let mut metadata = HashMap::new();
@@ -171,9 +156,9 @@ impl Command for GenerateGradientCommand {
 }
 
 impl GenerateGradientCommand {
-    fn generate_svg(&self) -> Result<String> {
+    fn generate_svg(&self) -> String {
         // Simplified SVG generation - would use the full image module in practice
-        Ok(format!(
+        format!(
             r#"<svg width="1000" height="200">
                 <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="0%" style="stop-color:{}"/>
@@ -182,12 +167,12 @@ impl GenerateGradientCommand {
                 <rect width="1000" height="200" fill="url(#grad)"/>
             </svg>"#,
             self.args.start_color, self.args.end_color
-        ))
+        )
     }
 
-    fn generate_png(&self) -> Result<Vec<u8>> {
+    fn generate_png(&self) -> Vec<u8> {
         // Placeholder for PNG generation
-        Ok(vec![]) // Would use actual image generation
+        vec![] // Would use actual image generation
     }
 }
 

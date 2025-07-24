@@ -4,7 +4,7 @@
 //! using the Template Method pattern for algorithm structure.
 
 use crate::error::Result;
-use palette::{Lab, Srgb, Hsl, Mix, IntoColor};
+use palette::{Hsl, IntoColor, Lab, Mix, Srgb};
 
 /// Result of color interpolation
 #[derive(Debug, Clone)]
@@ -26,7 +26,7 @@ pub trait ColorInterpolationTemplate {
         let result = self.create_result(interpolated, steps, normalized_t);
         self.post_process_result(result)
     }
-    
+
     /// Generate interpolation steps
     fn interpolate_steps(&self, start: Lab, end: Lab, num_steps: usize) -> Result<Vec<Lab>> {
         if num_steps == 0 {
@@ -35,7 +35,7 @@ pub trait ColorInterpolationTemplate {
         if num_steps == 1 {
             return Ok(vec![self.perform_interpolation(start, end, 0.5)]);
         }
-        
+
         let mut steps = Vec::new();
         for i in 0..num_steps {
             let t = i as f64 / (num_steps - 1) as f64;
@@ -43,26 +43,26 @@ pub trait ColorInterpolationTemplate {
         }
         Ok(steps)
     }
-    
+
     /// Validate interpolation parameters (hook method)
     fn validate_parameters(&self, t: f64) -> Result<()> {
         if !(0.0..=1.0).contains(&t) {
-            Err(crate::error::ColorError::InvalidArguments(
-                format!("Interpolation parameter t must be between 0.0 and 1.0, got {t}")
-            ))
+            Err(crate::error::ColorError::InvalidArguments(format!(
+                "Interpolation parameter t must be between 0.0 and 1.0, got {t}"
+            )))
         } else {
             Ok(())
         }
     }
-    
+
     /// Normalize t value (hook method)
     fn normalize_t_value(&self, t: f64) -> f64 {
         t.clamp(0.0, 1.0)
     }
-    
+
     /// Perform the actual interpolation (abstract method)
     fn perform_interpolation(&self, start: Lab, end: Lab, t: f64) -> Lab;
-    
+
     /// Generate intermediate steps (hook method)
     fn generate_intermediate_steps(&self, start: Lab, end: Lab, t: f64) -> Vec<Lab> {
         if t == 0.0 {
@@ -73,7 +73,7 @@ pub trait ColorInterpolationTemplate {
             vec![start, self.perform_interpolation(start, end, t), end]
         }
     }
-    
+
     /// Create interpolation result (concrete method)
     fn create_result(&self, color: Lab, steps: Vec<Lab>, t: f64) -> InterpolationResult {
         InterpolationResult {
@@ -83,12 +83,12 @@ pub trait ColorInterpolationTemplate {
             t_value: t,
         }
     }
-    
+
     /// Post-process result (hook method)
     fn post_process_result(&self, result: InterpolationResult) -> Result<InterpolationResult> {
         Ok(result)
     }
-    
+
     /// Get algorithm name (abstract method)
     fn algorithm_name(&self) -> &'static str;
 }
@@ -106,7 +106,7 @@ impl ColorInterpolationTemplate for LinearLabInterpolator {
             white_point: start.white_point,
         }
     }
-    
+
     fn algorithm_name(&self) -> &'static str {
         "Linear LAB"
     }
@@ -119,7 +119,7 @@ impl ColorInterpolationTemplate for PerceptualInterpolator {
     fn perform_interpolation(&self, start: Lab, end: Lab, t: f64) -> Lab {
         start.mix(end, t as f32)
     }
-    
+
     fn algorithm_name(&self) -> &'static str {
         "Perceptual Mix"
     }
@@ -132,16 +132,16 @@ impl ColorInterpolationTemplate for RgbInterpolator {
     fn perform_interpolation(&self, start: Lab, end: Lab, t: f64) -> Lab {
         let start_rgb: Srgb = start.into_color();
         let end_rgb: Srgb = end.into_color();
-        
+
         let interpolated_rgb = Srgb::new(
             start_rgb.red + t as f32 * (end_rgb.red - start_rgb.red),
             start_rgb.green + t as f32 * (end_rgb.green - start_rgb.green),
             start_rgb.blue + t as f32 * (end_rgb.blue - start_rgb.blue),
         );
-        
+
         interpolated_rgb.into_color()
     }
-    
+
     fn algorithm_name(&self) -> &'static str {
         "RGB Linear"
     }
@@ -154,11 +154,11 @@ impl ColorInterpolationTemplate for HslInterpolator {
     fn perform_interpolation(&self, start: Lab, end: Lab, t: f64) -> Lab {
         let start_hsl: Hsl = start.into_color();
         let end_hsl: Hsl = end.into_color();
-        
+
         // Handle hue interpolation with proper wrapping
         let start_hue = start_hsl.hue.into_inner();
         let end_hue = end_hsl.hue.into_inner();
-        
+
         let hue_diff = if (end_hue - start_hue).abs() > 180.0 {
             if end_hue > start_hue {
                 end_hue - start_hue - 360.0
@@ -168,19 +168,19 @@ impl ColorInterpolationTemplate for HslInterpolator {
         } else {
             end_hue - start_hue
         };
-        
+
         let interpolated_hue = (start_hue + t as f32 * hue_diff + 360.0) % 360.0;
-        
+
         let interpolated_hsl: Hsl<palette::encoding::Srgb> = Hsl::new(
             interpolated_hue,
             start_hsl.saturation + t as f32 * (end_hsl.saturation - start_hsl.saturation),
             start_hsl.lightness + t as f32 * (end_hsl.lightness - start_hsl.lightness),
         );
-        
+
         let rgb: Srgb = interpolated_hsl.into_color();
         rgb.into_color()
     }
-    
+
     fn algorithm_name(&self) -> &'static str {
         "HSL Circular"
     }
@@ -206,11 +206,11 @@ impl ColorInterpolationTemplate for SmoothInterpolator {
         let normalized = t.clamp(0.0, 1.0);
         self.easing_function.apply(normalized)
     }
-    
+
     fn perform_interpolation(&self, start: Lab, end: Lab, t: f64) -> Lab {
         self.base_interpolator.perform_interpolation(start, end, t)
     }
-    
+
     fn algorithm_name(&self) -> &'static str {
         "Smooth Eased"
     }
@@ -255,22 +255,22 @@ impl InterpolationFactory {
     pub fn create_linear_lab() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(LinearLabInterpolator)
     }
-    
+
     pub fn create_perceptual() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(PerceptualInterpolator)
     }
-    
+
     pub fn create_rgb() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(RgbInterpolator)
     }
-    
+
     pub fn create_hsl() -> Box<dyn ColorInterpolationTemplate> {
         Box::new(HslInterpolator)
     }
-    
+
     pub fn create_smooth(
-        base_type: &str, 
-        easing: EasingFunction
+        base_type: &str,
+        easing: EasingFunction,
     ) -> Box<dyn ColorInterpolationTemplate> {
         let base = match base_type.to_lowercase().as_str() {
             "lab" => Self::create_linear_lab(),
@@ -279,10 +279,10 @@ impl InterpolationFactory {
             "hsl" => Self::create_hsl(),
             _ => Self::create_perceptual(), // Default
         };
-        
+
         Box::new(SmoothInterpolator::new(base, easing))
     }
-    
+
     pub fn create_by_name(name: &str) -> Box<dyn ColorInterpolationTemplate> {
         match name.to_lowercase().as_str() {
             "linear" | "lab" => Self::create_linear_lab(),
@@ -292,7 +292,7 @@ impl InterpolationFactory {
             _ => Self::create_perceptual(), // Default
         }
     }
-    
+
     #[must_use]
     pub fn available_algorithms() -> Vec<&'static str> {
         vec!["Linear LAB", "Perceptual", "RGB", "HSL", "Smooth"]
@@ -312,13 +312,18 @@ impl InterpolationService {
             fallback_algorithm: None,
         }
     }
-    
+
     pub fn with_fallback(mut self, fallback: Box<dyn ColorInterpolationTemplate>) -> Self {
         self.fallback_algorithm = Some(fallback);
         self
     }
-    
-    pub fn interpolate_with_fallback(&self, start: Lab, end: Lab, t: f64) -> Result<InterpolationResult> {
+
+    pub fn interpolate_with_fallback(
+        &self,
+        start: Lab,
+        end: Lab,
+        t: f64,
+    ) -> Result<InterpolationResult> {
         match self.primary_algorithm.interpolate(start, end, t) {
             Ok(result) => Ok(result),
             Err(_) => {
@@ -326,13 +331,13 @@ impl InterpolationService {
                     fallback.interpolate(start, end, t)
                 } else {
                     Err(crate::error::ColorError::InvalidOperation(
-                        "Interpolation failed and no fallback available".to_string()
+                        "Interpolation failed and no fallback available".to_string(),
                     ))
                 }
             }
         }
     }
-    
+
     /// Create gradient with specified number of steps
     pub fn create_gradient(&self, start: Lab, end: Lab, steps: usize) -> Result<Vec<Lab>> {
         self.primary_algorithm.interpolate_steps(start, end, steps)
@@ -349,63 +354,63 @@ mod tests {
         let interpolator = LinearLabInterpolator;
         let start = Lab::new(0.0, 0.0, 0.0);
         let end = Lab::new(100.0, 0.0, 0.0);
-        
+
         let result = interpolator.interpolate(start, end, 0.5).unwrap();
         assert!((result.interpolated_color.l - 50.0).abs() < 0.1);
         assert_eq!(result.algorithm_used, "Linear LAB");
     }
-    
+
     #[test]
     fn test_perceptual_interpolation() {
         let interpolator = PerceptualInterpolator;
         let start = Lab::new(0.0, 0.0, 0.0);
         let end = Lab::new(100.0, 0.0, 0.0);
-        
+
         let result = interpolator.interpolate(start, end, 0.5).unwrap();
         assert_eq!(result.algorithm_used, "Perceptual Mix");
     }
-    
+
     #[test]
     fn test_interpolation_steps() {
         let interpolator = LinearLabInterpolator;
         let start = Lab::new(0.0, 0.0, 0.0);
         let end = Lab::new(100.0, 0.0, 0.0);
-        
+
         let steps = interpolator.interpolate_steps(start, end, 5).unwrap();
         assert_eq!(steps.len(), 5);
         assert!((steps[0].l - 0.0).abs() < 0.1);
         assert!((steps[4].l - 100.0).abs() < 0.1);
     }
-    
+
     #[test]
     fn test_easing_functions() {
         assert_eq!(EasingFunction::Linear.apply(0.5), 0.5);
         assert!(EasingFunction::EaseIn.apply(0.5) < 0.5);
         assert!(EasingFunction::EaseOut.apply(0.5) > 0.5);
     }
-    
+
     #[test]
     fn test_interpolation_factory() {
         let algorithms = InterpolationFactory::available_algorithms();
         assert!(algorithms.contains(&"Linear LAB"));
         assert!(algorithms.contains(&"Perceptual"));
-        
+
         let interpolator = InterpolationFactory::create_by_name("lab");
         assert_eq!(interpolator.algorithm_name(), "Linear LAB");
     }
-    
+
     #[test]
     fn test_interpolation_service() {
         let primary = InterpolationFactory::create_perceptual();
         let fallback = InterpolationFactory::create_linear_lab();
         let service = InterpolationService::new(primary).with_fallback(fallback);
-        
+
         let start = Lab::new(0.0, 0.0, 0.0);
         let end = Lab::new(100.0, 0.0, 0.0);
-        
+
         let result = service.interpolate_with_fallback(start, end, 0.5).unwrap();
         assert!(!result.algorithm_used.is_empty());
-        
+
         let gradient = service.create_gradient(start, end, 5).unwrap();
         assert_eq!(gradient.len(), 5);
     }

@@ -26,9 +26,8 @@ pub struct TomlOutputStrategy;
 
 impl FileOutputStrategy for TomlOutputStrategy {
     fn serialize(&self, data: &ColorAnalysisOutput) -> Result<String> {
-        data.to_toml().map_err(|e| {
-            ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}"))
-        })
+        data.to_toml()
+            .map_err(|e| ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}")))
     }
 
     fn file_extension(&self) -> &'static str {
@@ -45,9 +44,8 @@ pub struct YamlOutputStrategy;
 
 impl FileOutputStrategy for YamlOutputStrategy {
     fn serialize(&self, data: &ColorAnalysisOutput) -> Result<String> {
-        data.to_yaml().map_err(|e| {
-            ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}"))
-        })
+        data.to_yaml()
+            .map_err(|e| ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}")))
     }
 
     fn file_extension(&self) -> &'static str {

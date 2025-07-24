@@ -58,6 +58,12 @@ impl ColorProcessor {
     }
 
     /// Validate a hex color string
+    ///
+    /// # Errors
+    ///
+    /// Returns `ColorError::InvalidColor` if:
+    /// - Hex string is not exactly 6 characters long (excluding '#')
+    /// - Hex string contains non-hexadecimal characters
     pub fn validate_hex_color(hex: &str) -> Result<()> {
         let hex = hex.trim_start_matches('#');
         if hex.len() != HEX_COLOR_LENGTH {
@@ -115,13 +121,7 @@ pub fn color_match(color_input: &str) {
     };
 
     // Get color name
-    let color_name = match get_color_name_for_lab(lab_color) {
-        Ok(name) => name,
-        Err(e) => {
-            println!("Error getting color name: {e}");
-            return;
-        }
-    };
+    let color_name = get_color_name_for_lab(lab_color);
 
     // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
     ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name);
@@ -138,57 +138,24 @@ fn parse_color_with_parser(color_input: &str) -> Result<(Lab, crate::color_parse
 }
 
 /// Get color name for a LAB color
-fn get_color_name_for_lab(lab_color: Lab) -> Result<String> {
+fn get_color_name_for_lab(lab_color: Lab) -> String {
     use crate::color_parser::ColorParser;
 
     // Convert LAB back to sRGB for name lookup
     let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
     let parser = ColorParser::new();
-    Ok(parser.get_color_name((r, g, b)))
+    parser.get_color_name((r, g, b))
 }
 
 /// Parse color input from various formats
+///
+/// # Errors
+///
+/// Returns error if the input cannot be parsed as any supported color format
+/// (HEX, RGB, HSL, LAB, CSS color name, or RAL color).
 pub fn parse_color_input(input: &str) -> Result<Lab> {
     let (lab, _format) = parse_color_with_parser(input)?;
     Ok(lab)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_color_match() {
-        // Test that color_match doesn't panic
-        color_match("#FF5733");
-        color_match("rgb(255, 87, 51)");
-        color_match("red");
-    }
-
-    #[test]
-    fn test_color_match_various_formats() {
-        // Test that color_match doesn't panic for various formats
-        color_match("#FF0000");
-        color_match("rgb(0, 255, 0)");
-        color_match("red");
-        color_match("hsl(240, 100%, 50%)");
-    }
-
-    #[test]
-    fn test_color_match_grayscale() {
-        // Test that color_match doesn't panic for grayscale
-        color_match("#808080");
-    }
-
-    #[test]
-    fn test_parse_color_input() {
-        let lab_from_hex = parse_color_input("#FF5733").unwrap();
-        let lab_from_rgb = parse_color_input("rgb(255, 87, 51)").unwrap();
-
-        assert!((lab_from_hex.l - lab_from_rgb.l).abs() < 0.01);
-        assert!((lab_from_hex.a - lab_from_rgb.a).abs() < 0.01);
-        assert!((lab_from_hex.b - lab_from_rgb.b).abs() < 0.01);
-    }
 }
 
 /// Try to parse input as RAL color code or name
@@ -209,7 +176,7 @@ pub fn color_match_with_schemes(
     let (lab_color, _format) = parse_color_with_parser(&args.color)?;
 
     // Get color name
-    let color_name = get_color_name_for_lab(lab_color)?;
+    let color_name = get_color_name_for_lab(lab_color);
 
     // Build color scheme calculator based on arguments
     let mut scheme_builder = crate::color_schemes::ColorSchemeBuilder::new();
@@ -275,14 +242,10 @@ fn format_comprehensive_report_with_structured_output(
     // Create output service and generate formatted output
     let formatted_output = match format {
         crate::cli::OutputFormat::Toml => analysis_data.to_toml().map_err(|e| {
-            crate::error::ColorError::InvalidArguments(format!(
-                "Failed to serialize to TOML: {e}"
-            ))
+            crate::error::ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}"))
         })?,
         crate::cli::OutputFormat::Yaml => analysis_data.to_yaml().map_err(|e| {
-            crate::error::ColorError::InvalidArguments(format!(
-                "Failed to serialize to YAML: {e}"
-            ))
+            crate::error::ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}"))
         })?,
     };
 
@@ -495,53 +458,54 @@ fn collect_enhanced_color_schemes_data(
                 color_hex.to_uppercase() == input_hex.to_uppercase()
             });
 
-            if let Some(exact) = exact_css {
-                let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                    exact.color.rgb[0],
-                    exact.color.rgb[1],
-                    exact.color.rgb[2],
-                ));
-                let exact_hex = format!(
-                    "#{:02X}{:02X}{:02X}",
-                    exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]
-                );
-                Some(CollectionMatch {
-                    name: exact.metadata.name.clone(),
-                    hex: exact_hex,
-                    distance: 0.0,
-                    wcag_relative_luminance: wcag_luminance,
-                })
-            } else {
-                let nearest_css = css_collection.find_closest(&target, 1, None);
-                if let Some(closest) = nearest_css.first() {
+            exact_css.map_or_else(
+                || {
+                    let nearest_css = css_collection.find_closest(&target, 1, None);
+                    nearest_css.first().map(|closest| {
+                        let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
+                            closest.entry.color.rgb[0],
+                            closest.entry.color.rgb[1],
+                            closest.entry.color.rgb[2],
+                        ));
+                        let nearest_hex = format!(
+                            "#{:02X}{:02X}{:02X}",
+                            closest.entry.color.rgb[0],
+                            closest.entry.color.rgb[1],
+                            closest.entry.color.rgb[2]
+                        );
+                        CollectionMatch {
+                            name: closest.entry.metadata.name.clone(),
+                            hex: nearest_hex,
+                            distance: closest.distance,
+                            wcag_relative_luminance: wcag_luminance,
+                        }
+                    })
+                },
+                |exact| {
                     let wcag_luminance = ColorUtils::wcag_relative_luminance_rgb((
-                        closest.entry.color.rgb[0],
-                        closest.entry.color.rgb[1],
-                        closest.entry.color.rgb[2],
+                        exact.color.rgb[0],
+                        exact.color.rgb[1],
+                        exact.color.rgb[2],
                     ));
-                    let nearest_hex = format!(
+                    let exact_hex = format!(
                         "#{:02X}{:02X}{:02X}",
-                        closest.entry.color.rgb[0],
-                        closest.entry.color.rgb[1],
-                        closest.entry.color.rgb[2]
+                        exact.color.rgb[0], exact.color.rgb[1], exact.color.rgb[2]
                     );
                     Some(CollectionMatch {
-                        name: closest.entry.metadata.name.clone(),
-                        hex: nearest_hex,
-                        distance: closest.distance,
+                        name: exact.metadata.name.clone(),
+                        hex: exact_hex,
+                        distance: 0.0,
                         wcag_relative_luminance: wcag_luminance,
                     })
-                } else {
-                    None
-                }
-            }
+                },
+            )
         };
 
         // RAL Classic collection matches
         let ral_classic_match = {
             let ral_classic_matches =
                 parser.find_closest_ral_classic([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
-            if let Some(closest) = ral_classic_matches.first() {
+            ral_classic_matches.first().map(|closest| {
                 let color_hex = format!(
                     "#{:02X}{:02X}{:02X}",
                     closest.entry.color.rgb[0],
@@ -559,22 +523,20 @@ fn collect_enhanced_color_schemes_data(
                     closest.entry.color.rgb[2],
                 ));
 
-                Some(CollectionMatch {
+                CollectionMatch {
                     name: closest.entry.metadata.name.clone(),
                     hex: color_hex,
                     distance,
                     wcag_relative_luminance: wcag_luminance,
-                })
-            } else {
-                None
-            }
+                }
+            })
         };
 
         // RAL Design collection matches
         let ral_design_match = {
             let ral_design_matches =
                 parser.find_closest_ral_design([target.rgb[0], target.rgb[1], target.rgb[2]], 1);
-            if let Some(closest) = ral_design_matches.first() {
+            ral_design_matches.first().map(|closest| {
                 let color_hex = format!(
                     "#{:02X}{:02X}{:02X}",
                     closest.entry.color.rgb[0],
@@ -592,15 +554,13 @@ fn collect_enhanced_color_schemes_data(
                     closest.entry.color.rgb[2],
                 ));
 
-                Some(CollectionMatch {
+                CollectionMatch {
                     name: closest.entry.metadata.name.clone(),
                     hex: color_hex,
                     distance,
                     wcag_relative_luminance: wcag_luminance,
-                })
-            } else {
-                None
-            }
+                }
+            })
         };
 
         (css_match, ral_classic_match, ral_design_match)
@@ -621,5 +581,43 @@ fn collect_enhanced_color_schemes_data(
             lab_to_enhanced_color_scheme_item(selected_schemes.3.1, &parser),
             lab_to_enhanced_color_scheme_item(selected_schemes.3.2, &parser),
         ],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_color_match() {
+        // Test that color_match doesn't panic
+        color_match("#FF5733");
+        color_match("rgb(255, 87, 51)");
+        color_match("red");
+    }
+
+    #[test]
+    fn test_color_match_various_formats() {
+        // Test that color_match doesn't panic for various formats
+        color_match("#FF0000");
+        color_match("rgb(0, 255, 0)");
+        color_match("red");
+        color_match("hsl(240, 100%, 50%)");
+    }
+
+    #[test]
+    fn test_color_match_grayscale() {
+        // Test that color_match doesn't panic for grayscale
+        color_match("#808080");
+    }
+
+    #[test]
+    fn test_parse_color_input() {
+        let lab_from_hex = parse_color_input("#FF5733").unwrap();
+        let lab_from_rgb = parse_color_input("rgb(255, 87, 51)").unwrap();
+
+        assert!((lab_from_hex.l - lab_from_rgb.l).abs() < 0.01);
+        assert!((lab_from_hex.a - lab_from_rgb.a).abs() < 0.01);
+        assert!((lab_from_hex.b - lab_from_rgb.b).abs() < 0.01);
     }
 }

@@ -5,6 +5,26 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.2] - 2025-07-24
+
+### Added
+- **Enhanced Documentation**: Added comprehensive error documentation to critical functions
+- **Type Safety Improvements**: Added safe f32→u8 conversion helpers to prevent truncation errors
+- **Code Quality Enhancements**: Applied systematic clippy fixes for better code quality
+
+### Changed
+- **Code Optimization**: Optimized option_if_let_else patterns using map_or and map_or_else
+- **Function Simplification**: Removed unnecessary Result wrapping from functions that never fail
+- **Code Formatting**: Applied consistent formatting across entire codebase with cargo fmt
+
+### Fixed
+- **Clippy Warnings**: Reduced total clippy warnings from 726 to 699 (3.7% improvement)
+  - Fixed 2 of 3 unnecessary_wraps warnings for cleaner APIs  
+  - Fixed 6+ cast_possible_truncation warnings with proper bounds checking
+  - Optimized 2+ option_if_let_else patterns for better readability
+- **Type Safety**: Eliminated risky type casts with safe conversion functions
+- **Test Coverage**: Maintained 98.1% test pass rate (106/108 tests) during quality improvements
+
 ## [0.15.1] - 2025-07-23
 
 ### Changed

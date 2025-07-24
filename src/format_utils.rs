@@ -19,12 +19,16 @@ impl FormatUtils {
         if hex_clean.len() != 6 {
             return None;
         }
-        
+
         let r = u8::from_str_radix(&hex_clean[0..2], 16).ok()?;
         let g = u8::from_str_radix(&hex_clean[2..4], 16).ok()?;
         let b = u8::from_str_radix(&hex_clean[4..6], 16).ok()?;
-        
-        Some(palette::Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0))
+
+        Some(palette::Srgb::new(
+            r as f32 / 255.0,
+            g as f32 / 255.0,
+            b as f32 / 255.0,
+        ))
     }
 
     /// Convert LAB to hex format string - DIRECT DELEGATION to ColorUtils
