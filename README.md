@@ -13,13 +13,66 @@ cargo install color-rs
 
 Pre-compiled binaries are available for download from [GitHub Releases](https://github.com/al-siv/color-rs/releases):
 
-- **Windows (x86_64)**: `color-rs.exe`
-- **Linux (x86_64)**: `color-rs-linux-x86_64`
-- **Linux (ARM64)**: `color-rs-linux-aarch64`
-- **macOS (x86_64 Intel)**: `color-rs-macos-x86_64`
-- **macOS (ARM64 Apple Silicon)**: `color-rs-macos-aarch64`
+- **Windows (x86_64)**: `color-rs.exe` - Ready to run
+- **Linux (x86_64)**: `color-rs-linux-x86_64` - May need `chmod +x`
+- **Linux (ARM64)**: `color-rs-linux-aarch64` - May need `chmod +x`
+- **macOS (x86_64 Intel)**: `color-rs-macos-x86_64` - See macOS setup below
+- **macOS (ARM64 Apple Silicon)**: `color-rs-macos-aarch64` - See macOS setup below
 
 **Important**: These cross-compiled binaries have not been tested on their target platforms. Please report any issues via GitHub.
+
+### Running on macOS
+
+After downloading the macOS binary, you need to make it executable and may need to bypass macOS security restrictions:
+
+#### Step 1: Make the Binary Executable
+```bash
+# Navigate to your Downloads folder (or wherever you saved the file)
+cd ~/Downloads
+
+# Make the binary executable
+chmod +x color-rs-macos-x86_64    # For Intel Macs
+# OR
+chmod +x color-rs-macos-aarch64   # For Apple Silicon Macs
+```
+
+#### Step 2: Handle macOS Security (if needed)
+If macOS prevents execution with "cannot be opened because the developer cannot be verified":
+
+**Option A: Use Terminal (Recommended)**
+```bash
+# Remove quarantine attribute
+xattr -d com.apple.quarantine color-rs-macos-x86_64
+# OR
+xattr -d com.apple.quarantine color-rs-macos-aarch64
+```
+
+**Option B: System Preferences**
+1. Try to run the binary first (it will fail)
+2. Go to System Preferences → Security & Privacy → General
+3. Click "Allow Anyway" next to the blocked application message
+4. Try running again and click "Open" when prompted
+
+#### Step 3: Run the Program
+```bash
+# Run directly from current directory
+./color-rs-macos-x86_64 color red
+# OR
+./color-rs-macos-aarch64 color red
+
+# Or move to a directory in your PATH for global access
+sudo mv color-rs-macos-x86_64 /usr/local/bin/color-rs
+# Then you can run from anywhere:
+color-rs color red
+```
+
+#### Alternative: Run from Terminal
+You can also run the program by dragging the binary file into Terminal:
+1. Open Terminal
+2. Type `chmod +x ` (with a space at the end)
+3. Drag the downloaded binary file into the Terminal window
+4. Press Enter to make it executable
+5. Drag the binary into Terminal again to run it, then add your commands
 
 ## Core Functionality
 
@@ -374,32 +427,12 @@ fn main() -> color_rs::Result<()> {
 # Run all tests
 cargo test
 
+# Test with example colors
 cargo run -- color "#FF5733"
+
+# macOS users: use ./color-rs-macos-x86_64 or ./color-rs-macos-aarch64
+# after making the binary executable (see Installation section)
 ```
-
-## Installation
-
-From source:
-```bash
-git clone https://github.com/al-siv/color-rs.git
-cd color-rs
-cargo build --release
-```
-
-As a Rust library:
-```toml
-[dependencies]
-color-rs = "0.14.1"
-```
-
-## Architecture
-
-Modular design with separated concerns:
-- **Color operations**: RGB/HSL/LAB/LCH conversions with palette library
-- **Format detection**: Automatic input format parsing (hex, rgb(), hsl(), names)
-- **Color collections**: CSS colors, RAL Classic (213), RAL Design System+ (1825+)
-- **Distance calculations**: CIE Delta E 2000 for perceptual accuracy
-- **Output formats**: YAML (default), TOML, structured data
 
 ## Error Handling
 
