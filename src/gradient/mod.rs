@@ -7,7 +7,7 @@ pub mod easing;
 pub mod output;
 
 // Simple re-exports for basic functionality
-pub use calculator::{GradientCalculator, GradientValue};
+pub use calculator::{GradientCalculator, GradientValue, UnifiedGradientStop};
 pub use easing::{CubicBezierEasing, EasingStrategy, EasingType, LinearEasing};
 
 /// Simplified gradient generation function for CLI interface
@@ -34,13 +34,13 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
 
     // Generate images if requested
     let image_gen = ImageGenerator::new();
-    if args.svg {
+    if args.should_generate_svg() {
         image_gen.generate_svg(&args, start_lab, end_lab)?;
-        println!("SVG gradient saved to: {}", args.svg_name);
+        println!("SVG gradient saved to: {}", args.svg_name());
     }
-    if args.png {
+    if args.should_generate_png() {
         image_gen.generate_png(&args, start_lab, end_lab)?;
-        println!("PNG gradient saved to: {}", args.png_name);
+        println!("PNG gradient saved to: {}", args.png_name());
     }
 
     // Calculate gradient steps
@@ -139,17 +139,32 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     let start_collections = find_color_collections([start_color.r, start_color.g, start_color.b]);
     let end_collections = find_color_collections([end_color.r, end_color.g, end_color.b]);
 
-    // Generate gradient stops with full analysis
+    // Generate gradient stops using unified calculation
+    let unified_stops = GradientCalculator::calculate_unified_gradient(
+        start_lab,
+        end_lab,
+        args.start_position,
+        args.end_position,
+        args.ease_in,
+        args.ease_out,
+        steps,
+        args.stops_simple,
+    );
+
+    // Convert unified stops to old format for YAML output
     let mut gradient_stops = Vec::new();
-    for i in 0..steps {
-        let t = i as f64 / (steps - 1) as f64;
-        let interpolated = ColorUtils::interpolate_lab(start_lab, end_lab, t);
-        let (r, g, b) = ColorUtils::lab_to_rgb(interpolated);
-        let hex = ColorUtils::lab_to_hex(interpolated);
-        let luminance = ColorUtils::wcag_relative_luminance_rgb((r, g, b));
+    for stop in &unified_stops {
+        let hex = ColorUtils::lab_to_hex(stop.lab_color);
+        let luminance = ColorUtils::wcag_relative_luminance_rgb(stop.rgb_color);
+
+        // Calculate color distance from start_color using Delta E 2000
+        let distance = {
+            let strategy = DeltaE2000Strategy;
+            strategy.calculate_distance(start_lab, stop.lab_color) as f32
+        };
 
         // Find closest color names
-        let closest_css = color_manager.find_closest_css_colors([r, g, b], 1);
+        let closest_css = color_manager.find_closest_css_colors([stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2], 1);
         let color_name = if closest_css.is_empty() {
             None
         } else {
@@ -164,55 +179,60 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
             })
         };
 
-        let stop = GradientStop {
-            position: (t * 100.0).round() as u32, // Convert to integer position
+        let gradient_stop = GradientStop {
+            position: stop.position as u32,
             hex: hex.clone(),
-            rgb: format!("rgb({r}, {g}, {b})"),
+            rgb: format!("rgb({}, {}, {})", stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2),
             lab: format!(
                 "lab({:.2}, {:.3}, {:.3})",
-                interpolated.l, interpolated.a, interpolated.b
+                stop.lab_color.l, stop.lab_color.a, stop.lab_color.b
             ),
             lch: format!(
                 "lch({:.2}, {:.3}, {:.1})",
-                interpolated.l,
-                interpolated.a.hypot(interpolated.b),
-                interpolated.b.atan2(interpolated.a).to_degrees()
+                stop.lab_color.l,
+                stop.lab_color.a.hypot(stop.lab_color.b),
+                stop.lab_color.b.atan2(stop.lab_color.a).to_degrees()
             ),
             wcag21_relative_luminance: luminance,
+            distance,
             color_name,
         };
 
-        gradient_stops.push(stop);
+        gradient_stops.push(gradient_stop);
     }
 
-    // Generate enhanced gradient stops with nested color structure
+    // Generate enhanced gradient stops with nested color structure using unified data
     let mut enhanced_gradient_stops = Vec::new();
-    for i in 0..steps {
-        let t = i as f64 / (steps - 1) as f64;
-        let interpolated = ColorUtils::interpolate_lab(start_lab, end_lab, t);
-        let (r, g, b) = ColorUtils::lab_to_rgb(interpolated);
-        let hex = ColorUtils::lab_to_hex(interpolated);
-        let luminance = ColorUtils::wcag_relative_luminance_rgb((r, g, b));
+    for stop in &unified_stops {
+        let hex = ColorUtils::lab_to_hex(stop.lab_color);
+        let luminance = ColorUtils::wcag_relative_luminance_rgb(stop.rgb_color);
+
+        // Calculate color distance from start_color using Delta E 2000
+        let distance = {
+            let strategy = DeltaE2000Strategy;
+            strategy.calculate_distance(start_lab, stop.lab_color) as f32
+        };
 
         // Get color collections for this stop
-        let stop_collections = find_color_collections([r, g, b]);
+        let stop_collections = find_color_collections([stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2]);
 
         let enhanced_stop = EnhancedGradientStop {
-            position: (t * 100.0).round() as u32,
+            position: stop.position as u32,
             color: NestedColorInfo {
                 hex: hex.clone(),
-                rgb: format!("rgb({r}, {g}, {b})"),
+                rgb: format!("rgb({}, {}, {})", stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2),
                 lab: format!(
                     "lab({:.2}, {:.3}, {:.3})",
-                    interpolated.l, interpolated.a, interpolated.b
+                    stop.lab_color.l, stop.lab_color.a, stop.lab_color.b
                 ),
                 lch: format!(
                     "lch({:.2}, {:.3}, {:.1})",
-                    interpolated.l,
-                    interpolated.a.hypot(interpolated.b),
-                    interpolated.b.atan2(interpolated.a).to_degrees()
+                    stop.lab_color.l,
+                    stop.lab_color.a.hypot(stop.lab_color.b),
+                    stop.lab_color.b.atan2(stop.lab_color.a).to_degrees()
                 ),
                 wcag21_relative_luminance: luminance,
+                distance,
             },
             collections: stop_collections,
         };

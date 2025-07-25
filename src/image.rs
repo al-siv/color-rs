@@ -38,7 +38,7 @@ impl ImageGenerator {
     /// Generate SVG gradient
     pub fn generate_svg(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
         let svg_content = self.create_svg_content(args, start_lab, end_lab)?;
-        fs::write(&args.svg_name, svg_content)?;
+        fs::write(&args.svg_name(), svg_content)?;
         Ok(())
     }
 
@@ -80,7 +80,7 @@ impl ImageGenerator {
         });
 
         // Save PNG
-        img.save(&args.png_name)
+        img.save(&args.png_name())
             .map_err(|e| ColorError::ImageError(format!("Failed to save PNG: {e}")))?;
 
         Ok(())
@@ -105,69 +105,72 @@ impl ImageGenerator {
         let start_hex = ColorUtils::lab_to_hex(start_lab);
         let end_hex = ColorUtils::lab_to_hex(end_lab);
 
-        // Calculate positions as pixels
-        let start_pixel = (f64::from(args.start_position) / 100.0 * f64::from(width)) as u32;
-        let end_pixel = (f64::from(args.end_position) / 100.0 * f64::from(width)) as u32;
-
         let mut svg = String::new();
         svg.push_str(&format!(
             r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
         ));
         svg.push('\n');
 
-        // Add gradient definition with properly calculated stops
+        // Add gradient definition that maps start_position to end_position
         svg.push_str("  <defs>\n");
-        svg.push_str(
-            "    <linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n",
+        svg.push_str(&format!(
+            "    <linearGradient id=\"grad\" x1=\"{}%\" y1=\"0%\" x2=\"{}%\" y2=\"0%\">\n",
+            args.start_position, args.end_position
+        ));
+
+        // Use unified gradient calculation for consistent results with YAML output
+        // Generate many stops (400) for smooth bezier rendering in SVG
+        let svg_steps = 400; // High resolution for smooth gradients
+        let unified_stops = GradientCalculator::calculate_unified_gradient(
+            start_lab,
+            end_lab,
+            args.start_position,
+            args.end_position,
+            args.ease_in,
+            args.ease_out,
+            svg_steps,
+            args.stops_simple, // Use same mode as YAML output
         );
 
-        // Calculate dynamic number of stops based on gradient span to prevent banding
-        let gradient_span = args.end_position - args.start_position;
-        let base_stops = (gradient_span as usize).saturating_mul(2);
-        let num_stops = base_stops.clamp(10, 1000);
-
-        for i in 0..=num_stops {
-            let t = i as f64 / num_stops as f64;
-            let bezier_t = GradientCalculator::cubic_bezier_ease(t, args.ease_in, args.ease_out);
-            let interpolated_lab = ColorUtils::interpolate_lab(start_lab, end_lab, bezier_t);
-            let hex_color = ColorUtils::lab_to_hex(interpolated_lab);
-            let offset = t * 100.0;
-
+        // Convert unified stops to SVG stops with proper offset mapping
+        // Map stop positions from [start_position, end_position] to [0%, 100%]
+        let position_range = args.end_position - args.start_position;
+        let mut last_offset: Option<f64> = None;
+        
+        for stop in unified_stops {
+            let hex_color = ColorUtils::lab_to_hex(stop.lab_color);
+            // Convert absolute position to relative position within the gradient with 0.5% precision
+            let relative_offset_precise = (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
+            let relative_offset = (relative_offset_precise * 2.0).round() / 2.0; // Round to nearest 0.5%
+            
+            // Skip duplicates - only add if offset changed by at least 0.5%
+            if let Some(last) = last_offset {
+                if (relative_offset - last).abs() < 0.5 {
+                    continue;
+                }
+            }
+            
+            last_offset = Some(relative_offset);
+            
+            // Format offset with proper precision (show .5 when needed, hide .0)
+            let offset_str = if relative_offset.fract() == 0.0 {
+                format!("{}%", relative_offset as u8)
+            } else {
+                format!("{:.1}%", relative_offset)
+            };
+            
             svg.push_str(&format!(
-                "      <stop offset=\"{offset}%\" stop-color=\"{hex_color}\" />\n"
+                "      <stop offset=\"{offset_str}\" stop-color=\"{hex_color}\" />\n"
             ));
         }
 
         svg.push_str("    </linearGradient>\n");
         svg.push_str("  </defs>\n");
 
-        // Left fill (0% to start_position) with start color
-        if start_pixel > 0 {
-            svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"0\" width=\"{start_pixel}\" height=\"{gradient_height}\" fill=\"{start_hex}\" />\n"
-            ));
-        }
-
-        // Gradient section (start_position to end_position)
-        if end_pixel > start_pixel {
-            svg.push_str(&format!(
-                "  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"url(#grad)\" />\n",
-                start_pixel,
-                end_pixel - start_pixel,
-                gradient_height
-            ));
-        }
-
-        // Right fill (end_position to 100%) with end color
-        if end_pixel < width {
-            svg.push_str(&format!(
-                "  <rect x=\"{}\" y=\"0\" width=\"{}\" height=\"{}\" fill=\"{}\" />\n",
-                end_pixel,
-                width - end_pixel,
-                gradient_height,
-                end_hex
-            ));
-        }
+        // Create full-width gradient rectangle
+        svg.push_str(&format!(
+            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{gradient_height}\" fill=\"url(#grad)\" />\n"
+        ));
 
         // Add legend if not disabled
         if !args.no_legend {
@@ -216,13 +219,13 @@ impl ImageGenerator {
         }
 
         // Validate filename extensions
-        if args.should_generate_svg() && !args.svg_name.ends_with(".svg") {
+        if args.should_generate_svg() && !args.svg_name().ends_with(".svg") {
             return Err(ColorError::InvalidArguments(
                 "SVG filename must end with .svg extension".to_string(),
             ));
         }
 
-        if args.should_generate_png() && !args.png_name.ends_with(".png") {
+        if args.should_generate_png() && !args.png_name().ends_with(".png") {
             return Err(ColorError::InvalidArguments(
                 "PNG filename must end with .png extension".to_string(),
             ));
@@ -251,12 +254,10 @@ mod tests {
             end_position: 100,
             ease_in: 0.25,
             ease_out: 0.75,
-            svg: false,
-            png: false,
+            svg: Some("test.svg".to_string()),
+            png: None,
             no_legend: false,
             width: 1000,
-            svg_name: "test.svg".to_string(),
-            png_name: "test.png".to_string(),
             step: None,
             stops: 5,
             stops_simple: false,

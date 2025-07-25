@@ -2,8 +2,8 @@
 
 use crate::config::{
     APP_AUTHOR, APP_DESCRIPTION, APP_NAME, APP_VERSION, BEZIER_MAX, BEZIER_MIN, DEFAULT_EASE_IN,
-    DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_PNG_NAME, DEFAULT_START_POSITION,
-    DEFAULT_SVG_NAME, DEFAULT_WIDTH, MAX_PERCENTAGE,
+    DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_START_POSITION,
+    DEFAULT_WIDTH, MAX_PERCENTAGE,
 };
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -76,13 +76,13 @@ pub struct GradientArgs {
     #[arg(long, default_value = DEFAULT_EASE_OUT)]
     pub ease_out: f64,
 
-    /// Generate SVG image of the gradient
-    #[arg(long)]
-    pub svg: bool,
+    /// Generate SVG image of the gradient with specified filename
+    #[arg(long, value_name = "FILENAME")]
+    pub svg: Option<String>,
 
-    /// Generate PNG image of the gradient
-    #[arg(long)]
-    pub png: bool,
+    /// Generate PNG image of the gradient with specified filename
+    #[arg(long, value_name = "FILENAME")]
+    pub png: Option<String>,
 
     /// Disable legend/caption on gradient images (only valid with --svg or --png)
     #[arg(long)]
@@ -91,14 +91,6 @@ pub struct GradientArgs {
     /// Width of the image in pixels (default: 1000)
     #[arg(long, default_value = DEFAULT_WIDTH)]
     pub width: u32,
-
-    /// Output filename for SVG image (default: gradient.svg)
-    #[arg(short = 'v', long, default_value = DEFAULT_SVG_NAME)]
-    pub svg_name: String,
-
-    /// Output filename for PNG image (default: gradient.png)
-    #[arg(short = 'p', long, default_value = DEFAULT_PNG_NAME)]
-    pub png_name: String,
 
     /// Output gradient values every X percent
     #[arg(short = 't', long = "step", conflicts_with_all = ["stops"], help = "Output gradient values every X percent")]
@@ -215,16 +207,28 @@ impl GradientArgs {
         Ok(())
     }
 
-    /// Check if SVG generation should be enabled (explicit flag or custom name)
+    /// Check if SVG generation should be enabled
     #[must_use]
     pub fn should_generate_svg(&self) -> bool {
-        self.svg || self.svg_name != DEFAULT_SVG_NAME
+        self.svg.is_some()
     }
 
-    /// Check if PNG generation should be enabled (explicit flag or custom name)
+    /// Check if PNG generation should be enabled
     #[must_use]
     pub fn should_generate_png(&self) -> bool {
-        self.png || self.png_name != DEFAULT_PNG_NAME
+        self.png.is_some()
+    }
+
+    /// Get SVG filename
+    #[must_use]
+    pub fn svg_name(&self) -> String {
+        self.svg.clone().unwrap_or_else(|| "gradient.svg".to_string())
+    }
+
+    /// Get PNG filename
+    #[must_use]
+    pub fn png_name(&self) -> String {
+        self.png.clone().unwrap_or_else(|| "gradient.png".to_string())
     }
 }
 

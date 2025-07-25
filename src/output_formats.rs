@@ -156,6 +156,7 @@ pub struct NestedColorInfo {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
     pub wcag21_relative_luminance: f64,
+    pub distance: f32, // Color distance from start_color using Delta E 2000
 }
 
 /// Individual gradient stop (legacy format)
@@ -171,6 +172,7 @@ pub struct GradientStop {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
     pub wcag21_relative_luminance: f64,
+    pub distance: f32, // Color distance from start_color using Delta E 2000
     pub color_name: Option<ColorNameInfo>,
 }
 
