@@ -10,6 +10,8 @@ pub mod color_distance_strategies;
 pub mod color_formatter;
 // Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
 pub mod color_matching_functional;
+// Facade Pattern Migration (Milestone 2.2) - Functional Replacement
+pub mod color_ops;
 pub mod color_operations_facade;
 pub mod color_parser;
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
@@ -56,7 +58,26 @@ pub use color_matching_functional::{
     validate_lab_basic, validate_ral_classic, validate_ral_design,
     post_process_ral_design, extract_hue_from_code
 };
-pub use color_operations_facade::{ColorAnalysis, ColorOperationsFacade};
+// Facade Pattern Migration (Milestone 2.2) - Functional Replacement
+pub use color_ops::{
+    // Core functions
+    wcag_relative, perceived_brightness, relative_luminance,
+    delta_e_2000, perceptual_distance, find_closest, delta_e_cie76, delta_e_cie94,
+    wcag_ratio, meets_aa_standard, meets_aaa_standard, compliance_level, ratio,
+    srgb_to_hsl, srgb_to_lab, srgb_to_lch, srgb_to_hsv,
+    hex_to_srgb, srgb_to_hex, rgb_tuple_to_srgb, srgb_to_rgb_tuple,
+    analyze_color, compare_colors, ColorAnalysis, ColorComparison,
+    ColorProperties, ColorSpaces, PerceptualData, AccessibilityData,
+    mix, lab_interpolation, lch_interpolation, linear_rgb,
+    create_palette, weighted_mix,
+    multiply_blend, screen_blend, overlay_blend,
+    // Module access for organized operations
+    luminance, distance, contrast, conversion, analysis, mixing
+};
+// Import ColorSpace with alias to avoid conflict
+pub use color_ops::mixing::ColorSpace as MixingColorSpace;
+// Backward compatibility - deprecated, use color_ops instead
+pub use color_operations_facade::{ColorAnalysis as LegacyColorAnalysis, ColorOperationsFacade};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
 pub use color_parser_functional::{
