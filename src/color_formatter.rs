@@ -84,16 +84,16 @@ impl ColorFormatter {
         lab_color: Lab,
         original_input: &str,
         color_name: &str,
-        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> Result<ColorAnalysisOutput> {
         let conversion = Self::collect_format_conversions(lab_color);
         let contrast = Self::collect_contrast_data(lab_color);
         let grayscale = Self::collect_grayscale_data(lab_color);
-        let color_collections = Self::collect_color_collections(lab_color, color_name, strategy);
+        let color_collections = Self::collect_color_collections(lab_color, color_name, algorithm);
 
         let mut output = ColorAnalysisOutput::new();
-        // Update metadata with distance strategy
-        output.metadata = crate::output_formats::ProgramMetadata::new(Some(strategy.name()));
+        // Update metadata with distance algorithm
+        output.metadata = crate::output_formats::ProgramMetadata::new(Some(algorithm.name()));
 
         Ok(output
             .with_input(
@@ -242,7 +242,7 @@ impl ColorFormatter {
     fn collect_color_collections(
         lab_color: Lab,
         _color_name: &str,
-        strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> ColorCollections {
         use crate::color_parser::unified_manager::UnifiedColorManager;
 
@@ -255,7 +255,7 @@ impl ColorFormatter {
         ];
 
         // Get CSS colors
-        let css_matches = manager.find_closest_css_colors_with_strategy(rgb, 4, strategy);
+        let css_matches = manager.find_closest_css_colors_with_algorithm(rgb, 4, algorithm);
         let css_colors = css_matches
             .into_iter()
             .map(|m| {
@@ -273,7 +273,7 @@ impl ColorFormatter {
             .collect();
 
         // Get RAL Classic colors
-        let ral_classic_matches = manager.find_closest_ral_classic_with_strategy(rgb, 4, strategy);
+        let ral_classic_matches = manager.find_closest_ral_classic_with_algorithm(rgb, 4, algorithm);
         let ral_classic = ral_classic_matches
             .into_iter()
             .map(|m| {
@@ -291,7 +291,7 @@ impl ColorFormatter {
             .collect();
 
         // Get RAL Design colors
-        let ral_design_matches = manager.find_closest_ral_design_with_strategy(rgb, 4, strategy);
+        let ral_design_matches = manager.find_closest_ral_design_with_algorithm(rgb, 4, algorithm);
         let ral_design = ral_design_matches
             .into_iter()
             .map(|m| {

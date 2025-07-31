@@ -8,7 +8,9 @@ pub mod cli;
 pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
-pub mod color_matching_template;
+// Temporarily disabled during Strategy Pattern elimination (Milestone 1.1b)
+// Will be re-enabled and migrated in Milestone 1.2 (Template Method Pattern)
+// pub mod color_matching_template;
 pub mod color_operations_facade;
 pub mod color_parser;
 pub mod color_parser_factory;
@@ -35,8 +37,16 @@ pub mod parsing_chain;
 // Re-export main types for convenience
 pub use cli::{Cli, ColorArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
-pub use color_distance_strategies::{ColorDistanceStrategy, available_strategies, create_strategy};
-pub use color_matching_template::{ColorMatchingTemplate, UnifiedColorMatcher};
+pub use color_distance_strategies::{
+    DistanceAlgorithm, calculate_distance, available_strategies,
+    // Smart constructors and validation
+    ValidatedLab, ValidationError, calculate_distance_validated,
+    // Lens/optics for functional field access
+    LabLens, LightnessLens, ALens, BLens
+};
+// Temporarily disabled during Strategy Pattern elimination (Milestone 1.1b)
+// Will be re-enabled and migrated in Milestone 1.2 (Template Method Pattern)
+// pub use color_matching_template::{ColorMatchingTemplate, UnifiedColorMatcher};
 pub use color_operations_facade::{ColorAnalysis, ColorOperationsFacade};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 pub use color_parser_factory::{
@@ -67,12 +77,12 @@ impl ColorRs {
         gradient::generate_gradient(args)
     }
 
-    /// Match and convert color between different color spaces
+    /// Match and convert color between different color spaces  
     pub fn color_match(&self, args: ColorArgs) -> Result<String> {
-        let strategy = crate::color_distance_strategies::create_strategy(&args.distance_method);
+        let algorithm = crate::color_distance_strategies::DistanceAlgorithm::from_str_or_default(&args.distance_method);
 
         // Always use enhanced color matching with schemes (new default behavior)
-        color::color_match_with_schemes(&args, strategy.as_ref())
+        color::color_match_with_schemes(&args, algorithm)
     }
 }
 

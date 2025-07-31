@@ -368,6 +368,12 @@ impl LegacyColorUtils {
         Self::lab_distance(lab1_color, lab2_color)
     }
 
+    /// Convert LAB array to palette Lab type for functional API compatibility
+    #[must_use]
+    pub fn lab_array_to_palette_lab(lab: [f32; 3]) -> Lab {
+        Lab::new(lab[0], lab[1], lab[2])
+    }
+
     /// Additional legacy functions for backward compatibility
     pub fn hex_to_lab(hex: &str) -> Result<Lab> {
         Self::parse_hex_color(hex)

@@ -4,7 +4,7 @@
 //! and provides various algorithms for calculating gradient stops.
 
 use super::easing::EasingStrategy;
-use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
+use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::config::INTELLIGENT_STOP_SAMPLE_POINTS;
 use crate::utils::Utils;
@@ -312,7 +312,7 @@ impl GradientCalculator {
         steps: usize,
         use_simple_mode: bool,
     ) -> Vec<UnifiedGradientStop> {
-        Self::calculate_unified_gradient_with_strategy(
+        Self::calculate_unified_gradient_with_algorithm(
             start_lab,
             end_lab,
             start_position,
@@ -321,13 +321,13 @@ impl GradientCalculator {
             ease_out,
             steps,
             use_simple_mode,
-            &DeltaE2000Strategy,
+            DistanceAlgorithm::DeltaE2000,
         )
     }
 
     /// Unified gradient calculation function with custom distance strategy
-    /// This allows testing different color distance strategies
-    pub fn calculate_unified_gradient_with_strategy(
+    /// This allows testing different color distance algorithms
+    pub fn calculate_unified_gradient_with_algorithm(
         start_lab: Lab,
         end_lab: Lab,
         start_position: u8,
@@ -336,7 +336,7 @@ impl GradientCalculator {
         ease_out: f64,
         steps: usize,
         use_simple_mode: bool,
-        strategy: &dyn ColorDistanceStrategy,
+        algorithm: DistanceAlgorithm,
     ) -> Vec<UnifiedGradientStop> {
         let mut gradient_stops = Vec::new();
 
@@ -374,9 +374,9 @@ impl GradientCalculator {
                 });
             }
         } else {
-            // Smart mode: Equal distance with geometric position finding using custom strategy
-            // Calculate total distance between start and end colors using provided strategy
-            let total_distance = strategy.calculate_distance(start_lab, end_lab);
+            // Smart mode: Equal distance with geometric position finding using custom algorithm
+            // Calculate total distance between start and end colors using provided algorithm
+            let total_distance = calculate_distance(algorithm, start_lab, end_lab);
             let step_distance = total_distance / (steps - 1) as f64;
 
             for i in 0..steps {
@@ -414,7 +414,7 @@ impl GradientCalculator {
                         let mid_t = (low + high) / 2.0;
                         let bezier_t = Self::cubic_bezier_ease(mid_t, ease_in, ease_out);
                         let test_color = ColorUtils::interpolate_lab(start_lab, end_lab, bezier_t);
-                        let actual_distance = strategy.calculate_distance(start_lab, test_color);
+                        let actual_distance = calculate_distance(algorithm, start_lab, test_color);
 
                         if (actual_distance - target_distance).abs() < 0.01 {
                             best_t = mid_t;

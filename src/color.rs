@@ -177,7 +177,7 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 /// - Output serialization fails
 pub fn color_match_with_schemes(
     args: &crate::cli::ColorArgs,
-    strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    algorithm: crate::color_distance_strategies::DistanceAlgorithm,
 ) -> Result<String> {
     // Parse the input color
     let (lab_color, _format) = parse_color_with_parser(&args.color)?;
@@ -212,7 +212,7 @@ pub fn color_match_with_schemes(
         &schemes,
         &args.color,
         &color_name,
-        strategy,
+        algorithm,
         args,
     )
 }
@@ -223,7 +223,7 @@ fn format_comprehensive_report_with_structured_output(
     schemes: &crate::color_schemes::ColorSchemeResult,
     input: &str,
     color_name: &str,
-    strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     args: &crate::cli::ColorArgs,
 ) -> Result<String> {
     use crate::color_formatter::ColorFormatter;
@@ -233,11 +233,11 @@ fn format_comprehensive_report_with_structured_output(
         schemes.base_color,
         input,
         color_name,
-        strategy,
+        algorithm,
     )?;
 
     // Add color schemes data with selected strategy
-    let color_schemes = collect_enhanced_color_schemes_data(schemes, &args.scheme_strategy, strategy);
+    let color_schemes = collect_enhanced_color_schemes_data(schemes, &args.scheme_strategy, algorithm);
     analysis_data = analysis_data.with_color_schemes(color_schemes);
 
     // Determine output format (default to YAML if not specified)
@@ -390,7 +390,7 @@ fn colorize_structured_line(line: &str, format: &crate::cli::OutputFormat) -> St
 fn collect_enhanced_color_schemes_data(
     schemes: &crate::color_schemes::ColorSchemeResult,
     strategy: &str,
-    distance_strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+    distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
 ) -> crate::output_formats::ColorSchemes {
     use crate::color_parser::unified_manager::UnifiedColorManager;
     use crate::color_utils::LegacyColorUtils as ColorUtils;
@@ -404,7 +404,7 @@ fn collect_enhanced_color_schemes_data(
     fn lab_to_enhanced_color_scheme_item(
         lab: Lab,
         manager: &UnifiedColorManager,
-        distance_strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> EnhancedColorSchemeItem {
         let hex = ColorUtils::lab_to_hex(lab);
         let hsl_tuple = ColorUtils::lab_to_hsl_tuple(lab);
@@ -419,7 +419,7 @@ fn collect_enhanced_color_schemes_data(
         // Get color name information with enhanced collection matches
         let (r, g, b) = ColorUtils::lab_to_rgb(lab);
         let (css_match, ral_classic_match, ral_design_match) =
-            get_collection_matches((r, g, b), manager, distance_strategy);
+            get_collection_matches((r, g, b), manager, distance_algorithm);
 
         EnhancedColorSchemeItem {
             hex,
@@ -436,7 +436,7 @@ fn collect_enhanced_color_schemes_data(
     fn get_collection_matches(
         rgb: (u8, u8, u8),
         manager: &UnifiedColorManager,
-        distance_strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> (
         Option<CollectionMatch>,
         Option<CollectionMatch>,
@@ -444,9 +444,9 @@ fn collect_enhanced_color_schemes_data(
     ) {
         let target = UniversalColor::from_rgb([rgb.0, rgb.1, rgb.2]);
 
-        let css_match = get_closest_css_match(&target, manager, distance_strategy);
-        let ral_classic_match = get_closest_ral_classic_match(&target, manager, distance_strategy);
-        let ral_design_match = get_closest_ral_design_match(&target, manager, distance_strategy);
+        let css_match = get_closest_css_match(&target, manager, distance_algorithm);
+        let ral_classic_match = get_closest_ral_classic_match(&target, manager, distance_algorithm);
+        let ral_design_match = get_closest_ral_design_match(&target, manager, distance_algorithm);
 
         (css_match, ral_classic_match, ral_design_match)
     }
@@ -455,10 +455,10 @@ fn collect_enhanced_color_schemes_data(
     fn get_closest_css_match(
         target: &UniversalColor,
         manager: &UnifiedColorManager,
-        distance_strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> Option<CollectionMatch> {
         let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
-        let matches = manager.find_closest_css_colors_with_strategy(rgb, 1, distance_strategy);
+        let matches = manager.find_closest_css_colors_with_algorithm(rgb, 1, distance_algorithm);
         
         if let Some(closest) = matches.first() {
             let target_lab = ColorUtils::rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
@@ -467,7 +467,7 @@ fn collect_enhanced_color_schemes_data(
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
-            let distance = distance_strategy.calculate_distance(target_lab, closest_lab);
+            let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
             let wcag_relative_luminance = ColorUtils::wcag_relative_luminance_rgb((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
@@ -493,10 +493,10 @@ fn collect_enhanced_color_schemes_data(
     fn get_closest_ral_classic_match(
         target: &UniversalColor,
         manager: &UnifiedColorManager,
-        distance_strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> Option<CollectionMatch> {
         let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
-        let matches = manager.find_closest_ral_classic_with_strategy(rgb, 1, distance_strategy);
+        let matches = manager.find_closest_ral_classic_with_algorithm(rgb, 1, distance_algorithm);
         
         if let Some(closest) = matches.first() {
             let target_lab = ColorUtils::rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
@@ -505,7 +505,7 @@ fn collect_enhanced_color_schemes_data(
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
-            let distance = distance_strategy.calculate_distance(target_lab, closest_lab);
+            let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
             let wcag_relative_luminance = ColorUtils::wcag_relative_luminance_rgb((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
@@ -531,10 +531,10 @@ fn collect_enhanced_color_schemes_data(
     fn get_closest_ral_design_match(
         target: &UniversalColor,
         manager: &UnifiedColorManager,
-        distance_strategy: &dyn crate::color_distance_strategies::ColorDistanceStrategy,
+        distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> Option<CollectionMatch> {
         let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
-        let matches = manager.find_closest_ral_design_with_strategy(rgb, 1, distance_strategy);
+        let matches = manager.find_closest_ral_design_with_algorithm(rgb, 1, distance_algorithm);
         
         if let Some(closest) = matches.first() {
             let target_lab = ColorUtils::rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
@@ -543,7 +543,7 @@ fn collect_enhanced_color_schemes_data(
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
-            let distance = distance_strategy.calculate_distance(target_lab, closest_lab);
+            let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
             let wcag_relative_luminance = ColorUtils::wcag_relative_luminance_rgb((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
@@ -582,19 +582,19 @@ fn collect_enhanced_color_schemes_data(
     };
 
     ColorSchemes {
-        complementary: lab_to_enhanced_color_scheme_item(selected_schemes.0, &manager, distance_strategy),
+        complementary: lab_to_enhanced_color_scheme_item(selected_schemes.0, &manager, distance_algorithm),
         split_complementary: vec![
-            lab_to_enhanced_color_scheme_item(selected_schemes.1.0, &manager, distance_strategy),
-            lab_to_enhanced_color_scheme_item(selected_schemes.1.1, &manager, distance_strategy),
+            lab_to_enhanced_color_scheme_item(selected_schemes.1.0, &manager, distance_algorithm),
+            lab_to_enhanced_color_scheme_item(selected_schemes.1.1, &manager, distance_algorithm),
         ],
         triadic: vec![
-            lab_to_enhanced_color_scheme_item(selected_schemes.2.0, &manager, distance_strategy),
-            lab_to_enhanced_color_scheme_item(selected_schemes.2.1, &manager, distance_strategy),
+            lab_to_enhanced_color_scheme_item(selected_schemes.2.0, &manager, distance_algorithm),
+            lab_to_enhanced_color_scheme_item(selected_schemes.2.1, &manager, distance_algorithm),
         ],
         tetradic: vec![
-            lab_to_enhanced_color_scheme_item(selected_schemes.3.0, &manager, distance_strategy),
-            lab_to_enhanced_color_scheme_item(selected_schemes.3.1, &manager, distance_strategy),
-            lab_to_enhanced_color_scheme_item(selected_schemes.3.2, &manager, distance_strategy),
+            lab_to_enhanced_color_scheme_item(selected_schemes.3.0, &manager, distance_algorithm),
+            lab_to_enhanced_color_scheme_item(selected_schemes.3.1, &manager, distance_algorithm),
+            lab_to_enhanced_color_scheme_item(selected_schemes.3.2, &manager, distance_algorithm),
         ],
     }
 }

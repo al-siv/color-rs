@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod delta_e_investigation {
-    use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
+    use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
     use palette::{Lab, color_difference::ImprovedCiede2000};
 
     #[test]
@@ -19,10 +19,9 @@ mod delta_e_investigation {
         let delta_palette = start.improved_difference(stop2);
         println!("Direct palette improved_difference: {:.6}", delta_palette);
 
-        // Test our strategy wrapper
-        let strategy = DeltaE2000Strategy;
-        let delta_strategy = strategy.calculate_distance(start, stop2);
-        println!("Our strategy calculate_distance: {:.6}", delta_strategy);
+        // Test our functional API
+        let delta_strategy = calculate_distance(DistanceAlgorithm::DeltaE2000, start, stop2);
+        println!("Our functional calculate_distance: {:.6}", delta_strategy);
 
         // Manual calculation verification
         let dl = stop2.l - start.l;
@@ -34,14 +33,14 @@ mod delta_e_investigation {
         println!("Δb: {:.3}", db);
 
         // Simple euclidean for comparison
-        let euclidean = (dl * dl + da * da + db * db).sqrt();
+        let euclidean = (dl * dl + da * da + db * db).sqrt() as f32;
         println!("Euclidean distance: {:.6}", euclidean);
 
         // Convert to LCH to see differences
-        let start_c = (start.a * start.a + start.b * start.b).sqrt();
-        let start_h = start.b.atan2(start.a).to_degrees();
-        let stop2_c = (stop2.a * stop2.a + stop2.b * stop2.b).sqrt();
-        let stop2_h = stop2.b.atan2(stop2.a).to_degrees();
+        let start_c = (start.a * start.a + start.b * start.b).sqrt() as f32;
+        let start_h = start.b.atan2(start.a).to_degrees() as f32;
+        let stop2_c = (stop2.a * stop2.a + stop2.b * stop2.b).sqrt() as f32;
+        let stop2_h = stop2.b.atan2(stop2.a).to_degrees() as f32;
 
         println!("\nLCH comparison:");
         println!(
@@ -63,7 +62,6 @@ mod delta_e_investigation {
     #[test]
     fn test_multiple_stops_investigation() {
         let start = Lab::new(51.49, -2.846, -33.140);
-        let strategy = DeltaE2000Strategy;
 
         let test_colors = vec![
             ("Stop2", Lab::new(51.95, 2.262, -26.010)), // Expected: 5.408635
@@ -74,12 +72,12 @@ mod delta_e_investigation {
 
         println!("\n=== Multiple Stops Delta E Investigation ===");
         for (name, color) in test_colors {
-            let distance = strategy.calculate_distance(start, color);
+            let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start, color);
             println!("{}: {:.6}", name, distance);
 
             // Show LCH coordinates for context
-            let c = (color.a * color.a + color.b * color.b).sqrt();
-            let h = color.b.atan2(color.a).to_degrees();
+            let c = (color.a * color.a + color.b * color.b).sqrt() as f32;
+            let h = color.b.atan2(color.a).to_degrees() as f32;
             println!("  LCH: ({:.2}, {:.3}, {:.1})", color.l, c, h);
         }
     }

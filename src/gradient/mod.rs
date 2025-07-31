@@ -12,7 +12,7 @@ pub use easing::{CubicBezierEasing, EasingStrategy, EasingType, LinearEasing};
 
 /// Simplified gradient generation function for CLI interface
 pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result<()> {
-    use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
+    use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
     use crate::color_parser::css_parser::CssColorParser;
     use crate::color_parser::unified_manager::UnifiedColorManager;
     use crate::color_utils::LegacyColorUtils as ColorUtils;
@@ -54,10 +54,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     let color_manager = UnifiedColorManager::new()?;
 
     // Calculate distance between start and end colors using Delta-E 2000
-    let start_end_distance = {
-        let strategy = DeltaE2000Strategy;
-        strategy.calculate_distance(start_lab, end_lab)
-    };
+    let start_end_distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, end_lab);
 
     // Calculate relative contrast between start and end colors using existing color_utils
     let (relative_contrast, _contrast_level) = ColorUtils::get_contrast_assessment(
@@ -158,10 +155,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let luminance = ColorUtils::wcag_relative_luminance_rgb(stop.rgb_color);
 
         // Calculate color distance from start_color using Delta E 2000
-        let distance = {
-            let strategy = DeltaE2000Strategy;
-            strategy.calculate_distance(start_lab, stop.lab_color) as f32
-        };
+        let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
 
         // Find closest color names
         let closest_css = color_manager
@@ -212,10 +206,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let luminance = ColorUtils::wcag_relative_luminance_rgb(stop.rgb_color);
 
         // Calculate color distance from start_color using Delta E 2000
-        let distance = {
-            let strategy = DeltaE2000Strategy;
-            strategy.calculate_distance(start_lab, stop.lab_color) as f32
-        };
+        let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
 
         // Get color collections for this stop
         let stop_collections =

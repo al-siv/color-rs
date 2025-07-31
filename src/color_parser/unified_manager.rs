@@ -9,7 +9,7 @@ use super::collections::{
 use super::css_collection::CssColorCollection;
 use super::ral_classic_collection::RalClassicCollection;
 use super::ral_design_collection::RalDesignCollection;
-use crate::color_distance_strategies::ColorDistanceStrategy;
+use crate::color_distance_strategies::DistanceAlgorithm;
 use anyhow::Result;
 
 /// Unified manager for all color collections with backward compatibility
@@ -108,58 +108,58 @@ impl UnifiedColorManager {
             .find_closest_across_all(&target, max_results, Some(filter))
     }
 
-    // Strategy-aware methods (new API)
+    // Functional API methods
 
-    /// Find closest colors across all collections with custom distance strategy
-    pub fn find_closest_across_all_with_strategy(
+    /// Find closest colors across all collections with custom distance algorithm
+    pub fn find_closest_across_all_with_algorithm(
         &self,
         rgb: [u8; 3],
         max_results_per_collection: usize,
-        strategy: &dyn ColorDistanceStrategy,
+        algorithm: DistanceAlgorithm,
     ) -> Vec<(String, Vec<ColorMatch>)> {
         let target = UniversalColor::from_rgb(rgb);
-        self.manager.find_closest_across_all_with_strategy(
+        self.manager.find_closest_across_all_with_algorithm(
             &target,
             max_results_per_collection,
             None,
-            strategy,
+            algorithm,
         )
     }
 
-    /// Find closest CSS named colors with custom distance strategy
-    pub fn find_closest_css_colors_with_strategy(
+    /// Find closest CSS named colors with custom distance algorithm
+    pub fn find_closest_css_colors_with_algorithm(
         &self,
         rgb: [u8; 3],
         max_results: usize,
-        strategy: &dyn ColorDistanceStrategy,
+        algorithm: DistanceAlgorithm,
     ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
         self.css_collection
-            .find_closest_with_strategy(&target, max_results, None, strategy)
+            .find_closest_with_algorithm(&target, max_results, None, algorithm)
     }
 
-    /// Find closest RAL Classic colors with custom distance strategy
-    pub fn find_closest_ral_classic_with_strategy(
+    /// Find closest RAL Classic colors with custom distance algorithm
+    pub fn find_closest_ral_classic_with_algorithm(
         &self,
         rgb: [u8; 3],
         max_results: usize,
-        strategy: &dyn ColorDistanceStrategy,
+        algorithm: DistanceAlgorithm,
     ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
         self.ral_classic_collection
-            .find_closest_with_strategy(&target, max_results, None, strategy)
+            .find_closest_with_algorithm(&target, max_results, None, algorithm)
     }
 
-    /// Find closest RAL Design System+ colors with custom distance strategy
-    pub fn find_closest_ral_design_with_strategy(
+    /// Find closest RAL Design System+ colors with custom distance algorithm
+    pub fn find_closest_ral_design_with_algorithm(
         &self,
         rgb: [u8; 3],
         max_results: usize,
-        strategy: &dyn ColorDistanceStrategy,
+        algorithm: DistanceAlgorithm,
     ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
         self.ral_design_collection
-            .find_closest_with_strategy(&target, max_results, None, strategy)
+            .find_closest_with_algorithm(&target, max_results, None, algorithm)
     }
 }
 

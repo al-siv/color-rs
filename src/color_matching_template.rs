@@ -3,7 +3,7 @@
 //! This module implements the Template Method pattern to provide a consistent
 //! structure for color matching algorithms across different collection types.
 
-use crate::color_distance_strategies::ColorDistanceStrategy;
+use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use crate::color_parser::{ColorMatch, UniversalColor, collections::ColorCollection};
 use crate::error::{ColorError, Result};
 

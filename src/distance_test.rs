@@ -1,12 +1,10 @@
 #[cfg(test)]
 mod distance_debug_tests {
-    use crate::color_distance_strategies::{ColorDistanceStrategy, DeltaE2000Strategy};
+    use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
     use palette::Lab;
 
     #[test]
     fn test_gradient_distance_verification() {
-        let strategy = DeltaE2000Strategy;
-
         // Start color: #457FB3
         let start = Lab::new(51.49, -2.846, -33.140);
 
@@ -29,16 +27,16 @@ mod distance_debug_tests {
             start.l, start.a, start.b
         );
 
-        let d2 = strategy.calculate_distance(start, stop2);
+        let d2 = calculate_distance(DistanceAlgorithm::DeltaE2000, start, stop2);
         println!("Start -> Stop2: {:.6} (expected: 5.408635)", d2);
 
-        let d3 = strategy.calculate_distance(start, stop3);
+        let d3 = calculate_distance(DistanceAlgorithm::DeltaE2000, start, stop3);
         println!("Start -> Stop3: {:.6} (expected: 10.832061)", d3);
 
-        let d4 = strategy.calculate_distance(start, stop4);
+        let d4 = calculate_distance(DistanceAlgorithm::DeltaE2000, start, stop4);
         println!("Start -> Stop4: {:.6} (expected: 16.24578)", d4);
 
-        let d_end = strategy.calculate_distance(start, end);
+        let d_end = calculate_distance(DistanceAlgorithm::DeltaE2000, start, end);
         println!("Start -> End:   {:.6} (expected: 21.672974)", d_end);
 
         println!("\n=== Step Differences ===");

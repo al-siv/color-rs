@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod lch_strategy_test {
     use crate::color_distance_strategies::{
-        ColorDistanceStrategy, DeltaE2000Strategy, LchStrategy,
+        DistanceAlgorithm, calculate_distance,
     };
     use palette::Lab;
 
@@ -16,19 +16,16 @@ mod lch_strategy_test {
             ("End", Lab::new(57.74, 67.595, 65.177)),   // lch(57.74, 93.900, 44.0)
         ];
 
-        let delta_e_2000 = DeltaE2000Strategy;
-        let lch_strategy = LchStrategy;
-
-        println!("\n=== Delta E 2000 vs LCH Strategy Comparison ===");
+        println!("\n=== Delta E 2000 vs LCH Algorithm Comparison ===");
         println!("Start: lab({:.2}, {:.3}, {:.3})", start.l, start.a, start.b);
 
         for (name, color) in &test_colors {
-            let distance_de2000 = delta_e_2000.calculate_distance(start, *color);
-            let distance_lch = lch_strategy.calculate_distance(start, *color);
+            let distance_de2000 = calculate_distance(DistanceAlgorithm::DeltaE2000, start, *color);
+            let distance_lch = calculate_distance(DistanceAlgorithm::Lch, start, *color);
 
             // Show LCH coordinates for context
-            let c = (color.a * color.a + color.b * color.b).sqrt();
-            let h = color.b.atan2(color.a).to_degrees();
+            let c = (color.a * color.a + color.b * color.b).sqrt() as f32;
+            let h = color.b.atan2(color.a).to_degrees() as f32;
 
             println!(
                 "\n{}: lab({:.2}, {:.3}, {:.3}) -> lch({:.2}, {:.3}, {:.1})",
@@ -42,12 +39,12 @@ mod lch_strategy_test {
             );
         }
 
-        // Calculate step differences for LCH strategy
-        println!("\n=== LCH Strategy Step Differences ===");
+        // Calculate step differences for LCH algorithm
+        println!("\n=== LCH Algorithm Step Differences ===");
         let mut lch_distances: Vec<f64> = vec![0.0]; // Start distance is always 0
 
         for (_, color) in &test_colors {
-            let distance = lch_strategy.calculate_distance(start, *color);
+            let distance = calculate_distance(DistanceAlgorithm::Lch, start, *color);
             lch_distances.push(distance);
         }
 
