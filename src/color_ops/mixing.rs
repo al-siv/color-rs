@@ -3,8 +3,7 @@
 //! Pure functions for mixing colors using various blending modes and interpolation methods.
 //! All functions operate directly on color values without object instantiation.
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
-use palette::{Hsl, Hsv, Lab, Lch, Mix, Srgb};
+use palette::{Lab, Lch, Mix, Srgb, IntoColor};
 
 /// Mix two colors using linear RGB interpolation
 ///
@@ -55,7 +54,10 @@ pub fn linear_rgb(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
 /// let mixed = mixing::lab_interpolation(yellow, blue, 0.3);
 /// ```
 pub fn lab_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
-    ColorUtils::mix_lab(color1, color2, factor)
+    let lab1: Lab = color1.into_color();
+    let lab2: Lab = color2.into_color();
+    let mixed_lab = lab1.mix(lab2, factor);
+    mixed_lab.into_color()
 }
 
 /// Mix two colors using LCH color space interpolation
@@ -81,7 +83,10 @@ pub fn lab_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
 /// let mixed = mixing::lch_interpolation(red, green, 0.5);
 /// ```
 pub fn lch_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
-    ColorUtils::mix_lch(color1, color2, factor)
+    let lch1: Lch = color1.into_color();
+    let lch2: Lch = color2.into_color();
+    let mixed_lch = lch1.mix(lch2, factor);
+    mixed_lch.into_color()
 }
 
 /// Mix two colors using HSL color space interpolation
@@ -286,7 +291,7 @@ pub fn create_palette(
     
     let mut palette = Vec::with_capacity(steps);
     let segments = key_colors.len() - 1;
-    let steps_per_segment = (steps - 1) as f32 / segments as f32;
+    let _steps_per_segment = (steps - 1) as f32 / segments as f32;
     
     for i in 0..steps {
         let position = i as f32 / (steps - 1) as f32;
@@ -381,16 +386,16 @@ pub fn weighted_mix(
         ColorSpace::Lab => {
             use crate::color_ops::conversion;
             
-            let mut l = 0.0;
-            let mut a = 0.0;
-            let mut b = 0.0;
+            let mut l = 0.0f32;
+            let mut a = 0.0f32;
+            let mut b = 0.0f32;
             
             for &(color, weight) in colors_and_weights {
                 let lab = conversion::srgb_to_lab(color);
                 let normalized_weight = weight / total_weight;
-                l += lab.l * normalized_weight as f64;
-                a += lab.a * normalized_weight as f64;
-                b += lab.b * normalized_weight as f64;
+                l += lab.l * normalized_weight as f32;
+                a += lab.a * normalized_weight as f32;
+                b += lab.b * normalized_weight as f32;
             }
             
             let mixed_lab = Lab::new(l, a, b);

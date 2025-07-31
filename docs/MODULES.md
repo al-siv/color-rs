@@ -437,17 +437,17 @@ pub fn round_to_precision(value: f64, precision: u8) -> f64;
 
 ### Pattern Migration Status
 
-**Current Implementation** (v0.15.4):
-- ❌ `color_distance_strategies.rs` - Strategy Pattern → **Migrating to functional enum-based selection**
-- ❌ `color_matching_template.rs` - Template Method → **Migrating to higher-order functions**
-- ❌ `color_parser_factory.rs` - Factory Pattern → **Migrating to pure function composition**
-- ❌ `command_pattern.rs` - Command Pattern → **Migrating to function pipelines**
-- ⚠️ `gradient_builder.rs` - Builder Pattern → **Optimizing to immutable configuration**
-- ⚠️ `color_operations_facade.rs` - Facade Pattern → **Reorganizing as module exports**
+**Previous Implementation** (legacy):
+- ❌ `color_distance_strategies.rs` - Strategy Pattern → **Migrated to functional enum-based selection**
+- ❌ `color_matching_template.rs` - Template Method → **Migrated to higher-order functions**
+- ❌ `color_parser_factory.rs` - Factory Pattern → **Migrated to pure function composition**
+- ❌ `command_pattern.rs` - Command Pattern → **Migrated to function pipelines**
+- ❌ `gradient_builder.rs` - Builder Pattern → **Migrated to immutable configuration**
+- ❌ `color_operations_facade.rs` - Facade Pattern → **Eliminated, replaced with color_ops/ modules**
 
-**Future Implementation** (planned v0.16.0):
-- ✅ Functional distance algorithms with enum selection
-- ✅ Higher-order function composition for color matching
+**Current Implementation** (v0.16.0):
+- ✅ Functional distance algorithms with enum selection (color_distance_strategies.rs)
+- ✅ Higher-order function composition for color matching (color_matching_functional.rs)
 - ✅ Pure function-based color parsing
 - ✅ Function pipeline-based command processing
 - ✅ Immutable configuration structures

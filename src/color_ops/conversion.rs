@@ -3,8 +3,7 @@
 //! Pure functions for converting between different color spaces.
 //! All conversions use the palette crate's color space implementations.
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
-use palette::{Hsl, Hsv, Lab, Lch, Srgb, Xyz};
+use palette::{Hsl, Hsv, Lab, Lch, Srgb, Xyz, IntoColor};
 
 // ============================================================================
 // RGB Conversions
@@ -28,7 +27,7 @@ use palette::{Hsl, Hsv, Lab, Lch, Srgb, Xyz};
 /// assert!((hsl.hue.into_inner() - 0.0).abs() < 1e-6); // Red hue
 /// ```
 pub fn srgb_to_hsl(srgb: Srgb) -> Hsl {
-    ColorUtils::srgb_to_hsl(srgb)
+    srgb.into_color()
 }
 
 /// Convert HSL to sRGB color space
@@ -48,7 +47,7 @@ pub fn srgb_to_hsl(srgb: Srgb) -> Hsl {
 /// let srgb = conversion::hsl_to_srgb(hsl);
 /// ```
 pub fn hsl_to_srgb(hsl: Hsl) -> Srgb {
-    ColorUtils::hsl_to_srgb(hsl)
+    hsl.into_color()
 }
 
 /// Convert sRGB to HSV color space
@@ -69,7 +68,7 @@ pub fn hsl_to_srgb(hsl: Hsl) -> Srgb {
 /// assert!((hsv.hue.into_inner() - 240.0).abs() < 1e-6); // Blue hue
 /// ```
 pub fn srgb_to_hsv(srgb: Srgb) -> Hsv {
-    ColorUtils::srgb_to_hsv(srgb)
+    srgb.into_color()
 }
 
 /// Convert HSV to sRGB color space
@@ -89,7 +88,7 @@ pub fn srgb_to_hsv(srgb: Srgb) -> Hsv {
 /// let srgb = conversion::hsv_to_srgb(hsv);
 /// ```
 pub fn hsv_to_srgb(hsv: Hsv) -> Srgb {
-    ColorUtils::hsv_to_srgb(hsv)
+    hsv.into_color()
 }
 
 // ============================================================================
@@ -116,7 +115,7 @@ pub fn hsv_to_srgb(hsv: Hsv) -> Srgb {
 /// assert!(lab.l > 95.0); // White has high lightness
 /// ```
 pub fn srgb_to_lab(srgb: Srgb) -> Lab {
-    ColorUtils::srgb_to_lab(srgb)
+    srgb.into_color()
 }
 
 /// Convert CIELAB to sRGB color space
@@ -136,7 +135,7 @@ pub fn srgb_to_lab(srgb: Srgb) -> Lab {
 /// let srgb = conversion::lab_to_srgb(lab);
 /// ```
 pub fn lab_to_srgb(lab: Lab) -> Srgb {
-    ColorUtils::lab_to_srgb(lab)
+    lab.into_color()
 }
 
 // ============================================================================
@@ -163,7 +162,7 @@ pub fn lab_to_srgb(lab: Lab) -> Srgb {
 /// let lch = conversion::srgb_to_lch(red);
 /// ```
 pub fn srgb_to_lch(srgb: Srgb) -> Lch {
-    ColorUtils::srgb_to_lch(srgb)
+    srgb.into_color()
 }
 
 /// Convert LCH to sRGB color space
@@ -183,7 +182,7 @@ pub fn srgb_to_lch(srgb: Srgb) -> Lch {
 /// let srgb = conversion::lch_to_srgb(lch);
 /// ```
 pub fn lch_to_srgb(lch: Lch) -> Srgb {
-    ColorUtils::lch_to_srgb(lch)
+    lch.into_color()
 }
 
 // ============================================================================
@@ -209,7 +208,7 @@ pub fn lch_to_srgb(lch: Lch) -> Srgb {
 /// let xyz = conversion::srgb_to_xyz(green);
 /// ```
 pub fn srgb_to_xyz(srgb: Srgb) -> Xyz {
-    ColorUtils::srgb_to_xyz(srgb)
+    srgb.into_color()
 }
 
 /// Convert CIE XYZ to sRGB color space
@@ -229,7 +228,7 @@ pub fn srgb_to_xyz(srgb: Srgb) -> Xyz {
 /// let srgb = conversion::xyz_to_srgb(xyz);
 /// ```
 pub fn xyz_to_srgb(xyz: Xyz) -> Srgb {
-    ColorUtils::xyz_to_srgb(xyz)
+    xyz.into_color()
 }
 
 // ============================================================================
@@ -365,7 +364,7 @@ pub fn srgb_to_hex(srgb: Srgb) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use palette::{Hsl, Hsv, Lab, Lch, Srgb, Xyz};
+    use palette::Srgb;
 
     #[test]
     fn test_srgb_hsl_roundtrip() {

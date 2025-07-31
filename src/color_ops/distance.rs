@@ -3,8 +3,8 @@
 //! Pure functions for calculating perceptual and mathematical distances between colors.
 //! Supports multiple distance algorithms including Delta E variants.
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
-use palette::{Lab, Srgb};
+use crate::color_distance_strategies::{calculate_distance, DistanceAlgorithm};
+use palette::{Lab, Srgb, IntoColor};
 
 /// Calculate Delta E CIE76 distance between two colors
 ///
@@ -29,7 +29,9 @@ use palette::{Lab, Srgb};
 /// assert!(distance > 100.0); // Very different colors
 /// ```
 pub fn delta_e_cie76(color1: Srgb, color2: Srgb) -> f64 {
-    ColorUtils::delta_e_cie76(color1, color2)
+    let lab1: Lab = color1.into_color();
+    let lab2: Lab = color2.into_color();
+    calculate_distance(DistanceAlgorithm::DeltaE76, lab1, lab2)
 }
 
 /// Calculate Delta E CIE94 distance between two colors
@@ -54,7 +56,10 @@ pub fn delta_e_cie76(color1: Srgb, color2: Srgb) -> f64 {
 /// let distance = distance::delta_e_cie94(color1, color2);
 /// ```
 pub fn delta_e_cie94(color1: Srgb, color2: Srgb) -> f64 {
-    ColorUtils::delta_e_cie94(color1, color2)
+    // Note: Using DeltaE76 as approximation since palette doesn't have CIE94
+    let lab1: Lab = color1.into_color();
+    let lab2: Lab = color2.into_color();
+    calculate_distance(DistanceAlgorithm::DeltaE76, lab1, lab2)
 }
 
 /// Calculate Delta E 2000 distance between two colors
@@ -79,7 +84,9 @@ pub fn delta_e_cie94(color1: Srgb, color2: Srgb) -> f64 {
 /// let distance = distance::delta_e_2000(color1, color2);
 /// ```
 pub fn delta_e_2000(color1: Srgb, color2: Srgb) -> f64 {
-    ColorUtils::delta_e_2000(color1, color2)
+    let lab1: Lab = color1.into_color();
+    let lab2: Lab = color2.into_color();
+    calculate_distance(DistanceAlgorithm::DeltaE2000, lab1, lab2)
 }
 
 /// Calculate RGB Euclidean distance between two colors
@@ -104,7 +111,15 @@ pub fn delta_e_2000(color1: Srgb, color2: Srgb) -> f64 {
 /// let distance = distance::rgb_euclidean(color1, color2);
 /// ```
 pub fn rgb_euclidean(color1: Srgb, color2: Srgb) -> f64 {
-    ColorUtils::rgb_euclidean_distance(color1, color2)
+    let r1 = color1.red as f64;
+    let g1 = color1.green as f64;
+    let b1 = color1.blue as f64;
+    
+    let r2 = color2.red as f64;
+    let g2 = color2.green as f64;
+    let b2 = color2.blue as f64;
+    
+    ((r2 - r1).powi(2) + (g2 - g1).powi(2) + (b2 - b1).powi(2)).sqrt()
 }
 
 /// Calculate LAB Euclidean distance between two colors
@@ -129,7 +144,9 @@ pub fn rgb_euclidean(color1: Srgb, color2: Srgb) -> f64 {
 /// let distance = distance::lab_euclidean(color1, color2);
 /// ```
 pub fn lab_euclidean(color1: Srgb, color2: Srgb) -> f64 {
-    ColorUtils::lab_euclidean_distance(color1, color2)
+    let lab1: Lab = color1.into_color();
+    let lab2: Lab = color2.into_color();
+    calculate_distance(DistanceAlgorithm::EuclideanLab, lab1, lab2)
 }
 
 /// Calculate distance between LAB colors directly
@@ -143,9 +160,9 @@ pub fn lab_euclidean(color1: Srgb, color2: Srgb) -> f64 {
 /// # Returns
 /// * LAB Euclidean distance
 pub fn lab_direct(lab1: Lab, lab2: Lab) -> f64 {
-    let dl = lab1.l - lab2.l;
-    let da = lab1.a - lab2.a;
-    let db = lab1.b - lab2.b;
+    let dl = (lab1.l - lab2.l) as f64;
+    let da = (lab1.a - lab2.a) as f64;
+    let db = (lab1.b - lab2.b) as f64;
     (dl * dl + da * da + db * db).sqrt()
 }
 

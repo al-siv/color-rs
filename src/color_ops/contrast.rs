@@ -4,7 +4,6 @@
 //! Implements WCAG 2.1 guidelines for web accessibility.
 
 use crate::color_ops::luminance;
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use palette::Srgb;
 
 /// Calculate WCAG contrast ratio between two colors
@@ -30,7 +29,9 @@ use palette::Srgb;
 /// assert!((ratio - 21.0).abs() < 0.1); // Maximum contrast
 /// ```
 pub fn wcag_ratio(color1: Srgb, color2: Srgb) -> f64 {
-    ColorUtils::wcag_contrast_ratio(color1, color2)
+    let lum1 = luminance::wcag_relative(color1);
+    let lum2 = luminance::wcag_relative(color2);
+    from_luminance(lum1, lum2)
 }
 
 /// Calculate contrast ratio using RGB tuples
@@ -52,7 +53,17 @@ pub fn wcag_ratio(color1: Srgb, color2: Srgb) -> f64 {
 /// assert!((ratio - 21.0).abs() < 0.1);
 /// ```
 pub fn wcag_ratio_rgb(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> f64 {
-    ColorUtils::wcag_contrast_ratio_rgb(rgb1, rgb2)
+    let color1 = Srgb::new(
+        rgb1.0 as f32 / 255.0,
+        rgb1.1 as f32 / 255.0,
+        rgb1.2 as f32 / 255.0
+    );
+    let color2 = Srgb::new(
+        rgb2.0 as f32 / 255.0,
+        rgb2.1 as f32 / 255.0,
+        rgb2.2 as f32 / 255.0
+    );
+    wcag_ratio(color1, color2)
 }
 
 /// Calculate contrast ratio from pre-computed luminance values
@@ -197,11 +208,7 @@ pub fn max_background_luminance(text_luminance: f64, min_ratio: f64) -> f64 {
     // Solving for bg_lum: bg_lum = (text_lum + 0.05) / min_ratio - 0.05
     let max_dark_bg = ((text_luminance + 0.05) / min_ratio - 0.05).max(0.0);
     
-    // For lighter backgrounds: (bg_lum + 0.05) / (text_lum + 0.05) = min_ratio
-    // Solving for bg_lum: bg_lum = min_ratio * (text_lum + 0.05) - 0.05
-    let min_light_bg = (min_ratio * (text_luminance + 0.05) - 0.05).min(1.0);
-    
-    // Return the darker option (maximum background luminance)
+    // Return the maximum background luminance
     max_dark_bg.max(0.0).min(1.0)
 }
 

@@ -3,8 +3,7 @@
 //! Pure functions for calculating color luminance using various methods.
 //! All functions operate directly on color values without object instantiation.
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
-use palette::Srgb;
+use palette::{Srgb, Lab, IntoColor};
 
 /// Calculate WCAG relative luminance for a color
 ///
@@ -26,7 +25,21 @@ use palette::Srgb;
 /// assert!(luminance > 0.2 && luminance < 0.3);
 /// ```
 pub fn wcag_relative(srgb: Srgb) -> f64 {
-    ColorUtils::wcag_relative_luminance(srgb)
+    // WCAG 2.1 relative luminance formula
+    let r = srgb_gamma_correct(srgb.red as f64);
+    let g = srgb_gamma_correct(srgb.green as f64); 
+    let b = srgb_gamma_correct(srgb.blue as f64);
+    
+    0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+/// Helper function for gamma correction in WCAG luminance calculation
+fn srgb_gamma_correct(value: f64) -> f64 {
+    if value <= 0.03928 {
+        value / 12.92
+    } else {
+        ((value + 0.055) / 1.055).powf(2.4)
+    }
 }
 
 /// Calculate relative luminance from RGB tuple
@@ -47,7 +60,12 @@ pub fn wcag_relative(srgb: Srgb) -> f64 {
 /// assert!(luminance > 0.2 && luminance < 0.3);
 /// ```
 pub fn from_rgb(rgb: (u8, u8, u8)) -> f64 {
-    ColorUtils::wcag_relative_luminance_rgb(rgb)
+    let srgb = Srgb::new(
+        rgb.0 as f32 / 255.0,
+        rgb.1 as f32 / 255.0,
+        rgb.2 as f32 / 255.0
+    );
+    wcag_relative(srgb)
 }
 
 /// Alias for `wcag_relative` - more concise name
@@ -76,8 +94,8 @@ pub fn relative_luminance(srgb: Srgb) -> f64 {
 /// assert!(brightness > 90.0); // Yellow appears very bright
 /// ```
 pub fn perceived_brightness(srgb: Srgb) -> f64 {
-    let lab = ColorUtils::srgb_to_lab(srgb);
-    lab.l
+    let lab: Lab = srgb.into_color();
+    lab.l as f64
 }
 
 #[cfg(test)]

@@ -12,7 +12,6 @@ pub mod color_formatter;
 pub mod color_matching_functional;
 // Facade Pattern Migration (Milestone 2.2) - Functional Replacement
 pub mod color_ops;
-pub mod color_operations_facade;
 pub mod color_parser;
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
 pub mod color_parser_functional;
@@ -21,8 +20,6 @@ pub mod color_utils;
 // Backward Compatibility Layer (Milestone 3.1)
 pub mod compat;
 pub mod config;
-pub mod delta_investigation;
-pub mod distance_test;
 pub mod error;
 pub mod file_output;
 pub mod format_utils;
@@ -30,8 +27,6 @@ pub mod gradient;
 // Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
 pub mod gradient_functional;
 pub mod image;
-pub mod lch_gradient_test;
-pub mod lch_strategy_test;
 pub mod output_formats;
 pub mod precision_utils;
 pub mod utils;
@@ -76,8 +71,6 @@ pub use color_ops::{
 };
 // Import ColorSpace with alias to avoid conflict
 pub use color_ops::mixing::ColorSpace as MixingColorSpace;
-// Backward compatibility - deprecated, use color_ops instead
-pub use color_operations_facade::{ColorAnalysis as LegacyColorAnalysis, ColorOperationsFacade};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
 pub use color_parser_functional::{
@@ -109,9 +102,6 @@ pub use gradient_functional::{
     GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
     GradientValidationError, linear_gradient, smooth_gradient, positioned_gradient
 };
-
-// Backward Compatibility Layer (Milestone 3.1)
-pub use compat::{ColorParserType, LegacyCommandType, ColorParserCompatTrait, create_parser, execute_legacy_command};
 
 pub use image::{ImageFormat, ImageGenerator};
 pub use utils::Utils;
