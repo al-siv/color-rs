@@ -136,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Enhanced CLI Interface**: Added comprehensive filtering system with expression parser
 - **Improved Output Serialization**: Filtered output now omits unselected blocks and fields completely
-- **Documentation Updates**: Updated README.md, CLI_REFERENCE.md, and EXAMPLES.md with filtering examples
+- **Documentation Updates**: Updated README.md, UX.md, and EXAMPLES.md with filtering examples
 
 ### Technical
 - **New Modules**: Added `output_filter.rs` with `FilterEngine`, `FilterConfig`, and `FilterExpressionParser`

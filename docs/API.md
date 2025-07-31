@@ -14,31 +14,39 @@ color-rs = "0.15.4"
 ## Quick Start
 
 ```rust
-use color_rs::{color, gradient, format_utils, ColorError};
+use color_rs::{ColorOperationsFacade, ColorUtils, GradientCalculator, Result};
+use color_rs::gradient::easing::CubicBezierEasing;
 
-fn main() -> Result<(), ColorError> {
-    // Color analysis with improved LCH distance method
-    let color_result = color::analyze_color(
-        "#FF5733",
-        "lch",    // Default distance method (v0.15.4)
-        "lab",
-        None,
-        None
+fn main() -> Result<()> {
+    // Color analysis using ColorOperationsFacade
+    let facade = ColorOperationsFacade::new();
+    let analysis = facade.analyze_color("#FF5733")?;
+    
+    println!("Hex: {}", analysis.hex);
+    println!("RGB: {:?}", analysis.srgb);
+    println!("LAB: {:?}", analysis.lab);
+    println!("HSL: {:?}", analysis.hsl);
+    println!("Luminance: {}", analysis.luminance);
+    
+    // Gradient generation with GradientCalculator
+    let calculator = GradientCalculator::with_intelligent_stops(0.65, 0.35);
+    let easing = CubicBezierEasing::new(0.65, 0.35);
+    
+    let start_lab = ColorUtils::parse_hex_color("#FF5733")?;
+    let end_lab = ColorUtils::parse_hex_color("#3366FF")?;
+    
+    let gradient_values = calculator.generate_gradient_values(
+        start_lab,
+        end_lab,
+        5,          // number of stops
+        0,          // start position
+        100,        // end position
+        &easing,    // easing strategy
     )?;
     
-    // Gradient generation with enhanced precision
-    let gradient_result = gradient::generate_gradient(
-        "red",
-        "blue", 
-        0,     // start position
-        100,   // end position
-        0.65,  // ease in
-        0.35,  // ease out
-        5,     // stops
-        false, // simple stops
-        None,  // step override
-        false  // generate images
-    )?;
+    for (i, value) in gradient_values.iter().enumerate() {
+        println!("Stop {}: {} at position {}", i, value.hex, value.position);
+    }
     
     Ok(())
 }

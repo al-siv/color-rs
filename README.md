@@ -414,12 +414,21 @@ fn main() -> color_rs::Result<()> {
 - **Output Formatting**: Structured data serialization
 - **File Export**: Multiple format support
 
-### Design Patterns
-- **Strategy Pattern**: Multiple color distance calculation methods
-- **Builder Pattern**: Gradient configuration construction
-- **Factory Pattern**: Color parser instantiation
-- **Template Method**: Color matching algorithm structure
-- **Command Pattern**: CLI command processing
+### Functional Programming Architecture (v0.15.4+)
+- **Pure Functions**: Core color operations with immutable inputs and deterministic outputs
+- **Function Composition**: Complex operations built from composing simple functions
+- **Type-Driven Design**: Leveraging Rust's enum and struct systems for compile-time guarantees
+- **Immutable Data**: Preference for immutable data structures and transformations
+- **Error Handling**: Consistent use of Result<T, E> and Option<T> throughout
+
+### Pattern Migration Status
+- **Strategy Pattern** → **Functional Enum Selection**: Distance algorithms via enum + pattern matching
+- **Builder Pattern** → **Immutable Configuration**: Gradient configuration with immutable structs  
+- **Factory Pattern** → **Function Composition**: Color parsing via pure function composition
+- **Template Method** → **Higher-Order Functions**: Color matching via function composition
+- **Command Pattern** → **Function Pipelines**: CLI processing via Result pipelines
+
+*See `docs/PATTERNS_FUNCTIONAL.md` for comprehensive functional programming patterns and `docs/PATTERNS.md` for migration guidance.*
 
 ## Testing
 
@@ -457,6 +466,31 @@ Standard Rust practices:
 - Unit test coverage
 - rustfmt formatting
 - clippy compliance
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+### User Documentation
+- **[UX.md](docs/UX.md)** - User experience reference with complete CLI interface documentation and HCI patterns
+- **[EXAMPLES.md](docs/EXAMPLES.md)** - Practical usage examples with functional programming approach
+- **[CONFIGURATION.md](docs/CONFIGURATION.md)** - Configuration options and functional design principles
+
+### Developer Documentation  
+- **[API.md](docs/API.md)** - Complete library API reference for developers
+- **[MODULES.md](docs/MODULES.md)** - Detailed module APIs and functional programming interfaces
+- **[ALGORITHMS.md](docs/ALGORITHMS.md)** - Mathematical foundations and algorithm implementations
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture with functional programming paradigm
+
+### Technical References
+- **[PATTERNS_FUNCTIONAL.md](docs/PATTERNS_FUNCTIONAL.md)** - PRIMARY functional programming patterns catalog
+- **[PATTERNS.md](docs/PATTERNS.md)** - Migration guide from deprecated OOP patterns to functional alternatives
+- **[TYPES.md](docs/TYPES.md)** - Type system reference and functional type design
+- **[BUILD_RELEASE.md](docs/BUILD_RELEASE.md)** - Build system and release process documentation
+- **[TESTING.md](docs/TESTING.md)** - Testing strategy with functional programming principles
+- **[FEATURE_CATALOG.md](docs/FEATURE_CATALOG.md)** - Comprehensive feature catalog
+
+All documentation follows **functional programming principles** and reflects the architectural migration from object-oriented patterns to modern functional approaches in Rust.
 
 ## License
 
