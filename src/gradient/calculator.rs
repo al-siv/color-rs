@@ -5,11 +5,10 @@
 
 use super::easing::EasingStrategy;
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::config::INTELLIGENT_STOP_SAMPLE_POINTS;
 use crate::utils::Utils;
 use kurbo::{CubicBez, ParamCurve, Point};
-use palette::Lab;
+use palette::{IntoColor, Lab, Mix, Srgb};
 use tabled::Tabled;
 
 /// Gradient value for display in tables
@@ -277,14 +276,14 @@ impl GradientCalculator {
                 white_point: start_lab.white_point,
             };
 
-            // Convert to display formats
-            let rgb_values = ColorUtils::lab_to_rgb(interpolated_lab);
-            let hex_color = format!(
-                "#{:02X}{:02X}{:02X}",
-                rgb_values.0, rgb_values.1, rgb_values.2,
-            );
-            let wcag_luminance =
-                ColorUtils::wcag_relative_luminance_rgb((rgb_values.0, rgb_values.1, rgb_values.2));
+            // Convert to display formats using functional conversion
+            let srgb: Srgb = interpolated_lab.into_color();
+            let r = (srgb.red * 255.0).round() as u8;
+            let g = (srgb.green * 255.0).round() as u8; 
+            let b = (srgb.blue * 255.0).round() as u8;
+            
+            let hex_color = format!("#{:02X}{:02X}{:02X}", r, g, b);
+            let wcag_luminance = crate::color_ops::luminance::wcag_relative(srgb);
 
             // Calculate position
             let position = stop.mul_add(position_range, f64::from(start_position));
@@ -292,7 +291,7 @@ impl GradientCalculator {
             gradient_values.push(GradientValue {
                 position: format!("{}%", position.round() as u8),
                 hex: hex_color,
-                rgb: Utils::rgb_to_string(rgb_values.0, rgb_values.1, rgb_values.2),
+                rgb: Utils::rgb_to_string(r, g, b),
                 wcag_luminance: crate::precision_utils::PrecisionUtils::format_wcag_relative_luminance(wcag_luminance),
             });
         }
@@ -342,8 +341,18 @@ impl GradientCalculator {
 
         if use_simple_mode {
             // Simple mode: equal geometric intervals with RGB interpolation + bezier easing
-            let start_rgb = ColorUtils::lab_to_rgb(start_lab);
-            let end_rgb = ColorUtils::lab_to_rgb(end_lab);
+            let start_srgb: Srgb = start_lab.into_color();
+            let start_rgb = (
+                (start_srgb.red * 255.0).round() as u8,
+                (start_srgb.green * 255.0).round() as u8,
+                (start_srgb.blue * 255.0).round() as u8,
+            );
+            let end_srgb: Srgb = end_lab.into_color();
+            let end_rgb = (
+                (end_srgb.red * 255.0).round() as u8,
+                (end_srgb.green * 255.0).round() as u8,
+                (end_srgb.blue * 255.0).round() as u8,
+            );
 
             for i in 0..steps {
                 let t = i as f64 / (steps - 1) as f64;
@@ -359,8 +368,13 @@ impl GradientCalculator {
                 let b = (start_rgb.2 as f64 + (end_rgb.2 as f64 - start_rgb.2 as f64) * bezier_t)
                     .round() as u8;
 
-                // Convert back to LAB for consistent output format
-                let rgb_lab = ColorUtils::rgb_to_lab((r, g, b));
+                // Convert back to LAB for consistent output format using functional conversion
+                let rgb_srgb = Srgb::new(
+                    f32::from(r) / 255.0,
+                    f32::from(g) / 255.0,
+                    f32::from(b) / 255.0,
+                );
+                let rgb_lab: Lab = rgb_srgb.into_color();
 
                 let position = (start_position as f64 + t * (end_position - start_position) as f64)
                     .round() as u8;
@@ -382,7 +396,12 @@ impl GradientCalculator {
             for i in 0..steps {
                 if i == 0 {
                     // First stop: use start color
-                    let start_rgb = ColorUtils::lab_to_rgb(start_lab);
+                    let start_srgb: Srgb = start_lab.into_color();
+                    let start_rgb = (
+                        (start_srgb.red * 255.0).round() as u8,
+                        (start_srgb.green * 255.0).round() as u8,
+                        (start_srgb.blue * 255.0).round() as u8,
+                    );
                     gradient_stops.push(UnifiedGradientStop {
                         position: start_position,
                         geometric_t: 0.0,
@@ -392,7 +411,12 @@ impl GradientCalculator {
                     });
                 } else if i == steps - 1 {
                     // Last stop: use end color
-                    let end_rgb = ColorUtils::lab_to_rgb(end_lab);
+                    let end_srgb: Srgb = end_lab.into_color();
+                    let end_rgb = (
+                        (end_srgb.red * 255.0).round() as u8,
+                        (end_srgb.green * 255.0).round() as u8,
+                        (end_srgb.blue * 255.0).round() as u8,
+                    );
                     gradient_stops.push(UnifiedGradientStop {
                         position: end_position,
                         geometric_t: 1.0,
@@ -413,7 +437,7 @@ impl GradientCalculator {
                         // Binary search with 50 iterations for precision
                         let mid_t = (low + high) / 2.0;
                         let bezier_t = Self::cubic_bezier_ease(mid_t, ease_in, ease_out);
-                        let test_color = ColorUtils::interpolate_lab(start_lab, end_lab, bezier_t);
+                        let test_color = start_lab.mix(end_lab, bezier_t as f32);
                         let actual_distance = calculate_distance(algorithm, start_lab, test_color);
 
                         if (actual_distance - target_distance).abs() < 0.01 {
@@ -432,9 +456,13 @@ impl GradientCalculator {
 
                     // Calculate final bezier_t and actual color using found geometric position
                     let final_bezier_t = Self::cubic_bezier_ease(best_t, ease_in, ease_out);
-                    let actual_lab =
-                        ColorUtils::interpolate_lab(start_lab, end_lab, final_bezier_t);
-                    let rgb_color = ColorUtils::lab_to_rgb(actual_lab);
+                    let actual_lab = start_lab.mix(end_lab, final_bezier_t as f32);
+                    let actual_srgb: Srgb = actual_lab.into_color();
+                    let rgb_color = (
+                        (actual_srgb.red * 255.0).round() as u8,
+                        (actual_srgb.green * 255.0).round() as u8,
+                        (actual_srgb.blue * 255.0).round() as u8,
+                    );
 
                     // Calculate position using the found geometric t
                     let position = (start_position as f64

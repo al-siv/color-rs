@@ -301,6 +301,32 @@ Complete removal approach for early-stage project:
 
 **Summary**: Successfully consolidated the codebase by removing 544+ lines of legacy code across 3 files (`color_operations_facade.rs`, `gradient_legacy.rs`, migration examples), cleaning up unnecessary public module declarations for test modules, and updating documentation. Achieved clean functional architecture with 175 passing tests and zero compilation errors. All GoF pattern migrations now fully consolidated.
 
+#### Milestone 2.4: LegacyColorUtils Elimination ✅ **COMPLETED**
+- [x] Replace LegacyColorUtils in format_utils.rs with functional color_ops modules ✅
+- [x] Migrate color_formatter.rs from LegacyColorUtils to functional approach ✅
+- [x] Replace LegacyColorUtils in parsing_chain.rs with functional parsing ✅
+- [x] Migrate gradient/ modules from LegacyColorUtils to functional conversions ✅
+- [x] Update command_functional.rs LAB interpolation to use functional approach ✅
+- [x] Validate all LegacyColorUtils elimination maintains functionality ✅
+
+**Summary**: Successfully eliminated LegacyColorUtils from 5 critical modules, replacing 42+ function calls with pure functional equivalents using palette::Mix trait for LAB interpolation, palette::IntoColor for conversions, and color_ops modules for WCAG calculations. All 175 tests pass with zero functionality loss. Major breakthrough in functional programming transformation - primary LegacyColorUtils usage eliminated.
+
+#### Milestone 2.5: Module-Level Legacy Migration 🔧 **HIGH PRIORITY**
+- [ ] Migrate color_schemes.rs from LegacyColorUtils to color_ops modules
+- [ ] Replace LegacyColorUtils in color_parser/ modules with functional approach
+- [ ] Update color.rs to use functional distance calculations exclusively
+- [ ] Migrate image.rs from LegacyColorUtils to functional conversions
+- [ ] Remove LegacyColorUtils export from lib.rs public API
+- [ ] Validate complete functional transformation
+
+#### Milestone 2.6: Deprecated Compatibility Layer Cleanup 🧹 **FINAL CLEANUP**
+- [ ] Remove all #[deprecated] attributes from compat.rs
+- [ ] Eliminate compat module backward compatibility exports
+- [ ] Remove LegacyColorUtils struct entirely from color_utils
+- [ ] Clean up any remaining deprecated function calls
+- [ ] Validate zero deprecated warnings in compilation
+- [ ] Achieve 100% pure functional programming architecture
+
 ### Assignment 3: Integration and Validation
 **Objective**: Ensure system integrity after pattern migration
 

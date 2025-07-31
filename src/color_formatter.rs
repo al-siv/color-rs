@@ -27,14 +27,13 @@ fn f32_to_u8_clamped(value: f32) -> u8 {
     (value * 255.0).round().clamp(0.0, 255.0) as u8
 }
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::Result;
 use crate::output_formats::{
     BrightnessInfo, ColorAnalysisOutput, ColorCollections, ColorFormats, ColorMatch, ContrastData,
     ContrastInfo, GrayscaleData,
 };
 use crate::utils::Utils;
-use palette::Lab;
+use palette::{IntoColor, Lab, Srgb, Hsl, Lch};
 
 /// Color formatter for generating comprehensive color reports
 pub struct ColorFormatter;
@@ -54,9 +53,17 @@ impl ColorFormatter {
     /// Format a simple color info for table display
     #[must_use]
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
-        let (red, green, blue) = ColorUtils::lab_to_rgb(lab_color);
+        // Convert LAB to RGB using functional conversion
+        let srgb: Srgb = lab_color.into_color();
+        let red = (srgb.red * 255.0).round() as u8;
+        let green = (srgb.green * 255.0).round() as u8;
+        let blue = (srgb.blue * 255.0).round() as u8;
 
-        let (hue, saturation, lightness) = ColorUtils::lab_to_hsl_tuple(lab_color);
+        // Convert LAB to HSL using functional conversion
+        let hsl: Hsl = srgb.into_color();
+        let hue = hsl.hue.into_inner() as f64;
+        let saturation = hsl.saturation as f64;
+        let lightness = hsl.lightness as f64;
 
         crate::color::ColorInfo {
             label: label.to_string(),
@@ -98,7 +105,7 @@ impl ColorFormatter {
         Ok(output
             .with_input(
                 original_input.to_string(),
-                ColorUtils::lab_to_hex(lab_color),
+                crate::color_ops::conversion::srgb_to_hex(lab_color.into_color()),
             )
             .with_conversion(conversion)
             .with_contrast(contrast)
@@ -114,8 +121,8 @@ impl ColorFormatter {
 
     /// Collect contrast and luminance data
     fn collect_contrast_data(lab_color: Lab) -> ContrastData {
-        let srgb = ColorUtils::lab_to_srgb(lab_color);
-        let relative_luminance = ColorUtils::wcag_relative_luminance(srgb);
+        let srgb: Srgb = lab_color.into_color();
+        let relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
         let white_luminance = 1.0;
         let black_luminance = 0.0;
 
@@ -183,32 +190,19 @@ impl ColorFormatter {
 
     /// Collect grayscale variations data
     fn collect_grayscale_data(lab_color: Lab) -> GrayscaleData {
-        let lch = ColorUtils::lab_to_lch(lab_color);
+        let lch: Lch = lab_color.into_color();
 
-        let lch0_lab = ColorUtils::lch_tulip_to_lab((
-            f64::from(lch.l),
-            0.0,
-            f64::from(lch.hue.into_degrees()),
-        ));
-        let lch2_lab = ColorUtils::lch_tulip_to_lab((
-            f64::from(lch.l),
-            f64::from(lch.chroma) * 0.02,
-            f64::from(lch.hue.into_degrees()),
-        ));
-        let lch4_lab = ColorUtils::lch_tulip_to_lab((
-            f64::from(lch.l),
-            f64::from(lch.chroma) * 0.04,
-            f64::from(lch.hue.into_degrees()),
-        ));
-        let lch6_lab = ColorUtils::lch_tulip_to_lab((
-            f64::from(lch.l),
-            f64::from(lch.chroma) * 0.06,
-            f64::from(lch.hue.into_degrees()),
-        ));
-        let lch0_hex = ColorUtils::lab_to_hex(lch0_lab);
-        let lch2_hex = ColorUtils::lab_to_hex(lch2_lab);
-        let lch4_hex = ColorUtils::lab_to_hex(lch4_lab);
-        let lch6_hex = ColorUtils::lab_to_hex(lch6_lab);
+        // Create LCH variations with different chroma levels and convert to LAB
+        let lch0_lab: Lab = Lch::new(lch.l, 0.0, lch.hue).into_color();
+        let lch2_lab: Lab = Lch::new(lch.l, lch.chroma * 0.02, lch.hue).into_color();
+        let lch4_lab: Lab = Lch::new(lch.l, lch.chroma * 0.04, lch.hue).into_color();
+        let lch6_lab: Lab = Lch::new(lch.l, lch.chroma * 0.06, lch.hue).into_color();
+        
+        // Convert to hex using functional conversion
+        let lch0_hex = crate::color_ops::conversion::srgb_to_hex(lch0_lab.into_color());
+        let lch2_hex = crate::color_ops::conversion::srgb_to_hex(lch2_lab.into_color());
+        let lch4_hex = crate::color_ops::conversion::srgb_to_hex(lch4_lab.into_color());
+        let lch6_hex = crate::color_ops::conversion::srgb_to_hex(lch6_lab.into_color());
 
         GrayscaleData {
             lch0_hex,
@@ -247,7 +241,7 @@ impl ColorFormatter {
         use crate::color_parser::unified_manager::UnifiedColorManager;
 
         let manager = UnifiedColorManager::new().unwrap_or_default();
-        let srgb = ColorUtils::lab_to_srgb(lab_color);
+        let srgb: Srgb = lab_color.into_color();
         let rgb = [
             f32_to_u8_clamped(srgb.red),
             f32_to_u8_clamped(srgb.green),
@@ -260,14 +254,14 @@ impl ColorFormatter {
             .into_iter()
             .map(|m| {
                 let match_lab = Lab::from(m.entry.color.lab);
-                let match_srgb = ColorUtils::lab_to_srgb(match_lab);
+                let match_srgb: Srgb = match_lab.into_color();
                 ColorMatch {
                     name: m.entry.metadata.name.clone(),
-                    hex: ColorUtils::lab_to_hex(match_lab),
+                    hex: crate::color_ops::conversion::srgb_to_hex(match_srgb),
                     lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
                     code: m.entry.metadata.code.clone(),
                     distance: m.distance,
-                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(match_srgb),
+                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(match_srgb),
                 }
             })
             .collect();
@@ -278,14 +272,14 @@ impl ColorFormatter {
             .into_iter()
             .map(|m| {
                 let match_lab = Lab::from(m.entry.color.lab);
-                let match_srgb = ColorUtils::lab_to_srgb(match_lab);
+                let match_srgb: Srgb = match_lab.into_color();
                 ColorMatch {
                     name: m.entry.metadata.name.clone(),
-                    hex: ColorUtils::lab_to_hex(match_lab),
+                    hex: crate::color_ops::conversion::srgb_to_hex(match_srgb),
                     lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
                     code: m.entry.metadata.code.clone(),
                     distance: m.distance,
-                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(match_srgb),
+                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(match_srgb),
                 }
             })
             .collect();
@@ -296,14 +290,14 @@ impl ColorFormatter {
             .into_iter()
             .map(|m| {
                 let match_lab = Lab::from(m.entry.color.lab);
-                let match_srgb = ColorUtils::lab_to_srgb(match_lab);
+                let match_srgb: Srgb = match_lab.into_color();
                 ColorMatch {
                     name: m.entry.metadata.name.clone(),
-                    hex: ColorUtils::lab_to_hex(match_lab),
+                    hex: crate::color_ops::conversion::srgb_to_hex(match_srgb),
                     lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
                     code: m.entry.metadata.code.clone(),
                     distance: m.distance,
-                    wcag21_relative_luminance: ColorUtils::wcag_relative_luminance(match_srgb),
+                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(match_srgb),
                 }
             })
             .collect();

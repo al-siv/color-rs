@@ -4,8 +4,8 @@
 //! different color input formats. Each handler in the chain attempts to parse
 //! the input and either handles it or passes it to the next handler.
 
-use crate::{color_utils::LegacyColorUtils as ColorUtils, error::ColorError};
-use palette::Lab;
+use crate::error::ColorError;
+use palette::{IntoColor, Lab, Srgb};
 use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, ColorError>;
@@ -82,13 +82,16 @@ impl ColorParsingHandler for HexColorParsingHandler {
             format!("#{hex_pattern}")
         };
 
-        // Try to parse using the existing color processor
-        match ColorUtils::parse_hex_color(&expanded_hex) {
-            Ok(lab) => Ok(Some(ParseResult {
-                lab_color: lab,
-                format_name: "HEX".to_string(),
-                color_name: None,
-            })),
+        // Try to parse using functional hex conversion
+        match crate::color_ops::conversion::hex_to_srgb(&expanded_hex) {
+            Ok(srgb) => {
+                let lab: Lab = srgb.into_color();
+                Ok(Some(ParseResult {
+                    lab_color: lab,
+                    format_name: "HEX".to_string(),
+                    color_name: None,
+                }))
+            }
             Err(_) => Ok(None),
         }
     }
@@ -164,8 +167,13 @@ impl ColorParsingHandler for CssNamedColorParsingHandler {
         let parser = crate::color_parser::css_parser::CssColorParser::new();
         match parser.parse(&trimmed) {
             Ok(parsed_color) => {
-                // Convert RGB to LAB
-                let lab = ColorUtils::rgb_to_lab((parsed_color.r, parsed_color.g, parsed_color.b));
+                // Convert RGB to LAB using functional conversion
+                let srgb = Srgb::new(
+                    f32::from(parsed_color.r) / 255.0,
+                    f32::from(parsed_color.g) / 255.0,
+                    f32::from(parsed_color.b) / 255.0,
+                );
+                let lab: Lab = srgb.into_color();
                 Ok(Some(ParseResult {
                     lab_color: lab,
                     format_name: "CSS Named".to_string(),

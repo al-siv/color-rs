@@ -6,6 +6,7 @@
 
 use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
+use palette::{IntoColor, Mix};  // Import traits for LAB interpolation and conversion
 use std::collections::HashMap;
 
 /// Command type using enum dispatch (replaces trait objects)
@@ -247,8 +248,9 @@ fn execute_generate_gradient(args: &GradientArgs, output_path: Option<&str>) -> 
 
     for i in 0..steps {
         let t = i as f64 / (steps - 1) as f64;
-        let interpolated = crate::color_utils::LegacyColorUtils::interpolate_lab(start_lab, end_lab, t);
-        let hex = crate::color_utils::LegacyColorUtils::lab_to_hex(interpolated);
+        // Use functional LAB interpolation with palette Mix trait
+        let interpolated = start_lab.mix(end_lab, t as f32);
+        let hex = crate::color_ops::conversion::srgb_to_hex(interpolated.into_color());
         use std::fmt::Write;
         writeln!(output, "Step {}: {}", i, hex).unwrap();
     }
