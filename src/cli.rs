@@ -8,7 +8,7 @@ use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 /// Output format for file export
-#[derive(Debug, Clone, ValueEnum, Default)]
+#[derive(Debug, Clone, ValueEnum, Default, PartialEq)]
 pub enum OutputFormat {
     /// TOML format output
     #[clap(alias = "t")]

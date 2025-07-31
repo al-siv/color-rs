@@ -16,6 +16,8 @@ pub mod color_parser;
 pub mod color_parser_functional;
 pub mod color_schemes;
 pub mod color_utils;
+// Backward Compatibility Layer (Milestone 3.1)
+pub mod compat;
 pub mod config;
 pub mod delta_investigation;
 pub mod distance_test;
@@ -23,6 +25,8 @@ pub mod error;
 pub mod file_output;
 pub mod format_utils;
 pub mod gradient;
+// Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
+pub mod gradient_functional;
 pub mod image;
 pub mod lch_gradient_test;
 pub mod lch_strategy_test;
@@ -79,6 +83,14 @@ pub use command_functional::{
 };
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
+// Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
+pub use gradient_functional::{
+    GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
+    GradientValidationError, linear_gradient, smooth_gradient, positioned_gradient
+};
+
+// Backward Compatibility Layer (Milestone 3.1)
+pub use compat::{ColorParserType, LegacyCommandType, ColorParserCompatTrait, create_parser, execute_legacy_command};
 
 pub use image::{ImageFormat, ImageGenerator};
 pub use utils::Utils;
@@ -95,7 +107,8 @@ impl ColorRs {
 
     /// Generate a gradient based on the provided arguments
     pub fn generate_gradient(&self, args: GradientArgs) -> Result<()> {
-        gradient::generate_gradient(args)
+        // Use functional gradient system (Milestone 2.1b)
+        gradient_functional::generate_gradient_functional(args)
     }
 
     /// Match and convert color between different color spaces  
