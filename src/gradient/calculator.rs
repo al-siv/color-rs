@@ -175,39 +175,48 @@ impl GradientCalculator {
         // CSS cubic-bezier(x1, 0, x2, 1) function
         // Control points: (0,0), (x1,0), (x2,1), (1,1)
         // We need to find Y given X=t using Newton-Raphson iteration
-        
-        if t <= 0.0 { return 0.0; }
-        if t >= 1.0 { return 1.0; }
-        
+
+        if t <= 0.0 {
+            return 0.0;
+        }
+        if t >= 1.0 {
+            return 1.0;
+        }
+
         // Newton-Raphson iteration to solve X(u) = t for parameter u
         let mut u = t; // Initial guess
-        
-        for _ in 0..8 { // 8 iterations should be enough for precision
+
+        for _ in 0..8 {
+            // 8 iterations should be enough for precision
             // Calculate X(u) using cubic bezier formula
             let u2 = u * u;
             let u3 = u2 * u;
             let inv_u = 1.0 - u;
             let inv_u2 = inv_u * inv_u;
-            
+
             // X(u) = 3(1-u)²u*x1 + 3(1-u)u²*x2 + u³
             let x = 3.0 * inv_u2 * u * x1 + 3.0 * inv_u * u2 * x2 + u3;
-            
+
             // X'(u) = 3(1-u)²*x1 + 6(1-u)u*(x2-x1) + 3u²*(1-x2)
             let dx = 3.0 * inv_u2 * x1 + 6.0 * inv_u * u * (x2 - x1) + 3.0 * u2 * (1.0 - x2);
-            
-            if dx.abs() < 1e-12 { break; } // Avoid division by zero
-            
+
+            if dx.abs() < 1e-12 {
+                break;
+            } // Avoid division by zero
+
             u = u - (x - t) / dx;
             u = u.clamp(0.0, 1.0);
-            
-            if (x - t).abs() < 1e-12 { break; } // Converged
+
+            if (x - t).abs() < 1e-12 {
+                break;
+            } // Converged
         }
-        
+
         // Now calculate Y(u) using the found parameter u
         let u2 = u * u;
         let u3 = u2 * u;
         let inv_u = 1.0 - u;
-        
+
         // Y(u) = 3(1-u)²u*0 + 3(1-u)u²*1 + u³*1 = 3(1-u)u² + u³
         3.0 * inv_u * u2 + u3
     }
@@ -304,9 +313,15 @@ impl GradientCalculator {
         use_simple_mode: bool,
     ) -> Vec<UnifiedGradientStop> {
         Self::calculate_unified_gradient_with_strategy(
-            start_lab, end_lab, start_position, end_position, 
-            ease_in, ease_out, steps, use_simple_mode, 
-            &DeltaE2000Strategy
+            start_lab,
+            end_lab,
+            start_position,
+            end_position,
+            ease_in,
+            ease_out,
+            steps,
+            use_simple_mode,
+            &DeltaE2000Strategy,
         )
     }
 
@@ -324,28 +339,32 @@ impl GradientCalculator {
         strategy: &dyn ColorDistanceStrategy,
     ) -> Vec<UnifiedGradientStop> {
         let mut gradient_stops = Vec::new();
-        
+
         if use_simple_mode {
             // Simple mode: equal geometric intervals with RGB interpolation + bezier easing
             let start_rgb = ColorUtils::lab_to_rgb(start_lab);
             let end_rgb = ColorUtils::lab_to_rgb(end_lab);
-            
+
             for i in 0..steps {
                 let t = i as f64 / (steps - 1) as f64;
-                
+
                 // Apply bezier easing to geometric progression
                 let bezier_t = Self::cubic_bezier_ease(t, ease_in, ease_out);
-                
+
                 // RGB interpolation with bezier timing
-                let r = (start_rgb.0 as f64 + (end_rgb.0 as f64 - start_rgb.0 as f64) * bezier_t).round() as u8;
-                let g = (start_rgb.1 as f64 + (end_rgb.1 as f64 - start_rgb.1 as f64) * bezier_t).round() as u8;
-                let b = (start_rgb.2 as f64 + (end_rgb.2 as f64 - start_rgb.2 as f64) * bezier_t).round() as u8;
-                
+                let r = (start_rgb.0 as f64 + (end_rgb.0 as f64 - start_rgb.0 as f64) * bezier_t)
+                    .round() as u8;
+                let g = (start_rgb.1 as f64 + (end_rgb.1 as f64 - start_rgb.1 as f64) * bezier_t)
+                    .round() as u8;
+                let b = (start_rgb.2 as f64 + (end_rgb.2 as f64 - start_rgb.2 as f64) * bezier_t)
+                    .round() as u8;
+
                 // Convert back to LAB for consistent output format
                 let rgb_lab = ColorUtils::rgb_to_lab((r, g, b));
-                
-                let position = (start_position as f64 + t * (end_position - start_position) as f64).round() as u8;
-                
+
+                let position = (start_position as f64 + t * (end_position - start_position) as f64)
+                    .round() as u8;
+
                 gradient_stops.push(UnifiedGradientStop {
                     position,
                     geometric_t: t,
@@ -359,7 +378,7 @@ impl GradientCalculator {
             // Calculate total distance between start and end colors using provided strategy
             let total_distance = strategy.calculate_distance(start_lab, end_lab);
             let step_distance = total_distance / (steps - 1) as f64;
-            
+
             for i in 0..steps {
                 if i == 0 {
                     // First stop: use start color
@@ -384,40 +403,44 @@ impl GradientCalculator {
                 } else {
                     // Middle stops: find geometric position that produces target Delta E distance
                     let target_distance = step_distance * i as f64;
-                    
+
                     // Binary search to find geometric_t that produces target distance
                     let mut low = 0.0;
                     let mut high = 1.0;
                     let mut best_t = 0.5;
-                    
-                    for _ in 0..50 { // Binary search with 50 iterations for precision
+
+                    for _ in 0..50 {
+                        // Binary search with 50 iterations for precision
                         let mid_t = (low + high) / 2.0;
                         let bezier_t = Self::cubic_bezier_ease(mid_t, ease_in, ease_out);
                         let test_color = ColorUtils::interpolate_lab(start_lab, end_lab, bezier_t);
                         let actual_distance = strategy.calculate_distance(start_lab, test_color);
-                        
+
                         if (actual_distance - target_distance).abs() < 0.01 {
                             best_t = mid_t;
                             break;
                         }
-                        
+
                         if actual_distance < target_distance {
                             low = mid_t;
                         } else {
                             high = mid_t;
                         }
-                        
+
                         best_t = mid_t;
                     }
-                    
+
                     // Calculate final bezier_t and actual color using found geometric position
                     let final_bezier_t = Self::cubic_bezier_ease(best_t, ease_in, ease_out);
-                    let actual_lab = ColorUtils::interpolate_lab(start_lab, end_lab, final_bezier_t);
+                    let actual_lab =
+                        ColorUtils::interpolate_lab(start_lab, end_lab, final_bezier_t);
                     let rgb_color = ColorUtils::lab_to_rgb(actual_lab);
-                    
+
                     // Calculate position using the found geometric t
-                    let position = (start_position as f64 + best_t * (end_position - start_position) as f64).round() as u8;
-                    
+                    let position = (start_position as f64
+                        + best_t * (end_position - start_position) as f64)
+                        .round() as u8;
+
                     gradient_stops.push(UnifiedGradientStop {
                         position,
                         geometric_t: best_t,
@@ -428,7 +451,7 @@ impl GradientCalculator {
                 }
             }
         }
-        
+
         gradient_stops
     }
 }
@@ -438,9 +461,9 @@ impl GradientCalculator {
 #[derive(Debug, Clone)]
 pub struct UnifiedGradientStop {
     pub position: u8,
-    pub geometric_t: f64,        // Position in 0-1 range for geometric calculations
-    pub bezier_t: f64,          // Position after bezier easing applied
-    pub lab_color: Lab,         // Color in LAB space
+    pub geometric_t: f64, // Position in 0-1 range for geometric calculations
+    pub bezier_t: f64,    // Position after bezier easing applied
+    pub lab_color: Lab,   // Color in LAB space
     pub rgb_color: (u8, u8, u8), // Color in RGB space
 }
 

@@ -136,29 +136,30 @@ impl ImageGenerator {
         // Map stop positions from [start_position, end_position] to [0%, 100%]
         let position_range = args.end_position - args.start_position;
         let mut last_offset: Option<f64> = None;
-        
+
         for stop in unified_stops {
             let hex_color = ColorUtils::lab_to_hex(stop.lab_color);
             // Convert absolute position to relative position within the gradient with 0.5% precision
-            let relative_offset_precise = (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
+            let relative_offset_precise =
+                (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
             let relative_offset = (relative_offset_precise * 2.0).round() / 2.0; // Round to nearest 0.5%
-            
+
             // Skip duplicates - only add if offset changed by at least 0.5%
             if let Some(last) = last_offset {
                 if (relative_offset - last).abs() < 0.5 {
                     continue;
                 }
             }
-            
+
             last_offset = Some(relative_offset);
-            
+
             // Format offset with proper precision (show .5 when needed, hide .0)
             let offset_str = if relative_offset.fract() == 0.0 {
                 format!("{}%", relative_offset as u8)
             } else {
                 format!("{:.1}%", relative_offset)
             };
-            
+
             svg.push_str(&format!(
                 "      <stop offset=\"{offset_str}\" stop-color=\"{hex_color}\" />\n"
             ));

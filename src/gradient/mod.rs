@@ -164,7 +164,8 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         };
 
         // Find closest color names
-        let closest_css = color_manager.find_closest_css_colors([stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2], 1);
+        let closest_css = color_manager
+            .find_closest_css_colors([stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2], 1);
         let color_name = if closest_css.is_empty() {
             None
         } else {
@@ -182,7 +183,10 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let gradient_stop = GradientStop {
             position: stop.position as u32,
             hex: hex.clone(),
-            rgb: format!("rgb({}, {}, {})", stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2),
+            rgb: format!(
+                "rgb({}, {}, {})",
+                stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2
+            ),
             lab: format!(
                 "lab({:.2}, {:.3}, {:.3})",
                 stop.lab_color.l, stop.lab_color.a, stop.lab_color.b
@@ -214,13 +218,17 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         };
 
         // Get color collections for this stop
-        let stop_collections = find_color_collections([stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2]);
+        let stop_collections =
+            find_color_collections([stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2]);
 
         let enhanced_stop = EnhancedGradientStop {
             position: stop.position as u32,
             color: NestedColorInfo {
                 hex: hex.clone(),
-                rgb: format!("rgb({}, {}, {})", stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2),
+                rgb: format!(
+                    "rgb({}, {}, {})",
+                    stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2
+                ),
                 lab: format!(
                     "lab({:.2}, {:.3}, {:.3})",
                     stop.lab_color.l, stop.lab_color.a, stop.lab_color.b

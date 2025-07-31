@@ -60,9 +60,9 @@ pub trait ColorMatchingTemplate {
     ///
     /// Default implementation performs basic validation.
     /// Subclasses can override for collection-specific validation.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `ColorError::InvalidColor` if the LAB L* component is out of range (0-100).
     fn validate_input(&self, target: &UniversalColor) -> Result<()> {
         // Basic LAB validation
@@ -89,9 +89,9 @@ pub trait ColorMatchingTemplate {
     ///
     /// Default implementation returns the target unchanged.
     /// Subclasses can override for collection-specific preprocessing.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns an error if color preprocessing fails. Default implementation never fails.
     fn preprocess_target(&self, target: &UniversalColor) -> Result<UniversalColor> {
         Ok(target.clone())
@@ -101,9 +101,9 @@ pub trait ColorMatchingTemplate {
     ///
     /// This method must be implemented by concrete classes to perform
     /// the actual matching against their specific color collections.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns an error if color matching fails or the collection cannot be accessed.
     fn find_matches(
         &self,
@@ -115,9 +115,9 @@ pub trait ColorMatchingTemplate {
     ///
     /// Default implementation returns results unchanged.
     /// Subclasses can override for collection-specific post-processing.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns an error if post-processing fails. Default implementation never fails.
     fn post_process_matches(&self, matches: Vec<ColorMatch>) -> Result<Vec<ColorMatch>> {
         Ok(matches)
@@ -288,10 +288,8 @@ impl UnifiedColorMatcher {
     pub fn new() -> Result<Self> {
         Ok(Self {
             css: crate::color_parser::css_collection::CssColorCollection::new()?,
-            ral_classic:
-                crate::color_parser::ral_classic_collection::RalClassicCollection::new()?,
-            ral_design:
-                crate::color_parser::ral_design_collection::RalDesignCollection::new()?,
+            ral_classic: crate::color_parser::ral_classic_collection::RalClassicCollection::new()?,
+            ral_design: crate::color_parser::ral_design_collection::RalDesignCollection::new()?,
         })
     }
 
@@ -306,7 +304,8 @@ impl UnifiedColorMatcher {
 
         // Use template method for each collection
         let css_color_matcher = CssColorMatcher::new(&self.css);
-        let css_color_results = css_color_matcher.match_color(target, limit_per_collection, strategy)?;
+        let css_color_results =
+            css_color_matcher.match_color(target, limit_per_collection, strategy)?;
         all_matches.extend(css_color_results);
 
         let ral_classic_color_matcher = RalClassicMatcher::new(&self.ral_classic);
@@ -349,7 +348,9 @@ mod tests {
         let strategy = create_strategy("deltae76");
 
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
-        let color_results = color_matcher.match_color(&target, 5, strategy.as_ref()).unwrap();
+        let color_results = color_matcher
+            .match_color(&target, 5, strategy.as_ref())
+            .unwrap();
 
         assert!(!color_results.is_empty());
         assert!(color_results.len() <= 5);

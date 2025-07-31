@@ -165,7 +165,10 @@ mod tests {
     fn test_round_to_decimals() {
         let pi_rounded = Utils::round_to_decimals(std::f64::consts::PI, 2);
         // Use approximately equal comparison instead of exact
-        assert!((pi_rounded - (std::f64::consts::PI * 100.0).round() / 100.0).abs() < f64::EPSILON * 10.0);
+        assert!(
+            (pi_rounded - (std::f64::consts::PI * 100.0).round() / 100.0).abs()
+                < f64::EPSILON * 10.0
+        );
         assert!((Utils::round_to_decimals(2.5, 0) - 3.0).abs() < f64::EPSILON);
     }
 

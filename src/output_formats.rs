@@ -421,11 +421,12 @@ impl ProgramMetadata {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        
+
         // Simple RFC3339-like timestamp (YYYY-MM-DDTHH:MM:SSZ)
         // For cross-compilation purposes, use a simplified version
-        let generated_at = format!("2025-01-21T{}:00:00Z", 
-            (now % 86400) / 3600  // Hours of day
+        let generated_at = format!(
+            "2025-01-21T{}:00:00Z",
+            (now % 86400) / 3600 // Hours of day
         );
 
         Self {

@@ -2,8 +2,7 @@
 
 use crate::config::{
     APP_AUTHOR, APP_DESCRIPTION, APP_NAME, APP_VERSION, BEZIER_MAX, BEZIER_MIN, DEFAULT_EASE_IN,
-    DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_START_POSITION,
-    DEFAULT_WIDTH, MAX_PERCENTAGE,
+    DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_START_POSITION, DEFAULT_WIDTH, MAX_PERCENTAGE,
 };
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -222,13 +221,17 @@ impl GradientArgs {
     /// Get SVG filename
     #[must_use]
     pub fn svg_name(&self) -> String {
-        self.svg.clone().unwrap_or_else(|| "gradient.svg".to_string())
+        self.svg
+            .clone()
+            .unwrap_or_else(|| "gradient.svg".to_string())
     }
 
     /// Get PNG filename
     #[must_use]
     pub fn png_name(&self) -> String {
-        self.png.clone().unwrap_or_else(|| "gradient.png".to_string())
+        self.png
+            .clone()
+            .unwrap_or_else(|| "gradient.png".to_string())
     }
 }
 

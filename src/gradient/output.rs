@@ -33,7 +33,8 @@ pub fn format_as_text(values: &[GradientValue]) -> Result<String> {
             output,
             "{:8} | {:7} | {:12} | {}",
             value.position, value.hex, value.rgb, value.wcag_luminance
-        ).unwrap(); // Writing to String never fails
+        )
+        .unwrap(); // Writing to String never fails
     }
 
     Ok(output)

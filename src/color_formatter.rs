@@ -62,7 +62,12 @@ impl ColorFormatter {
             label: label.to_string(),
             hex: format!("#{red:02X}{green:02X}{blue:02X}"),
             rgb: Utils::rgb_to_string(red, green, blue),
-            hsl: format!("hsl({:.0}, {:.1}%, {:.1}%)", hue, saturation * 100.0, lightness * 100.0),
+            hsl: format!(
+                "hsl({:.0}, {:.1}%, {:.1}%)",
+                hue,
+                saturation * 100.0,
+                lightness * 100.0
+            ),
             lab: format!(
                 "lab({:.2}, {:.2}, {:.2})",
                 lab_color.l, lab_color.a, lab_color.b

@@ -72,7 +72,11 @@ impl ConversionResult {
             f32_to_u8_clamped(srgb.blue),
         );
 
-        let hsl_tuple = (hsl_space.hue.into_inner(), hsl_space.saturation, hsl_space.lightness);
+        let hsl_tuple = (
+            hsl_space.hue.into_inner(),
+            hsl_space.saturation,
+            hsl_space.lightness,
+        );
         let lch_tuple = (lch.l, lch.chroma, lch.hue.into_inner());
 
         Self {

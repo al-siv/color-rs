@@ -498,9 +498,7 @@ fn collect_enhanced_color_schemes_data(
         ral_classic_matches.first().map(|closest| {
             let color_hex = format!(
                 "#{:02X}{:02X}{:02X}",
-                closest.entry.color.rgb[0],
-                closest.entry.color.rgb[1],
-                closest.entry.color.rgb[2]
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
             );
             let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
                 0.0
@@ -533,9 +531,7 @@ fn collect_enhanced_color_schemes_data(
         ral_design_matches.first().map(|closest| {
             let color_hex = format!(
                 "#{:02X}{:02X}{:02X}",
-                closest.entry.color.rgb[0],
-                closest.entry.color.rgb[1],
-                closest.entry.color.rgb[2]
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
             );
             let distance = if color_hex.to_uppercase() == input_hex.to_uppercase() {
                 0.0
