@@ -1,6 +1,6 @@
-# Color-rs API Guide v0.14.1
+# Color-rs API Guide v0.15.4
 
-Rust library API reference for color analysis, gradient generation, and color space conversions.
+Rust library API reference for color analysis, gradient generation, and color space conversions with improved distance calculation consistency.
 
 ## Installation
 
@@ -8,7 +8,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-color-rs = "0.14.1"
+color-rs = "0.15.4"
 ```
 
 ## Basic Library Usage
@@ -17,10 +17,10 @@ color-rs = "0.14.1"
 use color_rs::{color, gradient, format_utils, ColorError};
 
 fn main() -> Result<(), ColorError> {
-    // Color analysis
+    // Color analysis (default LCH distance method as of v0.15.4)
     let color_result = color::analyze_color(
         "#FF5733",
-        "delta-e-2000",
+        "lch",    // Default changed from "delta-e-2000" to "lch"
         "lab",
         None,
         None
@@ -42,11 +42,6 @@ fn main() -> Result<(), ColorError> {
     
     Ok(())
 }
-```
-
-## Core Modules
-
-### color Module
 
 Primary color analysis functionality:
 

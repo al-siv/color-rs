@@ -14,7 +14,7 @@ This document describes user-configurable settings, file formats, default search
 
 ## Current Configuration State
 
-As of version 0.11.1, color-rs uses **compile-time configuration** through constants defined in `src/config.rs`. There is no runtime configuration file system yet.
+As of version 0.15.4, color-rs uses **compile-time configuration** through constants defined in `src/config.rs`. There is no runtime configuration file system yet.
 
 ### Compile-time Constants
 
@@ -122,9 +122,9 @@ auto_reload = false
 cache_enabled = true
 
 [distance]
-# Default distance calculation method
-default_method = "delta-e-2000"
-available_methods = ["delta-e-76", "delta-e-2000", "euclidean-lab"]
+# Default distance calculation method (v0.15.4: LCH is now default)
+default_method = "lch"
+available_methods = ["delta-e-76", "delta-e-2000", "euclidean-lab", "lch"]
 
 [output]
 # Output formatting preferences
@@ -373,7 +373,7 @@ gradient_step = 5
 - `COLOR_RS_EASE_OUT` - Default ease-out value (0.0-1.0)
 - `COLOR_RS_GRADIENT_STEP` - Default gradient step percentage (1-100)
 - `COLOR_RS_IMAGE_WIDTH` - Default image width in pixels
-- `COLOR_RS_DISTANCE_METHOD` - Default color distance calculation method
+- `COLOR_RS_DISTANCE_METHOD` - Default color distance calculation method (v0.15.4: LCH is default)
 
 #### Feature Flags
 - `COLOR_RS_ENABLE_CSS_COLORS` - Enable CSS color collection (true/false)

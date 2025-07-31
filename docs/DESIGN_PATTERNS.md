@@ -6,6 +6,7 @@ This document catalogs the Gang of Four design patterns used in the color-rs cod
 
 - [Currently Implemented Patterns](#currently-implemented-patterns)
 - [Pattern Catalog](#pattern-catalog)
+- [Recent Improvements](#recent-improvements)
 - [Unused Patterns](#unused-patterns)
 - [Rust-Specific Considerations](#rust-specific-considerations)
 
@@ -18,12 +19,17 @@ This document catalogs the Gang of Four design patterns used in the color-rs cod
 **Where it lives**: 
 - Module: `src/color_distance_strategies.rs`
 - Trait: `ColorDistanceStrategy`
-- Concrete implementations: `DeltaE76Strategy`, `DeltaE2000Strategy`, `EuclideanLabStrategy`
+- Concrete implementations: `DeltaE76Strategy`, `DeltaE2000Strategy`, `EuclideanLabStrategy`, `LchStrategy`
+
+**Recent Improvements (v0.15.4)**:
+- **Default Changed**: LCH strategy is now the default (previously Delta E 2000)
+- **Unified Application**: Strategy now affects ALL distance calculations in color mode
+- **UnifiedColorManager Integration**: Consistent strategy application across color collections and schemes
 
 **How it's expressed in Rust**:
 ```rust
 pub trait ColorDistanceStrategy: Send + Sync {
-    fn calculate_distance(&self, color1: [f64; 3], color2: [f64; 3]) -> f64;
+    fn calculate_distance(&self, color1: Lab, color2: Lab) -> f64;
     fn name(&self) -> &str;
     fn description(&self) -> &str;
 }
@@ -31,16 +37,17 @@ pub trait ColorDistanceStrategy: Send + Sync {
 // Factory function for strategy creation
 pub fn create_strategy(name: &str) -> Box<dyn ColorDistanceStrategy> {
     match name {
-        "delta-e-76" => Box::new(DeltaE76Strategy),
+        "lch" => Box::new(LchStrategy),              // New default
         "delta-e-2000" => Box::new(DeltaE2000Strategy),
+        "delta-e-76" => Box::new(DeltaE76Strategy),
         "euclidean-lab" => Box::new(EuclideanLabStrategy),
-        _ => Box::new(DeltaE2000Strategy), // Default
+        _ => Box::new(LchStrategy),                  // Default fallback
     }
 }
 ```
 
 **Trade-offs**:
-- ✅ **Pros**: Easy to add new algorithms, runtime selection, clean separation of concerns
+- ✅ **Pros**: Easy to add new algorithms, runtime selection, clean separation of concerns, consistent application
 - ❌ **Cons**: Slight performance overhead from dynamic dispatch, more complex than direct function calls
 - **Alternatives**: Function pointers, enum dispatch, compile-time generics
 

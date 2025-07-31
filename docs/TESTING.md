@@ -46,7 +46,7 @@ color-rs/
 │   │   └── #[cfg(test)] mod tests { ... }    # Unit tests
 │   ├── gradient.rs
 │   │   └── #[cfg(test)] mod tests { ... }    # Unit tests
-│   ├── output_filter.rs                      # Output filtering system (v0.14.1+)
+│   ├── output_filter.rs                      # Output filtering system (v0.15.4)
 │   │   └── #[cfg(test)] mod tests { ... }    # Filtering unit tests
 │   └── ...
 ├── tests/                                     # Integration tests (planned)

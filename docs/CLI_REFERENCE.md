@@ -1,4 +1,4 @@
-# Color-rs CLI Reference v0.14.1
+# Color-rs CLI Reference v0.15.4
 
 Command-line reference for color-rs: color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations.
 
@@ -30,11 +30,11 @@ color-rs color [OPTIONS] <COLOR>
 - `<COLOR>` - Input color value (any format: hex, rgb(), rgba(), hsl(), hsla(), or color name)
 
 ### Options
-- `--distance-method <METHOD>` - Distance calculation method [default: delta-e-2000]
-  - `delta-e-76` - CIE Delta E 1976 (faster)
+- `--distance-method <METHOD>` - Distance calculation method [default: lch]
+  - `lch` - LCH-based calculation (perceptually uniform, default)
   - `delta-e-2000` - CIE Delta E 2000 (perceptually accurate)
+  - `delta-e-76` - CIE Delta E 1976 (faster)
   - `euclidean-lab` - Euclidean distance in LAB space
-  - `lch` - LCH-based calculation
 
 - `--schemes <STRATEGY>` - Color scheme strategy [default: lab]
   - `hsl` - HSL color space schemes
@@ -263,10 +263,18 @@ hsl = [11.0, 100.0, 60.0]
 - **HSL**: Hue, Saturation, Lightness for intuitive color manipulation
 
 ### Distance Methods
-- **Delta E 2000**: Most perceptually accurate (recommended)
+
+**Default: LCH** (changed in v0.15.4 for improved perceptual uniformity)
+
+- **LCH**: Distance in cylindrical LAB coordinates (perceptually uniform, default)
+- **Delta E 2000**: Most perceptually accurate (previous default)
 - **Delta E 76**: Faster computation, less accurate
 - **Euclidean LAB**: Simple geometric distance in LAB space
-- **LCH**: Distance in cylindrical LAB coordinates
+
+**Important**: As of v0.15.4, the `--distance-method` parameter now affects ALL distance calculations in color mode:
+- **Color Collections**: CSS, RAL Classic, and RAL Design System+ matching
+- **Color Schemes**: Complementary, split-complementary, triadic, and tetradic schemes
+- **Unified Calculation**: All color matching operations use the specified distance method consistently
 
 ### Cubic-Bezier Easing
 The gradient command uses cubic-bezier timing functions:
@@ -314,7 +322,7 @@ color-rs color <COLOR> [OPTIONS]
 
 ### Options
 
-- `--distance-method <METHOD>` - Distance calculation method for color matching (default: delta-e-2000)
+- `--distance-method <METHOD>` - Distance calculation method for color matching (default: lch)
   - **Available methods**:
     - `delta-e-76` - Fast CIE Delta E 1976 formula
     - `delta-e-2000` - Industry-standard CIE Delta E 2000 (perceptually accurate)

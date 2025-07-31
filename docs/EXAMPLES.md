@@ -1,6 +1,6 @@
-# Color-rs Usage Examples v0.14.1
+# Color-rs Usage Examples v0.15.4
 
-Practical examples demonstrating color analysis, gradient generation, and YAML/TOML output formats.
+Practical examples demonstrating color analysis, gradient generation, and YAML/TOML output formats with improved distance calculation consistency.
 
 ## Basic Color Analysis
 
@@ -16,38 +16,51 @@ color-rs color "hsl(11, 100%, 60%)"
 ```yaml
 metadata:
   program: "color-rs"
-  version: "0.14.1"
-  timestamp: "2024-01-15T10:30:45Z"
-  analysis_type: "color"
+  version: "0.15.4"
+  timestamp: "2025-01-21T12:00:00Z"
+  distance_strategy: "LCH Color Space"
 
 input:
-  value: "#FF5733"
-  format: "hex"
+  input_color: "#FF5733"
+  base_color: "#FF5733"
 
 conversion:
-  rgb: [255, 87, 51]
-  hsl: [11.0, 100.0, 60.0]
-  hex: "#ff5733"
-  lab: [60.18, 62.06, 54.34]
-  lch: [60.18, 83.45, 41.15]
-  xyz: [0.453, 0.283, 0.062]
+  hex: "#FF5733"
+  rgb: "rgb(255, 87, 51)"
+  hsl: "hsl(11.0, 100.00%, 60.00%)"
+  hsb: "hsv(11.0, 80.00%, 100.00%)"
+  lab: "lab(60.18, 62.06, 54.34)"
+  lch: "lch(60.18, 83.45, 41.15)"
+  cmyk: "cmyk(0.00%, 65.88%, 80.00%, 0.00%)"
+  xyz: "xyz(0.453, 0.283, 0.062)"
+  oklch: "oklch(0.725, 0.173, 35.2)"
 
 contrast:
-  wcag_relative_luminance: 0.283
-  contrast_vs_white: 3.15
-  contrast_vs_black: 6.66
+  wcag21_relative_luminance: 0.283
+  contrast_vs_white:
+    ratio: 3.15
+    assessment: Low
+  contrast_vs_black:
+    ratio: 6.66
+    assessment: Medium
+  brightness:
+    lab_assessment: Medium
+    wcag_assessment: Light
 
 grayscale:
-  rgb: [153, 153, 153]
-  hex: "#999999"
-  lab_l_star: 60.18
+  lch0_hex: "#999999"
+  lch0: "lch(60.18, 0.000, 41.15)"
+  lch2_hex: "#9C9897"
+  lch2: "lch(60.18, 2.000, 41.15)"
 
 color_collections:
   css_colors:
-    - name: "tomato"
-      hex: "#ff6347"
-      distance: 2.84
-    - name: "orangered"
+    - name: "Tomato"
+      hex: "#FF6347"
+      lch: "lch(62.21, 74.173, 38.7)"
+      code: "tomato"
+      distance: 8.43
+      wcag21_relative_luminance: 0.3064
       hex: "#ff4500"
       distance: 8.92
   ral_classic:
@@ -375,12 +388,32 @@ distance = 2.84
 
 ## Distance Method Comparison
 
+**Default Changed in v0.15.4**: LCH is now the default distance method for improved perceptual uniformity.
+
 ```bash
-# Different distance calculation methods
-color-rs color "#FF5733" --distance-method delta-e-2000  # Most accurate
-color-rs color "#FF5733" --distance-method delta-e-76    # Faster
-color-rs color "#FF5733" --distance-method euclidean-lab # Simple
-color-rs color "#FF5733" --distance-method lch           # Cylindrical
+# Default (LCH) - perceptually uniform, cylindrical LAB coordinates
+color-rs color "#FF5733"  # Uses LCH by default
+
+# Previous default - most perceptually accurate
+color-rs color "#FF5733" --distance-method delta-e-2000
+
+# Faster calculation
+color-rs color "#FF5733" --distance-method delta-e-76
+
+# Simple geometric distance
+color-rs color "#FF5733" --distance-method euclidean-lab
+```
+
+**Important**: The distance method now affects ALL calculations in color mode:
+- Color collections (CSS, RAL Classic, RAL Design)
+- Color schemes (complementary, triadic, etc.)
+- All distance values shown in output
+
+### Distance Method Impact Example
+```bash
+# Compare LCH vs Delta E 2000 for green
+color-rs color "#00FF00" --distance-method lch --func "[color_collections.css_colors]"
+color-rs color "#00FF00" --distance-method delta-e-2000 --func "[color_collections.css_colors]"
 ```
 
 ## Color Scheme Strategies

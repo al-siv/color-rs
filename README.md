@@ -334,10 +334,10 @@ color-rs gradient "#FF5733" "#00AFF0" --stops 8 --output toml
 - **RAL Design System+**: 1825+ extended color palette
 
 ### Distance Strategies
+- LCH distance calculations (default)
+- Delta E 2000
 - Delta E 76
-- Delta E 2000 (default)
 - Euclidean LAB
-- LCH distance calculations
 
 ### Output Formats
 - **YAML**: Default structured output format
@@ -363,7 +363,7 @@ fn main() -> color_rs::Result<()> {
     // Color analysis
     let args = ColorArgs {
         color: "red".to_string(),
-        distance_method: "delta-e-2000".to_string(),
+        distance_method: "lch".to_string(),
         scheme_strategy: "lab".to_string(),
         relative_luminance: None,
         luminance: None,

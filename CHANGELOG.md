@@ -5,6 +5,27 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.4] - 2025-01-21
+
+### Changed
+- **BREAKING CHANGE**: Default distance calculation method changed from "delta-e-2000" to "lch"
+  - LCH color space now provides the default distance calculations for better perceptual uniformity
+  - All existing workflows continue to work, but may produce different color matches
+  - Users can specify `--distance-method delta-e-2000` to maintain previous behavior
+
+### Fixed
+- **Distance Method Consistency**: The `--distance-method` parameter now affects ALL distance calculations in color mode
+  - **Color Collections**: CSS, RAL Classic, and RAL Design System+ matching now use specified distance method
+  - **Color Schemes**: Complementary, split-complementary, triadic, and tetradic schemes now use specified distance method
+  - **Unified Implementation**: Replaced legacy ColorParser with UnifiedColorManager for consistent strategy application
+  - **Architecture Improvement**: Refactored collect_enhanced_color_schemes_data function to properly propagate distance strategy
+
+### Technical Details
+- **Code Refactoring**: Migrated from ColorParser to UnifiedColorManager throughout color scheme generation
+- **Function Signature Updates**: Updated collect_enhanced_color_schemes_data to accept distance_strategy parameter
+- **Strategy Propagation**: Ensured distance strategy flows through all color matching operations
+- **Test Coverage**: Comprehensive testing confirms all four distance methods work correctly across all features
+
 ## [0.15.3] - 2025-01-21
 
 ### Added

@@ -1,4 +1,4 @@
-# Color-rs Feature Catalog v0.14.1
+# Color-rs Feature Catalog v0.15.4
 
 Comprehensive catalog of color analysis, gradient generation, structured output capabilities, and selective output filtering.
 
@@ -8,10 +8,11 @@ Comprehensive catalog of color analysis, gradient generation, structured output 
 - **Input Format Detection**: Automatic parsing of hex, rgb(), hsl(), and named colors
 - **RAL Color System**: Support for RAL Classic (213 colors) and RAL Design System+ (1825+ colors)  
 - **Color Space Conversions**: RGB, HSL, HEX, LAB, LCH, XYZ with palette library
-- **Distance Calculations**: CIE Delta E 2000, Delta E 76, Euclidean LAB, LCH methods
+- **Distance Calculations**: LCH (default), CIE Delta E 2000, Delta E 76, Euclidean LAB methods
 - **WCAG Compliance**: Relative luminance and contrast ratio calculations
 - **Color Collections**: CSS colors, RAL systems with closest match finding
 - **Color Schemes**: Complementary, triadic, tetradic harmonies in LAB and HSL space
+- **Consistent Distance Method**: `--distance-method` affects ALL calculations (v0.15.4)
 
 ### Gradient Generation  
 - **LAB Color Space**: Perceptually uniform gradient interpolation
@@ -133,7 +134,7 @@ color-rs color [OPTIONS] <COLOR>
 
 **Options:**
 - `--func`: Select output formats (hex,rgb,hsl,lab) for filtered results (v0.14.1+)
-- `--distance-method`: delta-e-2000, delta-e-76, euclidean-lab, lch
+- `--distance-method`: lch (default), delta-e-2000, delta-e-76, euclidean-lab
 - `--schemes`: lab, hsl
 - `--relative-luminance`: Replace with WCAG luminance (0.0-1.0)
 - `--luminance`: Replace with Lab lightness value

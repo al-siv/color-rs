@@ -246,7 +246,7 @@ pub struct ColorArgs {
     #[arg(
         long,
         value_name = "METHOD",
-        default_value = "delta-e-2000",
+        default_value = "lch",
         help = "Distance calculation method: delta-e-76, delta-e-2000, euclidean-lab, lch"
     )]
     pub distance_method: String,

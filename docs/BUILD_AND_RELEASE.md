@@ -45,7 +45,7 @@ color-rs/
 ```toml
 [package]
 name = "color-rs"
-version = "0.14.1"
+version = "0.15.4"
 edition = "2024"            # Latest Rust edition
 description = "A CLI tool and Rust library for color gradient calculations using LAB color space with cubic-bezier easing functions"
 authors = ["al-siv <https://github.com/al-siv>"]
@@ -339,7 +339,7 @@ Color-rs follows [Semantic Versioning (SemVer)](https://semver.org/):
 #### Version Lifecycle
 
 ```
-0.14.1 (current) → 0.14.2 (patch) → 0.15.0 (minor) → 1.0.0 (major)
+0.15.4 (current) → 0.15.5 (patch) → 0.16.0 (minor) → 1.0.0 (major)
 ```
 
 ### Release Checklist
@@ -363,8 +363,8 @@ Color-rs follows [Semantic Versioning (SemVer)](https://semver.org/):
 
 #### Distribution
 
-- [ ] Create Git tag: `git tag v0.14.1`
-- [ ] Push tag: `git push origin v0.14.1`
+- [ ] Create Git tag: `git tag v0.15.4`
+- [ ] Push tag: `git push origin v0.15.4`
 - [ ] Publish to crates.io: `cargo publish`
 - [ ] Create GitHub release with binaries
 - [ ] Update documentation sites

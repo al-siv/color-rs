@@ -8,6 +8,8 @@ This document describes the domain model of color-rs, including rationale for ea
 - [Color Representation](#color-representation)
 - [Gradient System Types](#gradient-system-types)
 - [Parser System Types](#parser-system-types)
+- [Unified Manager Types](#unified-manager-types)
+- [Distance Strategy Types](#distance-strategy-types)
 - [Output Filter System Types](#output-filter-system-types)
 - [Error Types](#error-types)
 - [Type Safety and Invariants](#type-safety-and-invariants)
@@ -102,10 +104,11 @@ pub struct ColorMatch {
 }
 ```
 
-**Rationale**: Combines matched color with its calculated distance and source collection for ranking results.
+**Rationale**: Combines matched color with its calculated distance and source collection for ranking results. Distance calculation uses strategy from UnifiedColorManager (v0.15.4).
 
 **Invariants**:
 - `distance` is always non-negative (≥ 0.0)
+- Distance calculated using consistent strategy across all collections
 - `collection_type` matches the collection field in the contained UniversalColor
 - Lower distance values indicate closer matches
 
@@ -241,7 +244,58 @@ pub struct ColorMatchArgs {
 
 **Rationale**: Simple structure for color analysis commands. Uses string types to defer validation to parsing stage.
 
-**Invariants**: Color parsing and distance method validation occur during execution, not at type level.
+**Invariants**: Color parsing and distance method validation occur during execution, not at type level. Default distance method is LCH (v0.15.4).
+
+## Unified Manager Types
+
+### UnifiedColorManager
+
+**New in v0.15.4**: Central manager for consistent color operations across all collections and schemes.
+
+```rust
+pub struct UnifiedColorManager {
+    distance_strategy: Box<dyn ColorDistanceStrategy>,
+    css_collection: CssColorCollection,
+    ral_classic_collection: RalClassicCollection,
+    ral_design_collection: RalDesignCollection,
+}
+```
+
+**Rationale**: Ensures consistent distance strategy application across all color calculations. Replaces legacy parser-based approach with unified architecture.
+
+**Invariants**:
+- Distance strategy is applied consistently to ALL calculations
+- Collections are initialized once and reused
+- Strategy can be changed at runtime while maintaining consistency
+
+**Constructor**: Use `UnifiedColorManager::new(strategy)` to ensure proper initialization.
+
+## Distance Strategy Types
+
+### ColorDistanceStrategy
+
+Trait for pluggable color distance calculation algorithms.
+
+```rust
+pub trait ColorDistanceStrategy: Send + Sync {
+    fn calculate_distance(&self, color1: Lab, color2: Lab) -> f64;
+    fn name(&self) -> &str;
+    fn description(&self) -> &str;
+}
+```
+
+**Available Implementations**:
+- `LchStrategy` - **Default** (v0.15.4): Perceptually uniform LCH color space distance
+- `DeltaE2000Strategy` - CIE Delta E 2000 formula for accurate color differences
+- `DeltaE76Strategy` - CIE Delta E 76 formula for basic color differences  
+- `EuclideanLabStrategy` - Simple Euclidean distance in LAB space
+
+**Rationale**: Strategy pattern allows runtime selection of distance algorithms with different performance/accuracy characteristics.
+
+**Invariants**:
+- All distance calculations return non-negative values
+- Same color pairs always return same distance with same strategy
+- Thread-safe for concurrent usage
 
 ## Parser System Types
 

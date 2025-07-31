@@ -281,6 +281,14 @@ flowchart TD
 4. **Facade Pattern**: `ColorOperationsFacade` simplifies complex color operations
 5. **Template Method Pattern**: `ColorMatchingTemplate` standardizes matching algorithms
 
+### Recent Architectural Improvements (v0.15.4)
+
+**Distance Strategy Consistency**: Implemented unified distance calculation throughout the color mode:
+- **UnifiedColorManager Integration**: Migrated from legacy ColorParser to UnifiedColorManager
+- **Strategy Propagation**: All color operations now consistently use the specified distance method
+- **Code Unification**: Eliminated duplicate distance calculation implementations
+- **API Improvement**: Enhanced collect_enhanced_color_schemes_data to accept distance strategy parameter
+
 ### Architectural Benefits
 
 - **Modularity**: Clear separation between parsing, calculation, and output generation
@@ -288,6 +296,7 @@ flowchart TD
 - **Type Safety**: Rust's type system prevents invalid color operations
 - **Performance**: LAB color space ensures perceptually uniform gradients
 - **Maintainability**: Design patterns provide clear structure and responsibilities
+- **Consistency**: Unified distance calculation strategy across all color operations
 
 ## Feature Flags and Configuration
 
