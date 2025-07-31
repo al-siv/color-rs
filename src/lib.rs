@@ -8,12 +8,12 @@ pub mod cli;
 pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
-// Temporarily disabled during Strategy Pattern elimination (Milestone 1.1b)
-// Will be re-enabled and migrated in Milestone 1.2 (Template Method Pattern)
-// pub mod color_matching_template;
+// Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
+pub mod color_matching_functional;
 pub mod color_operations_facade;
 pub mod color_parser;
-pub mod color_parser_factory;
+// Factory Pattern Migration (Milestone 1.3) - Functional Replacement
+pub mod color_parser_functional;
 pub mod color_schemes;
 pub mod color_utils;
 pub mod config;
@@ -31,7 +31,8 @@ pub mod precision_utils;
 pub mod utils;
 
 // New GoF Pattern Implementations
-pub mod command_pattern;
+// Command Pattern Migration (Milestone 1.4) - Functional Replacement
+pub mod command_functional;
 pub mod parsing_chain;
 
 // Re-export main types for convenience
@@ -44,18 +45,38 @@ pub use color_distance_strategies::{
     // Lens/optics for functional field access
     LabLens, LightnessLens, ALens, BLens
 };
-// Temporarily disabled during Strategy Pattern elimination (Milestone 1.1b)
-// Will be re-enabled and migrated in Milestone 1.2 (Template Method Pattern)
-// pub use color_matching_template::{ColorMatchingTemplate, UnifiedColorMatcher};
+// Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
+pub use color_matching_functional::{
+    CollectionType, MatchingConfig, 
+    match_color_functional, match_color_by_type, match_across_all_collections,
+    validate_lab_basic, validate_ral_classic, validate_ral_design,
+    post_process_ral_design, extract_hue_from_code
+};
 pub use color_operations_facade::{ColorAnalysis, ColorOperationsFacade};
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
-pub use color_parser_factory::{
-    ColorParserConfig, ColorParserFactory, ColorParserTrait, ColorParserType,
+// Factory Pattern Migration (Milestone 1.3) - Functional Replacement
+pub use color_parser_functional::{
+    ParserType, ParsingConfig, ParserCapabilities,
+    PreprocessingStep, PostprocessingStep,
+    parse_color_functional, get_color_name_functional, get_parser_capabilities,
+    fast_parsing_config, comprehensive_parsing_config, strict_parsing_config,
+    parse_color_fast, parse_color_comprehensive, parse_color_strict,
+    get_color_name_fast, get_color_name_comprehensive, get_color_name_strict,
+    AVAILABLE_PARSER_TYPES
 };
 pub use color_schemes::{
     ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
 };
 pub use color_utils::LegacyColorUtils as ColorUtils;
+// Command Pattern Migration (Milestone 1.4) - Functional Replacement
+pub use command_functional::{
+    CommandType, ExecutionContext, ExecutionResult,
+    PreHookStep, PostHookStep,
+    execute_command_functional, get_command_name, get_command_description, supports_undo,
+    create_gradient_command, create_analyze_command, create_find_closest_command, create_convert_command,
+    execute_command_simple, execute_command_with_validation, execute_command_enhanced,
+    AVAILABLE_COMMAND_TYPES
+};
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
 

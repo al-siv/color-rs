@@ -48,7 +48,7 @@ pub enum Commands {
 }
 
 /// Arguments for gradient generation
-#[derive(Args, Clone)]
+#[derive(Args, Clone, Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct GradientArgs {
     /// Starting color (HEX, RGB, HSL, or named color, e.g., #FF0000, rgb(255,0,0), red)

@@ -305,24 +305,6 @@ pub struct CollectionMatch {
     pub wcag_relative_luminance: f64,
 }
 
-/// Individual color scheme item with format conversions and color name matching (deprecated)
-#[derive(Debug, Clone, Serialize, Default)]
-pub struct ColorSchemeItem {
-    pub hex: String,
-    pub hsl: String,
-    pub lch: String,
-    pub color_name: Option<ColorNameInfo>,
-}
-
-/// Set of color schemes for a strategy (deprecated)
-#[derive(Debug, Clone, Serialize, Default)]
-pub struct ColorSchemeSet {
-    pub complementary: ColorSchemeItem,
-    pub split_complementary: Vec<ColorSchemeItem>,
-    pub triadic: Vec<ColorSchemeItem>,
-    pub tetradic: Vec<ColorSchemeItem>,
-}
-
 impl Default for ColorAnalysisOutput {
     fn default() -> Self {
         Self::new()
