@@ -293,7 +293,7 @@ impl GradientCalculator {
                 position: format!("{}%", position.round() as u8),
                 hex: hex_color,
                 rgb: Utils::rgb_to_string(rgb_values.0, rgb_values.1, rgb_values.2),
-                wcag_luminance: format!("{wcag_luminance:.3}"),
+                wcag_luminance: crate::precision_utils::PrecisionUtils::format_wcag_relative_luminance(wcag_luminance),
             });
         }
 

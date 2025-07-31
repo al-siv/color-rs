@@ -33,6 +33,7 @@ pub struct CollectionColorMatch {
 pub struct NearestColorMatch {
     pub name: String,
     pub collection: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub distance: f64,
 }
 
@@ -120,7 +121,9 @@ pub struct ColorInfo {
 /// Contrast analysis between two colors
 #[derive(Debug, Clone, Serialize)]
 pub struct ContrastAnalysis {
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub distance: f64,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
     pub wcag21_relative_luminance: f64,
     pub relative_contrast: f32,
 }
@@ -129,10 +132,13 @@ pub struct ContrastAnalysis {
 #[derive(Debug, Clone, Serialize)]
 pub struct ColorCollectionMatches {
     pub css: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub css_distance: f64,
     pub ralc: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub ralc_distance: f64,
     pub raldsp: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub raldsp_distance: f64,
 }
 
@@ -155,6 +161,7 @@ pub struct NestedColorInfo {
     pub lab: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
     pub wcag21_relative_luminance: f64,
     pub distance: f32, // Color distance from start_color using Delta E 2000
 }
@@ -171,6 +178,7 @@ pub struct GradientStop {
     pub lab: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub lch: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
     pub wcag21_relative_luminance: f64,
     pub distance: f32, // Color distance from start_color using Delta E 2000
     pub color_name: Option<ColorNameInfo>,
@@ -211,6 +219,7 @@ pub struct ColorFormats {
 /// Contrast and luminance information
 #[derive(Debug, Clone, Serialize)]
 pub struct ContrastData {
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
     pub wcag21_relative_luminance: f64,
     pub contrast_vs_white: ContrastInfo,
     pub contrast_vs_black: ContrastInfo,
@@ -259,7 +268,9 @@ pub struct ColorMatch {
     pub hex: String,
     pub lch: String,
     pub code: Option<String>,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub distance: f64,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
     pub wcag21_relative_luminance: f64,
 }
 
@@ -288,7 +299,9 @@ pub struct EnhancedColorSchemeItem {
 pub struct CollectionMatch {
     pub name: String,
     pub hex: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
     pub distance: f64,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
     pub wcag_relative_luminance: f64,
 }
 

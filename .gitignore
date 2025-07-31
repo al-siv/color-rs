@@ -7,7 +7,6 @@ dockerfile*
 # IDE files
 .vscode/
 .idea/
-phases/
 *.swp
 *.swo
 
@@ -27,9 +26,5 @@ Thumbs.db
 *.yaml
 
 # Plan file (not for version control)
-PLAN.md
-PLAN-example.md
-BRIEFING.md
-BRIEFING-example.md
+BRIEFING-*.md
 GUIDELINES.md
-PHASE*.md

@@ -188,11 +188,11 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2
             ),
             lab: format!(
-                "lab({:.2}, {:.3}, {:.3})",
+                "lab({:.2}, {:.2}, {:.2})",
                 stop.lab_color.l, stop.lab_color.a, stop.lab_color.b
             ),
             lch: format!(
-                "lch({:.2}, {:.3}, {:.1})",
+                "lch({:.2}, {:.2}, {:.1})",
                 stop.lab_color.l,
                 stop.lab_color.a.hypot(stop.lab_color.b),
                 stop.lab_color.b.atan2(stop.lab_color.a).to_degrees()
@@ -230,11 +230,11 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                     stop.rgb_color.0, stop.rgb_color.1, stop.rgb_color.2
                 ),
                 lab: format!(
-                    "lab({:.2}, {:.3}, {:.3})",
+                    "lab({:.2}, {:.2}, {:.2})",
                     stop.lab_color.l, stop.lab_color.a, stop.lab_color.b
                 ),
                 lch: format!(
-                    "lch({:.2}, {:.3}, {:.1})",
+                    "lch({:.2}, {:.2}, {:.1})",
                     stop.lab_color.l,
                     stop.lab_color.a.hypot(stop.lab_color.b),
                     stop.lab_color.b.atan2(stop.lab_color.a).to_degrees()
@@ -268,11 +268,11 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                     start_color.r, start_color.g, start_color.b
                 ),
                 lab: format!(
-                    "lab({:.2}, {:.3}, {:.3})",
+                    "lab({:.2}, {:.2}, {:.2})",
                     start_lab.l, start_lab.a, start_lab.b
                 ),
                 lch: format!(
-                    "lch({:.2}, {:.3}, {:.1})",
+                    "lch({:.2}, {:.2}, {:.1})",
                     start_lab.l,
                     start_lab.a.hypot(start_lab.b),
                     start_lab.b.atan2(start_lab.a).to_degrees()
@@ -287,9 +287,9 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
             end: ColorInfo {
                 hex: ColorUtils::lab_to_hex(end_lab),
                 rgb: format!("rgb({}, {}, {})", end_color.r, end_color.g, end_color.b),
-                lab: format!("lab({:.2}, {:.3}, {:.3})", end_lab.l, end_lab.a, end_lab.b),
+                lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: format!(
-                    "lch({:.2}, {:.3}, {:.1})",
+                    "lch({:.2}, {:.2}, {:.1})",
                     end_lab.l,
                     end_lab.a.hypot(end_lab.b),
                     end_lab.b.atan2(end_lab.a).to_degrees()
@@ -325,11 +325,11 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                     start_color.r, start_color.g, start_color.b
                 ),
                 lab: format!(
-                    "lab({:.2}, {:.3}, {:.3})",
+                    "lab({:.2}, {:.2}, {:.2})",
                     start_lab.l, start_lab.a, start_lab.b
                 ),
                 lch: format!(
-                    "lch({:.2}, {:.3}, {:.1})",
+                    "lch({:.2}, {:.2}, {:.1})",
                     start_lab.l,
                     start_lab.a.hypot(start_lab.b),
                     start_lab.b.atan2(start_lab.a).to_degrees()
@@ -344,9 +344,9 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
             end: ColorInfo {
                 hex: ColorUtils::lab_to_hex(end_lab),
                 rgb: format!("rgb({}, {}, {})", end_color.r, end_color.g, end_color.b),
-                lab: format!("lab({:.2}, {:.3}, {:.3})", end_lab.l, end_lab.a, end_lab.b),
+                lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: format!(
-                    "lch({:.2}, {:.3}, {:.1})",
+                    "lch({:.2}, {:.2}, {:.1})",
                     end_lab.l,
                     end_lab.a.hypot(end_lab.b),
                     end_lab.b.atan2(end_lab.a).to_degrees()

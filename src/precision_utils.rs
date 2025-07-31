@@ -4,17 +4,17 @@
 //! to ensure consistent formatting across console output and file export.
 
 /// Maximum decimal places for floating point values
-pub const MAX_DECIMAL_PLACES: usize = 5;
+pub const MAX_DECIMAL_PLACES: usize = 3;
 
 /// Precision utility for standardized floating point formatting
 pub struct PrecisionUtils;
 
 impl PrecisionUtils {
-    /// Format a floating point value with maximum 5 decimal places
+    /// Format a floating point value with maximum 3 decimal places
     /// Removes trailing zeros for cleaner output
     #[must_use]
     pub fn format_f64(value: f64) -> String {
-        let formatted = format!("{value:.5}");
+        let formatted = format!("{value:.3}");
         // Remove trailing zeros and decimal point if not needed
         formatted
             .trim_end_matches('0')
@@ -41,8 +41,8 @@ impl PrecisionUtils {
         format!(
             "lab({}, {}, {})",
             Self::format_f64_fixed(l, 2),
-            Self::format_f64_fixed(a, 3),
-            Self::format_f64_fixed(b, 3)
+            Self::format_f64_fixed(a, 2),
+            Self::format_f64_fixed(b, 2)
         )
     }
 
@@ -52,7 +52,7 @@ impl PrecisionUtils {
         format!(
             "lch({}, {}, {})",
             Self::format_f64_fixed(l, 2),
-            Self::format_f64_fixed(c, 3),
+            Self::format_f64_fixed(c, 2),
             Self::format_f64_fixed(h, 1)
         )
     }
@@ -112,6 +112,28 @@ impl PrecisionUtils {
             Self::format_percentage(k)
         )
     }
+
+    /// Format WCAG relative luminance with 4 decimal places
+    #[must_use]
+    pub fn format_wcag_relative_luminance(value: f64) -> String {
+        format!("{value:.4}")
+    }
+
+    /// Serialize f64 values with 3 decimal places max
+    pub fn serialize_f64_3<S>(value: &f64, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_f64((*value * 1000.0).round() / 1000.0)
+    }
+
+    /// Serialize WCAG relative luminance values with 4 decimal places
+    pub fn serialize_wcag_luminance<S>(value: &f64, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_f64((*value * 10000.0).round() / 10000.0)
+    }
 }
 
 #[cfg(test)]
@@ -120,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_format_f64() {
-        assert_eq!(PrecisionUtils::format_f64(1.234_567_89), "1.23457");
+        assert_eq!(PrecisionUtils::format_f64(1.234_567_89), "1.235");
         assert_eq!(PrecisionUtils::format_f64(1.0), "1");
         assert_eq!(PrecisionUtils::format_f64(1.10000), "1.1");
         assert_eq!(PrecisionUtils::format_f64(0.0), "0");
@@ -137,7 +159,27 @@ mod tests {
     fn test_format_lab() {
         assert_eq!(
             PrecisionUtils::format_lab(50.123_456, 25.789_012, -15.345_678),
-            "lab(50.12, 25.789, -15.346)"
+            "lab(50.12, 25.79, -15.35)"
+        );
+    }
+
+    #[test]
+    fn test_format_lch() {
+        assert_eq!(
+            PrecisionUtils::format_lch(53.24, 104.552, 40.0),
+            "lch(53.24, 104.55, 40.0)"
+        );
+    }
+
+    #[test]
+    fn test_format_wcag_relative_luminance() {
+        assert_eq!(
+            PrecisionUtils::format_wcag_relative_luminance(0.283_456_789),
+            "0.2835"
+        );
+        assert_eq!(
+            PrecisionUtils::format_wcag_relative_luminance(1.0),
+            "1.0000"
         );
     }
 }
