@@ -1,6 +1,24 @@
 # Color-rs Usage Examples v0.15.4
 
-Practical examples demonstrating color analysis, gradient generation, and YAML/TOML output formats with improved distance calculation consistency.
+Practical examples demonstrating color analysis, gradient generation, and YAML/TOML output formats with improved distance calculation consistency and **functional programming patterns**.
+
+## Functional Programming Approach
+
+Color-rs v0.15.4+ follows **functional programming principles**:
+- **Pure Functions**: All color operations are deterministic with immutable inputs
+- **Function Composition**: Complex operations built from composing simple functions  
+- **Type Safety**: Leveraging Rust's type system for compile-time guarantees
+- **Immutable Data**: Preference for immutable transformations over mutable state
+
+## Basic Color Analysis
+
+```bash
+# Analyze any color format - pure function transformations
+color-rs color "#FF5733"
+color-rs color "rgb(255, 87, 51)"
+color-rs color "red"
+color-rs color "hsl(11, 100%, 60%)"
+```
 
 ## Basic Color Analysis
 
@@ -573,51 +591,48 @@ color-rs gradient "#EF4444" "#10B981" --ease-in 0.42 --ease-out 0.58
 color-rs gradient coral navy --png --width 4000 --no-legend
 ```
 
-## Color Distance Strategy Examples
+## Color Distance Algorithm Examples
 
-### Strategy Pattern - Different Distance Methods
+### Functional Algorithm Selection
 
 ```bash
-# Use different color distance calculation methods
+# Use different color distance calculation algorithms
 color-rs color-match red --distance-method delta-e-76      # CIE Delta E 1976 (fast)
 color-rs color-match red --distance-method delta-e-2000    # CIE Delta E 2000 (most accurate)
 color-rs color-match red --distance-method euclidean-lab   # Euclidean distance in LAB space
 
-# Compare results between different strategies
+# Compare results between different algorithms
 color-rs color-match "#FF6B35" --distance-method delta-e-76
 color-rs color-match "#FF6B35" --distance-method delta-e-2000
 
-# Use strategy in gradients for color selection
+# Use algorithm selection in gradients for color selection
 color-rs gradient red blue --distance-method delta-e-2000
 ```
 
-**Distance Method Details:**
+**Algorithm Details:**
 - **delta-e-76**: CIE Delta E 1976 - Fast, basic perceptual distance
 - **delta-e-2000**: CIE Delta E 2000 - Most accurate perceptual distance, industry standard
 - **euclidean-lab**: Euclidean distance in LAB color space - Mathematical distance
 
-### Library Integration with Strategies
+### Library Integration with Functional Algorithms
 
 ```rust
-use color_rs::color_distance_strategies::{ColorDistanceStrategy, create_strategy};
+use color_rs::color_distance_algorithms::{DistanceAlgorithm, calculate_distance};
 
-// Create different strategies
-let delta_e_76 = create_strategy("delta-e-76");
-let delta_e_2000 = create_strategy("delta-e-2000");
-let euclidean = create_strategy("euclidean-lab");
-
-// Calculate distances with different methods
+// Use enum-based algorithm selection (functional approach)
 let lab1 = [50.0, 20.0, -30.0];
 let lab2 = [60.0, 15.0, -20.0];
 
-let distance_76 = delta_e_76.calculate_distance(lab1, lab2);
-let distance_2000 = delta_e_2000.calculate_distance(lab1, lab2);
-let distance_euclidean = euclidean.calculate_distance(lab1, lab2);
+// Pure function calls with algorithm enums
+let distance_76 = calculate_distance(DistanceAlgorithm::DeltaE76, lab1, lab2);
+let distance_2000 = calculate_distance(DistanceAlgorithm::DeltaE2000, lab1, lab2);
+let distance_euclidean = calculate_distance(DistanceAlgorithm::EuclideanLab, lab1, lab2);
 
-// Use strategies with UnifiedColorManager
-let manager = UnifiedColorManager::new();
-let results = manager.find_closest_with_strategy([255, 100, 50], &delta_e_2000, 5);
+// Functional color matching with algorithm parameter
+let results = find_closest_color([255, 100, 50], DistanceAlgorithm::DeltaE2000, &collections, 5);
 ```
+
+**Migration Note**: This functional approach replaces the deprecated Strategy pattern with pure functions and enum-based algorithm selection (planned for v0.16.0).
 
 ## Unified Color Collection System
 

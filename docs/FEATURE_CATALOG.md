@@ -1,6 +1,15 @@
 # Color-rs Feature Catalog v0.15.4
 
-Comprehensive catalog of color analysis, gradient generation, structured output capabilities, and selective output filtering.
+Comprehensive catalog of color analysis, gradient generation, structured output capabilities, and selective output filtering, implemented using **functional programming patterns**.
+
+## Functional Programming Architecture
+
+Color-rs v0.15.4+ implements **functional programming principles**:
+- **Pure Functions**: Core color operations are deterministic with immutable inputs
+- **Function Composition**: Complex workflows built by composing simple, reusable functions
+- **Type Safety**: Leveraging Rust's type system for compile-time guarantees
+- **Immutable Data**: Preference for immutable transformations over mutable state
+- **Pattern Matching**: Using enums and pattern matching instead of object-oriented patterns
 
 ## Core Features
 
@@ -201,7 +210,7 @@ color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
 - **Output Filtering**: Selective format inclusion with `FilterEngine` and `FilterConfig` (v0.14.1+)
 - **Color Operations**: RGB/HSL/LAB conversions with palette integration
 - **Collection Management**: RAL and CSS color systems with unified interface
-- **Distance Calculations**: Multiple algorithms with strategy pattern
+- **Distance Calculations**: Multiple algorithms with functional enum-based selection
 - **Output Formatting**: Structured data generation with metadata
 - **CLI Interface**: Argument parsing and command dispatch
 - **Image Generation**: SVG/PNG export with legend support
@@ -846,10 +855,11 @@ let distance = facade.calculate_distance(
 let analysis = facade.analyze_color("#FF0000")?;
 ```
 
-**Gradient Builder Pattern**
+**Gradient Configuration (Builder Pattern - Migrating to Functional)**
 ```rust
 use color_rs::GradientBuilder;
 
+// Current approach (v0.15.4)
 let gradient = GradientBuilder::new()
     .start_color("red")
     .end_color("blue")
@@ -858,6 +868,16 @@ let gradient = GradientBuilder::new()
     .with_svg_export("gradient.svg")
     .with_png_export("gradient.png")
     .build()?;
+
+// Future functional approach (planned v0.16.0)
+let config = GradientConfig {
+    start_color: parse_color("red")?,
+    end_color: parse_color("blue")?,
+    easing: EasingType::InOut,
+    steps: 20,
+    outputs: vec![OutputType::Svg("gradient.svg"), OutputType::Png("gradient.png")],
+};
+let gradient = generate_gradient(config)?;
 ```
 
 **Color Parser Factory**
@@ -934,7 +954,7 @@ let (lab, format) = parser.parse("RAL 3020")?;
 ### v0.12.0 (Planned - Q1 2024)
 - 🔄 Property-based testing with proptest
 - 🔄 Benchmark suite with criterion
-- 🔄 Additional GoF design patterns
+- 🔄 Functional programming pattern migration
 - 🔄 Performance optimizations
 - 🔄 Extended documentation
 

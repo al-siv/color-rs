@@ -1,11 +1,11 @@
 # Color-rs Configuration
 
-This document describes user-configurable settings, file formats, default search paths, and precedence rules for configuration management in color-rs.
+This document describes user-configurable settings, file formats, default search paths, and precedence rules for configuration management in color-rs, designed with **functional programming principles**.
 
 ## Table of Contents
 
 - [Current Configuration State](#current-configuration-state)
-- [Configuration Architecture](#configuration-architecture)
+- [Functional Configuration Architecture](#functional-configuration-architecture)
 - [Planned Configuration System](#planned-configuration-system)
 - [File Formats](#file-formats)
 - [Search Paths](#search-paths)
@@ -14,9 +14,11 @@ This document describes user-configurable settings, file formats, default search
 
 ## Current Configuration State
 
-As of version 0.15.4, color-rs uses **compile-time configuration** through constants defined in `src/config.rs`. There is no runtime configuration file system yet.
+As of version 0.15.4, color-rs uses **compile-time configuration** through immutable constants defined in `src/config.rs`. This follows functional programming principles by avoiding mutable global state.
 
-### Compile-time Constants
+### Immutable Configuration Constants
+
+All configuration values are defined as `const` items for compile-time optimization and functional purity:
 
 ```rust
 // Application metadata
@@ -58,7 +60,17 @@ Color collections are currently loaded from CSV files in the `color-table/` dire
 - `color-table/ral-classic.csv` - 213 RAL Classic colors  
 - `color-table/ral-design.csv` - 1825 RAL Design System+ colors
 
-## Configuration Architecture
+## Functional Configuration Architecture
+
+### Functional Programming Principles Applied
+
+The configuration system follows **functional programming patterns**:
+
+1. **Immutable Configuration**: All config values are immutable once loaded
+2. **Pure Functions**: Configuration parsing functions have no side effects
+3. **Type Safety**: Configuration structs use Rust's type system for validation
+4. **Result Types**: Configuration loading returns `Result<Config, ConfigError>`
+5. **Function Composition**: Configuration loading is composed of pure functions
 
 ### Current Design Principles
 
@@ -66,18 +78,19 @@ Color collections are currently loaded from CSV files in the `color-table/` dire
 2. **CLI-first**: Configuration through command-line arguments
 3. **No Hidden State**: All configuration is explicit in command usage
 4. **Immutable Defaults**: Constants cannot be accidentally modified
+5. **Functional Purity**: No global mutable state for configuration
 
-### Data Flow
+### Functional Data Flow
 
 ```mermaid
 flowchart TD
-    A[config.rs Constants] --> B[CLI Default Values]
-    B --> C[clap Argument Parsing]
-    C --> D[Validation Functions]
-    D --> E[Application Logic]
+    A[Immutable Constants] --> B[Pure CLI Parsing]
+    B --> C[Configuration Validation]
+    C --> D[Immutable Config Struct]
+    D --> E[Pure Application Functions]
     
-    F[CSV Files] --> G[Collection Loading]
-    G --> H[Parser Initialization]
+    F[Static CSV Data] --> G[Pure Collection Loading]
+    G --> H[Immutable Collections]
     H --> E
 ```
 

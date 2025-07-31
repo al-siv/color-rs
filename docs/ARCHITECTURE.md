@@ -1,12 +1,42 @@
 # Color-rs Architecture
 
-This document describes the crate and module topology, public vs private modules, and data flow in the color-rs project.
+This document describes the crate and module topology, public vs private modules, and data flow in the color-rs project, with emphasis on the **functional programming paradigm** adopted in v0.15.4+.
+
+## Architectural Philosophy
+
+### Functional Programming Paradigm (v0.15.4+)
+
+Color-rs has undergone a significant architectural shift from object-oriented Gang of Four (GoF) patterns to **modern functional programming practices** in Rust:
+
+- **Pure Functions**: Core operations use immutable inputs and deterministic outputs
+- **Function Composition**: Complex behaviors built through composing simple functions
+- **Type-Driven Design**: Leveraging Rust's enum and struct systems for compile-time guarantees
+- **Immutable Data**: Preference for immutable data structures and transformations
+- **Error Handling**: Consistent use of `Result<T, E>` and `Option<T>` throughout
+
+### Pattern Migration Status
+
+**Deprecated Patterns (being phased out in v0.16.0)**:
+- ❌ Strategy Pattern → Enum + pattern matching + pure functions
+- ❌ Template Method → Higher-order functions + function composition  
+- ❌ Factory Pattern → Function-based constructors + Result types
+- ❌ Command Pattern → Pure functions + function composition + Result pipelines
+
+**Current Functional Patterns**:
+- ✅ **Lens Pattern**: For safe data access and transformation
+- ✅ **Prism Pattern**: For sum type (enum) operations
+- ✅ **Traversal Pattern**: For collection processing and validation
+- ✅ **Monad Pattern**: Result and Option chaining for error handling
 
 ## Module Topology
 
+### Functional Module Organization
+
+The architecture follows **functional programming principles** with clear separation between pure functions, data transformations, and side effects:
+
 ```mermaid
 graph TB
-    subgraph "Public API (lib.rs)"
+    subgraph "Public API (lib.rs) - Pure Function Exports"
         lib[lib.rs]
         lib --> cli[cli.rs]
         lib --> color[color.rs]
@@ -15,37 +45,43 @@ graph TB
         lib --> image[image.rs]
     end
     
-    subgraph "Core Color Operations"
-        color --> color_utils[color_utils.rs]
-        color --> color_formatter[color_formatter.rs]
-        color --> color_operations_facade[color_operations_facade.rs]
-        color --> color_distance_strategies[color_distance_strategies.rs]
-        color --> color_matching_template[color_matching_template.rs]
+    subgraph "Core Color Operations - Pure Functions"
+        color --> color_utils[color_utils/ - Pure transformations]
+        color --> color_formatter[color_formatter.rs - String formatting]
+        color --> color_operations_facade[color_operations_facade.rs - ⚠️ Being migrated]
+        color --> color_distance_strategies[color_distance_strategies.rs - ❌ Strategy Pattern → Function Enum]
+        color --> color_matching_template[color_matching_template.rs - ❌ Template Method → HOF]
     end
     
-    subgraph "Color Parsing System"
-        color --> color_parser_factory[color_parser_factory.rs]
+    subgraph "Color Parsing System - Function Composition"
+        color --> color_parser_factory[color_parser_factory.rs - ❌ Factory → Pure Functions]
         color_parser_factory --> color_parser[color_parser/]
         
-        subgraph "color_parser/"
-            color_parser --> mod_rs[mod.rs]
-            color_parser --> types[types.rs]
-            color_parser --> parse_utils[parse_utils.rs]
-            color_parser --> css_parser[css_parser.rs]
-            color_parser --> css_collection[css_collection.rs]
-            color_parser --> ral_matcher[ral_matcher.rs]
-            color_parser --> ral_classic_collection[ral_classic_collection.rs]
-            color_parser --> ral_design_collection[ral_design_collection.rs]
-            color_parser --> csv_loader[csv_loader.rs]
-            color_parser --> collections[collections.rs]
-            color_parser --> unified_manager[unified_manager.rs]
-            color_parser --> compat[compat.rs]
+        subgraph "color_parser/ - Pure Parsers"
+            color_parser --> mod_rs[mod.rs - Function exports]
+            color_parser --> types[types.rs - Data types]
+            color_parser --> parse_utils[parse_utils.rs - Helper functions]
+            color_parser --> css_parser[css_parser.rs - CSS parsing]
+            color_parser --> css_collection[css_collection.rs - Static data]
+            color_parser --> ral_matcher[ral_matcher.rs - Matching algorithms]
+            color_parser --> ral_classic_collection[ral_classic_collection.rs - Static data]
+            color_parser --> ral_design_collection[ral_design_collection.rs - Static data]
+            color_parser --> csv_loader[csv_loader.rs - Data loading]
+            color_parser --> collections[collections.rs - Collection operations]
+            color_parser --> unified_manager[unified_manager.rs - Collection coordination]
+            color_parser --> compat[compat.rs - Compatibility layer]
         end
     end
     
-    subgraph "Gradient System"
-        gradient --> gradient_builder[gradient_builder.rs]
-        gradient_builder --> gradient
+    subgraph "Gradient System - Function Composition"
+        gradient --> gradient_builder[gradient_builder.rs - ⚠️ Builder → Immutable Config]
+        gradient_builder --> gradient_calc[gradient/ - Pure calculation functions]
+        
+        subgraph "gradient/ - Pure Gradient Functions"
+            gradient_calc --> calculator[calculator.rs - Math functions]
+            gradient_calc --> easing[easing.rs - Timing functions] 
+            gradient_calc --> output[output.rs - Generation functions]
+        end
     end
     
     subgraph "Output System"
@@ -139,65 +175,75 @@ The `color_parser` module contains several submodules that implement different p
 
 ## Data Flow Architecture
 
-### Color Input Processing Pipeline
+### Functional Processing Pipeline
+
+The color-rs architecture follows **functional programming principles** with immutable data transformations and pure function composition:
 
 ```mermaid
 flowchart TD
     A[User Input] --> B{Input Type?}
-    B -->|CLI Command| C[CLI Parser clap]
+    B -->|CLI Command| C[CLI Parser - clap]
     B -->|Library Call| D[Public API]
     
-    C --> E[ColorMatchArgs / GradientArgs]
+    C --> E[Immutable Args Structures]
     D --> E
     
-    E --> F[ColorParserFactory]
-    F --> G[UnifiedColorManager]
+    E --> F[Pure Parser Functions]
+    F --> G[Result<Color, Error>]
     
-    G --> H{Parse Strategy}
-    H -->|HEX| I[Direct RGB conversion]
-    H -->|RGB/HSL| J[Palette library conversion]
-    H -->|Named Color| K[Collection Lookup]
-    H -->|RAL Color| L[RAL Matcher]
+    G --> H{Color Format}
+    H -->|HEX| I[parse_hex() -> Result<Color>]
+    H -->|RGB/HSL| J[parse_rgb() -> Result<Color>]
+    H -->|Named| K[lookup_named() -> Result<Color>]
+    H -->|RAL| L[match_ral() -> Result<Color>]
     
-    I --> M[ColorUtils]
+    I --> M[Pure Color Transformations]
     J --> M
-    K --> N[CSV Collections]
+    K --> N[Static Collections]
     L --> N
     
-    N --> O[ColorMatch]
+    N --> O[Color Analysis Pipeline]
     M --> O
     
-    O --> P[Color Operations]
+    O --> P[Function Composition Chain]
     P --> Q{Output Type}
-    Q -->|Analysis| R[ColorFormatter]
-    Q -->|Gradient| S[GradientCalculator]
-    Q -->|Image| T[ImageGenerator]
+    Q -->|Analysis| R[format_analysis() -> String]
+    Q -->|Gradient| S[generate_gradient() -> Result<Output>]
+    Q -->|Image| T[create_image() -> Result<PathBuf>]
     
-    R --> U[Terminal Output]
-    S --> V[SVG/PNG Files]
+    R --> U[Pure Output Functions]
+    S --> V[Pure File Generation]
     T --> V
 ```
 
-### Color Collection Data Flow
+### Functional Data Transformations
+
+**Input → Parse → Transform → Output** pipeline using pure functions:
+
+1. **Parse Phase**: `String -> Result<Color, ParseError>`
+2. **Transform Phase**: `Color -> ColorAnalysis` (pure computations)  
+3. **Output Phase**: `ColorAnalysis -> String` (pure formatting)
+
+### Collection Processing with Functional Patterns
 
 ```mermaid
 flowchart LR
-    A[CSV Files] --> B[CSVLoader]
-    B --> C[Collections]
+    A[Static Data] --> B[Pure Loading Functions]
+    B --> C[Immutable Collections]
     
-    subgraph "Collections"
-        C --> D[CSS Collection<br/>148 colors]
-        C --> E[RAL Classic<br/>213 colors]
-        C --> F[RAL Design+<br/>1825 colors]
+    subgraph "Functional Collections"
+        C --> D[css_colors() -> &'static [Color]]
+        C --> E[ral_classic() -> &'static [Color]]
+        C --> F[ral_design() -> &'static [Color]]
     end
     
-    D --> G[UnifiedManager]
+    D --> G[Pure Matching Functions]
     E --> G
     F --> G
     
-    G --> H[Color Matching]
-    H --> I[Distance Calculation]
-    I --> J[Best Match Results]
+    G --> H[find_closest(color, collection) -> Option<Match>]
+    H --> I[calculate_distance(c1, c2, algorithm) -> f64]
+    I --> J[Pure Result Types]
 ```
 
 ### Output Filtering Architecture
@@ -271,32 +317,43 @@ flowchart TD
     M -->|PNG| P[Image Renderer]
 ```
 
-## Design Patterns in Architecture
+## Functional Programming Patterns in Architecture
 
-### Currently Implemented Patterns
+### Pattern Migration Progress (v0.15.4 → v0.16.0)
 
-1. **Strategy Pattern**: `ColorDistanceStrategy` allows pluggable distance calculation algorithms
-2. **Factory Pattern**: `ColorParserFactory` creates different types of color parsers
-3. **Builder Pattern**: `GradientBuilder` provides fluent configuration interface
-4. **Facade Pattern**: `ColorOperationsFacade` simplifies complex color operations
-5. **Template Method Pattern**: `ColorMatchingTemplate` standardizes matching algorithms
+**Migration Status**:
+- ❌ **Strategy Pattern** → **Enum + Pattern Matching**: Replace trait objects with pure functions
+- ❌ **Factory Pattern** → **Function Composition**: Replace object creation with pure constructors  
+- ❌ **Template Method** → **Higher-Order Functions**: Replace inheritance with function composition
+- ❌ **Command Pattern** → **Function Pipelines**: Replace trait objects with Result monads
+- ⚠️ **Builder Pattern** → **Immutable Configuration**: Replace mutable builders with config structs
+- ⚠️ **Facade Pattern** → **Module Organization**: Already partially functional, needs cleanup
+
+### Current Functional Patterns (v0.15.4+)
+
+1. **Lens Pattern**: Safe data access and transformation for ColorAnalysisResult
+2. **Prism Pattern**: Sum type operations for ColorFormat enum variants
+3. **Traversal Pattern**: Collection processing for color matching and validation
+4. **Monad Pattern**: Result<T, E> and Option<T> chaining for error handling
+5. **Function Composition**: Pure function pipelines for data transformations
+
+### Functional Architecture Benefits
+
+- **Immutability**: All data transformations use immutable inputs
+- **Pure Functions**: Deterministic outputs with no side effects for core operations
+- **Type Safety**: Compile-time guarantees through Rust's type system
+- **Performance**: Elimination of heap allocations from trait objects
+- **Testability**: Pure functions are easier to test and reason about
+- **Maintainability**: Clear data flow without hidden state mutations
 
 ### Recent Architectural Improvements (v0.15.4)
 
-**Distance Strategy Consistency**: Implemented unified distance calculation throughout the color mode:
-- **UnifiedColorManager Integration**: Migrated from legacy ColorParser to UnifiedColorManager
-- **Strategy Propagation**: All color operations now consistently use the specified distance method
-- **Code Unification**: Eliminated duplicate distance calculation implementations
-- **API Improvement**: Enhanced collect_enhanced_color_schemes_data to accept distance strategy parameter
-
-### Architectural Benefits
-
-- **Modularity**: Clear separation between parsing, calculation, and output generation
-- **Extensibility**: Easy to add new color formats, distance algorithms, or output formats
-- **Type Safety**: Rust's type system prevents invalid color operations
-- **Performance**: LAB color space ensures perceptually uniform gradients
-- **Maintainability**: Design patterns provide clear structure and responsibilities
-- **Consistency**: Unified distance calculation strategy across all color operations
+**Functional Programming Foundation**:
+- **Pure Distance Calculations**: All distance algorithms implemented as pure functions
+- **Immutable Color Transformations**: Color space conversions use immutable data
+- **Function-Based Parsing**: Color parsing functions return Result<T, E> consistently
+- **Static Collections**: Color data stored as static immutable collections
+- **Pure Output Generation**: Formatting functions with no side effects
 
 ## Feature Flags and Configuration
 
