@@ -4,9 +4,167 @@
 //! complementary, split-complementary, and triadic colors using both HSV and
 //! Lab color spaces, with support for luminance matching.
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
-use palette::Lab;
+use palette::{Hsl, IntoColor, Lab, Srgb};
+
+/// Functional helper for calculating complementary color in HSL space
+fn complementary_hsl_functional(color: Lab) -> Lab {
+    let srgb: Srgb = color.into_color();
+    let hsl: Hsl = srgb.into_color();
+    
+    // Complementary color is 180 degrees opposite on the hue wheel
+    let complementary_hue = (hsl.hue.into_positive_degrees() + 180.0) % 360.0;
+    let complementary_hsl = Hsl::new(complementary_hue, hsl.saturation, hsl.lightness);
+    let complementary_srgb: Srgb = complementary_hsl.into_color();
+    complementary_srgb.into_color()
+}
+
+/// Functional helper for calculating split-complementary colors in HSL space
+fn split_complementary_hsl_functional(color: Lab) -> (Lab, Lab) {
+    let srgb: Srgb = color.into_color();
+    let hsl: Hsl = srgb.into_color();
+    
+    // Split-complementary: 150 and 210 degrees from original hue
+    let base_hue = hsl.hue.into_positive_degrees();
+    let color1_hue = (base_hue + 150.0) % 360.0;
+    let color2_hue = (base_hue + 210.0) % 360.0;
+    
+    let color1_hsl = Hsl::new(color1_hue, hsl.saturation, hsl.lightness);
+    let color2_hsl = Hsl::new(color2_hue, hsl.saturation, hsl.lightness);
+    
+    let color1_srgb: Srgb = color1_hsl.into_color();
+    let color2_srgb: Srgb = color2_hsl.into_color();
+    
+    (color1_srgb.into_color(), color2_srgb.into_color())
+}
+
+/// Functional helper for calculating triadic colors in HSL space
+fn triadic_hsl_functional(color: Lab) -> (Lab, Lab) {
+    let srgb: Srgb = color.into_color();
+    let hsl: Hsl = srgb.into_color();
+    
+    // Triadic: 120 and 240 degrees from original hue
+    let base_hue = hsl.hue.into_positive_degrees();
+    let color1_hue = (base_hue + 120.0) % 360.0;
+    let color2_hue = (base_hue + 240.0) % 360.0;
+    
+    let color1_hsl = Hsl::new(color1_hue, hsl.saturation, hsl.lightness);
+    let color2_hsl = Hsl::new(color2_hue, hsl.saturation, hsl.lightness);
+    
+    let color1_srgb: Srgb = color1_hsl.into_color();
+    let color2_srgb: Srgb = color2_hsl.into_color();
+    
+    (color1_srgb.into_color(), color2_srgb.into_color())
+}
+
+/// Functional helper for calculating tetradic colors in HSL space
+fn tetradic_hsl_functional(color: Lab) -> (Lab, Lab, Lab) {
+    let srgb: Srgb = color.into_color();
+    let hsl: Hsl = srgb.into_color();
+    
+    // Tetradic: 90, 180, and 270 degrees from original hue
+    let base_hue = hsl.hue.into_positive_degrees();
+    let color1_hue = (base_hue + 90.0) % 360.0;
+    let color2_hue = (base_hue + 180.0) % 360.0;
+    let color3_hue = (base_hue + 270.0) % 360.0;
+    
+    let color1_hsl = Hsl::new(color1_hue, hsl.saturation, hsl.lightness);
+    let color2_hsl = Hsl::new(color2_hue, hsl.saturation, hsl.lightness);
+    let color3_hsl = Hsl::new(color3_hue, hsl.saturation, hsl.lightness);
+    
+    let color1_srgb: Srgb = color1_hsl.into_color();
+    let color2_srgb: Srgb = color2_hsl.into_color();
+    let color3_srgb: Srgb = color3_hsl.into_color();
+    
+    (color1_srgb.into_color(), color2_srgb.into_color(), color3_srgb.into_color())
+}
+
+/// Functional helper for calculating complementary color in LAB space  
+fn complementary_lab_functional(color: Lab) -> Lab {
+    // In LAB space, complementary color can be approximated by negating A and B components
+    Lab::new(color.l, -color.a, -color.b)
+}
+
+/// Functional helper for calculating split-complementary colors in LAB space
+fn split_complementary_lab_functional(color: Lab) -> (Lab, Lab) {
+    // For LAB space, we approximate by rotating in A-B space
+    let angle1 = 2.0944_f32; // ~120 degrees in radians
+    let angle2 = 4.1888_f32; // ~240 degrees in radians
+    
+    let a1 = color.a * angle1.cos() - color.b * angle1.sin();
+    let b1 = color.a * angle1.sin() + color.b * angle1.cos();
+    
+    let a2 = color.a * angle2.cos() - color.b * angle2.sin();
+    let b2 = color.a * angle2.sin() + color.b * angle2.cos();
+    
+    (Lab::new(color.l, a1, b1), Lab::new(color.l, a2, b2))
+}
+
+/// Functional helper for calculating triadic colors in LAB space
+fn triadic_lab_functional(color: Lab) -> (Lab, Lab) {
+    let angle1 = 2.0944_f32; // 120 degrees in radians
+    let angle2 = 4.1888_f32; // 240 degrees in radians
+    
+    let a1 = color.a * angle1.cos() - color.b * angle1.sin();
+    let b1 = color.a * angle1.sin() + color.b * angle1.cos();
+    
+    let a2 = color.a * angle2.cos() - color.b * angle2.sin();
+    let b2 = color.a * angle2.sin() + color.b * angle2.cos();
+    
+    (Lab::new(color.l, a1, b1), Lab::new(color.l, a2, b2))
+}
+
+/// Functional helper for calculating tetradic colors in LAB space
+fn tetradic_lab_functional(color: Lab) -> (Lab, Lab, Lab) {
+    let angle1 = 1.5708_f32; // 90 degrees in radians
+    let angle2 = 3.1416_f32; // 180 degrees in radians  
+    let angle3 = 4.7124_f32; // 270 degrees in radians
+    
+    let a1 = color.a * angle1.cos() - color.b * angle1.sin();
+    let b1 = color.a * angle1.sin() + color.b * angle1.cos();
+    
+    let a2 = color.a * angle2.cos() - color.b * angle2.sin();
+    let b2 = color.a * angle2.sin() + color.b * angle2.cos();
+    
+    let a3 = color.a * angle3.cos() - color.b * angle3.sin();
+    let b3 = color.a * angle3.sin() + color.b * angle3.cos();
+    
+    (Lab::new(color.l, a1, b1), Lab::new(color.l, a2, b2), Lab::new(color.l, a3, b3))
+}
+
+/// Functional helper for adjusting WCAG relative luminance 
+fn adjust_color_relative_luminance_functional(color: Lab, target_luminance: f64) -> Result<Lab> {
+    // Convert to RGB, adjust luminance, convert back
+    let srgb: Srgb = color.into_color();
+    let current_luminance = crate::color_ops::luminance::wcag_relative(srgb);
+    
+    if (current_luminance - target_luminance).abs() < 0.001 {
+        return Ok(color);
+    }
+    
+    // Binary search for target luminance
+    let mut low = 0.0_f32;
+    let mut high = 100.0_f32;
+    
+    for _ in 0..50 {
+        let mid = (low + high) / 2.0;
+        let test_lab = Lab::new(mid, color.a, color.b);
+        let test_srgb: Srgb = test_lab.into_color();
+        let test_luminance = crate::color_ops::luminance::wcag_relative(test_srgb);
+        
+        if (test_luminance - target_luminance).abs() < 0.001 {
+            return Ok(test_lab);
+        }
+        
+        if test_luminance < target_luminance {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+    
+    Ok(Lab::new((low + high) / 2.0, color.a, color.b))
+}
 
 /// Strategy trait for different color scheme calculation methods
 pub trait ColorSchemeStrategy {
@@ -31,39 +189,19 @@ pub struct HslColorSchemeStrategy;
 
 impl ColorSchemeStrategy for HslColorSchemeStrategy {
     fn complementary(&self, color: Lab) -> Lab {
-        let colors = ColorUtils::complementary_hsl(color);
-        if colors.len() >= 2 {
-            colors[1] // Return the actual complementary color, not the original
-        } else {
-            color
-        }
+        complementary_hsl_functional(color)
     }
 
     fn split_complementary(&self, color: Lab) -> (Lab, Lab) {
-        let colors = ColorUtils::split_complementary_hsl(color);
-        if colors.len() >= 2 {
-            (colors[0], colors[1])
-        } else {
-            (color, color)
-        }
+        split_complementary_hsl_functional(color)
     }
 
     fn triadic(&self, color: Lab) -> (Lab, Lab) {
-        let colors = ColorUtils::triadic_hsl(color);
-        if colors.len() >= 2 {
-            (colors[0], colors[1])
-        } else {
-            (color, color)
-        }
+        triadic_hsl_functional(color)
     }
 
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
-        let colors = ColorUtils::tetradic_hsl(color);
-        if colors.len() >= 3 {
-            (colors[0], colors[1], colors[2])
-        } else {
-            (color, color, color)
-        }
+        tetradic_hsl_functional(color)
     }
 
     fn name(&self) -> &'static str {
@@ -76,39 +214,19 @@ pub struct LabColorSchemeStrategy;
 
 impl ColorSchemeStrategy for LabColorSchemeStrategy {
     fn complementary(&self, color: Lab) -> Lab {
-        let colors = ColorUtils::complementary_lab(color);
-        if colors.len() >= 2 {
-            colors[1] // Return the actual complementary color, not the original
-        } else {
-            color
-        }
+        complementary_lab_functional(color)
     }
 
     fn split_complementary(&self, color: Lab) -> (Lab, Lab) {
-        let colors = ColorUtils::split_complementary_lab(color);
-        if colors.len() >= 2 {
-            (colors[0], colors[1])
-        } else {
-            (color, color)
-        }
+        split_complementary_lab_functional(color)
     }
 
     fn triadic(&self, color: Lab) -> (Lab, Lab) {
-        let colors = ColorUtils::triadic_lab(color);
-        if colors.len() >= 2 {
-            (colors[0], colors[1])
-        } else {
-            (color, color)
-        }
+        triadic_lab_functional(color)
     }
 
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab) {
-        let colors = ColorUtils::tetradic_lab(color);
-        if colors.len() >= 3 {
-            (colors[0], colors[1], colors[2])
-        } else {
-            (color, color, color)
-        }
+        tetradic_lab_functional(color)
     }
 
     fn name(&self) -> &'static str {
@@ -223,7 +341,7 @@ impl ColorSchemeCalculator {
     pub fn calculate(&self, mut base_color: Lab) -> Result<ColorSchemeResult> {
         // Apply color replacement if target luminance is specified
         if let Some(target_rel_lum) = self.target_relative_luminance {
-            base_color = ColorUtils::adjust_color_relative_luminance(base_color, target_rel_lum)?;
+            base_color = adjust_color_relative_luminance_functional(base_color, target_rel_lum)?;
         } else if let Some(target_lab_lum) = self.target_lab_luminance {
             base_color = adjust_color_lab_luminance(base_color, target_lab_lum)?;
         }
@@ -379,9 +497,9 @@ pub fn adjust_color_lab_luminance(color: Lab, target_luminance: f64) -> Result<L
 
 /// Preserve WCAG relative luminance from reference color in target color
 pub fn preserve_wcag_relative_luminance(color: Lab, reference: Lab) -> Result<Lab> {
-    let reference_srgb = ColorUtils::lab_to_srgb(reference);
-    let target_luminance = ColorUtils::wcag_relative_luminance(reference_srgb);
-    ColorUtils::adjust_color_relative_luminance(color, target_luminance)
+    let reference_srgb: Srgb = reference.into_color();
+    let target_luminance = crate::color_ops::luminance::wcag_relative(reference_srgb);
+    adjust_color_relative_luminance_functional(color, target_luminance)
 }
 
 /// Preserve Lab luminance from reference color in target color
@@ -397,23 +515,23 @@ mod tests {
     #[test]
     fn test_hsl_complementary() {
         let strategy = HslColorSchemeStrategy;
-        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
+        let red_lab: Lab = Srgb::new(1.0, 0.0, 0.0).into_color();
         let comp = strategy.complementary(red_lab);
 
         // Complementary of red should be cyan-ish
-        let comp_srgb = ColorUtils::lab_to_srgb(comp);
+        let comp_srgb: Srgb = comp.into_color();
         assert!(comp_srgb.blue > 0.5); // Should have significant blue component
         assert!(comp_srgb.red < 0.5); // Should have minimal red component
     }
 
     #[test]
     fn test_relative_luminance_adjustment() {
-        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
+        let red_lab: Lab = Srgb::new(1.0, 0.0, 0.0).into_color();
 
         // Test if the function exists and works
-        if let Ok(adjusted) = ColorUtils::adjust_color_relative_luminance(red_lab, 0.5) {
-            let adjusted_srgb = ColorUtils::lab_to_srgb(adjusted);
-            let actual_luminance = ColorUtils::wcag_relative_luminance(adjusted_srgb);
+        if let Ok(adjusted) = adjust_color_relative_luminance_functional(red_lab, 0.5) {
+            let adjusted_srgb: Srgb = adjusted.into_color();
+            let actual_luminance = crate::color_ops::luminance::wcag_relative(adjusted_srgb);
 
             // Very lenient check - just ensure the function doesn't crash
             assert!((0.0..=1.0).contains(&actual_luminance));
@@ -425,7 +543,8 @@ mod tests {
 
     #[test]
     fn test_lab_luminance_adjustment() {
-        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
+        let red_srgb = Srgb::new(1.0, 0.0, 0.0);
+        let red_lab: Lab = red_srgb.into_color();
         let adjusted = adjust_color_lab_luminance(red_lab, 75.0).unwrap();
 
         // Lab L component should be exactly 75.0
@@ -447,7 +566,8 @@ mod tests {
     #[test]
     fn test_color_scheme_calculation() {
         let calculator = ColorSchemeBuilder::new().build();
-        let red_lab = ColorUtils::srgb_to_lab(Srgb::new(1.0, 0.0, 0.0));
+        let red_srgb = Srgb::new(1.0, 0.0, 0.0);
+        let red_lab: Lab = red_srgb.into_color();
 
         let result = calculator.calculate(red_lab).unwrap();
 

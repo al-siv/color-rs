@@ -32,9 +32,28 @@ pub use ral_classic_collection::RalClassicCollection;
 pub use ral_design_collection::RalDesignCollection;
 pub use unified_manager::UnifiedColorManager;
 
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
-use palette::Lab;
+use palette::{IntoColor, Lab, Lch, Srgb};
+
+/// Helper function to convert RGB tuple to LAB using functional palette approach
+fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
+    let srgb = Srgb::new(
+        rgb.0 as f32 / 255.0,
+        rgb.1 as f32 / 255.0,
+        rgb.2 as f32 / 255.0,
+    );
+    srgb.into_color()
+}
+
+/// Helper function to convert LAB to RGB tuple using functional palette approach
+fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
+    let srgb: Srgb = lab.into_color();
+    (
+        (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+    )
+}
 
 /// Unified color parser that can handle various input formats
 pub struct ColorParser {
@@ -73,7 +92,7 @@ impl ColorParser {
 
         // Try CSS parsing (handles hex, rgb, rgba, hsl, hsla, named colors)
         if let Ok(parsed) = self.css_parser.parse(input) {
-            let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
+            let lab = rgb_to_lab((parsed.r, parsed.g, parsed.b));
             return Ok((lab, parsed.format));
         }
 
@@ -81,7 +100,7 @@ impl ColorParser {
         if let Some(ral_match) = ral_matcher::parse_ral_color(input) {
             // Parse hex color from RAL match
             if let Ok(parsed) = self.css_parser.parse(&ral_match.hex) {
-                let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
+                let lab = rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Named)); // Treat RAL colors as named colors
             }
         }
@@ -91,7 +110,7 @@ impl ColorParser {
         if !ral_matches.is_empty() {
             let best_match = &ral_matches[0];
             if let Ok(parsed) = self.css_parser.parse(&best_match.hex) {
-                let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
+                let lab = rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Named));
             }
         }
@@ -100,7 +119,7 @@ impl ColorParser {
         if self.is_hex_without_hash(input) {
             let hex_with_hash = format!("#{input}");
             if let Ok(parsed) = self.css_parser.parse(&hex_with_hash) {
-                let lab = ColorUtils::rgb_to_lab((parsed.r, parsed.g, parsed.b));
+                let lab = rgb_to_lab((parsed.r, parsed.g, parsed.b));
                 return Ok((lab, ColorFormat::Hex));
             }
         }
@@ -175,8 +194,9 @@ impl ColorParser {
                     .map_err(|_| ColorError::InvalidColor("Invalid LCH H value".to_string()))?;
 
                 // Convert LCH directly to LAB (no RGB roundtrip)
-                let lch = palette::Lch::new(l, c, h);
-                return Ok(ColorUtils::lch_to_lab(lch));
+                let lch = Lch::new(l, c, h);
+                let lab: Lab = lch.into_color();
+                return Ok(lab);
             }
         }
 
@@ -248,7 +268,7 @@ pub fn parse_color_comprehensive(input: &str) -> Result<ColorParseResult> {
     match parser.parse(input) {
         Ok((lab, _format)) => {
             // Convert back to ParsedColor for compatibility
-            let (r, g, b) = ColorUtils::lab_to_rgb(lab);
+            let (r, g, b) = lab_to_rgb(lab);
             let color = ParsedColor::from_rgb(r, g, b, ColorFormat::Hex);
             Ok(ColorParseResult::Single(color))
         }

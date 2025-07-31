@@ -5,7 +5,8 @@
 //! - Generate gradients with cubic-bezier easing
 //! - Create SVG and PNG outputs programmatically
 
-use color_rs::{ColorRs, ColorUtils, Result, cli::GradientArgs, gradient::GradientCalculator};
+use color_rs::{ColorRs, Result, cli::GradientArgs, gradient::GradientCalculator, color_parser::ColorParser};
+use palette::{IntoColor, Lab, Srgb, Mix};
 
 fn main() -> Result<()> {
     println!("Color-rs Library Example");
@@ -13,8 +14,12 @@ fn main() -> Result<()> {
 
     // Example 1: Basic color parsing and conversion
     println!("1. Color Parsing and Conversion:");
-    let red_lab = ColorUtils::parse_hex_color("#FF0000")?;
-    let blue_lab = ColorUtils::parse_hex_color("#0000FF")?;
+    
+    // Parse hex colors using functional approach
+    let red_srgb = Srgb::new(1.0, 0.0, 0.0);
+    let red_lab: Lab = red_srgb.into_color();
+    let blue_srgb = Srgb::new(0.0, 0.0, 1.0); 
+    let blue_lab: Lab = blue_srgb.into_color();
 
     println!(
         "Red in LAB: Lab({:.1}, {:.1}, {:.1})",
@@ -33,8 +38,16 @@ fn main() -> Result<()> {
     for i in 0..=10 {
         let t = i as f64 / 10.0;
         let eased_t = GradientCalculator::cubic_bezier_ease(t, ease_in, ease_out);
-        let interpolated = ColorUtils::interpolate_lab(red_lab, blue_lab, eased_t);
-        let hex = ColorUtils::lab_to_hex(interpolated);
+        let interpolated = red_lab.mix(blue_lab, eased_t as f32);
+        
+        // Convert LAB to hex
+        let srgb: Srgb = interpolated.into_color();
+        let hex = format!(
+            "#{:02X}{:02X}{:02X}",
+            (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+        );
 
         println!("t={t:.1} -> eased_t={eased_t:.3} -> color={hex}");
     }

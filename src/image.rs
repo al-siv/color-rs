@@ -1,7 +1,7 @@
 //! Image generation (SVG and PNG) for color-rs
 
 use image::{ImageBuffer, Rgba, RgbaImage};
-use palette::Lab;
+use palette::{IntoColor, Lab, Srgb};
 use resvg;
 use std::fs;
 use tiny_skia::{Pixmap, Transform};
@@ -11,12 +11,40 @@ use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
 use crate::{
-    color_utils::LegacyColorUtils as ColorUtils,
     config::{
         DEFAULT_FONT_SIZE_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_TEXT_Y_RATIO, FONT_FAMILY,
         HEIGHT_RATIO,
     },
 };
+
+/// Helper function to convert LAB to hex string using functional palette approach
+fn lab_to_hex(lab: Lab) -> String {
+    let srgb: Srgb = lab.into_color();
+    format!(
+        "#{:02X}{:02X}{:02X}",
+        (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+    )
+}
+
+/// Helper function to parse hex color to LAB using functional palette approach
+fn parse_hex_color(hex: &str) -> Result<Lab> {
+    let hex = hex.trim_start_matches('#');
+    if hex.len() != 6 {
+        return Err(ColorError::InvalidColor("Invalid hex color format".to_string()));
+    }
+    
+    let r = u8::from_str_radix(&hex[0..2], 16)
+        .map_err(|_| ColorError::InvalidColor("Invalid hex color format".to_string()))?;
+    let g = u8::from_str_radix(&hex[2..4], 16)
+        .map_err(|_| ColorError::InvalidColor("Invalid hex color format".to_string()))?;
+    let b = u8::from_str_radix(&hex[4..6], 16)
+        .map_err(|_| ColorError::InvalidColor("Invalid hex color format".to_string()))?;
+    
+    let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+    Ok(srgb.into_color())
+}
 
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]
@@ -102,8 +130,8 @@ impl ImageGenerator {
         };
         let total_height = gradient_height + legend_height;
 
-        let start_hex = ColorUtils::lab_to_hex(start_lab);
-        let end_hex = ColorUtils::lab_to_hex(end_lab);
+        let start_hex = lab_to_hex(start_lab);
+        let end_hex = lab_to_hex(end_lab);
 
         let mut svg = String::new();
         svg.push_str(&format!(
@@ -138,7 +166,7 @@ impl ImageGenerator {
         let mut last_offset: Option<f64> = None;
 
         for stop in unified_stops {
-            let hex_color = ColorUtils::lab_to_hex(stop.lab_color);
+            let hex_color = lab_to_hex(stop.lab_color);
             // Convert absolute position to relative position within the gradient with 0.5% precision
             let relative_offset_precise =
                 (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
@@ -272,8 +300,8 @@ mod tests {
     fn test_svg_content_creation() {
         let generator = ImageGenerator::new();
         let args = create_test_args();
-        let start_lab = ColorUtils::parse_hex_color(&args.start_color).unwrap();
-        let end_lab = ColorUtils::parse_hex_color(&args.end_color).unwrap();
+        let start_lab = parse_hex_color(&args.start_color).unwrap();
+        let end_lab = parse_hex_color(&args.end_color).unwrap();
 
         let svg_content = generator
             .create_svg_content(&args, start_lab, end_lab)

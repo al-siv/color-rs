@@ -7,9 +7,8 @@
 use super::csv_loader::CsvLoader;
 use super::parse_utils::ParseUtils;
 use super::types::{ColorFormat, ParsedColor};
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::error::{ColorError, Result};
-use palette::{Hsl, IntoColor};
+use palette::{Hsl, IntoColor, Lab, Lch, Srgb};
 use std::collections::HashMap;
 
 /// CSS color parser that handles various CSS color formats
@@ -190,8 +189,13 @@ impl CssColorParser {
         let hue_normalized = (((hue % 360.0) + 360.0) % 360.0) / 360.0;
         let hsl: Hsl = Hsl::new(hue_normalized as f32, saturation as f32, lightness as f32);
 
-        // Convert HSL to RGB using the reliable color_utils implementation
-        let (red, green, blue) = ColorUtils::srgb_to_rgb(hsl.into_color());
+        // Convert HSL to RGB using palette's functional approach
+        let srgb: Srgb = hsl.into_color();
+        let (red, green, blue) = (
+            (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+        );
         Ok((red, green, blue))
     }
 
@@ -218,13 +222,17 @@ impl CssColorParser {
             .parse()
             .map_err(|_| ColorError::InvalidColor("Invalid LCH H value".to_string()))?;
 
-        // Convert LCH to LAB using color_utils
-        let lch = palette::Lch::new(lightness, chroma, hue);
-        let lab = ColorUtils::lch_to_lab(lch);
+        // Convert LCH to LAB using palette's functional approach
+        let lch = Lch::new(lightness, chroma, hue);
+        let lab: Lab = lch.into_color();
 
-        // Convert LAB to RGB
-
-        let (red, green, blue) = ColorUtils::lab_to_rgb(lab);
+        // Convert LAB to RGB using palette's functional approach
+        let srgb: Srgb = lab.into_color();
+        let (red, green, blue) = (
+            (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+            (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+        );
         Ok((red, green, blue))
     }
 

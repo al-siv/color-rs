@@ -85,7 +85,6 @@ pub use color_parser_functional::{
 pub use color_schemes::{
     ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
 };
-pub use color_utils::LegacyColorUtils as ColorUtils;
 // Command Pattern Migration (Milestone 1.4) - Functional Replacement
 pub use command_functional::{
     CommandType, ExecutionContext, ExecutionResult,

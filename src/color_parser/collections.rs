@@ -4,9 +4,36 @@
 //! Supports different native color spaces while using LAB for perceptually accurate comparisons.
 
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
-use crate::color_utils::LegacyColorUtils as ColorUtils;
-use palette::Lab;
+use palette::{IntoColor, Lab, Srgb};
 use std::collections::HashMap;
+
+/// Helper functions for color space conversions
+/// Convert RGB array to LAB array using functional palette approach
+fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
+    let srgb = Srgb::new(
+        rgb[0] as f32 / 255.0,
+        rgb[1] as f32 / 255.0,
+        rgb[2] as f32 / 255.0,
+    );
+    let lab: Lab = srgb.into_color();
+    [lab.l, lab.a, lab.b]
+}
+
+/// Convert LAB array to RGB array using functional palette approach
+fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
+    let lab_color = Lab::new(lab[0], lab[1], lab[2]);
+    let srgb: Srgb = lab_color.into_color();
+    [
+        (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+    ]
+}
+
+/// Convert LAB array to palette Lab type
+fn lab_array_to_palette_lab(lab: [f32; 3]) -> Lab {
+    Lab::new(lab[0], lab[1], lab[2])
+}
 
 /// Universal color representation using LAB color space for accurate comparisons
 #[derive(Debug, Clone, PartialEq)]
@@ -23,7 +50,7 @@ impl UniversalColor {
     /// Create from RGB values
     #[must_use]
     pub fn from_rgb(rgb: [u8; 3]) -> Self {
-        let lab = ColorUtils::rgb_array_to_lab(rgb);
+        let lab = rgb_array_to_lab(rgb);
         Self {
             lab,
             rgb,
@@ -34,7 +61,7 @@ impl UniversalColor {
     /// Create from LAB values
     #[must_use]
     pub fn from_lab(lab: [f32; 3]) -> Self {
-        let rgb = ColorUtils::lab_array_to_rgb(lab);
+        let rgb = lab_array_to_rgb(lab);
         Self {
             lab,
             rgb,
@@ -56,8 +83,12 @@ impl UniversalColor {
     /// Get WCAG relative luminance (cached)
     pub fn luminance(&mut self) -> f64 {
         if self.luminance.is_none() {
-            let srgb = ColorUtils::rgb_to_srgb((self.rgb[0], self.rgb[1], self.rgb[2]));
-            self.luminance = Some(ColorUtils::wcag_relative_luminance(srgb));
+            let srgb = Srgb::new(
+                self.rgb[0] as f32 / 255.0,
+                self.rgb[1] as f32 / 255.0,
+                self.rgb[2] as f32 / 255.0,
+            );
+            self.luminance = Some(crate::color_ops::luminance::wcag_relative(srgb));
         }
         self.luminance.unwrap()
     }
@@ -66,9 +97,8 @@ impl UniversalColor {
     #[must_use]
     pub fn distance_to(&self, other: &Self) -> f64 {
         // Convert array LAB to palette Lab type for the new functional API
-        use crate::color_utils::LegacyColorUtils as ColorUtils;
-        let lab1 = ColorUtils::lab_array_to_palette_lab(self.lab);
-        let lab2 = ColorUtils::lab_array_to_palette_lab(other.lab);
+        let lab1 = lab_array_to_palette_lab(self.lab);
+        let lab2 = lab_array_to_palette_lab(other.lab);
         calculate_distance(DistanceAlgorithm::DeltaE2000, lab1, lab2)
     }
 

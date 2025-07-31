@@ -2,12 +2,60 @@
 
 use crate::color_formatter::ColorFormatter;
 use crate::color_parser::UniversalColor;
-use crate::color_utils::LegacyColorUtils as ColorUtils;
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
 use crate::utils::Utils;
-use palette::Lab;
+use palette::{Hsl, IntoColor, Lab, Srgb};
 use tabled::Tabled;
+
+/// Helper functions for color space conversions using functional palette approach
+
+/// Convert LAB to hex string
+fn lab_to_hex(lab: Lab) -> String {
+    let srgb: Srgb = lab.into_color();
+    format!(
+        "#{:02X}{:02X}{:02X}",
+        (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+    )
+}
+
+/// Convert LAB to RGB tuple
+fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
+    let srgb: Srgb = lab.into_color();
+    (
+        (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+    )
+}
+
+/// Convert LAB to HSL tuple
+fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
+    let srgb: Srgb = lab.into_color();
+    let hsl: Hsl = srgb.into_color();
+    (
+        hsl.hue.into_positive_degrees() as f64,
+        hsl.saturation as f64,
+        hsl.lightness as f64,
+    )
+}
+
+/// Convert RGB tuple to Srgb
+fn rgb_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
+    Srgb::new(
+        rgb.0 as f32 / 255.0,
+        rgb.1 as f32 / 255.0,
+        rgb.2 as f32 / 255.0,
+    )
+}
+
+/// Convert RGB tuple to LAB
+fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
+    let srgb = rgb_to_srgb(rgb);
+    srgb.into_color()
+}
 
 /// Color information for display in tables
 #[derive(Tabled)]
@@ -39,9 +87,9 @@ impl ColorProcessor {
     /// Create color information structure for a given LAB color
     #[must_use]
     pub fn create_color_info(label: String, lab: Lab) -> ColorInfo {
-        let hex = ColorUtils::lab_to_hex(lab);
-        let rgb = ColorUtils::lab_to_rgb(lab);
-        let hsl = ColorUtils::lab_to_hsl_tuple(lab);
+        let hex = lab_to_hex(lab);
+        let rgb = lab_to_rgb(lab);
+        let hsl = lab_to_hsl_tuple(lab);
 
         ColorInfo {
             label,
@@ -101,8 +149,8 @@ pub fn color_match(color_input: &str) {
         let g = u8::from_str_radix(&hex_without_hash[2..4], 16).unwrap_or(0);
         let b = u8::from_str_radix(&hex_without_hash[4..6], 16).unwrap_or(0);
 
-        let srgb = ColorUtils::rgb_to_srgb((r, g, b));
-        let lab_color: Lab = ColorUtils::srgb_to_lab(srgb);
+        let srgb = rgb_to_srgb((r, g, b));
+        let lab_color: Lab = srgb.into_color();
 
         // Use the RAL color name as the color name
         let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
@@ -142,7 +190,7 @@ fn get_color_name_for_lab(lab_color: Lab) -> String {
     use crate::color_parser::ColorParser;
 
     // Convert LAB back to sRGB for name lookup
-    let (r, g, b) = ColorUtils::lab_to_rgb(lab_color);
+    let (r, g, b) = lab_to_rgb(lab_color);
     let parser = ColorParser::new();
     parser.get_color_name((r, g, b))
 }
@@ -393,7 +441,6 @@ fn collect_enhanced_color_schemes_data(
     distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
 ) -> crate::output_formats::ColorSchemes {
     use crate::color_parser::unified_manager::UnifiedColorManager;
-    use crate::color_utils::LegacyColorUtils as ColorUtils;
     use crate::output_formats::{CollectionMatch, ColorSchemes, EnhancedColorSchemeItem};
     use palette::Lab;
 
@@ -406,8 +453,8 @@ fn collect_enhanced_color_schemes_data(
         manager: &UnifiedColorManager,
         distance_algorithm: crate::color_distance_strategies::DistanceAlgorithm,
     ) -> EnhancedColorSchemeItem {
-        let hex = ColorUtils::lab_to_hex(lab);
-        let hsl_tuple = ColorUtils::lab_to_hsl_tuple(lab);
+        let hex = lab_to_hex(lab);
+        let hsl_tuple = lab_to_hsl_tuple(lab);
         let hsl = format!(
             "hsl({:.1}, {:.2}%, {:.2}%)",
             hsl_tuple.0,
@@ -417,7 +464,7 @@ fn collect_enhanced_color_schemes_data(
         let lch = crate::format_utils::FormatUtils::lab_to_lch(lab);
 
         // Get color name information with enhanced collection matches
-        let (r, g, b) = ColorUtils::lab_to_rgb(lab);
+        let (r, g, b) = lab_to_rgb(lab);
         let (css_match, ral_classic_match, ral_design_match) =
             get_collection_matches((r, g, b), manager, distance_algorithm);
 
@@ -461,18 +508,19 @@ fn collect_enhanced_color_schemes_data(
         let matches = manager.find_closest_css_colors_with_algorithm(rgb, 1, distance_algorithm);
         
         if let Some(closest) = matches.first() {
-            let target_lab = ColorUtils::rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
-            let closest_lab = ColorUtils::rgb_to_lab((
+            let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
+            let closest_lab = rgb_to_lab((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
             let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
-            let wcag_relative_luminance = ColorUtils::wcag_relative_luminance_rgb((
+            let srgb = rgb_to_srgb((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
+            let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
             Some(CollectionMatch {
                 name: closest.entry.metadata.name.clone(),
                 hex: format!(
@@ -499,18 +547,19 @@ fn collect_enhanced_color_schemes_data(
         let matches = manager.find_closest_ral_classic_with_algorithm(rgb, 1, distance_algorithm);
         
         if let Some(closest) = matches.first() {
-            let target_lab = ColorUtils::rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
-            let closest_lab = ColorUtils::rgb_to_lab((
+            let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
+            let closest_lab = rgb_to_lab((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
             let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
-            let wcag_relative_luminance = ColorUtils::wcag_relative_luminance_rgb((
+            let srgb = rgb_to_srgb((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
+            let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
             Some(CollectionMatch {
                 name: closest.entry.metadata.name.clone(),
                 hex: format!(
@@ -537,18 +586,19 @@ fn collect_enhanced_color_schemes_data(
         let matches = manager.find_closest_ral_design_with_algorithm(rgb, 1, distance_algorithm);
         
         if let Some(closest) = matches.first() {
-            let target_lab = ColorUtils::rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
-            let closest_lab = ColorUtils::rgb_to_lab((
+            let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
+            let closest_lab = rgb_to_lab((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
             let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
-            let wcag_relative_luminance = ColorUtils::wcag_relative_luminance_rgb((
+            let srgb = rgb_to_srgb((
                 closest.entry.color.rgb[0],
                 closest.entry.color.rgb[1],
                 closest.entry.color.rgb[2],
             ));
+            let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
             Some(CollectionMatch {
                 name: closest.entry.metadata.name.clone(),
                 hex: format!(
