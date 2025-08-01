@@ -3,9 +3,8 @@ mod lch_gradient_test {
     use crate::color_distance_strategies::{
         DistanceAlgorithm, calculate_distance,
     };
-    use crate::color_utils::LegacyColorUtils as ColorUtils;
     use crate::gradient::calculator::GradientCalculator;
-    use palette::Lab;
+    use palette::{Lab, Srgb, IntoColor};
 
     #[test]
     fn test_lch_gradient_generation() {
@@ -47,7 +46,13 @@ mod lch_gradient_test {
 
         println!("\n--- Delta E 2000 Gradient ---");
         for (i, stop) in delta_e_stops.iter().enumerate() {
-            let hex = ColorUtils::lab_to_hex(stop.lab_color);
+            // Convert LAB to RGB for hex display using palette
+            let srgb: Srgb = stop.lab_color.into_color();
+            let hex = format!("#{:02x}{:02x}{:02x}", 
+                (srgb.red * 255.0) as u8,
+                (srgb.green * 255.0) as u8,
+                (srgb.blue * 255.0) as u8
+            );
             let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color);
 
             // Calculate LCH coordinates for display
@@ -72,7 +77,13 @@ mod lch_gradient_test {
 
         println!("\n--- LCH Strategy Gradient ---");
         for (i, stop) in lch_stops.iter().enumerate() {
-            let hex = ColorUtils::lab_to_hex(stop.lab_color);
+            // Convert LAB to RGB for hex display using palette
+            let srgb: Srgb = stop.lab_color.into_color();
+            let hex = format!("#{:02x}{:02x}{:02x}", 
+                (srgb.red * 255.0) as u8,
+                (srgb.green * 255.0) as u8,
+                (srgb.blue * 255.0) as u8
+            );
             let distance = calculate_distance(DistanceAlgorithm::Lch, start_lab, stop.lab_color);
 
             // Calculate LCH coordinates for display

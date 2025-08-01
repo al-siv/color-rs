@@ -15,12 +15,36 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
     use crate::color_parser::css_parser::CssColorParser;
     use crate::color_parser::unified_manager::UnifiedColorManager;
-    use crate::color_utils::LegacyColorUtils as ColorUtils;
     use crate::image::ImageGenerator;
     use crate::output_formats::{
         ColorCollectionMatches, ColorInfo, ContrastAnalysis, EnhancedGradientAnalysisOutput,
         EnhancedGradientStop, GradientAnalysisOutput, GradientColors, GradientConfiguration,
         GradientStop, NestedColorInfo, ProgramMetadata,
+    };
+    use palette::{Lab, Srgb, IntoColor};
+
+    // Helper functions for functional color operations
+    let lab_to_hex = |lab: Lab| -> String {
+        let srgb: Srgb = lab.into_color();
+        format!("#{:02x}{:02x}{:02x}", 
+            (srgb.red * 255.0) as u8,
+            (srgb.green * 255.0) as u8,
+            (srgb.blue * 255.0) as u8
+        )
+    };
+
+    let wcag_relative_luminance_rgb = |rgb: (u8, u8, u8)| -> f64 {
+        let (r, g, b) = (rgb.0 as f64 / 255.0, rgb.1 as f64 / 255.0, rgb.2 as f64 / 255.0);
+        let to_linear = |c: f64| if c <= 0.03928 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) };
+        0.2126 * to_linear(r) + 0.7152 * to_linear(g) + 0.0722 * to_linear(b)
+    };
+
+    let get_contrast_assessment = |rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)| -> (f32, String) {
+        let l1 = wcag_relative_luminance_rgb(rgb1);
+        let l2 = wcag_relative_luminance_rgb(rgb2);
+        let ratio = if l1 > l2 { (l1 + 0.05) / (l2 + 0.05) } else { (l2 + 0.05) / (l1 + 0.05) };
+        let level = if ratio >= 7.0 { "AAA" } else if ratio >= 4.5 { "AA" } else if ratio >= 3.0 { "AA Large" } else { "Fail" };
+        (ratio as f32, level.to_string())
     };
 
     // Parse colors using CSS parser to support named colors
@@ -28,9 +52,20 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     let start_color = css_parser.parse(&args.start_color)?;
     let end_color = css_parser.parse(&args.end_color)?;
 
-    // Convert to LAB color space
-    let start_lab = ColorUtils::rgb_to_lab((start_color.r, start_color.g, start_color.b));
-    let end_lab = ColorUtils::rgb_to_lab((end_color.r, end_color.g, end_color.b));
+    // Convert to LAB color space using palette
+    let start_srgb = Srgb::new(
+        start_color.r as f32 / 255.0,
+        start_color.g as f32 / 255.0,
+        start_color.b as f32 / 255.0
+    );
+    let start_lab: Lab = start_srgb.into_color();
+    
+    let end_srgb = Srgb::new(
+        end_color.r as f32 / 255.0,
+        end_color.g as f32 / 255.0,
+        end_color.b as f32 / 255.0
+    );
+    let end_lab: Lab = end_srgb.into_color();
 
     // Generate images if requested
     let image_gen = ImageGenerator::new();
@@ -56,17 +91,17 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     // Calculate distance between start and end colors using Delta-E 2000
     let start_end_distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, end_lab);
 
-    // Calculate relative contrast between start and end colors using existing color_utils
-    let (relative_contrast, _contrast_level) = ColorUtils::get_contrast_assessment(
+    // Calculate relative contrast between start and end colors using functional implementation
+    let (relative_contrast, _contrast_level) = get_contrast_assessment(
         (start_color.r, start_color.g, start_color.b),
         (end_color.r, end_color.g, end_color.b),
     );
 
     // Calculate WCAG21 relative luminance for start and end colors
     let start_luminance =
-        ColorUtils::wcag_relative_luminance_rgb((start_color.r, start_color.g, start_color.b));
+        wcag_relative_luminance_rgb((start_color.r, start_color.g, start_color.b));
     let end_luminance =
-        ColorUtils::wcag_relative_luminance_rgb((end_color.r, end_color.g, end_color.b));
+        wcag_relative_luminance_rgb((end_color.r, end_color.g, end_color.b));
 
     // Helper function to find color collections for a given RGB color
     let find_color_collections = |rgb: [u8; 3]| -> ColorCollectionMatches {
@@ -151,8 +186,8 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     // Convert unified stops to old format for YAML output
     let mut gradient_stops = Vec::new();
     for stop in &unified_stops {
-        let hex = ColorUtils::lab_to_hex(stop.lab_color);
-        let luminance = ColorUtils::wcag_relative_luminance_rgb(stop.rgb_color);
+        let hex = lab_to_hex(stop.lab_color);
+        let luminance = wcag_relative_luminance_rgb(stop.rgb_color);
 
         // Calculate color distance from start_color using Delta E 2000
         let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
@@ -202,8 +237,8 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     // Generate enhanced gradient stops with nested color structure using unified data
     let mut enhanced_gradient_stops = Vec::new();
     for stop in &unified_stops {
-        let hex = ColorUtils::lab_to_hex(stop.lab_color);
-        let luminance = ColorUtils::wcag_relative_luminance_rgb(stop.rgb_color);
+        let hex = lab_to_hex(stop.lab_color);
+        let luminance = wcag_relative_luminance_rgb(stop.rgb_color);
 
         // Calculate color distance from start_color using Delta E 2000
         let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
@@ -253,7 +288,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         },
         colors: GradientColors {
             start: ColorInfo {
-                hex: ColorUtils::lab_to_hex(start_lab),
+                hex: lab_to_hex(start_lab),
                 rgb: format!(
                     "rgb({}, {}, {})",
                     start_color.r, start_color.g, start_color.b
@@ -276,7 +311,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 collections: Some(start_collections.clone()),
             },
             end: ColorInfo {
-                hex: ColorUtils::lab_to_hex(end_lab),
+                hex: lab_to_hex(end_lab),
                 rgb: format!("rgb({}, {}, {})", end_color.r, end_color.g, end_color.b),
                 lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: format!(
@@ -310,7 +345,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         },
         colors: GradientColors {
             start: ColorInfo {
-                hex: ColorUtils::lab_to_hex(start_lab),
+                hex: lab_to_hex(start_lab),
                 rgb: format!(
                     "rgb({}, {}, {})",
                     start_color.r, start_color.g, start_color.b
@@ -333,7 +368,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
                 collections: Some(start_collections),
             },
             end: ColorInfo {
-                hex: ColorUtils::lab_to_hex(end_lab),
+                hex: lab_to_hex(end_lab),
                 rgb: format!("rgb({}, {}, {})", end_color.r, end_color.g, end_color.b),
                 lab: format!("lab({:.2}, {:.2}, {:.2})", end_lab.l, end_lab.a, end_lab.b),
                 lch: format!(

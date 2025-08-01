@@ -14,22 +14,19 @@ use std::collections::HashMap;
 
 /// Backward compatibility type alias for the removed ColorParserType
 /// 
-/// **DEPRECATED**: Use `ParserType` from `color_parser_functional` instead.
-#[deprecated(since = "0.16.0", note = "Use ParserType from color_parser_functional instead")]
+/// **MIGRATION NOTE**: Use `ParserType` from `color_parser_functional` instead.
 pub type ColorParserType = ParserType;
 
 /// Backward compatibility function for the removed ColorParserFactory::create_parser
 /// 
-/// **DEPRECATED**: Use `parse_color_functional` directly instead.
-#[deprecated(since = "0.16.0", note = "Use parse_color_functional directly instead")]
+/// **MIGRATION NOTE**: Use `parse_color_functional` directly instead.
 pub fn create_parser(parser_type: ParserType) -> Result<Box<dyn ColorParserCompatTrait>> {
     Ok(Box::new(CompatParser { parser_type }))
 }
 
 /// Compatibility trait to mimic the old ColorParserTrait interface
 /// 
-/// **DEPRECATED**: Use functional parsing functions instead.
-#[deprecated(since = "0.16.0", note = "Use functional parsing functions instead")]
+/// **MIGRATION NOTE**: Use functional parsing functions instead.
 pub trait ColorParserCompatTrait {
     fn parse(&self, input: &str) -> Result<(palette::Lab, crate::color_parser::ColorFormat)>;
     fn get_color_name(&self, rgb: (u8, u8, u8)) -> String;
@@ -67,14 +64,12 @@ impl ColorParserCompatTrait for CompatParser {
 
 /// Backward compatibility type alias for the removed CommandType
 /// 
-/// **DEPRECATED**: Use `CommandType` from `command_functional` instead.
-#[deprecated(since = "0.16.0", note = "Use CommandType from command_functional instead")]
+/// **MIGRATION NOTE**: Use `CommandType` from `command_functional` instead.
 pub type LegacyCommandType = CommandType;
 
 /// Backward compatibility function for command execution
 /// 
-/// **DEPRECATED**: Use `execute_command_functional` directly instead.
-#[deprecated(since = "0.16.0", note = "Use execute_command_functional directly instead")]
+/// **MIGRATION NOTE**: Use `execute_command_functional` directly instead.
 pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
     let context = ExecutionContext {
         command_type: cmd_type,
@@ -90,15 +85,12 @@ pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
 /// Compatibility module for re-exports of removed types
 pub mod legacy {
     /// Re-export for backward compatibility
-    #[deprecated(since = "0.16.0", note = "Use ParserType from color_parser_functional instead")]
     pub use super::ColorParserType;
     
     /// Re-export for backward compatibility  
-    #[deprecated(since = "0.16.0", note = "Use CommandType from command_functional instead")]
     pub use super::LegacyCommandType;
     
     /// Re-export for backward compatibility
-    #[deprecated(since = "0.16.0", note = "Use functional parsing functions instead")]
     pub use super::ColorParserCompatTrait;
 }
 

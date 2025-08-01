@@ -28,24 +28,6 @@ fn lab_to_hex(lab: Lab) -> String {
     )
 }
 
-/// Helper function to parse hex color to LAB using functional palette approach
-fn parse_hex_color(hex: &str) -> Result<Lab> {
-    let hex = hex.trim_start_matches('#');
-    if hex.len() != 6 {
-        return Err(ColorError::InvalidColor("Invalid hex color format".to_string()));
-    }
-    
-    let r = u8::from_str_radix(&hex[0..2], 16)
-        .map_err(|_| ColorError::InvalidColor("Invalid hex color format".to_string()))?;
-    let g = u8::from_str_radix(&hex[2..4], 16)
-        .map_err(|_| ColorError::InvalidColor("Invalid hex color format".to_string()))?;
-    let b = u8::from_str_radix(&hex[4..6], 16)
-        .map_err(|_| ColorError::InvalidColor("Invalid hex color format".to_string()))?;
-    
-    let srgb = Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
-    Ok(srgb.into_color())
-}
-
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]
 pub enum ImageFormat {
@@ -300,8 +282,12 @@ mod tests {
     fn test_svg_content_creation() {
         let generator = ImageGenerator::new();
         let args = create_test_args();
-        let start_lab = parse_hex_color(&args.start_color).unwrap();
-        let end_lab = parse_hex_color(&args.end_color).unwrap();
+        
+        // Parse hex colors using color_parser functional approach
+        use crate::color_parser::ColorParser;
+        let parser = ColorParser::new();
+        let (start_lab, _) = parser.parse(&args.start_color).unwrap();
+        let (end_lab, _) = parser.parse(&args.end_color).unwrap();
 
         let svg_content = generator
             .create_svg_content(&args, start_lab, end_lab)

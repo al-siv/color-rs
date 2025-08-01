@@ -489,11 +489,11 @@ fn euclidean_lab_distance(lab1: Lab, lab2: Lab) -> f64 {
 /// Distance calculation in LCH (Lightness, Chroma, Hue) cylindrical color space.
 #[must_use]
 fn lch_distance(lab1: Lab, lab2: Lab) -> f64 {
-    use crate::color_utils::LegacyColorUtils as ColorUtils;
+    use palette::{IntoColor, Lch};
 
-    // Convert LAB to LCH using ColorUtils
-    let lch1 = ColorUtils::lab_to_lch(lab1);
-    let lch2 = ColorUtils::lab_to_lch(lab2);
+    // Convert LAB to LCH using palette functional approach
+    let lch1: Lch = lab1.into_color();
+    let lch2: Lch = lab2.into_color();
 
     // Calculate differences in each component
     let delta_l = lch1.l - lch2.l;
@@ -529,12 +529,15 @@ pub fn available_strategies() -> Vec<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color_utils::LegacyColorUtils as ColorUtils;
+    use palette::{IntoColor, Srgb};
 
     #[test]
     fn test_functional_distance_calculations() {
-        let red_lab = ColorUtils::rgb_to_lab((255, 0, 0));
-        let blue_lab = ColorUtils::rgb_to_lab((0, 0, 255));
+        // Create LAB colors using functional approach
+        let red_srgb = Srgb::new(1.0, 0.0, 0.0);
+        let red_lab: Lab = red_srgb.into_color();
+        let blue_srgb = Srgb::new(0.0, 0.0, 1.0);
+        let blue_lab: Lab = blue_srgb.into_color();
 
         // Test all algorithms functionally
         let distance_76 = calculate_distance(DistanceAlgorithm::DeltaE76, red_lab, blue_lab);
@@ -577,8 +580,10 @@ mod tests {
 
     #[test]
     fn test_functional_symmetry() {
-        let red_lab = ColorUtils::rgb_to_lab((255, 0, 0));
-        let blue_lab = ColorUtils::rgb_to_lab((0, 0, 255));
+        let red_srgb = Srgb::new(1.0, 0.0, 0.0);
+        let red_lab: Lab = red_srgb.into_color();
+        let blue_srgb = Srgb::new(0.0, 0.0, 1.0);
+        let blue_lab: Lab = blue_srgb.into_color();
 
         for algorithm in DistanceAlgorithm::all() {
             let distance_ab = calculate_distance(algorithm, red_lab, blue_lab);

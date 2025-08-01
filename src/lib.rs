@@ -16,7 +16,6 @@ pub mod color_parser;
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
 pub mod color_parser_functional;
 pub mod color_schemes;
-pub mod color_utils;
 // Backward Compatibility Layer (Milestone 3.1)
 pub mod compat;
 pub mod config;

@@ -1,6 +1,6 @@
-# Color-rs API Reference v0.15.4
+# Color-rs API Reference v0.16.0
 
-Comprehensive API documentation for the color-rs library, providing color analysis, gradient generation, and color space conversions with enhanced precision formatting and distance calculation consistency.
+Comprehensive API documentation for the color-rs library v0.16.0, featuring **100% pure functional programming architecture** with color analysis, gradient generation, and color space conversions using modern Rust functional patterns.
 
 ## Installation
 
@@ -8,25 +8,49 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-color-rs = "0.15.4"
+color-rs = "0.16.0"
 ```
 
-## Quick Start
+## Quick Start - Functional API
 
 ```rust
-use color_rs::{ColorOperationsFacade, ColorUtils, GradientCalculator, Result};
-use color_rs::gradient::easing::CubicBezierEasing;
+use color_rs::{
+    // Functional color operations
+    color_ops::{analysis, conversion, distance, mixing},
+    // Functional parsing
+    color_parser_functional::{parse_color_functional, ParsingConfig, ParserType},
+    // Functional gradient generation
+    gradient_functional::{GradientConfig, ColorPair},
+    // Functional distance calculations
+    DistanceAlgorithm, calculate_distance,
+    Result
+};
 
 fn main() -> Result<()> {
-    // Color analysis using ColorOperationsFacade
-    let facade = ColorOperationsFacade::new();
-    let analysis = facade.analyze_color("#FF5733")?;
+    // Functional color analysis using color_ops modules
+    let color = analysis::analyze_color("#FF5733")?;
     
-    println!("Hex: {}", analysis.hex);
-    println!("RGB: {:?}", analysis.srgb);
-    println!("LAB: {:?}", analysis.lab);
-    println!("HSL: {:?}", analysis.hsl);
-    println!("Luminance: {}", analysis.luminance);
+    println!("Hex: {}", conversion::srgb_to_hex(color.srgb));
+    println!("RGB: {:?}", color.srgb);
+    println!("LAB: {:?}", color.lab);
+    println!("HSL: {:?}", color.hsl);
+    println!("Luminance: {}", analysis::perceived_brightness(color.srgb));
+    
+    // Functional distance calculation with enum dispatch
+    let color1 = conversion::hex_to_srgb("#FF0000")?.into_color();
+    let color2 = conversion::hex_to_srgb("#00FF00")?.into_color();
+    let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, color1, color2);
+    
+    // Functional color mixing
+    let mixed = mixing::mix(color1, color2, 0.5);
+    
+    // Functional gradient generation (immutable configuration)
+    let gradient_config = GradientConfig::new(
+        ColorPair::new("#FF0000", "#0000FF")?,
+        10
+    )?;
+    
+    let colors = gradient_config.generate_colors()?;
     
     // Gradient generation with GradientCalculator
     let calculator = GradientCalculator::with_intelligent_stops(0.65, 0.35);
