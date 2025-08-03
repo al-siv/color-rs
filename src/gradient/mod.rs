@@ -8,7 +8,7 @@ pub mod output;
 
 // Simple re-exports for basic functionality
 pub use calculator::{GradientCalculator, GradientValue, UnifiedGradientStop};
-pub use easing::{CubicBezierEasing, EasingStrategy, EasingType, LinearEasing};
+pub use easing::{EasingFactory, EasingFunction, EasingType};
 
 /// Simplified gradient generation function for CLI interface
 pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result<()> {

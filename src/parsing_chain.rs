@@ -1,12 +1,11 @@
-//! Chain of Responsibility Pattern for Color Parsing
+//! Functional Color Parsing System
 //!
-//! This module implements the Chain of Responsibility design pattern for parsing
-//! different color input formats. Each handler in the chain attempts to parse
-//! the input and either handles it or passes it to the next handler.
+//! This module implements functional color parsing using enum dispatch
+//! instead of trait objects for zero-cost abstractions.
 
 use crate::error::ColorError;
+use crate::color_parser::collections::ColorCollection;
 use palette::{IntoColor, Lab, Srgb};
-use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, ColorError>;
 
@@ -18,36 +17,45 @@ pub struct ParseResult {
     pub color_name: Option<String>,
 }
 
-/// Trait for color parsing handlers in the chain of responsibility
-pub trait ColorParsingHandler: Send + Sync {
+/// Functional color parser using enum dispatch for zero-cost abstractions
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ColorParser {
+    /// HEX color parser (handles #FF0000, FF0000, #F00 formats)
+    Hex,
+    /// RGB color parser (handles rgb(255, 0, 0) formats)
+    Rgb,
+    /// CSS named color parser (handles "red", "blue", etc.)
+    CssNamed,
+    /// RAL color parser (handles RAL color codes)
+    Ral,
+}
+
+impl ColorParser {
     /// Attempts to parse the input string into a color
     /// Returns Ok(Some(result)) if successfully parsed
-    /// Returns Ok(None) if this handler cannot parse the input
+    /// Returns Ok(None) if this parser cannot parse the input
     /// Returns Err if there was an error during parsing
-    fn try_parse(&self, input: &str) -> Result<Option<ParseResult>>;
+    pub fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
+        match self {
+            Self::Hex => Self::parse_hex(input),
+            Self::Rgb => Self::parse_rgb(input),
+            Self::CssNamed => Self::parse_css_named(input),
+            Self::Ral => Self::parse_ral(input),
+        }
+    }
 
     /// Returns the name of this parser for debugging/logging
-    fn handler_name(&self) -> &str;
-}
-
-/// HEX color parser (handles #FF0000, FF0000, #F00 formats)
-pub struct HexColorParsingHandler;
-
-impl Default for HexColorParsingHandler {
-    fn default() -> Self {
-        Self::new()
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::Hex => "HEX Parser",
+            Self::Rgb => "RGB Parser", 
+            Self::CssNamed => "CSS Named Parser",
+            Self::Ral => "RAL Parser",
+        }
     }
-}
 
-impl HexColorParsingHandler {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl ColorParsingHandler for HexColorParsingHandler {
-    fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
+    /// HEX color parsing logic
+    fn parse_hex(input: &str) -> Result<Option<ParseResult>> {
         let trimmed = input.trim();
 
         // Check if this looks like a hex color
@@ -96,178 +104,121 @@ impl ColorParsingHandler for HexColorParsingHandler {
         }
     }
 
-    fn handler_name(&self) -> &'static str {
-        "HEX Parser"
-    }
-}
-
-/// RGB color parser (handles rgb(255,0,0), rgba(255,0,0,1.0) formats)
-pub struct RgbColorParsingHandler;
-
-impl Default for RgbColorParsingHandler {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl RgbColorParsingHandler {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl ColorParsingHandler for RgbColorParsingHandler {
-    fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
+    /// RGB color parsing logic
+    fn parse_rgb(input: &str) -> Result<Option<ParseResult>> {
         let trimmed = input.trim().to_lowercase();
 
-        // Check if this looks like RGB format
-        if !trimmed.starts_with("rgb(") && !trimmed.starts_with("rgba(") {
+        // Check if it starts with "rgb("
+        if !trimmed.starts_with("rgb(") || !trimmed.ends_with(')') {
             return Ok(None);
         }
 
-        // Try to parse using the unified color parser
-        let parser = crate::color_parser::ColorParser::new();
-        match parser.parse(input) {
-            Ok((lab, _)) => Ok(Some(ParseResult {
-                lab_color: lab,
-                format_name: "RGB".to_string(),
-                color_name: None,
-            })),
-            Err(_) => Ok(None),
+        // Extract the values between parentheses
+        let values_str = &trimmed[4..trimmed.len() - 1];
+        let parts: Vec<&str> = values_str.split(',').map(|s| s.trim()).collect();
+
+        if parts.len() != 3 {
+            return Ok(None);
         }
+
+        // Parse RGB values
+        let r: u8 = match parts[0].parse().ok() {
+            Some(val) => val,
+            None => return Ok(None),
+        };
+        let g: u8 = match parts[1].parse().ok() {
+            Some(val) => val,
+            None => return Ok(None),
+        };
+        let b: u8 = match parts[2].parse().ok() {
+            Some(val) => val,
+            None => return Ok(None),
+        };
+
+        let srgb = Srgb::new(
+            f32::from(r) / 255.0,
+            f32::from(g) / 255.0,
+            f32::from(b) / 255.0,
+        );
+        let lab: Lab = srgb.into_color();
+
+        Ok(Some(ParseResult {
+            lab_color: lab,
+            format_name: "RGB".to_string(),
+            color_name: None,
+        }))
     }
 
-    fn handler_name(&self) -> &'static str {
-        "RGB Parser"
-    }
-}
-
-/// CSS Named Color parser (handles named colors like 'red', 'blue')
-pub struct CssNamedColorParsingHandler;
-
-impl Default for CssNamedColorParsingHandler {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl CssNamedColorParsingHandler {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl ColorParsingHandler for CssNamedColorParsingHandler {
-    fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
+    /// CSS named color parsing logic
+    fn parse_css_named(input: &str) -> Result<Option<ParseResult>> {
         let trimmed = input.trim().to_lowercase();
 
-        // Try to parse using CSS color parser
-        let parser = crate::color_parser::css_parser::CssColorParser::new();
-        match parser.parse(&trimmed) {
-            Ok(parsed_color) => {
-                // Convert RGB to LAB using functional conversion
-                let srgb = Srgb::new(
-                    f32::from(parsed_color.r) / 255.0,
-                    f32::from(parsed_color.g) / 255.0,
-                    f32::from(parsed_color.b) / 255.0,
+        // Use the CSS collection to find the color
+        let css_collection = match crate::color_parser::css_collection::CssColorCollection::new() {
+            Ok(collection) => collection,
+            Err(_) => return Ok(None),
+        };
+
+        match css_collection.find_by_name(&trimmed) {
+            Some(color_entry) => {
+                let lab = Lab::new(
+                    color_entry.color.lab[0],
+                    color_entry.color.lab[1],
+                    color_entry.color.lab[2],
                 );
-                let lab: Lab = srgb.into_color();
                 Ok(Some(ParseResult {
                     lab_color: lab,
-                    format_name: "CSS Named".to_string(),
+                    format_name: "CSS".to_string(),
                     color_name: Some(trimmed),
                 }))
             }
-            Err(_) => Ok(None),
+            None => Ok(None),
         }
     }
 
-    fn handler_name(&self) -> &'static str {
-        "CSS Named Color Parser"
-    }
-}
+    /// RAL color parsing logic
+    fn parse_ral(input: &str) -> Result<Option<ParseResult>> {
+        let trimmed = input.trim().to_uppercase();
 
-/// RAL Color parser (handles RAL 3020, RAL 050 50 78 formats)
-pub struct RalColorParsingHandler;
-
-impl Default for RalColorParsingHandler {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl RalColorParsingHandler {
-    #[must_use]
-    pub const fn new() -> Self {
-        Self
-    }
-}
-
-impl ColorParsingHandler for RalColorParsingHandler {
-    fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
-        let trimmed = input.trim();
-
-        // Check if this looks like a RAL color code
-        if !trimmed.to_uppercase().starts_with("RAL") {
-            return Ok(None);
-        }
-
-        // For now, return None as RAL parsing requires more complex implementation
-        // This maintains the Chain of Responsibility pattern while allowing
-        // future implementation of RAL parsing
-        Ok(None)
-    }
-
-    fn handler_name(&self) -> &'static str {
-        "RAL Color Parser"
-    }
-}
-
-/// Color parsing chain that manages multiple parsing handlers
-pub struct ColorParsingChain {
-    handlers: Vec<Arc<dyn ColorParsingHandler>>,
-}
-
-impl ColorParsingChain {
-    /// Creates a new parsing chain with default handlers
-    #[must_use]
-    pub fn new() -> Self {
-        let handlers: Vec<Arc<dyn ColorParsingHandler>> = vec![
-            Arc::new(HexColorParsingHandler::new()),
-            Arc::new(RgbColorParsingHandler::new()),
-            Arc::new(CssNamedColorParsingHandler::new()),
-            Arc::new(RalColorParsingHandler::new()),
-        ];
-
-        Self { handlers }
-    }
-
-    /// Creates a custom parsing chain with specified handlers
-    #[must_use]
-    pub fn with_handlers(handlers: Vec<Arc<dyn ColorParsingHandler>>) -> Self {
-        Self { handlers }
-    }
-
-    /// Attempts to parse the input using all handlers in sequence
-    pub fn parse(&self, input: &str) -> Result<ParseResult> {
-        for handler in &self.handlers {
-            if let Some(result) = handler.try_parse(input)? {
-                return Ok(result);
+        // Try RAL Classic first
+        if let Ok(ral_classic) = crate::color_parser::ral_classic_collection::RalClassicCollection::new() {
+            if let Some(color_entry) = ral_classic.find_by_name(&trimmed) {
+                let lab = Lab::new(
+                    color_entry.color.lab[0],
+                    color_entry.color.lab[1],
+                    color_entry.color.lab[2],
+                );
+                return Ok(Some(ParseResult {
+                    lab_color: lab,
+                    format_name: "RAL Classic".to_string(),
+                    color_name: Some(trimmed),
+                }));
             }
         }
 
-        Err(ColorError::ParseError(format!(
-            "No parser could handle input: {input}"
-        )))
-    }
+        // Try RAL Design
+        if let Ok(ral_design) = crate::color_parser::ral_design_collection::RalDesignCollection::new() {
+            if let Some(color_entry) = ral_design.find_by_name(&trimmed) {
+                let lab = Lab::new(
+                    color_entry.color.lab[0],
+                    color_entry.color.lab[1],
+                    color_entry.color.lab[2],
+                );
+                return Ok(Some(ParseResult {
+                    lab_color: lab,
+                    format_name: "RAL Design".to_string(),
+                    color_name: Some(trimmed),
+                }));
+            }
+        }
 
-    /// Returns the names of all handlers in the chain
-    #[must_use]
-    pub fn handler_names(&self) -> Vec<&str> {
-        self.handlers.iter().map(|h| h.handler_name()).collect()
+        Ok(None)
     }
+}
+
+/// Functional color parsing chain using enum dispatch
+pub struct ColorParsingChain {
+    parsers: Vec<ColorParser>,
 }
 
 impl Default for ColorParsingChain {
@@ -276,45 +227,103 @@ impl Default for ColorParsingChain {
     }
 }
 
+impl ColorParsingChain {
+    /// Creates a new parsing chain with default parsers
+    #[must_use]
+    pub fn new() -> Self {
+        let parsers = vec![
+            ColorParser::Hex,
+            ColorParser::Rgb,
+            ColorParser::CssNamed,
+            ColorParser::Ral,
+        ];
+
+        Self { parsers }
+    }
+
+    /// Creates a custom parsing chain with specified parsers
+    #[must_use]
+    pub fn with_parsers(parsers: Vec<ColorParser>) -> Self {
+        Self { parsers }
+    }
+
+    /// Attempts to parse the input using all parsers in sequence
+    pub fn parse(&self, input: &str) -> Result<ParseResult> {
+        for parser in &self.parsers {
+            if let Some(result) = parser.try_parse(input)? {
+                return Ok(result);
+            }
+        }
+
+        Err(ColorError::ParseError(format!(
+            "Could not parse '{}' as any supported color format",
+            input
+        )))
+    }
+
+    /// Get the names of all parsers in this chain
+    #[must_use]
+    pub fn parser_names(&self) -> Vec<&'static str> {
+        self.parsers.iter().map(|p| p.name()).collect()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_hex_parser() {
-        let parser = HexColorParsingHandler::new();
-
+    fn test_hex_parsing() {
+        let parser = ColorParser::Hex;
+        
         // Test valid hex colors
         assert!(parser.try_parse("#FF0000").unwrap().is_some());
         assert!(parser.try_parse("FF0000").unwrap().is_some());
         assert!(parser.try_parse("#F00").unwrap().is_some());
-
-        // Test invalid inputs
+        assert!(parser.try_parse("F00").unwrap().is_some());
+        
+        // Test invalid formats
         assert!(parser.try_parse("rgb(255,0,0)").unwrap().is_none());
         assert!(parser.try_parse("red").unwrap().is_none());
-        assert!(parser.try_parse("#GGGGGG").unwrap().is_none());
+        assert!(parser.try_parse("#GG0000").unwrap().is_none());
     }
 
     #[test]
-    fn test_chain_creation() {
-        let chain = ColorParsingChain::new();
-        assert_eq!(chain.handlers.len(), 4);
+    fn test_rgb_parsing() {
+        let parser = ColorParser::Rgb;
+        
+        // Test valid RGB colors
+        assert!(parser.try_parse("rgb(255, 0, 0)").unwrap().is_some());
+        assert!(parser.try_parse("rgb(255,0,0)").unwrap().is_some());
+        
+        // Test invalid formats
+        assert!(parser.try_parse("#FF0000").unwrap().is_none());
+        assert!(parser.try_parse("red").unwrap().is_none());
+        assert!(parser.try_parse("rgb(256,0,0)").unwrap().is_none());
+    }
 
-        let names = chain.handler_names();
+    #[test]
+    fn test_parsing_chain() {
+        let chain = ColorParsingChain::new();
+        
+        // Test that chain can parse different formats
+        assert!(chain.parse("#FF0000").is_ok());
+        assert!(chain.parse("rgb(255, 0, 0)").is_ok());
+        assert!(chain.parse("red").is_ok());
+        
+        // Test failure case
+        assert!(chain.parse("invalid_color").is_err());
+    }
+
+    #[test]
+    fn test_parser_names() {
+        let chain = ColorParsingChain::new();
+        let names = chain.parser_names();
+        
+        assert_eq!(names.len(), 4);
         assert!(names.contains(&"HEX Parser"));
         assert!(names.contains(&"RGB Parser"));
-        assert!(names.contains(&"CSS Named Color Parser"));
-        assert!(names.contains(&"RAL Color Parser"));
-    }
-
-    #[test]
-    fn test_chain_parsing() {
-        let chain = ColorParsingChain::new();
-
-        // Test hex color parsing
-        let result = chain.parse("#FF0000");
-        assert!(result.is_ok());
-        let result = result.unwrap();
-        assert_eq!(result.format_name, "HEX");
+        assert!(names.contains(&"CSS Named Parser"));
+        assert!(names.contains(&"RAL Parser"));
     }
 }

@@ -1,7 +1,7 @@
 //! Easing functions and curve calculations for gradient generation
 //!
-//! This module implements various easing strategies using the Strategy design pattern
-//! to provide different timing functions for gradient interpolation.
+//! This module implements various easing functions using functional enum dispatch
+//! to provide different timing functions for gradient interpolation with zero-cost abstractions.
 
 use crate::config::{BEZIER_MAX, BEZIER_MIN};
 use kurbo::{CubicBez, ParamCurve, Point};
@@ -15,54 +15,72 @@ pub enum EasingType {
     Smooth,
 }
 
-/// Strategy trait for different easing functions
-pub trait EasingStrategy {
-    /// Calculate the eased value for a given time parameter t (0.0 to 1.0)
-    fn ease(&self, t: f64) -> f64;
-
-    /// Get the name of this easing strategy
-    fn name(&self) -> &'static str;
+/// Functional easing implementation using enum dispatch for zero-cost abstractions
+#[derive(Debug, Clone, PartialEq)]
+pub enum EasingFunction {
+    /// Linear easing (no easing)
+    Linear,
+    /// Cubic Bezier easing with control points (x1, 0, x2, 1)
+    CubicBezier { x1: f64, x2: f64 },
 }
 
-/// Cubic Bezier easing strategy
-/// Implements cubic-bezier(x1, 0, x2, 1) easing functions
-/// This matches CSS timing functions like ease-in-out: cubic-bezier(0.42, 0, 0.58, 1)
-pub struct CubicBezierEasing {
-    x1: f64,
-    x2: f64,
+impl Default for EasingFunction {
+    fn default() -> Self {
+        Self::Linear
+    }
 }
 
-impl CubicBezierEasing {
+impl EasingFunction {
     /// Create a new cubic bezier easing with control points
     #[must_use]
-    pub const fn new(x1: f64, x2: f64) -> Self {
-        Self {
-            x1: x1.clamp(BEZIER_MIN, BEZIER_MAX),
-            x2: x2.clamp(BEZIER_MIN, BEZIER_MAX),
+    pub const fn cubic_bezier(x1: f64, x2: f64) -> Self {
+        Self::CubicBezier { 
+            x1: if x1 < BEZIER_MIN { BEZIER_MIN } else if x1 > BEZIER_MAX { BEZIER_MAX } else { x1 },
+            x2: if x2 < BEZIER_MIN { BEZIER_MIN } else if x2 > BEZIER_MAX { BEZIER_MAX } else { x2 },
         }
     }
 
     /// Create ease-in-out timing function
     #[must_use]
     pub const fn ease_in_out() -> Self {
-        Self::new(0.42, 0.58)
+        Self::cubic_bezier(0.42, 0.58)
     }
 
     /// Create ease-in timing function
     #[must_use]
     pub const fn ease_in() -> Self {
-        Self::new(0.42, 1.0)
+        Self::cubic_bezier(0.42, 1.0)
     }
 
     /// Create ease-out timing function
     #[must_use]
     pub const fn ease_out() -> Self {
-        Self::new(0.0, 0.58)
+        Self::cubic_bezier(0.0, 0.58)
     }
-}
 
-impl EasingStrategy for CubicBezierEasing {
-    fn ease(&self, t: f64) -> f64 {
+    /// Calculate the eased value for a given time parameter t (0.0 to 1.0)
+    #[must_use]
+    pub fn ease(&self, t: f64) -> f64 {
+        match self {
+            Self::Linear => t.clamp(0.0, 1.0),
+            Self::CubicBezier { x1, x2 } => self.cubic_bezier_ease(t, *x1, *x2),
+        }
+    }
+
+    /// Get the name of this easing function
+    #[must_use]
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::Linear => "Linear",
+            Self::CubicBezier { .. } => "Cubic Bezier",
+        }
+    }
+
+    /// Internal cubic bezier calculation
+    fn cubic_bezier_ease(&self, t: f64, x1: f64, x2: f64) -> f64 {
+        let t = t.clamp(0.0, 1.0);
+
+        // Handle edge cases
         if t <= 0.0 {
             return 0.0;
         }
@@ -74,8 +92,8 @@ impl EasingStrategy for CubicBezierEasing {
         // This matches cubic-bezier specification
         let curve = CubicBez::new(
             Point::new(0.0, 0.0),     // Start point
-            Point::new(self.x1, 0.0), // First control point (x1, 0)
-            Point::new(self.x2, 1.0), // Second control point (x2, 1)
+            Point::new(x1, 0.0),      // First control point (x1, 0)
+            Point::new(x2, 1.0),      // Second control point (x2, 1)
             Point::new(1.0, 1.0),     // End point
         );
 
@@ -98,59 +116,42 @@ impl EasingStrategy for CubicBezierEasing {
         let final_param = f64::midpoint(low, high);
         curve.eval(final_param).y
     }
-
-    fn name(&self) -> &'static str {
-        "Cubic Bezier"
-    }
 }
 
-/// Linear easing strategy (no easing)
-pub struct LinearEasing;
-
-impl EasingStrategy for LinearEasing {
-    fn ease(&self, t: f64) -> f64 {
-        t.clamp(0.0, 1.0)
-    }
-
-    fn name(&self) -> &'static str {
-        "Linear"
-    }
-}
-
-/// Factory for creating easing strategies
+/// Factory for creating easing functions using functional patterns
 pub struct EasingFactory;
 
 impl EasingFactory {
-    /// Create an easing strategy from type and parameters
+    /// Create an easing function from type and parameters
     #[must_use]
     pub fn create_easing(
         easing_type: EasingType,
         ease_in: f64,
         ease_out: f64,
-    ) -> Box<dyn EasingStrategy> {
+    ) -> EasingFunction {
         match easing_type {
-            EasingType::Linear => Self::create_linear(),
-            EasingType::CubicBezier => Self::create_cubic_bezier(ease_in, ease_out),
-            EasingType::Smooth => Self::create_ease_in_out(),
+            EasingType::Linear => EasingFunction::Linear,
+            EasingType::CubicBezier => EasingFunction::cubic_bezier(ease_in, ease_out),
+            EasingType::Smooth => EasingFunction::ease_in_out(),
         }
     }
 
-    /// Create an easing strategy from parameters
+    /// Create a cubic bezier easing function
     #[must_use]
-    pub fn create_cubic_bezier(x1: f64, x2: f64) -> Box<dyn EasingStrategy> {
-        Box::new(CubicBezierEasing::new(x1, x2))
+    pub fn create_cubic_bezier(x1: f64, x2: f64) -> EasingFunction {
+        EasingFunction::cubic_bezier(x1, x2)
     }
 
-    /// Create a linear easing strategy
+    /// Create a linear easing function
     #[must_use]
-    pub fn create_linear() -> Box<dyn EasingStrategy> {
-        Box::new(LinearEasing)
+    pub const fn create_linear() -> EasingFunction {
+        EasingFunction::Linear
     }
 
-    /// Create ease-in-out strategy
+    /// Create ease-in-out easing function
     #[must_use]
-    pub fn create_ease_in_out() -> Box<dyn EasingStrategy> {
-        Box::new(CubicBezierEasing::ease_in_out())
+    pub const fn create_ease_in_out() -> EasingFunction {
+        EasingFunction::ease_in_out()
     }
 }
 
@@ -160,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_cubic_bezier_ease() {
-        let easing = CubicBezierEasing::new(0.42, 0.58);
+        let easing = EasingFunction::cubic_bezier(0.42, 0.58);
 
         // Test edge cases
         assert_eq!(easing.ease(0.0), 0.0);
@@ -173,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_linear_easing() {
-        let easing = LinearEasing;
+        let easing = EasingFunction::Linear;
 
         assert_eq!(easing.ease(0.0), 0.0);
         assert_eq!(easing.ease(0.5), 0.5);
@@ -181,11 +182,41 @@ mod tests {
     }
 
     #[test]
-    fn test_easing_factory() {
-        let cubic = EasingFactory::create_cubic_bezier(0.25, 0.75);
-        let linear = EasingFactory::create_linear();
+    fn test_cubic_bezier_edge_cases() {
+        let easing = EasingFunction::cubic_bezier(0.25, 0.75);
 
-        assert_eq!(cubic.name(), "Cubic Bezier");
-        assert_eq!(linear.name(), "Linear");
+        // Test values outside valid range are clamped
+        assert_eq!(easing.ease(-0.1), 0.0);
+        assert_eq!(easing.ease(1.1), 1.0);
+    }
+
+    #[test]
+    fn test_factory_create_easing() {
+        let linear = EasingFactory::create_easing(EasingType::Linear, 0.0, 0.0);
+        assert!(matches!(linear, EasingFunction::Linear));
+
+        let bezier = EasingFactory::create_easing(EasingType::CubicBezier, 0.42, 0.58);
+        assert!(matches!(bezier, EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }));
+
+        let smooth = EasingFactory::create_easing(EasingType::Smooth, 0.0, 0.0);
+        assert!(matches!(smooth, EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }));
+    }
+
+    #[test]
+    fn test_easing_names() {
+        assert_eq!(EasingFunction::Linear.name(), "Linear");
+        assert_eq!(EasingFunction::cubic_bezier(0.42, 0.58).name(), "Cubic Bezier");
+    }
+
+    #[test]
+    fn test_convenience_constructors() {
+        let ease_in_out = EasingFunction::ease_in_out();
+        assert!(matches!(ease_in_out, EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }));
+
+        let ease_in = EasingFunction::ease_in();
+        assert!(matches!(ease_in, EasingFunction::CubicBezier { x1: 0.42, x2: 1.0 }));
+
+        let ease_out = EasingFunction::ease_out();
+        assert!(matches!(ease_out, EasingFunction::CubicBezier { x1: 0.0, x2: 0.58 }));
     }
 }

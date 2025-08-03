@@ -1,9 +1,9 @@
 //! Gradient calculation algorithms and stop generation
 //!
-//! This module implements the Template Method pattern for gradient calculation
+//! This module implements functional gradient calculation
 //! and provides various algorithms for calculating gradient stops.
 
-use super::easing::EasingStrategy;
+use super::easing::EasingFunction;
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use crate::config::INTELLIGENT_STOP_SAMPLE_POINTS;
 use crate::utils::Utils;
@@ -249,7 +249,7 @@ impl GradientCalculator {
         num_stops: usize,
         start_position: u8,
         end_position: u8,
-        easing_strategy: &dyn EasingStrategy,
+        easing_function: &EasingFunction,
     ) -> crate::error::Result<Vec<GradientValue>> {
         if num_stops == 0 {
             return Ok(Vec::new());
@@ -266,7 +266,7 @@ impl GradientCalculator {
 
         for &stop in &stops {
             // Apply easing function
-            let eased_t = easing_strategy.ease(stop);
+            let eased_t = easing_function.ease(stop);
 
             // Interpolate color in LAB space
             let interpolated_lab = Lab {
@@ -498,7 +498,7 @@ pub struct UnifiedGradientStop {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gradient::easing::LinearEasing;
+    use crate::gradient::easing::EasingFunction;
 
     #[test]
     fn test_intelligent_stop_calculator() {
@@ -529,7 +529,7 @@ mod tests {
     #[test]
     fn test_gradient_values_generation() {
         let calculator = GradientCalculator::with_equal_spacing();
-        let easing = LinearEasing;
+        let easing = EasingFunction::Linear;
 
         let start_lab = Lab::new(50.0, 0.0, 0.0);
         let end_lab = Lab::new(70.0, 0.0, 0.0);
