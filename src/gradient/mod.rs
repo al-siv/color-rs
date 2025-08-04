@@ -7,16 +7,18 @@ pub mod easing;
 pub mod output;
 
 // Functional replacements for OOP patterns
-pub mod functional_calculator;
-pub mod functional_output;
+pub mod gradient_stops;
+pub mod gradient_formatter;
+pub mod unified_calculator;
 
 // Simple re-exports for basic functionality
 pub use calculator::{GradientCalculator, GradientValue, UnifiedGradientStop};
 pub use easing::{EasingFactory, EasingFunction, EasingType};
 
 // Functional re-exports
-pub use functional_calculator::{FunctionalGradientCalculator, GradientCalculationStrategy};
-pub use functional_output::{FunctionalOutputManager, OutputFormat, EventCallbacks};
+pub use gradient_stops::{GradientStopCalculator, StopCalculationStrategy};
+pub use gradient_formatter::{GradientFormatter, GradientFormat, EventCallbacks};
+pub use unified_calculator::calculate_unified_gradient;
 
 /// Simplified gradient generation function for CLI interface
 pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result<()> {

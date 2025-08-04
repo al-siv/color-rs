@@ -1,14 +1,7 @@
-//! Functional color matching pipeline replacing Template Method pattern
+//! Color matching pipeline using functional composition
 //!
 //! This module implements a functional approach to color matching using
-//! higher-order functions and function composition instead of trait inheritance.
-//!
-//! Migration from Template Method Pattern to Functional Programming:
-//! - Trait inheritance → Function composition pipeline
-//! - Abstract methods → Required function parameters
-//! - Hook methods → Optional function parameters with defaults  
-//! - Template method → Configurable pipeline function
-//! - Concrete implementations → Collection-specific configurations
+//! higher-order functions and function composition.
 
 use crate::color_distance_strategies::DistanceAlgorithm;
 use crate::color_parser::{ColorMatch, UniversalColor, collections::ColorCollection};
@@ -118,7 +111,7 @@ pub struct PipelineState {
 ///
 /// This function composes the matching algorithm from pure functions instead
 /// of using trait inheritance and virtual method dispatch.
-pub fn match_color_functional(
+pub fn match_color(
     target: &UniversalColor,
     config: &MatchingConfig,
     validation_fn: Option<ValidationFn>,
@@ -325,7 +318,7 @@ pub fn match_color_by_type(
     let match_fn = get_match_function(collection_type);
     let post_process_fn = get_post_process_function(collection_type);
 
-    match_color_functional(
+    match_color(
         target,
         &config,
         validation_fn,
@@ -370,7 +363,7 @@ mod tests {
         let config = MatchingConfig::new(CollectionType::Css, DistanceAlgorithm::DeltaE76)
             .with_limit(5);
 
-        let matches = match_color_functional(
+        let matches = match_color(
             &target,
             &config,
             None, // No custom validation
@@ -399,7 +392,7 @@ mod tests {
         let config = MatchingConfig::new(CollectionType::Css, DistanceAlgorithm::DeltaE76)
             .with_validation(true);
 
-        let result = match_color_functional(
+        let result = match_color(
             &invalid_target,
             &config,
             Some(validate_lab_basic),

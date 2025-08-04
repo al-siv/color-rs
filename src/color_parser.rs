@@ -1,8 +1,7 @@
-//! Functional Color Parser - Factory Pattern Replacement
+//! Color Parser - Zero-Cost Abstraction for Color Parsing
 //!
-//! This module provides a functional replacement for the Factory Pattern in color parsing.
-//! Instead of trait objects and factory methods, it uses enum-based dispatch and pure functions
-//! for zero-cost abstraction and better performance.
+//! This module provides enum-based color parsing with zero-cost abstractions.
+//! Uses enum dispatch and pure functions for optimal performance.
 
 use crate::color_parser::{ColorParser, UnifiedColorManager, ColorFormat};
 use crate::error::Result;
@@ -134,7 +133,7 @@ impl ParsingConfig {
 }
 
 /// Main functional parsing interface - replaces factory methods
-pub fn parse_color_functional(
+pub fn parse_color(
     input: &str,
     config: &ParsingConfig,
 ) -> Result<(palette::Lab, ColorFormat)> {
@@ -154,7 +153,7 @@ pub fn parse_color_functional(
 }
 
 /// Get color name using functional approach - replaces trait method
-pub fn get_color_name_functional(
+pub fn get_color_name(
     rgb: [u8; 3],
     config: &ParsingConfig,
 ) -> String {
@@ -369,32 +368,32 @@ fn to_title_case(input: &str) -> String {
 
 /// Parse color using fast configuration (CSS only)
 pub fn parse_color_fast(input: &str) -> Result<(palette::Lab, ColorFormat)> {
-    parse_color_functional(input, &fast_parsing_config())
+    parse_color(input, &fast_parsing_config())
 }
 
 /// Parse color using comprehensive configuration (all collections)
 pub fn parse_color_comprehensive(input: &str) -> Result<(palette::Lab, ColorFormat)> {
-    parse_color_functional(input, &comprehensive_parsing_config())
+    parse_color(input, &comprehensive_parsing_config())
 }
 
 /// Parse color using strict configuration (validation focused)
 pub fn parse_color_strict(input: &str) -> Result<(palette::Lab, ColorFormat)> {
-    parse_color_functional(input, &strict_parsing_config())
+    parse_color(input, &strict_parsing_config())
 }
 
 /// Get color name using fast configuration
 pub fn get_color_name_fast(rgb: [u8; 3]) -> String {
-    get_color_name_functional(rgb, &fast_parsing_config())
+    get_color_name(rgb, &fast_parsing_config())
 }
 
 /// Get color name using comprehensive configuration
 pub fn get_color_name_comprehensive(rgb: [u8; 3]) -> String {
-    get_color_name_functional(rgb, &comprehensive_parsing_config())
+    get_color_name(rgb, &comprehensive_parsing_config())
 }
 
 /// Get color name using strict configuration
 pub fn get_color_name_strict(rgb: [u8; 3]) -> String {
-    get_color_name_functional(rgb, &strict_parsing_config())
+    get_color_name(rgb, &strict_parsing_config())
 }
 
 #[cfg(test)]
@@ -404,14 +403,14 @@ mod tests {
     #[test]
     fn test_functional_css_parsing() {
         let config = ParsingConfig::new(ParserType::Css);
-        let result = parse_color_functional("#ff0000", &config);
+        let result = parse_color("#ff0000", &config);
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_functional_full_parsing() {
         let config = ParsingConfig::new(ParserType::Full);
-        let result = parse_color_functional("red", &config);
+        let result = parse_color("red", &config);
         assert!(result.is_ok());
     }
 
@@ -429,7 +428,7 @@ mod tests {
             .with_preprocessing(PreprocessingStep::Trim)
             .with_preprocessing(PreprocessingStep::Lowercase);
         
-        let result = parse_color_functional("  #FF0000  ", &config);
+        let result = parse_color("  #FF0000  ", &config);
         assert!(result.is_ok());
     }
 
@@ -438,7 +437,7 @@ mod tests {
         let config = ParsingConfig::new(ParserType::Css)
             .with_postprocessing(PostprocessingStep::TitleCase);
         
-        let name = get_color_name_functional([255, 0, 0], &config);
+        let name = get_color_name([255, 0, 0], &config);
         assert!(!name.is_empty());
     }
 
@@ -477,9 +476,9 @@ mod tests {
         let full_config = ParsingConfig::new(ParserType::Full);
         let custom_config = ParsingConfig::new(ParserType::Custom { strict_validation: true });
 
-        assert!(parse_color_functional("#ff0000", &css_config).is_ok());
-        assert!(parse_color_functional("#00ff00", &full_config).is_ok());
-        assert!(parse_color_functional("#0000ff", &custom_config).is_ok());
+        assert!(parse_color("#ff0000", &css_config).is_ok());
+        assert!(parse_color("#00ff00", &full_config).is_ok());
+        assert!(parse_color("#0000ff", &custom_config).is_ok());
     }
 
     #[test]

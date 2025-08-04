@@ -1,22 +1,22 @@
-//! Functional Gradient Calculator
+//! Gradient Stop Calculator
 //!
-//! This module replaces the Template Method pattern with functional composition
-//! using higher-order functions and pure functional alternatives.
+//! This module provides functional gradient stop calculation using enum dispatch
+//! and pure functional alternatives for stop positioning algorithms.
 
 use super::calculator::GradientValue;
 use crate::error::Result;
 use palette::Lab;
 
-/// Functional gradient calculation strategy using enum dispatch
+/// Gradient stop calculation strategy using enum dispatch
 #[derive(Debug, Clone, PartialEq)]
-pub enum GradientCalculationStrategy {
+pub enum StopCalculationStrategy {
     /// Equal spacing between stops
     EqualSpacing,
     /// Intelligent spacing with easing
     IntelligentSpacing { ease_in: f64, ease_out: f64 },
 }
 
-impl GradientCalculationStrategy {
+impl StopCalculationStrategy {
     /// Calculate stop positions using functional approach
     pub fn calculate_stops(&self, num_stops: usize) -> Result<Vec<f64>> {
         // Validation function
@@ -115,24 +115,24 @@ fn post_process_stops(mut stops: Vec<f64>) -> Vec<f64> {
     stops
 }
 
-/// Functional gradient calculator
+/// Gradient stop calculator
 #[derive(Debug, Clone)]
-pub struct FunctionalGradientCalculator {
-    strategy: GradientCalculationStrategy,
+pub struct GradientStopCalculator {
+    strategy: StopCalculationStrategy,
 }
 
-impl FunctionalGradientCalculator {
+impl GradientStopCalculator {
     /// Create calculator with intelligent stops
     pub fn with_intelligent_stops(ease_in: f64, ease_out: f64) -> Self {
         Self {
-            strategy: GradientCalculationStrategy::IntelligentSpacing { ease_in, ease_out },
+            strategy: StopCalculationStrategy::IntelligentSpacing { ease_in, ease_out },
         }
     }
 
     /// Create calculator with equal spacing
     pub fn with_equal_spacing() -> Self {
         Self {
-            strategy: GradientCalculationStrategy::EqualSpacing,
+            strategy: StopCalculationStrategy::EqualSpacing,
         }
     }
 
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_equal_spacing_calculation() {
-        let strategy = GradientCalculationStrategy::EqualSpacing;
+        let strategy = StopCalculationStrategy::EqualSpacing;
         let stops = strategy.calculate_stops(5).unwrap();
         
         assert_eq!(stops.len(), 5);
@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_intelligent_spacing_calculation() {
-        let strategy = GradientCalculationStrategy::IntelligentSpacing {
+        let strategy = StopCalculationStrategy::IntelligentSpacing {
             ease_in: 0.5,
             ease_out: 0.5,
         };
@@ -242,8 +242,8 @@ mod tests {
     }
 
     #[test]
-    fn test_functional_calculator() {
-        let calculator = FunctionalGradientCalculator::with_equal_spacing();
+    fn test_gradient_stop_calculator() {
+        let calculator = GradientStopCalculator::with_equal_spacing();
         let stops = calculator.calculate_stops(3).unwrap();
         
         assert_eq!(stops, vec![0.0, 0.5, 1.0]);
@@ -263,11 +263,11 @@ mod tests {
     #[test]
     fn test_strategy_names() {
         assert_eq!(
-            GradientCalculationStrategy::EqualSpacing.name(),
+            StopCalculationStrategy::EqualSpacing.name(),
             "Equal Spacing"
         );
         assert_eq!(
-            GradientCalculationStrategy::IntelligentSpacing {
+            StopCalculationStrategy::IntelligentSpacing {
                 ease_in: 0.5,
                 ease_out: 0.5
             }
@@ -278,7 +278,7 @@ mod tests {
 
     #[test]
     fn test_validation_error() {
-        let strategy = GradientCalculationStrategy::EqualSpacing;
+        let strategy = StopCalculationStrategy::EqualSpacing;
         let result = strategy.calculate_stops(0);
         
         assert!(result.is_err());

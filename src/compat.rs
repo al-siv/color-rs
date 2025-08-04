@@ -8,18 +8,18 @@
 //! equivalents as documented in the migration guide.
 
 use crate::error::Result;
-use crate::color_parser_functional::{ParserType, ParsingConfig, parse_color_functional, get_color_name_functional};
+use crate::color_parsing::{ParserType, ParsingConfig, parse_color, get_color_name};
 use crate::command_functional::{CommandType, execute_command_functional, ExecutionContext};
 use std::collections::HashMap;
 
 /// Backward compatibility type alias for the removed ColorParserType
 /// 
-/// **MIGRATION NOTE**: Use `ParserType` from `color_parser_functional` instead.
+/// **MIGRATION NOTE**: Use `ParserType` from `color_parsing` instead.
 pub type ColorParserType = ParserType;
 
 /// Backward compatibility function for the removed ColorParserFactory::create_parser
 /// 
-/// **MIGRATION NOTE**: Use `parse_color_functional` directly instead.
+/// **MIGRATION NOTE**: Use `parse_color` directly instead.
 pub fn create_parser(parser_type: ParserType) -> Result<Box<dyn ColorParserCompatTrait>> {
     Ok(Box::new(CompatParser { parser_type }))
 }
@@ -47,7 +47,7 @@ impl ColorParserCompatTrait for CompatParser {
             preprocessing: vec![],
             postprocessing: vec![],
         };
-        parse_color_functional(input, &config)
+        parse_color(input, &config)
     }
 
     fn get_color_name(&self, rgb: (u8, u8, u8)) -> String {
@@ -58,7 +58,7 @@ impl ColorParserCompatTrait for CompatParser {
             preprocessing: vec![],
             postprocessing: vec![],
         };
-        get_color_name_functional([rgb.0, rgb.1, rgb.2], &config)
+        get_color_name([rgb.0, rgb.1, rgb.2], &config)
     }
 }
 
@@ -99,7 +99,7 @@ pub mod legacy {
 mod tests {
     use crate::cli::GradientArgs;
     use super::{create_parser, execute_legacy_command, CommandType};
-    use crate::color_parser_functional::ParserType;
+    use crate::color_parsing::ParserType;
 
     #[test]
     #[allow(deprecated)]

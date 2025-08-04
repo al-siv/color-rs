@@ -1,15 +1,15 @@
-//! Functional Output System
+//! Gradient Formatting System
 //!
-//! This module replaces the Strategy and Observer patterns with functional composition
-//! using higher-order functions and callback systems.
+//! This module provides gradient output formatting in various formats
+//! using functional composition and callback systems.
 
 use super::calculator::GradientValue;
 use crate::error::Result;
 use tabled::{settings::Style, Table};
 
-/// Functional output format using enum dispatch for zero-cost abstractions
+/// Gradient output format using enum dispatch for zero-cost abstractions
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum OutputFormat {
+pub enum GradientFormat {
     /// Table format with ASCII art
     Table,
     /// CSS gradient format
@@ -20,7 +20,7 @@ pub enum OutputFormat {
     Custom { name: String },
 }
 
-impl OutputFormat {
+impl GradientFormat {
     /// Format gradient values using functional approach
     pub fn format_gradient(&self, values: &[GradientValue]) -> Result<String> {
         match self {
@@ -99,14 +99,14 @@ fn format_as_custom(values: &[GradientValue], format_name: &str) -> Result<Strin
 
 /// Functional event callback system to replace Observer pattern
 pub type GradientGeneratedCallback = Box<dyn Fn(&[GradientValue]) + Send + Sync>;
-pub type OutputFormattedCallback = Box<dyn Fn(&str) + Send + Sync>;
+pub type GradientFormattedCallback = Box<dyn Fn(&str) + Send + Sync>;
 pub type ErrorCallback = Box<dyn Fn(&str) + Send + Sync>;
 
 /// Functional event callbacks container
 #[derive(Default)]
 pub struct EventCallbacks {
     gradient_generated: Vec<GradientGeneratedCallback>,
-    output_formatted: Vec<OutputFormattedCallback>,
+    output_formatted: Vec<GradientFormattedCallback>,
     errors: Vec<ErrorCallback>,
 }
 
@@ -165,15 +165,15 @@ impl EventCallbacks {
     }
 }
 
-/// Functional gradient output manager
-pub struct FunctionalOutputManager {
-    format: OutputFormat,
+/// Gradient output formatter
+pub struct GradientFormatter {
+    format: GradientFormat,
     callbacks: EventCallbacks,
 }
 
-impl FunctionalOutputManager {
+impl GradientFormatter {
     /// Create output manager with specified format
-    pub fn with_format(format: OutputFormat) -> Self {
+    pub fn with_format(format: GradientFormat) -> Self {
         Self {
             format,
             callbacks: EventCallbacks::new(),
@@ -182,17 +182,17 @@ impl FunctionalOutputManager {
 
     /// Create output manager with table format
     pub fn with_table_format() -> Self {
-        Self::with_format(OutputFormat::Table)
+        Self::with_format(GradientFormat::Table)
     }
 
     /// Create output manager with CSS format
     pub fn with_css_format() -> Self {
-        Self::with_format(OutputFormat::Css)
+        Self::with_format(GradientFormat::Css)
     }
 
     /// Create output manager with JSON format
     pub fn with_json_format() -> Self {
-        Self::with_format(OutputFormat::Json)
+        Self::with_format(GradientFormat::Json)
     }
 
     /// Add event callbacks using builder pattern
@@ -326,8 +326,8 @@ mod tests {
     }
 
     #[test]
-    fn test_functional_output_manager() {
-        let manager = FunctionalOutputManager::with_table_format();
+    fn test_gradient_formatter() {
+        let manager = GradientFormatter::with_table_format();
         let values = create_test_values();
         
         let result = manager.format_gradient(&values).unwrap();
@@ -352,7 +352,7 @@ mod tests {
                 *output_flag.lock().unwrap() = true;
             });
         
-        let manager = FunctionalOutputManager::with_table_format()
+        let manager = GradientFormatter::with_table_format()
             .with_callbacks(callbacks);
         
         let values = create_test_values();
@@ -364,11 +364,11 @@ mod tests {
 
     #[test]
     fn test_format_names() {
-        assert_eq!(OutputFormat::Table.name(), "Table");
-        assert_eq!(OutputFormat::Css.name(), "CSS");
-        assert_eq!(OutputFormat::Json.name(), "JSON");
+        assert_eq!(GradientFormat::Table.name(), "Table");
+        assert_eq!(GradientFormat::Css.name(), "CSS");
+        assert_eq!(GradientFormat::Json.name(), "JSON");
         assert_eq!(
-            OutputFormat::Custom {
+            GradientFormat::Custom {
                 name: "test".to_string()
             }
             .name(),

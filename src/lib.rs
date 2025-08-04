@@ -8,16 +8,17 @@ pub mod cli;
 pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
+pub mod color_report_formatting;
 // Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
-pub mod color_matching_functional;
+pub mod color_matching;
 // Facade Pattern Migration (Milestone 2.2) - Functional Replacement
 pub mod color_ops;
 pub mod color_parser;
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
-pub mod color_parser_functional;
+pub mod color_parsing;
 pub mod color_schemes;
 // Builder Pattern Migration (Milestone 2.3) - Functional Replacement
-pub mod functional_color_scheme_config;
+pub mod scheme_config;
 // Backward Compatibility Layer (Milestone 3.1)
 pub mod compat;
 pub mod config;
@@ -48,9 +49,9 @@ pub use color_distance_strategies::{
     LabLens, LightnessLens, ALens, BLens
 };
 // Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
-pub use color_matching_functional::{
+pub use color_matching::{
     CollectionType, MatchingConfig, 
-    match_color_functional, match_color_by_type, match_across_all_collections,
+    match_color, match_color_by_type, match_across_all_collections,
     validate_lab_basic, validate_ral_classic, validate_ral_design,
     post_process_ral_design, extract_hue_from_code
 };
@@ -74,10 +75,10 @@ pub use color_ops::{
 pub use color_ops::mixing::ColorSpace as MixingColorSpace;
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
 // Factory Pattern Migration (Milestone 1.3) - Functional Replacement
-pub use color_parser_functional::{
+pub use color_parsing::{
     ParserType, ParsingConfig, ParserCapabilities,
     PreprocessingStep, PostprocessingStep,
-    parse_color_functional, get_color_name_functional, get_parser_capabilities,
+    parse_color, get_color_name, get_parser_capabilities,
     fast_parsing_config, comprehensive_parsing_config, strict_parsing_config,
     parse_color_fast, parse_color_comprehensive, parse_color_strict,
     get_color_name_fast, get_color_name_comprehensive, get_color_name_strict,
