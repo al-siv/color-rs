@@ -596,80 +596,103 @@ impl GradientConfig {
 
     /// Create `GradientConfig` from CLI `GradientArgs` (CLI integration)
     pub fn from_gradient_args(args: GradientArgs) -> crate::error::Result<Self> {
-        // Create color pair from CLI arguments
-        let colors = ColorPair::new(&args.start_color, &args.end_color)?;
+        let colors = Self::validate_and_create_colors(&args)?;
+        let easing = Self::create_easing_config(&args)?;
+        let position_range = Self::create_position_range(&args)?;
+        let stop_config = Self::create_stop_config(&args);
+        let file_output = Self::create_file_output(&args)?;
+        
+        Self::build_configured_gradient(colors, easing, position_range, stop_config, file_output, &args)
+    }
 
-        // Create easing configuration
-        let easing = EasingConfig::new(args.ease_in, args.ease_out)?;
+    /// Validate and create color pair from CLI arguments
+    fn validate_and_create_colors(args: &GradientArgs) -> crate::error::Result<ColorPair> {
+        ColorPair::new(&args.start_color, &args.end_color).map_err(|e| crate::error::ColorError::InvalidGradient(e.to_string()))
+    }
 
-        // Create position range
-        let position_range = PositionRange::new(args.start_position, args.end_position)?;
+    /// Create easing configuration from CLI arguments
+    fn create_easing_config(args: &GradientArgs) -> crate::error::Result<EasingConfig> {
+        EasingConfig::new(args.ease_in, args.ease_out).map_err(|e| crate::error::ColorError::InvalidGradient(e.to_string()))
+    }
 
-        // Create stop configuration
-        let stop_config = if let Some(step) = args.step {
+    /// Create position range from CLI arguments
+    fn create_position_range(args: &GradientArgs) -> crate::error::Result<PositionRange> {
+        PositionRange::new(args.start_position, args.end_position).map_err(|e| crate::error::ColorError::InvalidGradient(e.to_string()))
+    }
+
+    /// Create stop configuration from CLI arguments
+    fn create_stop_config(args: &GradientArgs) -> StopConfig {
+        if let Some(step) = args.step {
             StopConfig::Steps(step)
         } else if args.stops_simple {
             StopConfig::EqualStops(args.stops)
         } else {
             StopConfig::IntelligentStops(args.stops)
-        };
+        }
+    }
 
-        // Create file output configuration
-        let file_output = match (args.output_format, args.output_file) {
-            (Some(format), Some(filename)) => Some(FileOutput::new(format, &filename)?),
+    /// Create file output configuration from CLI arguments
+    fn create_file_output(args: &GradientArgs) -> crate::error::Result<Option<FileOutput>> {
+        match (&args.output_format, &args.output_file) {
+            (Some(format), Some(filename)) => Ok(Some(FileOutput::new(format.clone(), filename)?)),
             (Some(format), None) => {
-                // Generate default filename based on format
-                let default_name = match format {
-                    OutputFormat::Toml => "gradient.toml",
-                    OutputFormat::Yaml => "gradient.yaml",
-                };
-                Some(FileOutput::new(format, default_name)?)
+                let default_name = Self::get_default_filename(format.clone());
+                Ok(Some(FileOutput::new(format.clone(), default_name)?))
             }
-            _ => None,
-        };
+            _ => Ok(None),
+        }
+    }
 
-        // Create base configuration
+    /// Get default filename for output format
+    fn get_default_filename(format: crate::cli::OutputFormat) -> &'static str {
+        match format {
+            crate::cli::OutputFormat::Toml => "gradient.toml",
+            crate::cli::OutputFormat::Yaml => "gradient.yaml",
+        }
+    }
+
+    /// Build the final configured gradient with all settings applied
+    fn build_configured_gradient(
+        colors: ColorPair,
+        easing: EasingConfig,
+        position_range: PositionRange,
+        stop_config: StopConfig,
+        file_output: Option<FileOutput>,
+        args: &GradientArgs,
+    ) -> crate::error::Result<Self> {
         let base_config = Self::new(colors, easing)?;
-        
-        // Apply position range
         let positioned_config = base_config.with_position_range(position_range)?;
-        
-        // Apply stop configuration
         let stop_configured = positioned_config.with_stop_config(stop_config);
-
-        // Apply image output configuration using appropriate methods
-        let image_configured = match (&args.svg, &args.png) {
-            (Some(svg_name), Some(png_name)) => {
-                // Both formats specified
-                stop_configured.with_both_outputs(svg_name, png_name)?
-            }
-            (Some(svg_name), None) => {
-                // SVG only
-                stop_configured.with_svg_output(svg_name)?
-            }
-            (None, Some(png_name)) => {
-                // PNG only
-                stop_configured.with_png_output(png_name)?
-            }
-            (None, None) => {
-                // No image output - keep as is
-                stop_configured
-            }
-        };
-
-        // Apply width and legend settings
+        let image_configured = Self::apply_image_output(stop_configured, args)?;
         let sized_config = image_configured.with_width(args.width)?;
         let legend_config = sized_config.with_legend(!args.no_legend);
         
-        // Apply file output if specified
         let final_config = if let Some(file_out) = file_output {
             legend_config.with_file_output(file_out)
         } else {
             legend_config
         };
 
-    Ok(final_config)
-}
+        Ok(final_config)
+    }
+
+    /// Apply image output configuration based on CLI arguments
+    fn apply_image_output(config: Self, args: &GradientArgs) -> crate::error::Result<Self> {
+        match (&args.svg, &args.png) {
+            (Some(svg_name), Some(png_name)) => {
+                config.with_both_outputs(svg_name, png_name)
+            }
+            (Some(svg_name), None) => {
+                config.with_svg_output(svg_name)
+            }
+            (None, Some(png_name)) => {
+                config.with_png_output(png_name)
+            }
+            (None, None) => {
+                Ok(config)
+            }
+        }
+    }
 
     /// Get color pair
     pub fn colors(&self) -> &ColorPair {
@@ -703,7 +726,7 @@ impl GradientConfig {
 }
 
 /// Convenience functions for common gradient configurations
-
+/// 
 /// Create a simple linear gradient
 ///
 /// # Errors

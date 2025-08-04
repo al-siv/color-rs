@@ -62,76 +62,129 @@ impl IntelligentStopCalculator {
 
 impl GradientCalculationTemplate for IntelligentStopCalculator {
     fn generate_stops(&self, num_stops: usize) -> Vec<f64> {
-        if num_stops <= 1 {
-            return vec![0.0];
-        }
-        if num_stops == 2 {
-            return vec![0.0, 1.0];
+        if let Some(simple_stops) = self.handle_simple_cases(num_stops) {
+            return simple_stops;
         }
 
-        // Create cubic bezier curve for easing analysis
-        let curve = CubicBez::new(
+        let curve = self.create_bezier_curve();
+        let cumulative_importance = self.calculate_cumulative_importance(&curve);
+        let total_importance = cumulative_importance[INTELLIGENT_STOP_SAMPLE_POINTS];
+        
+        if total_importance == 0.0 {
+            return self.fallback_to_equal_spacing(num_stops);
+        }
+
+        self.distribute_stops_by_importance(num_stops, &cumulative_importance, total_importance)
+    }
+}
+
+impl IntelligentStopCalculator {
+    /// Handle simple cases (0-2 stops) with direct return values
+    fn handle_simple_cases(&self, num_stops: usize) -> Option<Vec<f64>> {
+        match num_stops {
+            0 | 1 => Some(vec![0.0]),
+            2 => Some(vec![0.0, 1.0]),
+            _ => None,
+        }
+    }
+
+    /// Create cubic bezier curve for easing analysis
+    fn create_bezier_curve(&self) -> CubicBez {
+        CubicBez::new(
             Point::new(0.0, 0.0),
             Point::new(self.ease_in, 0.0),
             Point::new(self.ease_out, 1.0),
             Point::new(1.0, 1.0),
-        );
+        )
+    }
 
+    /// Calculate cumulative importance values along the curve
+    fn calculate_cumulative_importance(&self, curve: &CubicBez) -> Vec<f64> {
         let mut cumulative_importance = vec![0.0; INTELLIGENT_STOP_SAMPLE_POINTS + 1];
 
         for i in 0..INTELLIGENT_STOP_SAMPLE_POINTS {
-            let t = i as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
-            let dt = 1.0 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
-
-            // Calculate derivative magnitude using numerical differentiation
-            let current_point = curve.eval(t);
-            let next_point = curve.eval((t + dt).min(1.0));
-
-            let dy = next_point.y - current_point.y;
-            let derivative_magnitude = dy.abs();
-
+            let derivative_magnitude = self.calculate_derivative_magnitude(curve, i);
             cumulative_importance[i + 1] = cumulative_importance[i] + derivative_magnitude;
         }
 
-        let total_importance = cumulative_importance[INTELLIGENT_STOP_SAMPLE_POINTS];
-        if total_importance == 0.0 {
-            // Fallback to equal spacing
-            return (0..num_stops)
-                .map(|i| i as f64 / (num_stops - 1).max(1) as f64)
-                .collect();
-        }
+        cumulative_importance
+    }
 
-        // Distribute stops based on cumulative importance
+    /// Calculate derivative magnitude at a specific sample point
+    fn calculate_derivative_magnitude(&self, curve: &CubicBez, sample_index: usize) -> f64 {
+        let t = sample_index as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
+        let dt = 1.0 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
+
+        let current_point = curve.eval(t);
+        let next_point = curve.eval((t + dt).min(1.0));
+
+        let dy = next_point.y - current_point.y;
+        dy.abs()
+    }
+
+    /// Fallback to equal spacing when no importance variation is detected
+    fn fallback_to_equal_spacing(&self, num_stops: usize) -> Vec<f64> {
+        (0..num_stops)
+            .map(|i| i as f64 / (num_stops - 1).max(1) as f64)
+            .collect()
+    }
+
+    /// Distribute stops based on cumulative importance using binary search
+    fn distribute_stops_by_importance(
+        &self,
+        num_stops: usize,
+        cumulative_importance: &[f64],
+        total_importance: f64,
+    ) -> Vec<f64> {
         let mut stops = Vec::new();
+        
         for i in 0..num_stops {
             let target_importance = (i as f64 / (num_stops - 1).max(1) as f64) * total_importance;
-
-            // Binary search to find the t value
-            let mut low = 0;
-            let mut high = INTELLIGENT_STOP_SAMPLE_POINTS;
-
-            while high - low > 1 {
-                let mid = usize::midpoint(low, high);
-                if cumulative_importance[mid] < target_importance {
-                    low = mid;
-                } else {
-                    high = mid;
-                }
-            }
-
-            // Linear interpolation between the two closest points
-            let t = if cumulative_importance[high] - cumulative_importance[low] > f64::EPSILON {
-                let ratio = (target_importance - cumulative_importance[low])
-                    / (cumulative_importance[high] - cumulative_importance[low]);
-                (low as f64 + ratio) / INTELLIGENT_STOP_SAMPLE_POINTS as f64
-            } else {
-                low as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64
-            };
-
+            let t = self.find_position_for_importance(cumulative_importance, target_importance);
             stops.push(t.clamp(0.0, 1.0));
         }
 
         stops
+    }
+
+    /// Find the position (t) for a given target importance using binary search
+    fn find_position_for_importance(&self, cumulative_importance: &[f64], target_importance: f64) -> f64 {
+        let (low, high) = self.binary_search_importance(cumulative_importance, target_importance);
+        self.interpolate_position(cumulative_importance, target_importance, low, high)
+    }
+
+    /// Binary search to find the importance range containing the target
+    fn binary_search_importance(&self, cumulative_importance: &[f64], target_importance: f64) -> (usize, usize) {
+        let mut low = 0;
+        let mut high = INTELLIGENT_STOP_SAMPLE_POINTS;
+
+        while high - low > 1 {
+            let mid = usize::midpoint(low, high);
+            if cumulative_importance[mid] < target_importance {
+                low = mid;
+            } else {
+                high = mid;
+            }
+        }
+
+        (low, high)
+    }
+
+    /// Linear interpolation between two closest importance points
+    fn interpolate_position(
+        &self,
+        cumulative_importance: &[f64],
+        target_importance: f64,
+        low: usize,
+        high: usize,
+    ) -> f64 {
+        if cumulative_importance[high] - cumulative_importance[low] > f64::EPSILON {
+            let ratio = (target_importance - cumulative_importance[low])
+                / (cumulative_importance[high] - cumulative_importance[low]);
+            (low as f64 + ratio) / INTELLIGENT_STOP_SAMPLE_POINTS as f64
+        } else {
+            low as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64
+        }
     }
 }
 

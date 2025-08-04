@@ -116,9 +116,9 @@ fn triadic_lab(color: Lab) -> (Lab, Lab) {
 
 /// Functional helper for calculating tetradic colors in LAB space
 fn tetradic_lab(color: Lab) -> (Lab, Lab, Lab) {
-    let angle1 = 1.5708_f32; // 90 degrees in radians
-    let angle2 = 3.1416_f32; // 180 degrees in radians  
-    let angle3 = 4.7124_f32; // 270 degrees in radians
+    let angle1 = std::f32::consts::FRAC_PI_2; // 90 degrees in radians
+    let angle2 = std::f32::consts::PI; // 180 degrees in radians  
+    let angle3 = 3.0 * std::f32::consts::FRAC_PI_2; // 270 degrees in radians
     
     let a1 = color.a * angle1.cos() - color.b * angle1.sin();
     let b1 = color.a * angle1.sin() + color.b * angle1.cos();

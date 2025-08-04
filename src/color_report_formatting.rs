@@ -405,37 +405,89 @@ fn get_closest_ral_design_match(
     manager: &crate::color_parser::unified_manager::UnifiedColorManager,
     distance_algorithm: DistanceAlgorithm,
 ) -> Option<CollectionMatch> {
-    let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
-    let matches = manager.find_closest_ral_design_with_algorithm(rgb, 1, distance_algorithm);
+    let target_rgb = extract_target_rgb(target);
+    let matches = find_ral_design_matches(manager, target_rgb, distance_algorithm);
     
-    if let Some(closest) = matches.first() {
-        let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
-        let closest_lab = rgb_to_lab((
-            closest.entry.color.rgb[0],
-            closest.entry.color.rgb[1],
-            closest.entry.color.rgb[2],
-        ));
-        let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
-        let srgb = rgb_to_srgb((
-            closest.entry.color.rgb[0],
-            closest.entry.color.rgb[1],
-            closest.entry.color.rgb[2],
-        ));
-        let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
-        Some(CollectionMatch {
-            name: closest.entry.metadata.name.clone(),
-            hex: format!(
-                "#{:02X}{:02X}{:02X}",
-                closest.entry.color.rgb[0],
-                closest.entry.color.rgb[1],
-                closest.entry.color.rgb[2]
-            ),
-            distance,
-            wcag_relative_luminance,
-        })
-    } else {
-        None
+    matches.first().map(|closest| {
+        create_collection_match_from_ral_entry(target, closest, distance_algorithm)
+    })
+}
+
+/// Extract RGB values from target color as array
+fn extract_target_rgb(target: &crate::color_parser::UniversalColor) -> [u8; 3] {
+    [target.rgb[0], target.rgb[1], target.rgb[2]]
+}
+
+/// Find closest RAL Design matches using the specified algorithm
+fn find_ral_design_matches(
+    manager: &crate::color_parser::unified_manager::UnifiedColorManager,
+    target_rgb: [u8; 3],
+    distance_algorithm: DistanceAlgorithm,
+) -> Vec<crate::color_parser::collections::ColorMatch> {
+    manager.find_closest_ral_design_with_algorithm(target_rgb, 1, distance_algorithm)
+}
+
+/// Create a CollectionMatch from a RAL Design entry
+fn create_collection_match_from_ral_entry(
+    target: &crate::color_parser::UniversalColor,
+    closest: &crate::color_parser::collections::ColorMatch,
+    distance_algorithm: DistanceAlgorithm,
+) -> CollectionMatch {
+    let target_lab = convert_target_to_lab(target);
+    let closest_lab = convert_ral_entry_to_lab(closest);
+    let distance = calculate_color_distance(distance_algorithm, target_lab, closest_lab);
+    let wcag_luminance = calculate_wcag_luminance(closest);
+    let hex_string = format_rgb_as_hex(closest);
+
+    CollectionMatch {
+        name: closest.entry.metadata.name.clone(),
+        hex: hex_string,
+        distance,
+        wcag_relative_luminance: wcag_luminance,
     }
+}
+
+/// Convert target color to LAB color space
+fn convert_target_to_lab(target: &crate::color_parser::UniversalColor) -> Lab<palette::white_point::D65> {
+    rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]))
+}
+
+/// Convert RAL entry color to LAB color space
+fn convert_ral_entry_to_lab(closest: &crate::color_parser::collections::ColorMatch) -> Lab<palette::white_point::D65> {
+    rgb_to_lab((
+        closest.entry.color.rgb[0],
+        closest.entry.color.rgb[1],
+        closest.entry.color.rgb[2],
+    ))
+}
+
+/// Calculate distance between two LAB colors
+fn calculate_color_distance(
+    algorithm: DistanceAlgorithm,
+    target_lab: Lab<palette::white_point::D65>,
+    closest_lab: Lab<palette::white_point::D65>,
+) -> f64 {
+    crate::color_distance_strategies::calculate_distance(algorithm, target_lab, closest_lab)
+}
+
+/// Calculate WCAG relative luminance for RAL entry
+fn calculate_wcag_luminance(closest: &crate::color_parser::collections::ColorMatch) -> f64 {
+    let srgb = rgb_to_srgb((
+        closest.entry.color.rgb[0],
+        closest.entry.color.rgb[1],
+        closest.entry.color.rgb[2],
+    ));
+    crate::color_ops::luminance::wcag_relative(srgb)
+}
+
+/// Format RGB values as hex string
+fn format_rgb_as_hex(closest: &crate::color_parser::collections::ColorMatch) -> String {
+    format!(
+        "#{:02X}{:02X}{:02X}",
+        closest.entry.color.rgb[0],
+        closest.entry.color.rgb[1],
+        closest.entry.color.rgb[2]
+    )
 }
 
 #[cfg(test)]
