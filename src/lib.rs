@@ -27,7 +27,7 @@ pub mod file_output;
 pub mod format_utils;
 pub mod gradient;
 // Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
-pub mod gradient_functional;
+pub mod gradient_config;
 pub mod image;
 pub mod output_formats;
 pub mod precision_utils;
@@ -35,7 +35,7 @@ pub mod utils;
 
 // New GoF Pattern Implementations
 // Command Pattern Migration (Milestone 1.4) - Functional Replacement
-pub mod command_functional;
+pub mod command_execution;
 pub mod parsing_chain;
 
 // Re-export main types for convenience
@@ -88,10 +88,10 @@ pub use color_schemes::{
     ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
 };
 // Command Pattern Migration (Milestone 1.4) - Functional Replacement
-pub use command_functional::{
+pub use command_execution::{
     CommandType, ExecutionContext, ExecutionResult,
     PreHookStep, PostHookStep,
-    execute_command_functional, get_command_name, get_command_description, supports_undo,
+    execute_command, get_command_name, get_command_description, supports_undo,
     create_gradient_command, create_analyze_command, create_find_closest_command, create_convert_command,
     execute_command_simple, execute_command_with_validation, execute_command_enhanced,
     AVAILABLE_COMMAND_TYPES
@@ -99,7 +99,7 @@ pub use command_functional::{
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
 // Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
-pub use gradient_functional::{
+pub use gradient_config::{
     GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
     GradientValidationError, linear_gradient, smooth_gradient, positioned_gradient
 };
@@ -120,7 +120,7 @@ impl ColorRs {
     /// Generate a gradient based on the provided arguments
     pub fn generate_gradient(&self, args: GradientArgs) -> Result<()> {
         // Use functional gradient system (Milestone 2.1b)
-        gradient_functional::generate_gradient_functional(args)
+        gradient_config::generate_gradient(args)
     }
 
     /// Match and convert color between different color spaces  

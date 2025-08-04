@@ -15,7 +15,7 @@ use crate::error::{ColorError, Result};
 ///
 /// # Example
 /// ```rust
-/// use color_rs::gradient_functional::{GradientConfig, ColorPair, EasingConfig};
+/// use color_rs::gradient_config::{GradientConfig, ColorPair, EasingConfig};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let config = GradientConfig::new(
@@ -743,7 +743,7 @@ pub fn positioned_gradient(
 }
 
 /// Generate gradient using functional approach (Milestone 2.1b integration)
-pub fn generate_gradient_functional(args: GradientArgs) -> Result<()> {
+pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     // Create functional configuration from CLI arguments
     let config = GradientConfig::from_gradient_args(args)?;
     
@@ -890,7 +890,7 @@ mod tests {
     }
 
     #[test]
-    fn test_functional_composition() {
+    fn test_gradient_composition() {
         // Test that we can chain operations functionally
         let config = GradientConfig::basic("#FF0000", "#0000FF")
             .and_then(|c| c.with_svg_output("gradient.svg"))

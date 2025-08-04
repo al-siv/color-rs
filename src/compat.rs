@@ -9,7 +9,7 @@
 
 use crate::error::Result;
 use crate::color_parsing::{ParserType, ParsingConfig, parse_color, get_color_name};
-use crate::command_functional::{CommandType, execute_command_functional, ExecutionContext};
+use crate::command_execution::{CommandType, execute_command, ExecutionContext};
 use std::collections::HashMap;
 
 /// Backward compatibility type alias for the removed ColorParserType
@@ -64,12 +64,12 @@ impl ColorParserCompatTrait for CompatParser {
 
 /// Backward compatibility type alias for the removed CommandType
 /// 
-/// **MIGRATION NOTE**: Use `CommandType` from `command_functional` instead.
+/// **MIGRATION NOTE**: Use `CommandType` from `command_execution` instead.
 pub type LegacyCommandType = CommandType;
 
 /// Backward compatibility function for command execution
 /// 
-/// **MIGRATION NOTE**: Use `execute_command_functional` directly instead.
+/// **MIGRATION NOTE**: Use `execute_command` directly instead.
 pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
     let context = ExecutionContext {
         command_type: cmd_type,
@@ -78,7 +78,7 @@ pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
         metadata: HashMap::new(),
     };
     
-    let result = execute_command_functional(&context)?;
+    let result = execute_command(&context)?;
     Ok(result.output)
 }
 

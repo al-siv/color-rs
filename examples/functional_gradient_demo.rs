@@ -4,7 +4,7 @@
 ///! introduced in Milestone 2.1, replacing the traditional Builder pattern with
 ///! immutable, composable configuration structures.
 
-use color_rs::gradient_functional::{
+use color_rs::gradient_config::{
     GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
     linear_gradient, smooth_gradient, positioned_gradient
 };

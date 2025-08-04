@@ -160,7 +160,7 @@ impl ExecutionResult {
 }
 
 /// Main functional command execution - replaces Command trait methods
-pub fn execute_command_functional(context: &ExecutionContext) -> Result<ExecutionResult> {
+pub fn execute_command(context: &ExecutionContext) -> Result<ExecutionResult> {
     let start_time = std::time::Instant::now();
 
     // Apply pre-execution hooks
@@ -489,7 +489,7 @@ pub fn create_convert_command(color_input: String, target_format: String) -> Com
 /// Execute command with default context (no hooks)
 pub fn execute_command_simple(command_type: CommandType) -> Result<ExecutionResult> {
     let context = ExecutionContext::new(command_type);
-    execute_command_functional(&context)
+    execute_command(&context)
 }
 
 /// Execute command with validation hooks
@@ -499,7 +499,7 @@ pub fn execute_command_with_validation(command_type: CommandType) -> Result<Exec
         .with_pre_hook(PreHookStep::LogStart)
         .with_post_hook(PostHookStep::LogCompletion);
     
-    execute_command_functional(&context)
+    execute_command(&context)
 }
 
 /// Execute command with full hooks and formatting
@@ -512,7 +512,7 @@ pub fn execute_command_enhanced(command_type: CommandType) -> Result<ExecutionRe
         .with_post_hook(PostHookStep::LogCompletion)
         .with_post_hook(PostHookStep::SaveOutput);
     
-    execute_command_functional(&context)
+    execute_command(&context)
 }
 
 /// Available command types - compile-time constant
