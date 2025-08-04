@@ -5,7 +5,7 @@
 //! - Generate gradients with cubic-bezier easing
 //! - Create SVG and PNG outputs programmatically
 
-use color_rs::{ColorRs, Result, cli::GradientArgs, gradient::GradientCalculator, color_parser::ColorParser};
+use color_rs::{ColorRs, Result, cli::GradientArgs, gradient::GradientCalculator};
 use palette::{IntoColor, Lab, Srgb, Mix};
 
 fn main() -> Result<()> {

@@ -5,7 +5,7 @@
 ///! immutable, composable configuration structures.
 
 use color_rs::gradient_config::{
-    GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
+    GradientConfig, ColorPair, EasingConfig, PositionRange, StopConfig, FileOutput,
     linear_gradient, smooth_gradient, positioned_gradient
 };
 use color_rs::cli::OutputFormat;
