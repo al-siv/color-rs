@@ -1,14 +1,14 @@
-//! Functional Gradient Configuration
+//! Gradient Configuration
 //!
-//! This module provides immutable, functional alternatives to the traditional Builder pattern.
+//! This module provides immutable alternatives to the traditional Builder pattern.
 //! It uses smart constructors, compile-time validation, and value types to ensure
-//! type safety and functional composition.
+//! type safety and composable configuration.
 
 use crate::cli::{GradientArgs, OutputFormat};
 use crate::config::*;
 use crate::error::{ColorError, Result};
 
-/// Immutable gradient configuration using functional approach
+/// Immutable gradient configuration
 ///
 /// Unlike the traditional Builder pattern, this configuration is immutable
 /// and uses smart constructors to ensure validity at creation time.
@@ -46,7 +46,7 @@ pub struct ColorPair {
     end: String,
 }
 
-/// Easing configuration using functional presets
+/// Easing configuration using preset configurations
 #[derive(Debug, Clone, PartialEq)]
 pub struct EasingConfig {
     ease_in: f64,
@@ -594,7 +594,7 @@ impl GradientConfig {
         }
     }
 
-    /// Create `GradientConfig` from CLI `GradientArgs` (functional integration)
+    /// Create `GradientConfig` from CLI `GradientArgs` (CLI integration)
     pub fn from_gradient_args(args: GradientArgs) -> crate::error::Result<Self> {
         // Create color pair from CLI arguments
         let colors = ColorPair::new(&args.start_color, &args.end_color)?;
@@ -742,14 +742,14 @@ pub fn positioned_gradient(
         .with_position_range(position_range)
 }
 
-/// Generate gradient using functional approach (Milestone 2.1b integration)
+/// Generate gradient using modern approach (Milestone 2.1b integration)
 pub fn generate_gradient(args: GradientArgs) -> Result<()> {
-    // Create functional configuration from CLI arguments
+    // Create gradient configuration from CLI arguments
     let config = GradientConfig::from_gradient_args(args)?;
     
-    // TODO: Implement actual gradient generation using the functional config
+    // TODO: Implement actual gradient generation using the gradient config
     // For now, delegate to the old system to maintain functionality
-    // This will be replaced with pure functional implementation later
+    // This will be replaced with modern implementation later
     
     // Convert back to GradientArgs and use existing generation
     let gradient_args = config.to_gradient_args();
@@ -891,7 +891,7 @@ mod tests {
 
     #[test]
     fn test_gradient_composition() {
-        // Test that we can chain operations functionally
+        // Test that we can chain operations
         let config = GradientConfig::basic("#FF0000", "#0000FF")
             .and_then(|c| c.with_svg_output("gradient.svg"))
             .and_then(|c| c.with_steps(5))

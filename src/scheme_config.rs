@@ -1,6 +1,6 @@
 //! Color scheme configuration using immutable patterns and smart constructors
 //!
-//! This module provides a functional alternative to the builder pattern for color scheme configuration.
+//! This module provides an alternative to the builder pattern for color scheme configuration.
 //! Instead of mutable state and method chaining, it uses immutable configuration structs, smart
 //! constructors with validation, and Result types for compile-time safety.
 
@@ -136,7 +136,7 @@ impl ColorSchemeConfig {
         Self::new(false, false, None, Some(luminance))
     }
 
-    /// Functional combinator to add relative luminance preservation
+    /// Configuration combinator to add relative luminance preservation
     /// 
     /// Returns a new configuration with relative luminance preservation enabled.
     /// This is a pure function that doesn't mutate the original configuration.
@@ -150,7 +150,7 @@ impl ColorSchemeConfig {
         })
     }
 
-    /// Functional combinator to add lab luminance preservation
+    /// Configuration combinator to add lab luminance preservation
     pub fn preserve_lab_luminance(self) -> std::result::Result<Self, ConfigError> {
         if self.preserve_relative_luminance {
             return Err(ConfigError::ConflictingLuminanceOptions);
@@ -161,7 +161,7 @@ impl ColorSchemeConfig {
         })
     }
 
-    /// Functional combinator to set target relative luminance
+    /// Configuration combinator to set target relative luminance
     pub fn set_target_relative_luminance(self, luminance: f64) -> std::result::Result<Self, ConfigError> {
         if !(0.0..=1.0).contains(&luminance) {
             return Err(ConfigError::InvalidTargetLuminance {
@@ -179,7 +179,7 @@ impl ColorSchemeConfig {
         })
     }
 
-    /// Functional combinator to set target lab luminance
+    /// Configuration combinator to set target lab luminance
     pub fn set_target_lab_luminance(self, luminance: f64) -> std::result::Result<Self, ConfigError> {
         if !(0.0..=100.0).contains(&luminance) {
             return Err(ConfigError::InvalidTargetLuminance {
@@ -204,7 +204,7 @@ impl Default for ColorSchemeConfig {
     }
 }
 
-/// Functional color scheme calculator using immutable configuration
+/// Color scheme calculator using immutable configuration
 /// 
 /// This struct holds an immutable configuration and provides pure functions
 /// for color scheme calculation without any mutable state.
@@ -291,9 +291,9 @@ pub mod presets {
         ))
     }
 
-    /// Builder-like functional composition for complex configurations
+    /// Builder-like configuration composition for complex configurations
     /// 
-    /// This function demonstrates how functional composition can replace
+    /// This function demonstrates how configuration composition can replace
     /// traditional builder patterns with compile-time safety.
     pub fn complex_config() -> std::result::Result<ColorSchemeCalculator, ConfigError> {
         let config = ColorSchemeConfig::default()
@@ -410,8 +410,8 @@ mod tests {
     }
 
     #[test]
-    fn test_complex_functional_composition() {
-        // This test demonstrates functional composition replacing builder pattern
+    fn test_complex_configuration_composition() {
+        // This test demonstrates configuration composition replacing builder pattern
         let result = presets::complex_config();
         assert!(result.is_ok());
         
@@ -430,7 +430,7 @@ mod tests {
             .preserve_relative_luminance()
             .build();
 
-        // Create functional equivalent
+        // Create configuration equivalent
         let functional = ColorSchemeCalculator::new(
             ColorSchemeConfig::with_relative_luminance_preservation()
         );

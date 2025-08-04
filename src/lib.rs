@@ -9,15 +9,15 @@ pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
 pub mod color_report_formatting;
-// Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
+// Template Method Pattern Migration (Milestone 1.2) - Modern Alternative
 pub mod color_matching;
-// Facade Pattern Migration (Milestone 2.2) - Functional Replacement
+// Facade Pattern Migration (Milestone 2.2) - Modern Alternative
 pub mod color_ops;
 pub mod color_parser;
-// Factory Pattern Migration (Milestone 1.3) - Functional Replacement
+// Factory Pattern Migration (Milestone 1.3) - Modern Alternative
 pub mod color_parsing;
 pub mod color_schemes;
-// Builder Pattern Migration (Milestone 2.3) - Functional Replacement
+// Builder Pattern Migration (Milestone 2.3) - Modern Alternative
 pub mod scheme_config;
 // Backward Compatibility Layer (Milestone 3.1)
 pub mod compat;
@@ -26,7 +26,7 @@ pub mod error;
 pub mod file_output;
 pub mod format_utils;
 pub mod gradient;
-// Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
+// Builder Pattern Optimization (Milestone 2.1) - Modern Alternative
 pub mod gradient_config;
 pub mod image;
 pub mod output_formats;
@@ -34,7 +34,7 @@ pub mod precision_utils;
 pub mod utils;
 
 // New GoF Pattern Implementations
-// Command Pattern Migration (Milestone 1.4) - Functional Replacement
+// Command Pattern Migration (Milestone 1.4) - Modern Alternative
 pub mod command_execution;
 pub mod parsing_chain;
 
@@ -45,17 +45,17 @@ pub use color_distance_strategies::{
     DistanceAlgorithm, calculate_distance, available_strategies,
     // Smart constructors and validation
     ValidatedLab, ValidationError, calculate_distance_validated,
-    // Lens/optics for functional field access
+    // Lens/optics for immutable field access
     LabLens, LightnessLens, ALens, BLens
 };
-// Template Method Pattern Migration (Milestone 1.2) - Functional Replacement
+// Template Method Pattern Migration (Milestone 1.2) - Modern Alternative
 pub use color_matching::{
     CollectionType, MatchingConfig, 
     match_color, match_color_by_type, match_across_all_collections,
     validate_lab_basic, validate_ral_classic, validate_ral_design,
     post_process_ral_design, extract_hue_from_code
 };
-// Facade Pattern Migration (Milestone 2.2) - Functional Replacement
+// Facade Pattern Migration (Milestone 2.2) - Modern Alternative
 pub use color_ops::{
     // Core functions
     wcag_relative, perceived_brightness, relative_luminance,
@@ -74,7 +74,7 @@ pub use color_ops::{
 // Import ColorSpace with alias to avoid conflict
 pub use color_ops::mixing::ColorSpace as MixingColorSpace;
 pub use color_parser::{ColorMatch, SearchFilter, UnifiedColorManager, UniversalColor};
-// Factory Pattern Migration (Milestone 1.3) - Functional Replacement
+// Factory Pattern Migration (Milestone 1.3) - Modern Alternative
 pub use color_parsing::{
     ParserType, ParsingConfig, ParserCapabilities,
     PreprocessingStep, PostprocessingStep,
@@ -87,7 +87,7 @@ pub use color_parsing::{
 pub use color_schemes::{
     ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
 };
-// Command Pattern Migration (Milestone 1.4) - Functional Replacement
+// Command Pattern Migration (Milestone 1.4) - Modern Alternative
 pub use command_execution::{
     CommandType, ExecutionContext, ExecutionResult,
     PreHookStep, PostHookStep,
@@ -98,7 +98,7 @@ pub use command_execution::{
 };
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
-// Builder Pattern Optimization (Milestone 2.1) - Functional Replacement
+// Builder Pattern Optimization (Milestone 2.1) - Modern Alternative
 pub use gradient_config::{
     GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
     GradientValidationError, linear_gradient, smooth_gradient, positioned_gradient
@@ -119,7 +119,7 @@ impl ColorRs {
 
     /// Generate a gradient based on the provided arguments
     pub fn generate_gradient(&self, args: GradientArgs) -> Result<()> {
-        // Use functional gradient system (Milestone 2.1b)
+        // Use gradient configuration system (Milestone 2.1b)
         gradient_config::generate_gradient(args)
     }
 

@@ -4,7 +4,7 @@
 //! backward compatibility for users who may have been using the legacy GoF patterns
 //! that were removed in v0.16.0.
 //!
-//! All items in this module are deprecated and users should migrate to the functional
+//! All items in this module are deprecated and users should migrate to the modern
 //! equivalents as documented in the migration guide.
 
 use crate::error::Result;
@@ -26,7 +26,7 @@ pub fn create_parser(parser_type: ParserType) -> Result<Box<dyn ColorParserCompa
 
 /// Compatibility trait to mimic the old ColorParserTrait interface
 /// 
-/// **MIGRATION NOTE**: Use functional parsing functions instead.
+/// **MIGRATION NOTE**: Use modern parsing functions instead.
 pub trait ColorParserCompatTrait {
     fn parse(&self, input: &str) -> Result<(palette::Lab, crate::color_parser::ColorFormat)>;
     fn get_color_name(&self, rgb: (u8, u8, u8)) -> String;

@@ -1,6 +1,6 @@
-//! Performance benchmark comparing Template Method vs Functional approaches
+//! Performance benchmark comparing Template Method vs Modern approaches
 //! 
-//! This benchmark validates that the functional approach provides better
+//! This benchmark validates that the modern approach provides better
 //! performance than the original Template Method pattern.
 
 use color_rs::{
@@ -11,7 +11,7 @@ use color_rs::{
 use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    println!("=== Template Method vs Functional Performance Benchmark ===\n");
+    println!("=== Template Method vs Modern Performance Benchmark ===\n");
 
     // Test colors representing different color spaces - use moderate values for RAL compatibility
     let test_colors = vec![
@@ -125,7 +125,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✅ Direct enum pattern matching");
     println!("✅ Stack-allocated configuration structures");
     
-    println!("\n=== Functional Programming Benefits ===");
+    println!("\n=== Modern Architecture Benefits ===");
     println!("🎯 Predictable performance characteristics");
     println!("🎯 No hidden virtual function costs");
     println!("🎯 Better CPU cache utilization");

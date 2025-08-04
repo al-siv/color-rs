@@ -17,7 +17,7 @@ use crate::{
     },
 };
 
-/// Helper function to convert LAB to hex string using functional palette approach
+/// Helper function to convert LAB to hex string using palette library approach
 fn lab_to_hex(lab: Lab) -> String {
     let srgb: Srgb = lab.into_color();
     format!(
@@ -283,7 +283,7 @@ mod tests {
         let generator = ImageGenerator::new();
         let args = create_test_args();
         
-        // Parse hex colors using color_parser functional approach
+        // Parse hex colors using color_parser modern approach
         use crate::color_parser::ColorParser;
         let parser = ColorParser::new();
         let (start_lab, _) = parser.parse(&args.start_color).unwrap();

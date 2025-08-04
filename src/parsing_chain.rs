@@ -1,6 +1,6 @@
-//! Functional Color Parsing System
+//! Color Parsing System
 //!
-//! This module implements functional color parsing using enum dispatch
+//! This module implements color parsing using enum dispatch
 //! instead of trait objects for zero-cost abstractions.
 
 use crate::error::ColorError;
@@ -17,7 +17,7 @@ pub struct ParseResult {
     pub color_name: Option<String>,
 }
 
-/// Functional color parser using enum dispatch for zero-cost abstractions
+/// Color parser using enum dispatch for zero-cost abstractions
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ColorParser {
     /// HEX color parser (handles #FF0000, FF0000, #F00 formats)
@@ -90,7 +90,7 @@ impl ColorParser {
             format!("#{hex_pattern}")
         };
 
-        // Try to parse using functional hex conversion
+        // Try to parse using hex conversion
         match crate::color_ops::conversion::hex_to_srgb(&expanded_hex) {
             Ok(srgb) => {
                 let lab: Lab = srgb.into_color();
@@ -216,7 +216,7 @@ impl ColorParser {
     }
 }
 
-/// Functional color parsing chain using enum dispatch
+/// Color parsing chain using enum dispatch
 pub struct ColorParsingChain {
     parsers: Vec<ColorParser>,
 }

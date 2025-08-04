@@ -1,6 +1,6 @@
-///! Functional Gradient Configuration Demo
+///! Gradient Configuration Demo
 ///!
-///! This example demonstrates the new functional approach to gradient configuration
+///! This example demonstrates the gradient configuration approach
 ///! introduced in Milestone 2.1, replacing the traditional Builder pattern with
 ///! immutable, composable configuration structures.
 
@@ -12,7 +12,7 @@ use color_rs::cli::OutputFormat;
 use color_rs::error::Result;
 
 fn main() -> Result<()> {
-    println!("🎨 Functional Gradient Configuration Demo");
+    println!("🎨 Gradient Configuration Demo");
     println!("=========================================\n");
 
     // 1. Basic gradient creation with smart constructors
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
         positioned.position_range().start(), positioned.position_range().end());
 
     // 3. Immutable composition and chaining
-    println!("3. Functional Composition:");
+    println!("3. Configuration Composition:");
     let complex_gradient = GradientConfig::basic("#FF6B6B", "#4ECDC4")?
         .with_easing(EasingConfig::ease_in_out())
         .with_svg_output("gradient.svg")?
@@ -107,7 +107,7 @@ fn main() -> Result<()> {
     // 7. Backward compatibility
     println!("\n7. Backward Compatibility:");
     println!("   - Traditional GradientBuilder still available");
-    println!("   - All functional configs convert to GradientArgs");
+    println!("   - All gradient configs convert to GradientArgs");
     println!("   - Existing CLI and library interfaces unchanged");
     println!("   - Migration can be gradual");
 
@@ -121,7 +121,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_functional_gradient_demo() {
+    fn test_gradient_demo() {
         // Test that the demo runs without errors
         assert!(main().is_ok());
     }
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_composition_chain() {
-        // Test functional composition chain
+        // Test configuration composition chain
         let result = GradientConfig::basic("#FF0000", "#0000FF")
             .and_then(|c| c.with_svg_output("test.svg"))
             .and_then(|c| c.with_steps(5))
