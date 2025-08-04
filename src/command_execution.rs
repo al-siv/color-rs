@@ -6,7 +6,7 @@
 
 use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
-use palette::{IntoColor, Mix};  // Import traits for LAB interpolation and conversion
+use palette::{IntoColor, Mix, Lab};  // Import traits for LAB interpolation and conversion
 use std::collections::HashMap;
 
 /// Command type using enum dispatch (replaces trait objects)
@@ -234,15 +234,28 @@ pub fn supports_undo(command_type: &CommandType) -> bool {
 // Command execution functions using pattern matching instead of virtual dispatch
 
 fn execute_generate_gradient(args: &GradientArgs, output_path: Option<&str>) -> Result<ExecutionResult> {
-    // Parse start and end colors
+    let (start_lab, end_lab) = parse_gradient_colors(args)?;
+    let gradient_output = generate_gradient_steps(start_lab, end_lab, args.stops);
+    let format_output = append_format_outputs(args, output_path);
+    let metadata = create_gradient_metadata(args);
+    
+    let final_output = format!("{}{}", gradient_output, format_output);
+    Ok(ExecutionResult::success_with_metadata(final_output, metadata))
+}
+
+/// Parse start and end colors for gradient generation
+fn parse_gradient_colors(args: &GradientArgs) -> Result<(Lab, Lab)> {
     let start_lab = crate::color::parse_color_input(&args.start_color)
         .map_err(|e| ColorError::ParseError(format!("Failed to parse start color: {}", e)))?;
 
     let end_lab = crate::color::parse_color_input(&args.end_color)
         .map_err(|e| ColorError::ParseError(format!("Failed to parse end color: {}", e)))?;
+    
+    Ok((start_lab, end_lab))
+}
 
-    // Generate gradient output using functional interpolation
-    let steps = args.stops;
+/// Generate gradient steps with color interpolation
+fn generate_gradient_steps(start_lab: Lab, end_lab: Lab, steps: usize) -> String {
     let mut output = String::new();
     output.push_str("Generated gradient:\n");
 
@@ -254,8 +267,14 @@ fn execute_generate_gradient(args: &GradientArgs, output_path: Option<&str>) -> 
         use std::fmt::Write;
         writeln!(output, "Step {}: {}", i, hex).unwrap();
     }
+    
+    output
+}
 
-    // Handle output formats
+/// Generate output format messages
+fn append_format_outputs(args: &GradientArgs, output_path: Option<&str>) -> String {
+    let mut output = String::new();
+    
     if args.should_generate_svg() {
         output.push_str("\nSVG generated successfully\n");
         if let Some(path) = output_path {
@@ -267,13 +286,17 @@ fn execute_generate_gradient(args: &GradientArgs, output_path: Option<&str>) -> 
     if args.should_generate_png() {
         output.push_str("PNG generated successfully\n");
     }
+    
+    output
+}
 
+/// Create metadata for gradient execution result
+fn create_gradient_metadata(args: &GradientArgs) -> HashMap<String, String> {
     let mut metadata = HashMap::new();
     metadata.insert("start_color".to_string(), args.start_color.clone());
     metadata.insert("end_color".to_string(), args.end_color.clone());
-    metadata.insert("steps".to_string(), steps.to_string());
-
-    Ok(ExecutionResult::success_with_metadata(output, metadata))
+    metadata.insert("steps".to_string(), args.stops.to_string());
+    metadata
 }
 
 fn execute_find_closest_color(

@@ -315,19 +315,7 @@ fn analyze_accessibility(color: Srgb) -> AccessibilityData {
 
 /// Get text color recommendations for a background color
 fn get_text_recommendations(background: Srgb) -> TextRecommendations {
-    let white = Srgb::new(1.0, 1.0, 1.0);
-    let black = Srgb::new(0.0, 0.0, 0.0);
-    
-    let white_ratio = contrast::wcag_ratio(white, background);
-    let black_ratio = contrast::wcag_ratio(black, background);
-    
-    let (high_contrast, high_contrast_ratio) = if white_ratio > black_ratio {
-        (white, white_ratio)
-    } else {
-        (black, black_ratio)
-    };
-    
-    // Generate some alternative colors that meet standards
+    let (high_contrast, high_contrast_ratio) = find_best_contrast_color(background);
     let aa_compliant = generate_compliant_colors(background, 4.5);
     let aaa_compliant = generate_compliant_colors(background, 7.0);
     
@@ -336,6 +324,21 @@ fn get_text_recommendations(background: Srgb) -> TextRecommendations {
         high_contrast_ratio,
         aa_compliant: aa_compliant.into_iter().map(|c| c.into()).collect(),
         aaa_compliant: aaa_compliant.into_iter().map(|c| c.into()).collect(),
+    }
+}
+
+/// Find the best contrast color (black or white) against a background
+fn find_best_contrast_color(background: Srgb) -> (Srgb, f64) {
+    let white = Srgb::new(1.0, 1.0, 1.0);
+    let black = Srgb::new(0.0, 0.0, 0.0);
+    
+    let white_ratio = contrast::wcag_ratio(white, background);
+    let black_ratio = contrast::wcag_ratio(black, background);
+    
+    if white_ratio > black_ratio {
+        (white, white_ratio)
+    } else {
+        (black, black_ratio)
     }
 }
 
@@ -431,19 +434,27 @@ fn classify_mood(hue_category: &str, _temperature: &str, value: f32) -> String {
 pub fn compare_colors(color1: Srgb, color2: Srgb) -> ColorComparison {
     let analysis1 = analyze_color(color1);
     let analysis2 = analyze_color(color2);
+    let distance_metrics = calculate_distance_metrics(color1, color2);
+    let contrast_ratio = contrast::wcag_ratio(color1, color2);
+    let perceptual_similarity = classify_similarity(color1, color2);
     
     ColorComparison {
         color1: analysis1,
         color2: analysis2,
-        distance_metrics: DistanceMetrics {
-            delta_e_2000: distance::delta_e_2000(color1, color2),
-            delta_e_cie94: distance::delta_e_cie94(color1, color2),
-            delta_e_cie76: distance::delta_e_cie76(color1, color2),
-            rgb_euclidean: distance::rgb_euclidean(color1, color2),
-            lab_euclidean: distance::lab_euclidean(color1, color2),
-        },
-        contrast_ratio: contrast::wcag_ratio(color1, color2),
-        perceptual_similarity: classify_similarity(color1, color2),
+        distance_metrics,
+        contrast_ratio,
+        perceptual_similarity,
+    }
+}
+
+/// Calculate all distance metrics between two colors
+fn calculate_distance_metrics(color1: Srgb, color2: Srgb) -> DistanceMetrics {
+    DistanceMetrics {
+        delta_e_2000: distance::delta_e_2000(color1, color2),
+        delta_e_cie94: distance::delta_e_cie94(color1, color2),
+        delta_e_cie76: distance::delta_e_cie76(color1, color2),
+        rgb_euclidean: distance::rgb_euclidean(color1, color2),
+        lab_euclidean: distance::lab_euclidean(color1, color2),
     }
 }
 

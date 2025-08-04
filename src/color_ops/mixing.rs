@@ -359,54 +359,65 @@ pub fn weighted_mix(
     colors_and_weights: &[(Srgb, f32)],
     color_space: ColorSpace,
 ) -> Option<Srgb> {
+    if let Some(total_weight) = validate_weights(colors_and_weights) {
+        match color_space {
+            ColorSpace::Rgb => Some(mix_in_rgb_space(colors_and_weights, total_weight)),
+            ColorSpace::Lab => Some(mix_in_lab_space(colors_and_weights, total_weight)),
+            _ => weighted_mix(colors_and_weights, ColorSpace::Rgb), // Fallback
+        }
+    } else {
+        None
+    }
+}
+
+/// Validate color weights and return total weight if valid
+fn validate_weights(colors_and_weights: &[(Srgb, f32)]) -> Option<f32> {
     if colors_and_weights.is_empty() {
         return None;
     }
     
     let total_weight: f32 = colors_and_weights.iter().map(|(_, w)| w).sum();
     if total_weight <= 0.0 {
-        return None;
+        None
+    } else {
+        Some(total_weight)
+    }
+}
+
+/// Mix colors in RGB color space
+fn mix_in_rgb_space(colors_and_weights: &[(Srgb, f32)], total_weight: f32) -> Srgb {
+    let mut r = 0.0;
+    let mut g = 0.0;
+    let mut b = 0.0;
+    
+    for &(color, weight) in colors_and_weights {
+        let normalized_weight = weight / total_weight;
+        r += color.red * normalized_weight;
+        g += color.green * normalized_weight;
+        b += color.blue * normalized_weight;
     }
     
-    match color_space {
-        ColorSpace::Rgb => {
-            let mut r = 0.0;
-            let mut g = 0.0;
-            let mut b = 0.0;
-            
-            for &(color, weight) in colors_and_weights {
-                let normalized_weight = weight / total_weight;
-                r += color.red * normalized_weight;
-                g += color.green * normalized_weight;
-                b += color.blue * normalized_weight;
-            }
-            
-            Some(Srgb::new(r, g, b))
-        }
-        ColorSpace::Lab => {
-            use crate::color_ops::conversion;
-            
-            let mut l = 0.0f32;
-            let mut a = 0.0f32;
-            let mut b = 0.0f32;
-            
-            for &(color, weight) in colors_and_weights {
-                let lab = conversion::srgb_to_lab(color);
-                let normalized_weight = weight / total_weight;
-                l += lab.l * normalized_weight as f32;
-                a += lab.a * normalized_weight as f32;
-                b += lab.b * normalized_weight as f32;
-            }
-            
-            let mixed_lab = Lab::new(l, a, b);
-            Some(conversion::lab_to_srgb(mixed_lab))
-        }
-        // Add other color spaces as needed
-        _ => {
-            // Fallback to RGB for now
-            weighted_mix(colors_and_weights, ColorSpace::Rgb)
-        }
+    Srgb::new(r, g, b)
+}
+
+/// Mix colors in LAB color space
+fn mix_in_lab_space(colors_and_weights: &[(Srgb, f32)], total_weight: f32) -> Srgb {
+    use crate::color_ops::conversion;
+    
+    let mut l = 0.0f32;
+    let mut a = 0.0f32;
+    let mut b = 0.0f32;
+    
+    for &(color, weight) in colors_and_weights {
+        let lab = conversion::srgb_to_lab(color);
+        let normalized_weight = weight / total_weight;
+        l += lab.l * normalized_weight;
+        a += lab.a * normalized_weight;
+        b += lab.b * normalized_weight;
     }
+    
+    let mixed_lab = Lab::new(l, a, b);
+    conversion::lab_to_srgb(mixed_lab)
 }
 
 /// Alias for `lab_interpolation` - recommended mixing method
