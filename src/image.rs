@@ -11,10 +11,7 @@ use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
 use crate::{
-    config::{
-        DEFAULT_FONT_SIZE_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, DEFAULT_TEXT_Y_RATIO, FONT_FAMILY,
-        HEIGHT_RATIO,
-    },
+    config::display_constants,
 };
 
 /// Helper function to convert LAB to hex string using palette library approach
@@ -70,12 +67,11 @@ impl ImageGenerator {
             .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG: {e}")))?;
 
         let width = args.width;
-        let gradient_height = (f64::from(width) * HEIGHT_RATIO) as u32;
+        let gradient_height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
         let legend_height = if args.no_legend {
             0
         } else {
-            use crate::config::display_constants;
-            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
+            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -107,12 +103,11 @@ impl ImageGenerator {
         end_lab: Lab,
     ) -> Result<String> {
         let width = args.width;
-        let gradient_height = (f64::from(width) * HEIGHT_RATIO) as u32;
+        let gradient_height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
         let legend_height = if args.no_legend {
             0
         } else {
-            use crate::config::display_constants;
-            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
+            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -189,9 +184,8 @@ impl ImageGenerator {
 
         // Add legend if not disabled
         if !args.no_legend {
-            use crate::config::display_constants;
-            let font_size = (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32;
-            let text_y = gradient_height + (f64::from(legend_height) * DEFAULT_TEXT_Y_RATIO) as u32;
+            let font_size = (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32;
+            let text_y = gradient_height + (f64::from(legend_height) * display_constants::DEFAULT_TEXT_Y_RATIO) as u32;
 
             svg.push_str(&format!(
                 "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
@@ -200,7 +194,7 @@ impl ImageGenerator {
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\">\n",
                 width / 100,
                 text_y,
-                FONT_FAMILY,
+                display_constants::FONT_FAMILY,
                 font_size
             ));
             svg.push_str(&format!(

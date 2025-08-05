@@ -1,8 +1,7 @@
 //! Utility functions for color-rs
 
 use crate::config::{
-    BEZIER_MAX, BEZIER_MIN, DEFAULT_FONT_SIZE_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, HEIGHT_RATIO,
-    MAX_PERCENTAGE, math_constants,
+    BEZIER_MAX, BEZIER_MIN, MAX_PERCENTAGE, math_constants, display_constants,
 };
 use crate::error::{ColorError, Result};
 
@@ -113,21 +112,19 @@ impl Utils {
     /// Calculate aspect ratio for image dimensions
     #[must_use]
     pub fn calculate_image_height(width: u32) -> u32 {
-        (f64::from(width) * HEIGHT_RATIO) as u32
+        (f64::from(width) * display_constants::HEIGHT_RATIO) as u32
     }
 
     /// Calculate legend height based on gradient height
     #[must_use]
     pub fn calculate_legend_height(gradient_height: u32) -> u32 {
-        use crate::config::display_constants;
-        (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
+        (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
     }
 
     /// Calculate font size based on legend height
     #[must_use]
     pub fn calculate_font_size(legend_height: u32) -> u32 {
-        use crate::config::display_constants;
-        (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32
+        (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32
     }
 
     /// Sanitize a color hex string

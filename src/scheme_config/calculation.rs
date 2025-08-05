@@ -19,7 +19,7 @@ fn adjust_color_relative_luminance(color: Lab, target_luminance: f64) -> Result<
     let srgb: Srgb = color.into_color();
     let current_luminance = wcag_relative(srgb);
     
-    if (current_luminance - target_luminance).abs() < 0.001 {
+    if (current_luminance - target_luminance).abs() < algorithm_constants::LUMINANCE_TOLERANCE {
         return Ok(color);
     }
     
@@ -34,7 +34,7 @@ fn adjust_color_relative_luminance(color: Lab, target_luminance: f64) -> Result<
         let test_srgb: Srgb = test_color.into_color();
         let test_luminance = wcag_relative(test_srgb);
         
-        if (test_luminance - target_luminance).abs() < 0.001 {
+        if (test_luminance - target_luminance).abs() < algorithm_constants::LUMINANCE_TOLERANCE {
             return Ok(test_color);
         }
         

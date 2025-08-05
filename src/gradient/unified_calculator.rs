@@ -5,7 +5,7 @@
 
 use super::calculator::{UnifiedGradientStop, cubic_bezier_ease, GradientCalculator};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
-use crate::config::math_constants;
+use crate::config::{math_constants, algorithm_constants};
 use palette::{IntoColor, Lab, Mix, Srgb};
 
 /// Configuration for gradient calculation
@@ -198,7 +198,7 @@ impl Default for BinarySearchConfig {
                 algorithm: DistanceAlgorithm::DeltaE2000,
             },
             max_iterations: 50,
-            tolerance: 0.01,
+            tolerance: algorithm_constants::GRADIENT_DISTANCE_TOLERANCE,
         }
     }
 }
@@ -303,7 +303,7 @@ mod tests {
     fn test_geometric_position_calculation() {
         assert_eq!(calculate_geometric_position(0, 10), 0.0);
         assert_eq!(calculate_geometric_position(9, 10), 1.0);
-        assert!((calculate_geometric_position(5, 11) - 0.5).abs() < 0.001);
+        assert!((calculate_geometric_position(5, 11) - 0.5).abs() < algorithm_constants::GEOMETRIC_TOLERANCE);
     }
 
     #[test]
