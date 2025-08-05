@@ -66,7 +66,7 @@ impl ValidatedLab {
     /// # Returns
     /// * `Result<ValidatedLab, ValidationError>` - Validated LAB or error
     /// # Errors
-    /// Returns ValidationError if LAB values are not finite or out of valid range
+    /// Returns `ValidationError` if LAB values are not finite or out of valid range
     pub fn new(l: f32, a: f32, b: f32) -> Result<Self, ValidationError> {
         // Check for finite values
         if !l.is_finite() || !a.is_finite() || !b.is_finite() {
@@ -95,12 +95,12 @@ impl ValidatedLab {
 
     /// Create a `ValidatedLab` from existing Lab (with validation)
     /// # Errors
-    /// Returns ValidationError if LAB values are not finite or out of valid range
+    /// Returns `ValidationError` if LAB values are not finite or out of valid range
     pub fn from_lab(lab: Lab) -> Result<Self, ValidationError> {
         Self::new(lab.l, lab.a, lab.b)
     }
 
-    /// Create ValidatedLab without validation (unsafe but useful for constants)
+    /// Create `ValidatedLab` without validation (unsafe but useful for constants)
     ///
     /// # Safety
     /// The caller must ensure the values are valid LAB coordinates
@@ -143,17 +143,23 @@ impl ValidatedLab {
 
     /// Lens-based field update for lightness (functional optics pattern)
     ///
-    /// Returns a new ValidatedLab with updated lightness if valid
+    /// Returns a new `ValidatedLab` with updated lightness if valid
+    /// # Errors
+    /// Returns `ValidationError` if new lightness value is invalid
     pub fn with_lightness(self, new_l: f32) -> Result<Self, ValidationError> {
         Self::new(new_l, self.lab.a, self.lab.b)
     }
 
     /// Lens-based field update for a component
+    /// # Errors
+    /// Returns `ValidationError` if new a value is invalid
     pub fn with_a(self, new_a: f32) -> Result<Self, ValidationError> {
         Self::new(self.lab.l, new_a, self.lab.b)
     }
 
     /// Lens-based field update for b component
+    /// # Errors
+    /// Returns `ValidationError` if new b value is invalid
     pub fn with_b(self, new_b: f32) -> Result<Self, ValidationError> {
         Self::new(self.lab.l, self.lab.a, new_b)
     }
@@ -161,6 +167,8 @@ impl ValidatedLab {
     /// Functional composition of lens updates
     ///
     /// Allows chaining multiple field updates with validation
+    /// # Errors
+    /// Returns `ValidationError` if modified values are invalid
     pub fn modify<F>(self, f: F) -> Result<Self, ValidationError>
     where
         F: FnOnce(f32, f32, f32) -> (f32, f32, f32),
@@ -170,32 +178,33 @@ impl ValidatedLab {
     }
 
     /// Lens for safe field access and updates
-    pub fn lens() -> LabLens {
+    #[must_use]
+    pub const fn lens() -> LabLens {
         LabLens
     }
 }
 
 /// Lens implementation for functional optics pattern
 ///
-/// Provides functional field access and updates for ValidatedLab
+/// Provides functional field access and updates for `ValidatedLab`
 pub struct LabLens;
 
 impl LabLens {
     /// Focus on lightness component
     #[must_use]
-    pub fn lightness(&self) -> LightnessLens {
+    pub const fn lightness(&self) -> LightnessLens {
         LightnessLens
     }
 
     /// Focus on a component  
     #[must_use]
-    pub fn a_component(&self) -> ALens {
+    pub const fn a_component(&self) -> ALens {
         ALens
     }
 
     /// Focus on b component
     #[must_use]
-    pub fn b_component(&self) -> BLens {
+    pub const fn b_component(&self) -> BLens {
         BLens
     }
 }
@@ -206,16 +215,20 @@ pub struct LightnessLens;
 impl LightnessLens {
     /// Get lightness value
     #[must_use]
-    pub fn get(self, lab: ValidatedLab) -> f32 {
+    pub const fn get(self, lab: ValidatedLab) -> f32 {
         lab.l()
     }
 
     /// Set lightness value with validation
+    /// # Errors
+    /// Returns `ValidationError` if new lightness value is invalid
     pub fn set(self, lab: ValidatedLab, new_l: f32) -> Result<ValidatedLab, ValidationError> {
         lab.with_lightness(new_l)
     }
 
     /// Modify lightness with a function
+    /// # Errors
+    /// Returns `ValidationError` if modified lightness value is invalid
     pub fn modify<F>(self, lab: ValidatedLab, f: F) -> Result<ValidatedLab, ValidationError>
     where
         F: FnOnce(f32) -> f32,
@@ -230,14 +243,18 @@ pub struct ALens;
 
 impl ALens {
     #[must_use]
-    pub fn get(self, lab: ValidatedLab) -> f32 {
+    pub const fn get(self, lab: ValidatedLab) -> f32 {
         lab.a()
     }
 
+    /// # Errors
+    /// Returns `ValidationError` if new a value is invalid
     pub fn set(self, lab: ValidatedLab, new_a: f32) -> Result<ValidatedLab, ValidationError> {
         lab.with_a(new_a)
     }
 
+    /// # Errors
+    /// Returns `ValidationError` if modified a value is invalid
     pub fn modify<F>(self, lab: ValidatedLab, f: F) -> Result<ValidatedLab, ValidationError>
     where
         F: FnOnce(f32) -> f32,
@@ -252,14 +269,18 @@ pub struct BLens;
 
 impl BLens {
     #[must_use]
-    pub fn get(self, lab: ValidatedLab) -> f32 {
+    pub const fn get(self, lab: ValidatedLab) -> f32 {
         lab.b()
     }
 
+    /// # Errors
+    /// Returns `ValidationError` if new b value is invalid
     pub fn set(self, lab: ValidatedLab, new_b: f32) -> Result<ValidatedLab, ValidationError> {
         lab.with_b(new_b)
     }
 
+    /// # Errors
+    /// Returns `ValidationError` if modified b value is invalid
     pub fn modify<F>(self, lab: ValidatedLab, f: F) -> Result<ValidatedLab, ValidationError>
     where
         F: FnOnce(f32) -> f32,

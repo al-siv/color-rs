@@ -96,6 +96,10 @@ impl ImageGenerator {
     }
 
     /// Create SVG content string
+    /// 
+    /// # Errors
+    /// This function currently cannot fail but returns Result for future extensibility
+    /// when error conditions may be added (e.g., invalid color spaces, malformed arguments).
     fn create_svg_content(
         &self,
         args: &GradientArgs,
@@ -166,7 +170,7 @@ impl ImageGenerator {
             let offset_str = if relative_offset.fract() == 0.0 {
                 format!("{}%", relative_offset as u8)
             } else {
-                format!("{:.1}%", relative_offset)
+                format!("{relative_offset:.1}%")
             };
 
             svg.push_str(&format!(
@@ -215,6 +219,11 @@ impl ImageGenerator {
     }
 
     /// Validate image generation parameters
+    /// Validate image generation parameters
+    /// 
+    /// # Errors
+    /// Returns error if filenames don't have proper extensions or if validation fails
+    /// for any required parameter values.
     pub fn validate_image_params(&self, args: &GradientArgs) -> Result<()> {
         if args.width == 0 {
             return Err(ColorError::InvalidArguments(

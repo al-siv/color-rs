@@ -36,6 +36,10 @@ impl ColorParser {
     /// Returns Ok(Some(result)) if successfully parsed
     /// Returns Ok(None) if this parser cannot parse the input
     /// Returns Err if there was an error during parsing
+    /// Try to parse input string with this parser
+    /// 
+    /// # Errors
+    /// Returns error if parsing fails due to invalid input format or data validation issues.
     pub fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
         match self {
             Self::Hex => Self::parse_hex(input),
@@ -46,6 +50,8 @@ impl ColorParser {
     }
 
     /// Returns the name of this parser for debugging/logging
+    /// Get the name of this parser
+    #[must_use]
     pub const fn name(&self) -> &'static str {
         match self {
             Self::Hex => "HEX Parser",
@@ -137,9 +143,9 @@ impl ColorParser {
         };
 
         let srgb = Srgb::new(
-            f32::from(r) / math_constants::RGB_MAX_VALUE as f32,
-            f32::from(g) / math_constants::RGB_MAX_VALUE as f32,
-            f32::from(b) / math_constants::RGB_MAX_VALUE as f32,
+            f32::from(r) / math_constants::RGB_MAX_VALUE,
+            f32::from(g) / math_constants::RGB_MAX_VALUE,
+            f32::from(b) / math_constants::RGB_MAX_VALUE,
         );
         let lab: Lab = srgb.into_color();
 
@@ -249,6 +255,11 @@ impl ColorParsingChain {
     }
 
     /// Attempts to parse the input using all parsers in sequence
+    /// Parse color input using the configured parser chain
+    /// 
+    /// # Errors
+    /// Returns `ColorError::ParseError` if none of the parsers in the chain can
+    /// successfully parse the input string.
     pub fn parse(&self, input: &str) -> Result<ParseResult> {
         for parser in &self.parsers {
             if let Some(result) = parser.try_parse(input)? {
@@ -257,8 +268,7 @@ impl ColorParsingChain {
         }
 
         Err(ColorError::ParseError(format!(
-            "Could not parse '{}' as any supported color format",
-            input
+            "Could not parse '{input}' as any supported color format"
         )))
     }
 

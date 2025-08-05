@@ -29,6 +29,10 @@ impl Utils {
     }
 
     /// Validate a percentage value (0-100)
+    /// Validate percentage value is in range 0-100
+    /// 
+    /// # Errors
+    /// Returns `ColorError::InvalidValue` if the percentage is outside the valid range.
     pub fn validate_percentage(value: u8) -> Result<()> {
         if value > MAX_PERCENTAGE {
             return Err(ColorError::InvalidArguments(format!(
@@ -39,6 +43,10 @@ impl Utils {
     }
 
     /// Validate a cubic-bezier control point (0.0-1.0)
+    /// Validate bezier control point is in range 0.0-1.0
+    /// 
+    /// # Errors
+    /// Returns `ColorError::InvalidValue` if the bezier point is outside the valid range.
     pub fn validate_bezier_point(value: f64) -> Result<()> {
         if !(BEZIER_MIN..=BEZIER_MAX).contains(&value) {
             return Err(ColorError::InvalidArguments(format!(
@@ -68,6 +76,11 @@ impl Utils {
     }
 
     /// Check if a string is a valid filename
+    /// Validate filename contains only safe characters
+    /// 
+    /// # Errors
+    /// Returns `ColorError::InvalidFilename` if the filename contains illegal characters
+    /// or patterns that could cause file system issues.
     pub fn validate_filename(filename: &str) -> Result<()> {
         if filename.is_empty() {
             return Err(ColorError::InvalidArguments(

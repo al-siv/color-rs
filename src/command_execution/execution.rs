@@ -11,13 +11,15 @@ use super::commands::{
 };
 
 /// Main functional command execution - replaces Command trait methods
+/// # Errors
+/// Returns error if command execution or hooks fail
 pub fn execute_command(context: &ExecutionContext) -> Result<ExecutionResult> {
     let start_time = std::time::Instant::now();
 
     // Apply pre-execution hooks
     for hook in &context.pre_hooks {
         if let Err(e) = apply_pre_hook(hook, &context.command_type) {
-            return Ok(ExecutionResult::failure(format!("Pre-hook failed: {}", e)));
+            return Ok(ExecutionResult::failure(format!("Pre-hook failed: {e}")));
         }
     }
 
@@ -53,7 +55,8 @@ pub fn execute_command(context: &ExecutionContext) -> Result<ExecutionResult> {
 }
 
 /// Get command name - pure function instead of trait method
-pub fn get_command_name(command_type: &CommandType) -> &'static str {
+#[must_use]
+pub const fn get_command_name(command_type: &CommandType) -> &'static str {
     match command_type {
         CommandType::GenerateGradient { .. } => "generate_gradient",
         CommandType::FindClosestColor { .. } => "find_closest_color",
@@ -63,7 +66,8 @@ pub fn get_command_name(command_type: &CommandType) -> &'static str {
 }
 
 /// Get command description - pure function instead of trait method
-pub fn get_command_description(command_type: &CommandType) -> &'static str {
+#[must_use]
+pub const fn get_command_description(command_type: &CommandType) -> &'static str {
     match command_type {
         CommandType::GenerateGradient { .. } => "Generate a color gradient between two colors",
         CommandType::FindClosestColor { .. } => "Find the closest matching colors in collections",
@@ -73,6 +77,7 @@ pub fn get_command_description(command_type: &CommandType) -> &'static str {
 }
 
 /// Check if command supports undo - pure function with pattern matching
+#[must_use]
 pub const fn supports_undo(command_type: &CommandType) -> bool {
     match command_type {
         // All commands are either file generation or read-only operations
@@ -127,7 +132,10 @@ fn apply_pre_hook(hook: &PreHookStep, command_type: &CommandType) -> Result<()> 
             eprintln!("Starting command: {}", get_command_name(command_type));
             Ok(())
         }
-        PreHookStep::CheckPrerequisites => check_command_prerequisites(command_type),
+        PreHookStep::CheckPrerequisites => {
+            check_command_prerequisites(command_type);
+            Ok(())
+        }
         PreHookStep::Custom(func) => func(command_type),
     }
 }
@@ -176,9 +184,8 @@ fn validate_command_parameters(command_type: &CommandType) -> Result<()> {
     Ok(())
 }
 
-const fn check_command_prerequisites(_command_type: &CommandType) -> Result<()> {
+const fn check_command_prerequisites(_command_type: &CommandType) {
     // Could check for required files, permissions, etc.
-    Ok(())
 }
 
 fn format_command_output(mut result: ExecutionResult) -> ExecutionResult {

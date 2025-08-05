@@ -65,8 +65,7 @@ pub fn execute_analyze_color(
     let _lab_color = crate::color::parse_color_input(color_input)
         .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {e}")))?;
 
-    let mut output = format!("Analyzing color: {color_input}\n");
-    output.push_str(&format!("Output format: {output_format}\n"));
+    let mut output = format!("Analyzing color: {color_input}\nOutput format: {output_format}\n");
     
     if include_schemes {
         output.push_str("Including color schemes in analysis\n");
@@ -125,8 +124,10 @@ fn generate_gradient_steps(start_lab: Lab, end_lab: Lab, steps: usize) -> String
     output.push_str("Generated gradient:\n");
 
     for i in 0..steps {
+        #[allow(clippy::cast_precision_loss)] // Gradient step calculation needs f64 precision
         let t = i as f64 / (steps - 1) as f64;
         // Use functional LAB interpolation with palette Mix trait
+        #[allow(clippy::cast_possible_truncation)] // Intentional f64->f32 for Mix trait
         let interpolated = start_lab.mix(end_lab, t as f32);
         let hex = crate::color_ops::conversion::srgb_to_hex(interpolated.into_color());
         writeln!(output, "Step {i}: {hex}").unwrap();

@@ -166,7 +166,7 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 }
 
 /// Generate comprehensive report using the unified collection approach
-/// Enhanced color matching with color schemes and luminance adjustments using modern scheme_config
+/// Enhanced color matching with color schemes and luminance adjustments using modern `scheme_config`
 ///
 /// # Errors
 ///
@@ -200,7 +200,7 @@ pub fn color_match_with_schemes(
     )
 }
 
-/// Build ColorSchemeConfig from command line arguments using modern immutable pattern
+/// Build `ColorSchemeConfig` from command line arguments using modern immutable pattern
 fn build_scheme_config_from_args(args: &crate::cli::ColorArgs) -> Result<crate::scheme_config::ColorSchemeConfig> {
     use crate::scheme_config::ColorSchemeConfig;
 

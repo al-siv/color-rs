@@ -137,13 +137,23 @@ impl ColorRs {
     }
 
     /// Generate a gradient based on the provided arguments
+    /// Generate gradient with specified arguments
+    /// 
+    /// # Errors
+    /// Returns error if gradient generation fails due to invalid parameters,
+    /// file system errors, or color processing issues.
     pub fn generate_gradient(&self, args: GradientArgs) -> Result<()> {
         // Use gradient configuration system (Milestone 2.1b)
         gradient_config::generate_gradient(args)
     }
 
     /// Match and convert color between different color spaces  
-    pub fn color_match(&self, args: ColorArgs) -> Result<String> {
+    /// Match and analyze colors with specified arguments
+    /// 
+    /// # Errors
+    /// Returns error if color matching fails due to invalid input,
+    /// color parsing issues, or analysis computation problems.
+    pub fn color_match(&self, args: &ColorArgs) -> Result<String> {
         let algorithm = crate::color_distance_strategies::DistanceAlgorithm::from_str_or_default(&args.distance_method);
 
         // Always use enhanced color matching with schemes (new default behavior)

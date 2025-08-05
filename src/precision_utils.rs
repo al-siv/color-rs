@@ -128,6 +128,10 @@ impl PrecisionUtils {
     }
 
     /// Serialize f64 values with 3 decimal places max
+    /// Serialize f64 with 3 decimal places precision
+    /// 
+    /// # Errors
+    /// Returns serialization error if the serializer fails to process the formatted string.
     pub fn serialize_f64_3<S>(value: &f64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -136,6 +140,10 @@ impl PrecisionUtils {
     }
 
     /// Serialize WCAG relative luminance values with 4 decimal places
+    /// Serialize luminance value with appropriate precision
+    /// 
+    /// # Errors
+    /// Returns serialization error if the serializer fails to process the formatted string.
     pub fn serialize_wcag_luminance<S>(value: &f64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,

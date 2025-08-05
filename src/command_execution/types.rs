@@ -91,6 +91,7 @@ pub struct ExecutionResult {
 
 impl ExecutionContext {
     /// Create new execution context
+    #[must_use]
     pub fn new(command_type: CommandType) -> Self {
         Self {
             command_type,
@@ -101,18 +102,22 @@ impl ExecutionContext {
     }
 
     /// Builder pattern for adding pre-hooks
+    /// Builder pattern for adding pre-hooks
+    #[must_use]
     pub fn with_pre_hook(mut self, hook: PreHookStep) -> Self {
         self.pre_hooks.push(hook);
         self
     }
 
     /// Builder pattern for adding post-hooks
+    #[must_use]
     pub fn with_post_hook(mut self, hook: PostHookStep) -> Self {
         self.post_hooks.push(hook);
         self
     }
 
     /// Add metadata
+    #[must_use]
     pub fn with_metadata(mut self, key: String, value: String) -> Self {
         self.metadata.insert(key, value);
         self
@@ -121,6 +126,7 @@ impl ExecutionContext {
 
 impl ExecutionResult {
     /// Create successful result
+    #[must_use]
     pub fn success(output: String) -> Self {
         Self {
             success: true,
@@ -132,7 +138,8 @@ impl ExecutionResult {
     }
 
     /// Create successful result with metadata
-    pub fn success_with_metadata(output: String, metadata: HashMap<String, String>) -> Self {
+    #[must_use]
+    pub const fn success_with_metadata(output: String, metadata: HashMap<String, String>) -> Self {
         Self {
             success: true,
             output,
@@ -143,6 +150,7 @@ impl ExecutionResult {
     }
 
     /// Create failure result
+    #[must_use]
     pub fn failure(error: String) -> Self {
         Self {
             success: false,
@@ -154,7 +162,8 @@ impl ExecutionResult {
     }
 
     /// Add execution time
-    pub fn with_execution_time(mut self, time_ms: u128) -> Self {
+    #[must_use]
+    pub const fn with_execution_time(mut self, time_ms: u128) -> Self {
         self.execution_time_ms = time_ms;
         self
     }

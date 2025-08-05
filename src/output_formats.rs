@@ -372,11 +372,19 @@ impl ColorAnalysisOutput {
     }
 
     /// Serialize to TOML format
+    /// 
+    /// # Errors
+    /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
+    /// or unsupported data types.
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
         toml::to_string_pretty(self)
     }
 
     /// Serialize to YAML format
+    /// 
+    /// # Errors
+    /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
+    /// or unsupported data types.
     pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
         serde_yml::to_string(self)
     }
@@ -384,11 +392,19 @@ impl ColorAnalysisOutput {
 
 impl GradientAnalysisOutput {
     /// Serialize to TOML format
+    /// 
+    /// # Errors
+    /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
+    /// or unsupported data types.
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
         toml::to_string_pretty(self)
     }
 
     /// Serialize to YAML format
+    /// 
+    /// # Errors
+    /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
+    /// or unsupported data types.
     pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
         serde_yml::to_string(self)
     }
@@ -396,11 +412,19 @@ impl GradientAnalysisOutput {
 
 impl EnhancedGradientAnalysisOutput {
     /// Serialize to TOML format
+    /// 
+    /// # Errors
+    /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
+    /// or unsupported data types.
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
         toml::to_string_pretty(self)
     }
 
     /// Serialize to YAML format
+    /// 
+    /// # Errors
+    /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
+    /// or unsupported data types.
     pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
         serde_yml::to_string(self)
     }
@@ -408,6 +432,11 @@ impl EnhancedGradientAnalysisOutput {
 
 impl ProgramMetadata {
     #[must_use]
+    /// Create new execution metadata with current timestamp
+    /// 
+    /// # Panics
+    /// Panics if the system clock has gone backwards relative to UNIX_EPOCH.
+    /// This is extremely rare and indicates a system clock issue.
     pub fn new(distance_strategy: Option<&str>) -> Self {
         use std::time::{SystemTime, UNIX_EPOCH};
 

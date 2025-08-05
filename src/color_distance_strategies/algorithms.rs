@@ -11,10 +11,15 @@ impl DistanceAlgorithm {
     /// Smart constructor from string with validation
     ///
     /// Supports multiple name formats for user-friendly parsing:
-    /// - "delta_e_76", "deltae76", "cie76", "de76" -> DeltaE76
-    /// - "delta_e_2000", "deltae2000", "ciede2000", "de2000" -> DeltaE2000  
-    /// - "euclidean", "euclidean_lab", "lab" -> EuclideanLab
+    /// - "`delta_e_76`", "deltae76", "cie76", "de76" -> `DeltaE76`
+    /// - "`delta_e_2000`", "deltae2000", "ciede2000", "de2000" -> `DeltaE2000`  
+    /// - "euclidean", "`euclidean_lab`", "lab" -> `EuclideanLab`
     /// - "lch" -> Lch
+    /// 
+    /// # Errors
+    /// Returns `ValidationError::EmptyAlgorithmName` if input is empty,
+    /// `ValidationError::AlgorithmNameTooLong` if input exceeds 50 characters,
+    /// or `ValidationError::UnknownDistanceAlgorithm` if the algorithm is not recognized.
     pub fn from_validated_str(s: &str) -> Result<Self, ValidationError> {
         // Pre-validation
         let trimmed = s.trim();
@@ -50,7 +55,12 @@ impl DistanceAlgorithm {
     }
 
     /// Validate algorithm is suitable for performance requirements
-    pub fn validate_performance(self, require_fast: bool) -> Result<Self, ValidationError> {
+    /// Validate that the algorithm meets performance requirements
+    /// 
+    /// # Errors
+    /// Returns `ValidationError::AlgorithmTooSlow` if `require_fast` is true
+    /// and the algorithm doesn't meet fast performance criteria.
+    pub const fn validate_performance(self, require_fast: bool) -> Result<Self, ValidationError> {
         if require_fast && !self.is_fast() {
             Err(ValidationError::AlgorithmTooSlow(self))
         } else {
