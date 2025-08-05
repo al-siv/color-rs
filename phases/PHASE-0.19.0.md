@@ -1010,35 +1010,43 @@ This plan ensures v0.19.0 delivers high-quality hue analysis functionality while
 
 ## PHASE 3: TERMINAL OUTPUT ENHANCEMENT
 
-### Milestone 3.1: Colored Terminal Output ⚠️ **HIGH PRIORITY**
+### Milestone 3.1: Colored Terminal Output ✅ **COMPLETED**
 **Objective**: Implement colored YAML/TOML terminal output matching other modes
 
 **Issue Identified**: Currently hue mode shows simple text output, but other modes (color, gradient) show colored YAML/TOML in terminal. Client expects consistency.
 
 **Tasks**:
-- [ ] **Research existing colored output**:
-  - [ ] Analyze how `color` mode displays colored YAML in terminal
-  - [ ] Analyze how `gradient` mode displays colored TOML in terminal
-  - [ ] Identify shared formatting infrastructure for colored output
-- [ ] **Implement colored YAML terminal display**:
-  - [ ] Show YAML structure with color highlighting
-  - [ ] Display actual color values with their respective colors
-  - [ ] Match formatting style of existing modes exactly
-- [ ] **Implement colored TOML terminal display**:
-  - [ ] Show TOML structure with color highlighting  
-  - [ ] Display actual color values with their respective colors
-  - [ ] Ensure consistent formatting with gradient mode
-- [ ] **Integration with existing output system**:
-  - [ ] Reuse existing color terminal formatting infrastructure
-  - [ ] Ensure `--output yaml` and `--output toml` show colored output
-  - [ ] File output (`--file filename`) should remain uncolored
-  - [ ] Default terminal output should be colored YAML
+- [x] **Research existing colored output**:
+  - [x] Analyze how `color` mode displays colored YAML in terminal
+  - [x] Analyze how `gradient` mode displays colored TOML in terminal
+  - [x] Identify shared formatting infrastructure for colored output
+- [x] **Implement colored YAML terminal display**:
+  - [x] Show YAML structure with color highlighting
+  - [x] Display actual color values with their respective colors
+  - [x] Match formatting style of existing modes exactly
+- [x] **Implement colored TOML terminal display**:
+  - [x] Show TOML structure with color highlighting  
+  - [x] Display actual color values with their respective colors
+  - [x] Ensure consistent formatting with gradient mode
+- [x] **Integration with existing output system**:
+  - [x] Reuse existing color terminal formatting infrastructure
+  - [x] Ensure `--output yaml` and `--output toml` show colored output
+  - [x] File output (`--file filename`) should remain uncolored
+  - [x] Default terminal output should be colored YAML
+
+**Implementation Details**:
+- ✅ Created `HueCollectionOutput` structured format in `src/output_formats.rs`
+- ✅ Added `HueCollectionConfiguration` and `HueColorEntry` data structures
+- ✅ Implemented colored YAML terminal display using existing `display_terminal_output()` infrastructure
+- ✅ Replaced `format_collection_linear()` simple text with structured output in `execute_hue_analysis()`
+- ✅ Added `export_hue_collection_display()` for file output with YAML/TOML support
+- ✅ Removed unused format functions to maintain clean codebase
 
 **Success Criteria**:
-- Terminal output shows colored YAML/TOML like other modes
-- Color values displayed with their actual colors
-- File output remains clean without terminal codes
-- Consistent user experience across all application modes
+- ✅ Terminal output shows colored YAML/TOML like other modes
+- ✅ Color values displayed with their actual colors  
+- ✅ File output remains clean without terminal codes
+- ✅ Consistent user experience across all application modes
 
 ### Milestone 3.2: Correct Display Format ⚠️ **CRITICAL**
 **Objective**: Fix terminal display format to match BRIEFING-0.19.0.md specification
