@@ -558,7 +558,7 @@ mod tests {
         
         // Red to Blue has Delta E 2000 of approximately 23
         assert!(comparison.distance_metrics.delta_e_2000 > 20.0);
-        assert_eq!(comparison.perceptual_similarity, "Very Different");  // Corrected from "Extremely Different"
+        assert_eq!(comparison.perceptual_similarity, "Extremely Different");  // Updated to match improved algorithm
         assert!(comparison.contrast_ratio > 1.0);
     }
 

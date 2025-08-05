@@ -12,7 +12,15 @@ pub mod gradient_formatter;
 pub mod unified_calculator;
 
 // Simple re-exports for basic functionality
-pub use calculator::{GradientCalculator, GradientValue, UnifiedGradientStop};
+pub use calculator::{
+    GradientCalculator, 
+    CalculationAlgorithm,
+    GradientValue, 
+    UnifiedGradientStop,
+    IntelligentStopCalculator,
+    EqualSpacingCalculator,
+    cubic_bezier_ease,
+};
 pub use easing::{EasingFactory, EasingFunction, EasingType};
 
 // Functional re-exports

@@ -3,7 +3,7 @@
 //! This module contains unified gradient calculation algorithms,
 //! breaking them down into focused, composable functions that follow single responsibility principle.
 
-use super::calculator::{UnifiedGradientStop, GradientCalculator};
+use super::calculator::{UnifiedGradientStop, cubic_bezier_ease, GradientCalculator};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use palette::{IntoColor, Lab, Mix, Srgb};
 
@@ -79,7 +79,7 @@ fn calculate_simple_mode_stop(
     end_rgb: RgbTuple,
 ) -> UnifiedGradientStop {
     let geometric_t = calculate_geometric_position(step_index, config.steps);
-    let bezier_t = GradientCalculator::cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
+    let bezier_t = cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
     
     // RGB interpolation with bezier timing
     let interpolated_rgb = interpolate_rgb(start_rgb, end_rgb, bezier_t);
@@ -164,7 +164,7 @@ fn create_middle_stop(
 ) -> UnifiedGradientStop {
     let target_distance = step_distance * step_index as f64;
     let geometric_t = find_geometric_position_for_distance(target_distance, config);
-    let bezier_t = GradientCalculator::cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
+    let bezier_t = cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
     let lab_color = config.start_lab.mix(config.end_lab, bezier_t as f32);
     let rgb_color = lab_to_rgb_tuple(lab_color);
     let position = calculate_actual_position(geometric_t, config.start_position, config.end_position);
@@ -247,7 +247,7 @@ fn calculate_distance_at_position(
     geometric_t: f64,
     config: GradientCalculationConfig,
 ) -> f64 {
-    let bezier_t = GradientCalculator::cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
+    let bezier_t = cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
     let test_color = config.start_lab.mix(config.end_lab, bezier_t as f32);
     calculate_distance(config.algorithm, config.start_lab, test_color)
 }

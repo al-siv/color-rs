@@ -85,6 +85,13 @@ impl From<std::fmt::Error> for ColorError {
     }
 }
 
+// For color scheme configuration errors
+impl From<crate::scheme_config::ConfigError> for ColorError {
+    fn from(err: crate::scheme_config::ConfigError) -> Self {
+        Self::InvalidColor(format!("Color scheme configuration error: {err}"))
+    }
+}
+
 /// Extension trait for converting `std::io::Result` to `crate::error::Result`
 pub trait IoResultExt<T> {
     /// Convert `std::io::Result<T>` to `crate::error::Result<T>`

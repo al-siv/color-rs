@@ -166,7 +166,7 @@ fn try_parse_ral_color(input: &str) -> Option<crate::color_parser::RalMatch> {
 }
 
 /// Generate comprehensive report using the unified collection approach
-/// Enhanced color matching with color schemes and luminance adjustments
+/// Enhanced color matching with color schemes and luminance adjustments using modern scheme_config
 ///
 /// # Errors
 ///
@@ -184,27 +184,11 @@ pub fn color_match_with_schemes(
     // Get color name
     let color_name = get_color_name_for_lab(lab_color);
 
-    // Build color scheme calculator based on arguments
-    let mut scheme_builder = crate::color_schemes::ColorSchemeBuilder::new();
-
-    // Configure luminance handling
-    if let Some(relative_lum) = args.relative_luminance {
-        scheme_builder = scheme_builder.with_target_relative_luminance(relative_lum);
-    } else if args.relative_luminance.is_none() && args.luminance.is_some() {
-        // When the flag is present without value, preserve luminance in color schemes
-        scheme_builder = scheme_builder.preserve_relative_luminance();
-    }
-
-    if let Some(lab_lum) = args.luminance {
-        scheme_builder = scheme_builder.with_target_lab_luminance(lab_lum);
-    } else if args.luminance.is_none() {
-        // When no luminance is specified, preserve relative luminance for better visual results
-        scheme_builder = scheme_builder.preserve_lab_luminance();
-    }
-
-    // Calculate color schemes
-    let calculator = scheme_builder.build();
-    let schemes = calculator.calculate(lab_color)?;
+    // Build color scheme configuration using modern immutable approach
+    let scheme_config = build_scheme_config_from_args(args)?;
+    
+    // Calculate color schemes using modern approach
+    let schemes = crate::scheme_config::calculate_color_schemes(scheme_config, lab_color)?;
 
     // Always use structured TOML/YAML output (terminal + optional file)
     format_comprehensive_report_with_structured_output(
@@ -214,6 +198,31 @@ pub fn color_match_with_schemes(
         algorithm,
         args,
     )
+}
+
+/// Build ColorSchemeConfig from command line arguments using modern immutable pattern
+fn build_scheme_config_from_args(args: &crate::cli::ColorArgs) -> Result<crate::scheme_config::ColorSchemeConfig> {
+    use crate::scheme_config::ColorSchemeConfig;
+
+    // Start with default configuration
+    let mut config = ColorSchemeConfig::default();
+
+    // Configure luminance handling based on arguments
+    if let Some(relative_lum) = args.relative_luminance {
+        config = config.set_target_relative_luminance(relative_lum)?;
+    } else if args.relative_luminance.is_none() && args.luminance.is_some() {
+        // When the flag is present without value, preserve luminance in color schemes
+        config = config.preserve_relative_luminance()?;
+    }
+
+    if let Some(lab_lum) = args.luminance {
+        config = config.set_target_lab_luminance(lab_lum)?;
+    } else if args.luminance.is_none() {
+        // When no luminance is specified, preserve lab luminance for better visual results
+        config = config.preserve_lab_luminance()?;
+    }
+
+    Ok(config)
 }
 
 /// Generate comprehensive report with structured TOML/YAML output for terminal and optional file

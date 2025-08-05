@@ -1,13 +1,12 @@
-//! Gradient calculation algorithms and stop generation
+//! Core gradient calculation functionality
 //!
-//! This module implements functional gradient calculation
-//! and provides various algorithms for calculating gradient stops.
+//! This module contains the main gradient calculator implementations,
+//! unified gradient generation, and display value creation.
 
-use super::easing::EasingFunction;
+use super::algorithms::{IntelligentStopCalculator, EqualSpacingCalculator, cubic_bezier_ease};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
-use crate::config::INTELLIGENT_STOP_SAMPLE_POINTS;
 use crate::utils::Utils;
-use kurbo::{CubicBez, ParamCurve, Point};
+use crate::gradient::easing::EasingFunction;
 use palette::{IntoColor, Lab, Mix, Srgb};
 use tabled::Tabled;
 
@@ -24,184 +23,17 @@ pub struct GradientValue {
     pub wcag_luminance: String,
 }
 
-/// Abstract template for gradient calculation algorithms
-pub trait GradientCalculationTemplate {
-    /// Calculate stop positions (Template Method pattern)
-    fn calculate_stops(&self, num_stops: usize) -> Vec<f64> {
-        self.validate_input(num_stops);
-        let stops = self.generate_stops(num_stops);
-        self.post_process_stops(stops)
-    }
-
-    /// Validate input parameters (hook method)
-    fn validate_input(&self, num_stops: usize) {
-        assert!(num_stops > 0, "Number of stops must be positive");
-    }
-
-    /// Generate the actual stop positions (abstract method)
-    fn generate_stops(&self, num_stops: usize) -> Vec<f64>;
-
-    /// Post-process stops if needed (hook method)
-    fn post_process_stops(&self, stops: Vec<f64>) -> Vec<f64> {
-        stops
-    }
-}
-
-/// Intelligent stop calculation using easing functions
-pub struct IntelligentStopCalculator {
-    ease_in: f64,
-    ease_out: f64,
-}
-
-impl IntelligentStopCalculator {
-    #[must_use]
-    pub const fn new(ease_in: f64, ease_out: f64) -> Self {
-        Self { ease_in, ease_out }
-    }
-}
-
-impl GradientCalculationTemplate for IntelligentStopCalculator {
-    fn generate_stops(&self, num_stops: usize) -> Vec<f64> {
-        if let Some(simple_stops) = self.handle_simple_cases(num_stops) {
-            return simple_stops;
-        }
-
-        let curve = self.create_bezier_curve();
-        let cumulative_importance = self.calculate_cumulative_importance(&curve);
-        let total_importance = cumulative_importance[INTELLIGENT_STOP_SAMPLE_POINTS];
-        
-        if total_importance == 0.0 {
-            return self.fallback_to_equal_spacing(num_stops);
-        }
-
-        self.distribute_stops_by_importance(num_stops, &cumulative_importance, total_importance)
-    }
-}
-
-impl IntelligentStopCalculator {
-    /// Handle simple cases (0-2 stops) with direct return values
-    fn handle_simple_cases(&self, num_stops: usize) -> Option<Vec<f64>> {
-        match num_stops {
-            0 | 1 => Some(vec![0.0]),
-            2 => Some(vec![0.0, 1.0]),
-            _ => None,
-        }
-    }
-
-    /// Create cubic bezier curve for easing analysis
-    fn create_bezier_curve(&self) -> CubicBez {
-        CubicBez::new(
-            Point::new(0.0, 0.0),
-            Point::new(self.ease_in, 0.0),
-            Point::new(self.ease_out, 1.0),
-            Point::new(1.0, 1.0),
-        )
-    }
-
-    /// Calculate cumulative importance values along the curve
-    fn calculate_cumulative_importance(&self, curve: &CubicBez) -> Vec<f64> {
-        let mut cumulative_importance = vec![0.0; INTELLIGENT_STOP_SAMPLE_POINTS + 1];
-
-        for i in 0..INTELLIGENT_STOP_SAMPLE_POINTS {
-            let derivative_magnitude = self.calculate_derivative_magnitude(curve, i);
-            cumulative_importance[i + 1] = cumulative_importance[i] + derivative_magnitude;
-        }
-
-        cumulative_importance
-    }
-
-    /// Calculate derivative magnitude at a specific sample point
-    fn calculate_derivative_magnitude(&self, curve: &CubicBez, sample_index: usize) -> f64 {
-        let t = sample_index as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
-        let dt = 1.0 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
-
-        let current_point = curve.eval(t);
-        let next_point = curve.eval((t + dt).min(1.0));
-
-        let dy = next_point.y - current_point.y;
-        dy.abs()
-    }
-
-    /// Fallback to equal spacing when no importance variation is detected
-    fn fallback_to_equal_spacing(&self, num_stops: usize) -> Vec<f64> {
-        (0..num_stops)
-            .map(|i| i as f64 / (num_stops - 1).max(1) as f64)
-            .collect()
-    }
-
-    /// Distribute stops based on cumulative importance using binary search
-    fn distribute_stops_by_importance(
-        &self,
-        num_stops: usize,
-        cumulative_importance: &[f64],
-        total_importance: f64,
-    ) -> Vec<f64> {
-        let mut stops = Vec::new();
-        
-        for i in 0..num_stops {
-            let target_importance = (i as f64 / (num_stops - 1).max(1) as f64) * total_importance;
-            let t = self.find_position_for_importance(cumulative_importance, target_importance);
-            stops.push(t.clamp(0.0, 1.0));
-        }
-
-        stops
-    }
-
-    /// Find the position (t) for a given target importance using binary search
-    fn find_position_for_importance(&self, cumulative_importance: &[f64], target_importance: f64) -> f64 {
-        let (low, high) = self.binary_search_importance(cumulative_importance, target_importance);
-        self.interpolate_position(cumulative_importance, target_importance, low, high)
-    }
-
-    /// Binary search to find the importance range containing the target
-    fn binary_search_importance(&self, cumulative_importance: &[f64], target_importance: f64) -> (usize, usize) {
-        let mut low = 0;
-        let mut high = INTELLIGENT_STOP_SAMPLE_POINTS;
-
-        while high - low > 1 {
-            let mid = usize::midpoint(low, high);
-            if cumulative_importance[mid] < target_importance {
-                low = mid;
-            } else {
-                high = mid;
-            }
-        }
-
-        (low, high)
-    }
-
-    /// Linear interpolation between two closest importance points
-    fn interpolate_position(
-        &self,
-        cumulative_importance: &[f64],
-        target_importance: f64,
-        low: usize,
-        high: usize,
-    ) -> f64 {
-        if cumulative_importance[high] - cumulative_importance[low] > f64::EPSILON {
-            let ratio = (target_importance - cumulative_importance[low])
-                / (cumulative_importance[high] - cumulative_importance[low]);
-            (low as f64 + ratio) / INTELLIGENT_STOP_SAMPLE_POINTS as f64
-        } else {
-            low as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64
-        }
-    }
-}
-
-/// Equal spacing stop calculation
-pub struct EqualSpacingCalculator;
-
-impl GradientCalculationTemplate for EqualSpacingCalculator {
-    fn generate_stops(&self, num_stops: usize) -> Vec<f64> {
-        (0..num_stops)
-            .map(|i| i as f64 / (num_stops - 1).max(1) as f64)
-            .collect()
-    }
-}
-
-/// Main gradient calculator using Strategy pattern
+/// Main gradient calculator using functional approach with algorithm selection
+#[derive(Debug, Clone)]
 pub struct GradientCalculator {
-    calculator: Box<dyn GradientCalculationTemplate>,
+    algorithm: CalculationAlgorithm,
+}
+
+/// Algorithm selection for gradient calculation
+#[derive(Debug, Clone)]
+pub enum CalculationAlgorithm {
+    Intelligent { ease_in: f64, ease_out: f64 },
+    EqualSpacing,
 }
 
 impl GradientCalculator {
@@ -209,7 +41,7 @@ impl GradientCalculator {
     #[must_use]
     pub fn with_intelligent_stops(ease_in: f64, ease_out: f64) -> Self {
         Self {
-            calculator: Box::new(IntelligentStopCalculator::new(ease_in, ease_out)),
+            algorithm: CalculationAlgorithm::Intelligent { ease_in, ease_out },
         }
     }
 
@@ -217,66 +49,23 @@ impl GradientCalculator {
     #[must_use]
     pub fn with_equal_spacing() -> Self {
         Self {
-            calculator: Box::new(EqualSpacingCalculator),
+            algorithm: CalculationAlgorithm::EqualSpacing,
         }
     }
 
-    /// Cubic bezier easing function - proper CSS cubic-bezier implementation
-    #[must_use]
-    pub fn cubic_bezier_ease(t: f64, x1: f64, x2: f64) -> f64 {
-        // CSS cubic-bezier(x1, 0, x2, 1) function
-        // Control points: (0,0), (x1,0), (x2,1), (1,1)
-        // We need to find Y given X=t using Newton-Raphson iteration
-
-        if t <= 0.0 {
-            return 0.0;
-        }
-        if t >= 1.0 {
-            return 1.0;
-        }
-
-        // Newton-Raphson iteration to solve X(u) = t for parameter u
-        let mut u = t; // Initial guess
-
-        for _ in 0..8 {
-            // 8 iterations should be enough for precision
-            // Calculate X(u) using cubic bezier formula
-            let u2 = u * u;
-            let u3 = u2 * u;
-            let inv_u = 1.0 - u;
-            let inv_u2 = inv_u * inv_u;
-
-            // X(u) = 3(1-u)²u*x1 + 3(1-u)u²*x2 + u³
-            let x = 3.0 * inv_u2 * u * x1 + 3.0 * inv_u * u2 * x2 + u3;
-
-            // X'(u) = 3(1-u)²*x1 + 6(1-u)u*(x2-x1) + 3u²*(1-x2)
-            let dx = 3.0 * inv_u2 * x1 + 6.0 * inv_u * u * (x2 - x1) + 3.0 * u2 * (1.0 - x2);
-
-            if dx.abs() < 1e-12 {
-                break;
-            } // Avoid division by zero
-
-            u = u - (x - t) / dx;
-            u = u.clamp(0.0, 1.0);
-
-            if (x - t).abs() < 1e-12 {
-                break;
-            } // Converged
-        }
-
-        // Now calculate Y(u) using the found parameter u
-        let u2 = u * u;
-        let u3 = u2 * u;
-        let inv_u = 1.0 - u;
-
-        // Y(u) = 3(1-u)²u*0 + 3(1-u)u²*1 + u³*1 = 3(1-u)u² + u³
-        3.0 * inv_u * u2 + u3
-    }
-
-    /// Calculate stop positions
+    /// Calculate stop positions using selected algorithm
     #[must_use]
     pub fn calculate_stops(&self, num_stops: usize) -> Vec<f64> {
-        self.calculator.calculate_stops(num_stops)
+        match &self.algorithm {
+            CalculationAlgorithm::Intelligent { ease_in, ease_out } => {
+                let calculator = IntelligentStopCalculator::new(*ease_in, *ease_out);
+                calculator.calculate_stops(num_stops)
+            }
+            CalculationAlgorithm::EqualSpacing => {
+                let calculator = EqualSpacingCalculator;
+                calculator.calculate_stops(num_stops)
+            }
+        }
     }
 
     /// Calculate integer stop positions (0-100 range)
@@ -294,7 +83,7 @@ impl GradientCalculator {
             .collect()
     }
 
-    /// Generate gradient values using Template Method pattern
+    /// Generate gradient values for display
     pub fn generate_gradient_values(
         &self,
         start_lab: Lab,
@@ -411,7 +200,7 @@ impl GradientCalculator {
                 let t = i as f64 / (steps - 1) as f64;
 
                 // Apply bezier easing to geometric progression
-                let bezier_t = Self::cubic_bezier_ease(t, ease_in, ease_out);
+                let bezier_t = cubic_bezier_ease(t, ease_in, ease_out);
 
                 // RGB interpolation with bezier timing
                 let r = (start_rgb.0 as f64 + (end_rgb.0 as f64 - start_rgb.0 as f64) * bezier_t)
@@ -489,7 +278,7 @@ impl GradientCalculator {
                     for _ in 0..50 {
                         // Binary search with 50 iterations for precision
                         let mid_t = (low + high) / 2.0;
-                        let bezier_t = Self::cubic_bezier_ease(mid_t, ease_in, ease_out);
+                        let bezier_t = cubic_bezier_ease(mid_t, ease_in, ease_out);
                         let test_color = start_lab.mix(end_lab, bezier_t as f32);
                         let actual_distance = calculate_distance(algorithm, start_lab, test_color);
 
@@ -508,7 +297,7 @@ impl GradientCalculator {
                     }
 
                     // Calculate final bezier_t and actual color using found geometric position
-                    let final_bezier_t = Self::cubic_bezier_ease(best_t, ease_in, ease_out);
+                    let final_bezier_t = cubic_bezier_ease(best_t, ease_in, ease_out);
                     let actual_lab = start_lab.mix(end_lab, final_bezier_t as f32);
                     let actual_srgb: Srgb = actual_lab.into_color();
                     let rgb_color = (
@@ -554,29 +343,21 @@ mod tests {
     use crate::gradient::easing::EasingFunction;
 
     #[test]
-    fn test_intelligent_stop_calculator() {
-        let calculator = IntelligentStopCalculator::new(0.42, 0.58);
+    fn test_gradient_calculator_equal_spacing() {
+        let calculator = GradientCalculator::with_equal_spacing();
+        let stops = calculator.calculate_stops(3);
+
+        assert_eq!(stops, vec![0.0, 0.5, 1.0]);
+    }
+
+    #[test]
+    fn test_gradient_calculator_intelligent() {
+        let calculator = GradientCalculator::with_intelligent_stops(0.42, 0.58);
         let stops = calculator.calculate_stops(5);
 
         assert_eq!(stops.len(), 5);
         assert_eq!(stops[0], 0.0);
         assert_eq!(stops[stops.len() - 1], 1.0);
-    }
-
-    #[test]
-    fn test_equal_spacing_calculator() {
-        let calculator = EqualSpacingCalculator;
-        let stops = calculator.calculate_stops(4);
-
-        assert_eq!(stops, vec![0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0]);
-    }
-
-    #[test]
-    fn test_gradient_calculator() {
-        let calculator = GradientCalculator::with_equal_spacing();
-        let stops = calculator.calculate_stops(3);
-
-        assert_eq!(stops, vec![0.0, 0.5, 1.0]);
     }
 
     #[test]
@@ -594,5 +375,26 @@ mod tests {
         assert_eq!(values.len(), 3);
         assert_eq!(values[0].position, "0%");
         assert_eq!(values[2].position, "100%");
+    }
+
+    #[test]
+    fn test_unified_gradient_calculation() {
+        let start_lab = Lab::new(50.0, 0.0, 0.0);
+        let end_lab = Lab::new(70.0, 0.0, 0.0);
+
+        let stops = GradientCalculator::calculate_unified_gradient(
+            start_lab,
+            end_lab,
+            0,
+            100,
+            0.42,
+            0.58,
+            3,
+            true, // simple mode
+        );
+
+        assert_eq!(stops.len(), 3);
+        assert_eq!(stops[0].position, 0);
+        assert_eq!(stops[2].position, 100);
     }
 }

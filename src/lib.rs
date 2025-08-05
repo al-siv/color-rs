@@ -42,11 +42,20 @@ pub mod parsing_chain;
 pub use cli::{Cli, ColorArgs, Commands, GradientArgs};
 pub use color::{ColorInfo, ColorSpace};
 pub use color_distance_strategies::{
-    DistanceAlgorithm, calculate_distance, available_strategies,
+    // Core types from functional enum dispatch
+    DistanceAlgorithm, ValidatedLab, ValidationError,
+    // Main legacy compatibility function
+    calculate_distance,
     // Smart constructors and validation
-    ValidatedLab, ValidationError, calculate_distance_validated,
+    SmartConstructors, ColorSource, ValidationConstraints,
     // Lens/optics for immutable field access
-    LabLens, LightnessLens, ALens, BLens
+    LabLens, LightnessLens, ALens, BLens,
+    // Algorithm utilities
+    filter_fast_algorithms, filter_perceptual_algorithms, recommend_algorithm,
+    // Batch operations
+    BatchValidator,
+    // Legacy compatibility
+    array_to_validated_lab, validated_lab_to_array,
 };
 // Template Method Pattern Migration (Milestone 1.2) - Modern Alternative
 pub use color_matching::{
@@ -86,6 +95,16 @@ pub use color_parsing::{
 };
 pub use color_schemes::{
     ColorSchemeBuilder, ColorSchemeCalculator, ColorSchemeResult, ColorSchemeStrategy,
+    HslColorSchemeStrategy, LabColorSchemeStrategy,
+    adjust_color_relative_luminance, adjust_color_lab_luminance,
+    preserve_wcag_relative_luminance, preserve_lab_luminance,
+};
+// Builder Pattern Migration (Milestone 2.3) - Modern Alternative
+pub use scheme_config::{
+    ColorSchemeConfig, ConfigError, ColorSchemeCalculator as ModernColorSchemeCalculator,
+    LuminanceConfig, calculate_color_schemes, 
+    standard, with_relative_luminance_preservation, with_lab_luminance_preservation,
+    with_target_relative_luminance, with_target_lab_luminance, complex_config
 };
 // Command Pattern Migration (Milestone 1.4) - Modern Alternative
 pub use command_execution::{

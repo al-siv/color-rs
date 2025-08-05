@@ -5,7 +5,7 @@
 //! - Generate gradients with cubic-bezier easing
 //! - Create SVG and PNG outputs programmatically
 
-use color_rs::{ColorRs, Result, cli::GradientArgs, gradient::GradientCalculator};
+use color_rs::{ColorRs, Result, cli::GradientArgs, gradient::{GradientCalculator, cubic_bezier_ease}};
 use palette::{IntoColor, Lab, Srgb, Mix};
 
 fn main() -> Result<()> {
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
 
     for i in 0..=10 {
         let t = i as f64 / 10.0;
-        let eased_t = GradientCalculator::cubic_bezier_ease(t, ease_in, ease_out);
+        let eased_t = cubic_bezier_ease(t, ease_in, ease_out);
         let interpolated = red_lab.mix(blue_lab, eased_t as f32);
         
         // Convert LAB to hex

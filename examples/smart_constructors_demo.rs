@@ -5,7 +5,7 @@
 
 use color_rs::color_distance_strategies::{
     ValidatedLab, ValidationError,
-    DistanceAlgorithm, calculate_distance_validated
+    DistanceAlgorithm
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -57,8 +57,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let lab1 = ValidatedLab::new(50.0, 20.0, -30.0)?;
     let lab2 = ValidatedLab::new(60.0, 10.0, -20.0)?;
 
-    let delta_e76 = calculate_distance_validated(DistanceAlgorithm::DeltaE76, lab1, lab2)?;
-    let delta_e2000 = calculate_distance_validated(DistanceAlgorithm::DeltaE2000, lab1, lab2)?;
+    let delta_e76 = DistanceAlgorithm::DeltaE76.calculate_distance(lab1, lab2);
+    let delta_e2000 = DistanceAlgorithm::DeltaE2000.calculate_distance(lab1, lab2);
 
     println!("Distance (Delta E 1976): {:.6}", delta_e76);
     println!("Distance (Delta E 2000): {:.6}", delta_e2000);
@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let lab2 = ValidatedLab::new(60.0, 10.0, -20.0)?;
     
     for _ in 0..100_000 {
-        let _ = calculate_distance_validated(DistanceAlgorithm::Lch, lab1, lab2)?;
+        let _ = DistanceAlgorithm::Lch.calculate_distance(lab1, lab2);
     }
     let duration = start.elapsed();
     println!("✅ 100,000 validated distance calculations in {:?}", duration);
