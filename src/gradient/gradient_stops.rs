@@ -4,6 +4,7 @@
 //! and pure functional alternatives for stop positioning algorithms.
 
 use super::calculator::GradientValue;
+use crate::config::algorithm_constants;
 use crate::error::Result;
 use palette::Lab;
 
@@ -71,12 +72,12 @@ fn generate_intelligent_stops(num_stops: usize, ease_in: f64, ease_out: f64) -> 
         let linear_position = i as f64 / (num_stops - 1) as f64;
         
         // Apply easing transformation
-        let eased_position = if linear_position <= 0.5 {
+        let eased_position = if linear_position <= algorithm_constants::BEZIER_TRANSITION_POINT {
             // First half: ease-in
-            0.5 * ease_function(2.0 * linear_position, ease_in)
+            algorithm_constants::BEZIER_TRANSITION_POINT * ease_function(algorithm_constants::BEZIER_CALCULATION_FACTOR * linear_position, ease_in)
         } else {
             // Second half: ease-out
-            0.5 + 0.5 * ease_function(2.0 * (linear_position - 0.5), ease_out)
+            algorithm_constants::BEZIER_TRANSITION_POINT + algorithm_constants::BEZIER_TRANSITION_POINT * ease_function(algorithm_constants::BEZIER_CALCULATION_FACTOR * (linear_position - algorithm_constants::BEZIER_TRANSITION_POINT), ease_out)
         };
         
         stops.push(eased_position);
@@ -93,7 +94,7 @@ fn ease_function(t: f64, ease_factor: f64) -> f64 {
     
     // Cubic easing formula
     let normalized_ease = ease_factor.clamp(0.0, 1.0);
-    let power = 1.0 + 2.0 * normalized_ease;
+    let power = 1.0 + algorithm_constants::BEZIER_CALCULATION_FACTOR * normalized_ease;
     t.powf(power)
 }
 

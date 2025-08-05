@@ -115,4 +115,65 @@ pub mod algorithm_constants {
     
     /// Floating point comparison tolerance for color schemes
     pub const COLOR_COMPARISON_TOLERANCE: f64 = 0.1;
+    
+    // =====  MILESTONE 5.3: ALGORITHM-SPECIFIC CONSTANTS =====
+    
+    /// WCAG contrast ratio thresholds for accessibility ratings
+    /// AAA contrast ratio threshold (highest accessibility)
+    pub const WCAG_AAA_THRESHOLD: f64 = 7.0;
+    
+    /// AA contrast ratio threshold (standard accessibility)
+    pub const WCAG_AA_THRESHOLD: f64 = 4.5;
+    
+    /// AA Large text contrast ratio threshold (large text accessibility)
+    pub const WCAG_AA_LARGE_THRESHOLD: f64 = 3.0;
+    
+    /// WCAG luminance offset for contrast calculation (standard value: 0.05)
+    pub const WCAG_LUMINANCE_OFFSET: f64 = 0.05;
+    
+    /// Color space conversion constants
+    /// Precision multiplier for rounding operations (1000.0 for 3 decimal places)
+    pub const PRECISION_MULTIPLIER_3_DECIMAL: f64 = 1000.0;
+    
+    /// Precision multiplier for WCAG luminance (10000.0 for 4 decimal places)
+    pub const PRECISION_MULTIPLIER_4_DECIMAL: f64 = 10000.0;
+    
+    /// Maximum decimal places for floating point display
+    pub const MAX_DECIMAL_PLACES: usize = 3;
+    
+    /// Fixed decimal places for percentage formatting
+    pub const PERCENTAGE_DECIMAL_PLACES: usize = 2;
+    
+    /// Delta E 2000 algorithm constants
+    /// Lightness weighting factor for average lightness calculation
+    pub const DELTA_E_LIGHTNESS_FACTOR: f64 = 0.015;
+    
+    /// Lightness weighting base offset
+    pub const DELTA_E_LIGHTNESS_OFFSET: f64 = 50.0;
+    
+    /// Lightness weighting denominator offset
+    pub const DELTA_E_LIGHTNESS_DENOMINATOR_OFFSET: f64 = 20.0;
+    
+    /// Chroma weighting factor
+    pub const DELTA_E_CHROMA_FACTOR: f64 = 0.045;
+    
+    /// Hue weighting factor  
+    pub const DELTA_E_HUE_FACTOR: f64 = 0.015;
+    
+    /// Standard parametric factor (kL, kC, kH default values)
+    pub const DELTA_E_PARAMETRIC_FACTOR: f64 = 1.0;
+    
+    /// Gradient calculation parameters
+    /// Binary search division factor
+    pub const BINARY_SEARCH_DIVISION_FACTOR: f64 = 2.0;
+    
+    /// Gradient offset precision (0.5% precision for relative positioning)
+    pub const GRADIENT_OFFSET_PRECISION: f64 = 2.0;
+    
+    /// Bezier easing calculation factors
+    /// Ease-in-out transition point
+    pub const BEZIER_TRANSITION_POINT: f64 = 0.5;
+    
+    /// Bezier calculation factor for ease functions
+    pub const BEZIER_CALCULATION_FACTOR: f64 = 2.0;
 }

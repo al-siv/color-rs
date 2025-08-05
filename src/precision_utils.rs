@@ -3,8 +3,7 @@
 //! Provides centralized precision control for all floating point values
 //! to ensure consistent formatting across console output and file export.
 
-/// Maximum decimal places for floating point values
-pub const MAX_DECIMAL_PLACES: usize = 3;
+use crate::config::algorithm_constants;
 
 /// Precision utility for standardized floating point formatting
 pub struct PrecisionUtils;
@@ -33,7 +32,7 @@ impl PrecisionUtils {
             3 => format!("{value:.3}"),
             4 => format!("{value:.4}"),
             5 => format!("{value:.5}"),
-            _ => format!("{value:.3}"), // Default to 3 decimal places for safety
+            _ => format!("{value:.3}"), // Default to 3 decimal places for safety using algorithm_constants::MAX_DECIMAL_PLACES
         }
     }
 
@@ -41,7 +40,7 @@ impl PrecisionUtils {
     #[must_use]
     pub fn format_percentage(value: f64) -> String {
         use crate::config::math_constants;
-        Self::format_f64_fixed(value * math_constants::PERCENTAGE_MULTIPLIER, 2)
+        Self::format_f64_fixed(value * math_constants::PERCENTAGE_MULTIPLIER, algorithm_constants::PERCENTAGE_DECIMAL_PLACES)
     }
 
     /// Format LAB values with standardized precision
@@ -133,7 +132,7 @@ impl PrecisionUtils {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_f64((*value * 1000.0).round() / 1000.0)
+        serializer.serialize_f64((*value * algorithm_constants::PRECISION_MULTIPLIER_3_DECIMAL).round() / algorithm_constants::PRECISION_MULTIPLIER_3_DECIMAL)
     }
 
     /// Serialize WCAG relative luminance values with 4 decimal places
@@ -141,7 +140,7 @@ impl PrecisionUtils {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_f64((*value * 10000.0).round() / 10000.0)
+        serializer.serialize_f64((*value * algorithm_constants::PRECISION_MULTIPLIER_4_DECIMAL).round() / algorithm_constants::PRECISION_MULTIPLIER_4_DECIMAL)
     }
 }
 

@@ -457,24 +457,24 @@ Systematic cleanup of 8 main modules, 20+ struct/enum types, 30+ function names,
 ### Assignment 5: Constants Centralization and Magic Number Elimination
 **Objective**: Centralize all magic numbers and hardcoded values into unified constants
 
-#### Milestone 5.1: Centralize Mathematical and Algorithm Constants ✅ **HIGH PRIORITY**
-- [ ] Move hardcoded bezier values from `utils.rs` to `config.rs`:
-  - [ ] Linear: `(0.0, 1.0)`
-  - [ ] Ease: `(0.25, 1.0)`  
-  - [ ] Ease-in: `(0.42, 1.0)`
-  - [ ] Ease-out: `(0.0, 0.58)`
-  - [ ] Ease-in-out: `(0.42, 0.58)`
-- [ ] Centralize mathematical constants and thresholds
-- [ ] Move magic numbers like `100.0`, `20.0`, `10.0` to named constants
-- [ ] Create constant groups for related values (UI, calculation, validation)
-- [ ] Update all usage sites to reference centralized constants
+#### Milestone 5.1: Centralize Mathematical and Algorithm Constants ✅ **COMPLETED**
+- [x] Move hardcoded bezier values from `utils.rs` to `config.rs`: ✅
+  - [x] Linear: `(0.0, 1.0)` ✅
+  - [x] Ease: `(0.25, 1.0)` ✅  
+  - [x] Ease-in: `(0.42, 1.0)` ✅
+  - [x] Ease-out: `(0.0, 0.58)` ✅
+  - [x] Ease-in-out: `(0.42, 0.58)` ✅
+- [x] Centralize mathematical constants and thresholds ✅
+- [x] Move magic numbers like `100.0`, `20.0`, `10.0` to named constants ✅
+- [x] Create constant groups for related values (UI, calculation, validation) ✅
+- [x] Update all usage sites to reference centralized constants ✅
 
-#### Milestone 5.2: Centralize UI and Display Constants ✅ **MEDIUM PRIORITY**
-- [ ] Move `DEFAULT_LEGEND_HEIGHT_RATIO` and `DEFAULT_FONT_SIZE_RATIO` to config
-- [ ] Centralize display formatting constants and precision values
-- [ ] Move color format and validation constants to config
-- [ ] Create organized constant groups for maintainability
-- [ ] Validate consistent usage across all modules
+#### Milestone 5.2: Centralize UI and Display Constants ✅ **COMPLETED**
+- [x] Move `DEFAULT_LEGEND_HEIGHT_RATIO` and `DEFAULT_FONT_SIZE_RATIO` to config ✅
+- [x] Centralize display formatting constants and precision values ✅
+- [x] Move color format and validation constants to config ✅
+- [x] Create organized constant groups for maintainability ✅
+- [x] Validate consistent usage across all modules ✅
 
 #### Milestone 5.3: Centralize Algorithm-Specific Constants ✅ **MEDIUM PRIORITY**
 - [ ] Move color space conversion constants to config

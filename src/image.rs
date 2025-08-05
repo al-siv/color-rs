@@ -11,7 +11,7 @@ use crate::cli::GradientArgs;
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
 use crate::{
-    config::display_constants,
+    config::{display_constants, algorithm_constants},
 };
 
 /// Helper function to convert LAB to hex string using palette library approach
@@ -151,7 +151,7 @@ impl ImageGenerator {
             // Convert absolute position to relative position within the gradient with 0.5% precision
             let relative_offset_precise =
                 (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
-            let relative_offset = (relative_offset_precise * 2.0).round() / 2.0; // Round to nearest 0.5%
+            let relative_offset = (relative_offset_precise * algorithm_constants::GRADIENT_OFFSET_PRECISION).round() / algorithm_constants::GRADIENT_OFFSET_PRECISION; // Round to nearest 0.5%
 
             // Skip duplicates - only add if offset changed by at least 0.5%
             if let Some(last) = last_offset {

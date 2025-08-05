@@ -29,7 +29,7 @@ fn adjust_color_relative_luminance(color: Lab, target_luminance: f64) -> Result<
     let mut best_color = color;
     
     for _ in 0..50 {
-        let mid = (low + high) / 2.0;
+        let mid = (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR as f32;
         let test_color = Lab::new(mid, color.a, color.b);
         let test_srgb: Srgb = test_color.into_color();
         let test_luminance = wcag_relative(test_srgb);

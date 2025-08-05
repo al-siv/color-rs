@@ -5,6 +5,7 @@
 
 use super::algorithms::{IntelligentStopCalculator, EqualSpacingCalculator, cubic_bezier_ease};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
+use crate::config::algorithm_constants;
 use crate::utils::Utils;
 use crate::gradient::easing::EasingFunction;
 use palette::{IntoColor, Lab, Mix, Srgb};
@@ -277,12 +278,12 @@ impl GradientCalculator {
 
                     for _ in 0..50 {
                         // Binary search with 50 iterations for precision
-                        let mid_t = (low + high) / 2.0;
+                        let mid_t = (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR;
                         let bezier_t = cubic_bezier_ease(mid_t, ease_in, ease_out);
                         let test_color = start_lab.mix(end_lab, bezier_t as f32);
                         let actual_distance = calculate_distance(algorithm, start_lab, test_color);
 
-                        if (actual_distance - target_distance).abs() < 0.01 {
+                        if (actual_distance - target_distance).abs() < algorithm_constants::GRADIENT_DISTANCE_TOLERANCE {
                             best_t = mid_t;
                             break;
                         }

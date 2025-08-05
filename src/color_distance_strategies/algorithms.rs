@@ -4,6 +4,7 @@
 //! algorithms, all using pure functional programming patterns.
 
 use super::types::{DistanceAlgorithm, ValidationError, ValidatedLab};
+use crate::config::algorithm_constants;
 use std::str::FromStr;
 
 impl DistanceAlgorithm {
@@ -178,18 +179,18 @@ fn calculate_delta_e_2000(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     let c_avg = (c1 + c2) / 2.0;
 
     // Lightness weighting
-    let sl = 1.0 + (0.015 * (l_avg - 50.0).powi(2)) / (20.0 + (l_avg - 50.0).powi(2)).sqrt();
+    let sl = 1.0 + (algorithm_constants::DELTA_E_LIGHTNESS_FACTOR * (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2)) / (algorithm_constants::DELTA_E_LIGHTNESS_DENOMINATOR_OFFSET + (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2)).sqrt();
     
     // Chroma weighting  
-    let sc = 1.0 + 0.045 * c_avg;
+    let sc = 1.0 + algorithm_constants::DELTA_E_CHROMA_FACTOR * c_avg;
     
     // Hue weighting
-    let sh = 1.0 + 0.015 * c_avg;
+    let sh = 1.0 + algorithm_constants::DELTA_E_HUE_FACTOR * c_avg;
 
     // Parametric factors (standard values)
-    let kl = 1.0;
-    let kc = 1.0; 
-    let kh = 1.0;
+    let kl = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR;
+    let kc = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR; 
+    let kh = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR;
 
     // Final Delta E 2000 calculation
     let delta_l = dl / (kl * sl);

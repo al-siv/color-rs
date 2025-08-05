@@ -2,6 +2,8 @@
 //!
 //! Cleaned up from over-engineered pattern implementation to basic functionality
 
+use crate::config::algorithm_constants;
+
 pub mod calculator;
 pub mod easing;
 pub mod output;
@@ -60,8 +62,20 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     let get_contrast_assessment = |rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)| -> (f32, String) {
         let l1 = wcag_relative_luminance_rgb(rgb1);
         let l2 = wcag_relative_luminance_rgb(rgb2);
-        let ratio = if l1 > l2 { (l1 + 0.05) / (l2 + 0.05) } else { (l2 + 0.05) / (l1 + 0.05) };
-        let level = if ratio >= 7.0 { "AAA" } else if ratio >= 4.5 { "AA" } else if ratio >= 3.0 { "AA Large" } else { "Fail" };
+        let ratio = if l1 > l2 { 
+            (l1 + algorithm_constants::WCAG_LUMINANCE_OFFSET) / (l2 + algorithm_constants::WCAG_LUMINANCE_OFFSET) 
+        } else { 
+            (l2 + algorithm_constants::WCAG_LUMINANCE_OFFSET) / (l1 + algorithm_constants::WCAG_LUMINANCE_OFFSET) 
+        };
+        let level = if ratio >= algorithm_constants::WCAG_AAA_THRESHOLD { 
+            "AAA" 
+        } else if ratio >= algorithm_constants::WCAG_AA_THRESHOLD { 
+            "AA" 
+        } else if ratio >= algorithm_constants::WCAG_AA_LARGE_THRESHOLD { 
+            "AA Large" 
+        } else { 
+            "Fail" 
+        };
         (ratio as f32, level.to_string())
     };
 

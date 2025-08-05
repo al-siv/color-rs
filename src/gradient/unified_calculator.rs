@@ -224,7 +224,7 @@ fn binary_search_for_position(search_config: BinarySearchConfig) -> f64 {
     let mut best_t = 0.5;
     
     for _ in 0..search_config.max_iterations {
-        let mid_t = (low + high) / 2.0;
+        let mid_t = (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR;
         let actual_distance = calculate_distance_at_position(mid_t, search_config.gradient_config);
         
         if (actual_distance - search_config.target_distance).abs() < search_config.tolerance {
