@@ -44,7 +44,6 @@ pub mod parsing_chain;
 // Re-export main types for convenience
 pub use cli::{Cli, ColorArgs, Commands, GradientArgs, HueArgs};
 pub use color::{ColorInfo, ColorSpace};
-pub use color_ops::analysis::hue::{ColorCollectionType, HueAnalysisOptions, HueAnalysisResult, SortCriteria};
 pub use color_distance_strategies::{
     ALens,
     BLens,
@@ -70,6 +69,9 @@ pub use color_distance_strategies::{
     filter_perceptual_algorithms,
     recommend_algorithm,
     validated_lab_to_array,
+};
+pub use color_ops::analysis::hue::{
+    ColorCollectionType, HueAnalysisOptions, HueAnalysisResult, SortCriteria,
 };
 // Color Matching - Functional pattern matching across collections
 pub use color_matching::{

@@ -178,39 +178,53 @@ pub fn execute_hue_analysis(
     args: &crate::cli::HueArgs,
     _output_path: Option<&str>,
 ) -> Result<ExecutionResult> {
+    use crate::cli::OutputFormat;
+    use crate::cli::Range;
     use crate::color_parser::collections::ColorCollection;
     use crate::color_parser::{CssColorCollection, RalClassicCollection, RalDesignCollection};
-    use crate::output_formats::{HueCollectionOutput, HueCollectionConfiguration, HueColorEntry};
     use crate::color_report_formatting::display;
-    use crate::cli::OutputFormat;
-    use std::collections::HashMap;
+    use crate::output_formats::{HueCollectionConfiguration, HueCollectionOutput, HueColorEntry};
     use palette::Lch;
-    use crate::cli::Range;
+    use std::collections::HashMap;
 
     // Load the specified collection
     let collection: Box<dyn ColorCollection> = match args.collection.as_str() {
-        "css" => Box::new(CssColorCollection::new()
-            .map_err(|e| crate::error::ColorError::ParseError(format!("Failed to load CSS collection: {}", e)))?),
-        "ralc" => Box::new(RalClassicCollection::new()
-            .map_err(|e| crate::error::ColorError::ParseError(format!("Failed to load RAL Classic collection: {}", e)))?),
-        "rald" => Box::new(RalDesignCollection::new()
-            .map_err(|e| crate::error::ColorError::ParseError(format!("Failed to load RAL Design collection: {}", e)))?),
-        _ => return Err(crate::error::ColorError::ParseError(format!("Unknown collection: {}", args.collection))),
+        "css" => Box::new(CssColorCollection::new().map_err(|e| {
+            crate::error::ColorError::ParseError(format!("Failed to load CSS collection: {}", e))
+        })?),
+        "ralc" => Box::new(RalClassicCollection::new().map_err(|e| {
+            crate::error::ColorError::ParseError(format!(
+                "Failed to load RAL Classic collection: {}",
+                e
+            ))
+        })?),
+        "rald" => Box::new(RalDesignCollection::new().map_err(|e| {
+            crate::error::ColorError::ParseError(format!(
+                "Failed to load RAL Design collection: {}",
+                e
+            ))
+        })?),
+        _ => {
+            return Err(crate::error::ColorError::ParseError(format!(
+                "Unknown collection: {}",
+                args.collection
+            )));
+        }
     };
-    
+
     // Parse range filters if provided
     let hue_range = if let Some(ref range_str) = args.hue_range {
         Some(Range::parse(range_str)?)
     } else {
         None
     };
-    
+
     let lightness_range = if let Some(ref range_str) = args.lightness_range {
         Some(Range::parse(range_str)?)
     } else {
         None
     };
-    
+
     let chroma_range = if let Some(ref range_str) = args.chroma_range {
         Some(Range::parse(range_str)?)
     } else {
@@ -218,7 +232,9 @@ pub fn execute_hue_analysis(
     };
 
     // Filter and sort collection by hue
-    let mut filtered_colors: Vec<_> = collection.colors().iter()
+    let mut filtered_colors: Vec<_> = collection
+        .colors()
+        .iter()
         .filter_map(|color_entry| {
             // Convert to LCH for filtering
             let srgb = palette::Srgb::new(
@@ -227,38 +243,44 @@ pub fn execute_hue_analysis(
                 color_entry.color.rgb[2] as f32 / 255.0,
             );
             let lch: Lch = palette::FromColor::from_color(srgb);
-            
+
             // Apply range filters
             if let Some(ref hr) = hue_range {
                 if !hr.contains_with_wrap(lch.hue.into_degrees() as f64, 360.0) {
                     return None;
                 }
             }
-            
+
             if let Some(ref lr) = lightness_range {
                 if !lr.contains_linear(lch.l as f64) {
                     return None;
                 }
             }
-            
+
             if let Some(ref cr) = chroma_range {
                 if !cr.contains_linear(lch.chroma as f64) {
                     return None;
                 }
             }
-            
+
             Some((color_entry, lch))
         })
         .collect();
 
     // Sort by hue (primary), then by code (secondary)
     filtered_colors.sort_by(|a, b| {
-        let hue_cmp = a.1.hue.into_degrees().partial_cmp(&b.1.hue.into_degrees())
-            .unwrap_or(std::cmp::Ordering::Equal);
+        let hue_cmp =
+            a.1.hue
+                .into_degrees()
+                .partial_cmp(&b.1.hue.into_degrees())
+                .unwrap_or(std::cmp::Ordering::Equal);
         if hue_cmp != std::cmp::Ordering::Equal {
             hue_cmp
         } else {
-            a.0.metadata.code.as_ref().unwrap_or(&String::new())
+            a.0.metadata
+                .code
+                .as_ref()
+                .unwrap_or(&String::new())
                 .cmp(b.0.metadata.code.as_ref().unwrap_or(&String::new()))
         }
     });
@@ -272,27 +294,34 @@ pub fn execute_hue_analysis(
         chroma_range: args.chroma_range.clone(),
     };
 
-    let hue_colors: Vec<HueColorEntry> = filtered_colors.iter().map(|(color_entry, lch)| {
-        HueColorEntry {
-            code: color_entry.metadata.code.as_ref().unwrap_or(&"Unknown".to_string()).clone(),
+    let hue_colors: Vec<HueColorEntry> = filtered_colors
+        .iter()
+        .map(|(color_entry, lch)| HueColorEntry {
+            code: color_entry
+                .metadata
+                .code
+                .as_ref()
+                .unwrap_or(&"Unknown".to_string())
+                .clone(),
             hue: lch.hue.into_degrees() as f64,
-            hex: format!("#{:02X}{:02X}{:02X}", 
-                color_entry.color.rgb[0],
-                color_entry.color.rgb[1],
-                color_entry.color.rgb[2]),
+            hex: format!(
+                "#{:02X}{:02X}{:02X}",
+                color_entry.color.rgb[0], color_entry.color.rgb[1], color_entry.color.rgb[2]
+            ),
             rgb: color_entry.color.rgb,
             lightness: lch.l as f64,
             chroma: lch.chroma as f64,
-        }
-    }).collect();
+        })
+        .collect();
 
     let hue_output = HueCollectionOutput::new()
         .with_configuration(configuration)
         .with_colors(hue_colors);
 
     // Generate YAML output for colored terminal display
-    let yaml_output = hue_output.to_yaml()
-        .map_err(|e| crate::error::ColorError::ParseError(format!("Failed to serialize to YAML: {}", e)))?;
+    let yaml_output = hue_output.to_yaml().map_err(|e| {
+        crate::error::ColorError::ParseError(format!("Failed to serialize to YAML: {}", e))
+    })?;
 
     // Display with colored terminal output
     display::display_terminal_output(&yaml_output, &OutputFormat::Yaml);
@@ -306,7 +335,10 @@ pub fn execute_hue_analysis(
     // Create metadata
     let mut metadata = HashMap::new();
     metadata.insert("collection".to_string(), args.collection.clone());
-    metadata.insert("total_colors".to_string(), filtered_colors.len().to_string());
+    metadata.insert(
+        "total_colors".to_string(),
+        filtered_colors.len().to_string(),
+    );
     if let Some(ref hr) = args.hue_range {
         metadata.insert("hue_range".to_string(), hr.clone());
     }
@@ -333,18 +365,15 @@ fn export_hue_collection_display(
     use std::fs;
 
     let content = match format {
-        crate::cli::OutputFormat::Yaml => {
-            hue_output.to_yaml()
-                .map_err(|e| crate::error::ColorError::ParseError(format!("YAML serialization failed: {}", e)))?
-        },
-        crate::cli::OutputFormat::Toml => {
-            hue_output.to_toml()
-                .map_err(|e| crate::error::ColorError::ParseError(format!("TOML serialization failed: {}", e)))?
-        },
+        crate::cli::OutputFormat::Yaml => hue_output.to_yaml().map_err(|e| {
+            crate::error::ColorError::ParseError(format!("YAML serialization failed: {}", e))
+        })?,
+        crate::cli::OutputFormat::Toml => hue_output.to_toml().map_err(|e| {
+            crate::error::ColorError::ParseError(format!("TOML serialization failed: {}", e))
+        })?,
     };
 
-    fs::write(file_path, content)
-        .map_err(|e| crate::error::ColorError::from(e))?;
+    fs::write(file_path, content).map_err(|e| crate::error::ColorError::from(e))?;
 
     Ok(())
 }

@@ -5,9 +5,9 @@ use crate::config::{
     DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_START_POSITION, DEFAULT_WIDTH, MAX_PERCENTAGE,
 };
 use crate::error::{ColorError, Result};
-use clap::{Parser, ValueEnum, Subcommand, Args};
-use std::fmt;
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::default::Default;
+use std::fmt;
 
 /// Output format for file export
 #[derive(Debug, Clone, ValueEnum, Default, PartialEq, Eq)]
@@ -375,16 +375,16 @@ pub struct HueArgs {
 
     /// Lightness range filter [min...max] (0-100%)
     #[arg(
-        long = "l-range", 
+        long = "l-range",
         value_name = "[MIN...MAX]",
         help = "Filter by lightness range [min...max] percent, e.g., [50...80]"
     )]
     pub lightness_range: Option<String>,
 
-    /// Chroma range filter [min...max] 
+    /// Chroma range filter [min...max]
     #[arg(
         long = "c-range",
-        value_name = "[MIN...MAX]", 
+        value_name = "[MIN...MAX]",
         help = "Filter by chroma range [min...max], e.g., [30...70]"
     )]
     pub chroma_range: Option<String>,
@@ -406,7 +406,8 @@ pub struct HueArgs {
         help = "Output filename (extension added automatically based on format)"
     )]
     pub output_file: Option<String>,
-}/// Range specification for filtering
+}
+/// Range specification for filtering
 #[derive(Debug, Clone, PartialEq)]
 pub struct Range {
     pub min: f64,
@@ -417,24 +418,30 @@ impl Range {
     /// Parse range from bracket syntax: [min...max]
     pub fn parse(input: &str) -> crate::error::Result<Self> {
         if !input.starts_with('[') || !input.ends_with(']') {
-            return Err(crate::error::ColorError::ParseError("Range must be in format [min...max]".to_string()));
+            return Err(crate::error::ColorError::ParseError(
+                "Range must be in format [min...max]".to_string(),
+            ));
         }
-        
-        let inner = &input[1..input.len()-1];
+
+        let inner = &input[1..input.len() - 1];
         let parts: Vec<&str> = inner.split("...").collect();
-        
+
         if parts.len() != 2 {
-            return Err(crate::error::ColorError::ParseError("Range must contain exactly one '...' separator".to_string()));
+            return Err(crate::error::ColorError::ParseError(
+                "Range must contain exactly one '...' separator".to_string(),
+            ));
         }
-        
-        let min = parts[0].parse::<f64>()
-            .map_err(|_| crate::error::ColorError::ParseError(format!("Invalid minimum value: {}", parts[0])))?;
-        let max = parts[1].parse::<f64>()
-            .map_err(|_| crate::error::ColorError::ParseError(format!("Invalid maximum value: {}", parts[1])))?;
-        
+
+        let min = parts[0].parse::<f64>().map_err(|_| {
+            crate::error::ColorError::ParseError(format!("Invalid minimum value: {}", parts[0]))
+        })?;
+        let max = parts[1].parse::<f64>().map_err(|_| {
+            crate::error::ColorError::ParseError(format!("Invalid maximum value: {}", parts[1]))
+        })?;
+
         Ok(Range { min, max })
     }
-    
+
     /// Check if value is within range, supporting wraparound for hue values
     pub fn contains_with_wrap(&self, value: f64, _wrap_limit: f64) -> bool {
         if self.min <= self.max {
@@ -445,7 +452,7 @@ impl Range {
             value >= self.min || value <= self.max
         }
     }
-    
+
     /// Check if value is within range for linear values (lightness, chroma)
     pub fn contains_linear(&self, value: f64) -> bool {
         value >= self.min && value <= self.max
@@ -457,10 +464,13 @@ impl HueArgs {
     pub fn validate(&self) -> Result<()> {
         // Validate collection name
         match self.collection.as_str() {
-            "css" | "ralc" | "rald" => {},
-            _ => return Err(ColorError::InvalidArguments(
-                format!("Invalid collection '{}'. Must be: css, ralc, or rald", self.collection)
-            )),
+            "css" | "ralc" | "rald" => {}
+            _ => {
+                return Err(ColorError::InvalidArguments(format!(
+                    "Invalid collection '{}'. Must be: css, ralc, or rald",
+                    self.collection
+                )));
+            }
         }
 
         // Validate hue range if provided
@@ -469,17 +479,17 @@ impl HueArgs {
             // Hue can be negative for wraparound, but validate reasonable bounds
             if range.min < -360.0 || range.max > 720.0 {
                 return Err(ColorError::InvalidArguments(
-                    "Hue range values should be between -360 and 720 degrees".to_string()
+                    "Hue range values should be between -360 and 720 degrees".to_string(),
                 ));
             }
         }
 
-        // Validate lightness range if provided  
+        // Validate lightness range if provided
         if let Some(ref lightness_range) = self.lightness_range {
             let range = Range::parse(lightness_range)?;
             if range.min < 0.0 || range.max > 100.0 || range.min > range.max {
                 return Err(ColorError::InvalidArguments(
-                    "Lightness range must be 0-100% with min <= max".to_string()
+                    "Lightness range must be 0-100% with min <= max".to_string(),
                 ));
             }
         }
@@ -489,7 +499,7 @@ impl HueArgs {
             let range = Range::parse(chroma_range)?;
             if range.min < 0.0 || range.max > 200.0 || range.min > range.max {
                 return Err(ColorError::InvalidArguments(
-                    "Chroma range must be 0-200 with min <= max".to_string()
+                    "Chroma range must be 0-200 with min <= max".to_string(),
                 ));
             }
         }

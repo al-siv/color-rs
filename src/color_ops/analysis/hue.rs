@@ -25,7 +25,7 @@
 //!     Lch::new(45.0, 35.0, 115.0),
 //!     Lch::new(55.0, 45.0, 125.0),
 //! ];
-//! 
+//!
 //! let options = HueAnalysisOptions {
 //!     target_hue: Some(120.0),
 //!     tolerance: 15.0,
@@ -36,10 +36,10 @@
 //! let result = analyze_hue_relationships(&input_color, &color_collection, &options);
 //! ```
 
-use crate::error::{ColorError, Result};
 use crate::color_parser::collections::ColorCollection;
 use crate::color_parser::{CssColorCollection, RalClassicCollection, RalDesignCollection};
-use palette::{Lch, Srgb, IntoColor};
+use crate::error::{ColorError, Result};
+use palette::{IntoColor, Lch, Srgb};
 use serde::{Deserialize, Serialize};
 
 /// Color collection selection for hue analysis
@@ -64,9 +64,10 @@ impl std::str::FromStr for ColorCollectionType {
             "ral-classic" | "ralc" => Ok(Self::RalClassic),
             "ral-design" | "rald" => Ok(Self::RalDesign),
             "all" => Ok(Self::All),
-            _ => Err(ColorError::InvalidArguments(
-                format!("Invalid collection '{}'. Valid options: css, ral-classic, ral-design, all", s)
-            )),
+            _ => Err(ColorError::InvalidArguments(format!(
+                "Invalid collection '{}'. Valid options: css, ral-classic, ral-design, all",
+                s
+            ))),
         }
     }
 }
@@ -113,9 +114,10 @@ impl std::str::FromStr for SortCriteria {
             "saturation" => Ok(Self::Saturation),
             "lightness" => Ok(Self::Lightness),
             "name" => Ok(Self::Name),
-            _ => Err(ColorError::InvalidArguments(
-                format!("Invalid sort criteria: {}. Valid options: hue-distance, saturation, lightness, name", s)
-            )),
+            _ => Err(ColorError::InvalidArguments(format!(
+                "Invalid sort criteria: {}. Valid options: hue-distance, saturation, lightness, name",
+                s
+            ))),
         }
     }
 }
@@ -194,7 +196,11 @@ pub fn normalize_hue(hue: f64) -> f64 {
 ///
 /// # Returns
 /// `true` if the color meets all specified criteria, `false` otherwise
-pub fn meets_criteria(color: &Lch, reference_hue: Option<f64>, options: &HueAnalysisOptions) -> bool {
+pub fn meets_criteria(
+    color: &Lch,
+    reference_hue: Option<f64>,
+    options: &HueAnalysisOptions,
+) -> bool {
     // Check hue tolerance if target hue is specified
     if let (Some(_target_hue), Some(ref_hue)) = (options.target_hue, reference_hue) {
         let hue_dist = calculate_hue_distance(f64::from(color.hue.into_degrees()), ref_hue);
@@ -260,14 +266,20 @@ pub fn sort_by_criteria(
         SortCriteria::HueDistance => {
             if let Some(ref_hue) = reference_hue {
                 colors.sort_by(|a, b| {
-                    let dist_a = calculate_hue_distance(f64::from(a.color.hue.into_degrees()), ref_hue);
-                    let dist_b = calculate_hue_distance(f64::from(b.color.hue.into_degrees()), ref_hue);
-                    dist_a.partial_cmp(&dist_b).unwrap_or(std::cmp::Ordering::Equal)
+                    let dist_a =
+                        calculate_hue_distance(f64::from(a.color.hue.into_degrees()), ref_hue);
+                    let dist_b =
+                        calculate_hue_distance(f64::from(b.color.hue.into_degrees()), ref_hue);
+                    dist_a
+                        .partial_cmp(&dist_b)
+                        .unwrap_or(std::cmp::Ordering::Equal)
                 });
             } else {
                 // Sort by hue value if no reference
                 colors.sort_by(|a, b| {
-                    a.color.hue.into_degrees()
+                    a.color
+                        .hue
+                        .into_degrees()
                         .partial_cmp(&b.color.hue.into_degrees())
                         .unwrap_or(std::cmp::Ordering::Equal)
                 });
@@ -275,26 +287,26 @@ pub fn sort_by_criteria(
         }
         SortCriteria::Saturation => {
             colors.sort_by(|a, b| {
-                b.color.chroma
+                b.color
+                    .chroma
                     .partial_cmp(&a.color.chroma)
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
         }
         SortCriteria::Lightness => {
             colors.sort_by(|a, b| {
-                b.color.l
+                b.color
+                    .l
                     .partial_cmp(&a.color.l)
                     .unwrap_or(std::cmp::Ordering::Equal)
             });
         }
         SortCriteria::Name => {
-            colors.sort_by(|a, b| {
-                match (&a.name, &b.name) {
-                    (Some(name_a), Some(name_b)) => name_a.cmp(name_b),
-                    (Some(_), None) => std::cmp::Ordering::Less,
-                    (None, Some(_)) => std::cmp::Ordering::Greater,
-                    (None, None) => std::cmp::Ordering::Equal,
-                }
+            colors.sort_by(|a, b| match (&a.name, &b.name) {
+                (Some(name_a), Some(name_b)) => name_a.cmp(name_b),
+                (Some(_), None) => std::cmp::Ordering::Less,
+                (None, Some(_)) => std::cmp::Ordering::Greater,
+                (None, None) => std::cmp::Ordering::Equal,
             });
         }
     }
@@ -358,22 +370,18 @@ pub fn analyze_hue_relationships(
     limit: usize,
 ) -> Result<Vec<HueAnalysisResult>> {
     // Determine reference hue (target hue or input color hue)
-    let reference_hue = options.target_hue
+    let reference_hue = options
+        .target_hue
         .unwrap_or_else(|| f64::from(input_color.hue.into_degrees()));
 
     // Filter colors based on criteria
-    let mut filtered_colors = filter_by_hue_criteria(
-        color_collection,
-        Some(reference_hue),
-        options,
-    );
+    let mut filtered_colors =
+        filter_by_hue_criteria(color_collection, Some(reference_hue), options);
 
     // Update hue distances based on reference hue
     for result in &mut filtered_colors {
-        result.hue_distance = calculate_hue_distance(
-            f64::from(result.color.hue.into_degrees()),
-            reference_hue,
-        );
+        result.hue_distance =
+            calculate_hue_distance(f64::from(result.color.hue.into_degrees()), reference_hue);
     }
 
     // Sort by specified criteria
@@ -397,32 +405,40 @@ pub fn analyze_hue_relationships(
 ///
 /// # Errors
 /// Returns `ColorError` if collection loading fails
-pub fn load_collection_colors(collection_type: &ColorCollectionType) -> Result<Vec<HueAnalysisResult>> {
+pub fn load_collection_colors(
+    collection_type: &ColorCollectionType,
+) -> Result<Vec<HueAnalysisResult>> {
     match collection_type {
         ColorCollectionType::Css => {
-            let collection = CssColorCollection::new()
-                .map_err(|e| ColorError::InvalidArguments(format!("Failed to load CSS collection: {}", e)))?;
+            let collection = CssColorCollection::new().map_err(|e| {
+                ColorError::InvalidArguments(format!("Failed to load CSS collection: {}", e))
+            })?;
             Ok(convert_collection_to_results(&collection, "css"))
         }
         ColorCollectionType::RalClassic => {
-            let collection = RalClassicCollection::new()
-                .map_err(|e| ColorError::InvalidArguments(format!("Failed to load RAL Classic collection: {}", e)))?;
+            let collection = RalClassicCollection::new().map_err(|e| {
+                ColorError::InvalidArguments(format!(
+                    "Failed to load RAL Classic collection: {}",
+                    e
+                ))
+            })?;
             Ok(convert_collection_to_results(&collection, "ral-classic"))
         }
         ColorCollectionType::RalDesign => {
-            let collection = RalDesignCollection::new()
-                .map_err(|e| ColorError::InvalidArguments(format!("Failed to load RAL Design collection: {}", e)))?;
+            let collection = RalDesignCollection::new().map_err(|e| {
+                ColorError::InvalidArguments(format!("Failed to load RAL Design collection: {}", e))
+            })?;
             Ok(convert_collection_to_results(&collection, "ral-design"))
         }
         ColorCollectionType::All => {
             let mut all_colors = Vec::new();
-            
+
             // Load all collections
             for collection_type in &ColorCollectionType::all_collections() {
                 let mut colors = load_collection_colors(collection_type)?;
                 all_colors.append(&mut colors);
             }
-            
+
             Ok(all_colors)
         }
     }
@@ -486,7 +502,7 @@ pub fn analyze_collection_hues(
 ) -> Result<Vec<HueAnalysisResult>> {
     // Load colors from the specified collection
     let color_collection = load_collection_colors(collection_type)?;
-    
+
     // Perform hue analysis using the main analysis function
     analyze_hue_relationships(
         input_color,
@@ -550,15 +566,16 @@ impl HueDisplayItem {
 
         let lch = format!(
             "L:{:.1} C:{:.1} H:{:.1}",
-            result.color.l,
-            result.color.chroma,
-            hue
+            result.color.l, result.color.chroma, hue
         );
 
         Self {
             hue,
-            code: format!("{}-{}", result.collection.to_uppercase(), 
-                result.name.as_ref().unwrap_or(&"Unknown".to_string())),
+            code: format!(
+                "{}-{}",
+                result.collection.to_uppercase(),
+                result.name.as_ref().unwrap_or(&"Unknown".to_string())
+            ),
             hex,
             lch,
             name: result.name.clone().unwrap_or_else(|| "Unknown".to_string()),
@@ -582,7 +599,7 @@ pub fn format_hue_analysis_terminal(results: &[HueAnalysisResult]) -> String {
     }
 
     let mut output = String::new();
-    
+
     // Header
     output.push_str("Hue Analysis Results:\n");
     output.push_str("┌──────────┬─────────────────────┬──────────┬─────────────────┬──────────────────────┬─────────────┐\n");
@@ -593,7 +610,7 @@ pub fn format_hue_analysis_terminal(results: &[HueAnalysisResult]) -> String {
     let mut previous_hue = None;
     for result in results {
         let display_item = HueDisplayItem::from_analysis_result(result, previous_hue);
-        
+
         let hue_shift_str = match display_item.hue_shift {
             Some(shift) => format!("{:+6.1}°", shift),
             None => "    —   ".to_string(),
@@ -776,26 +793,36 @@ pub fn export_hue_analysis(
     // Serialize and write to file
     match format {
         crate::cli::OutputFormat::Yaml => {
-            let content = serde_yml::to_string(&output)
-                .map_err(|e| ColorError::InvalidArguments(format!("YAML serialization failed: {}", e)))?;
+            let content = serde_yml::to_string(&output).map_err(|e| {
+                ColorError::InvalidArguments(format!("YAML serialization failed: {}", e))
+            })?;
             let full_filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
                 filename.to_string()
             } else {
                 format!("{}.yaml", filename)
             };
-            std::fs::write(&full_filename, content)
-                .map_err(|e| ColorError::InvalidArguments(format!("Failed to write file {}: {}", full_filename, e)))?;
+            std::fs::write(&full_filename, content).map_err(|e| {
+                ColorError::InvalidArguments(format!(
+                    "Failed to write file {}: {}",
+                    full_filename, e
+                ))
+            })?;
         }
         crate::cli::OutputFormat::Toml => {
-            let content = toml::to_string_pretty(&output)
-                .map_err(|e| ColorError::InvalidArguments(format!("TOML serialization failed: {}", e)))?;
+            let content = toml::to_string_pretty(&output).map_err(|e| {
+                ColorError::InvalidArguments(format!("TOML serialization failed: {}", e))
+            })?;
             let full_filename = if filename.ends_with(".toml") {
                 filename.to_string()
             } else {
                 format!("{}.toml", filename)
             };
-            std::fs::write(&full_filename, content)
-                .map_err(|e| ColorError::InvalidArguments(format!("Failed to write file {}: {}", full_filename, e)))?;
+            std::fs::write(&full_filename, content).map_err(|e| {
+                ColorError::InvalidArguments(format!(
+                    "Failed to write file {}: {}",
+                    full_filename, e
+                ))
+            })?;
         }
     }
 
@@ -849,23 +876,50 @@ mod tests {
 
     #[test]
     fn test_sort_criteria_from_str() {
-        assert_eq!(SortCriteria::from_str("hue-distance").unwrap(), SortCriteria::HueDistance);
-        assert_eq!(SortCriteria::from_str("saturation").unwrap(), SortCriteria::Saturation);
-        assert_eq!(SortCriteria::from_str("lightness").unwrap(), SortCriteria::Lightness);
+        assert_eq!(
+            SortCriteria::from_str("hue-distance").unwrap(),
+            SortCriteria::HueDistance
+        );
+        assert_eq!(
+            SortCriteria::from_str("saturation").unwrap(),
+            SortCriteria::Saturation
+        );
+        assert_eq!(
+            SortCriteria::from_str("lightness").unwrap(),
+            SortCriteria::Lightness
+        );
         assert_eq!(SortCriteria::from_str("name").unwrap(), SortCriteria::Name);
-        
+
         assert!(SortCriteria::from_str("invalid").is_err());
     }
 
     #[test]
     fn test_color_collection_type_from_str() {
-        assert_eq!(ColorCollectionType::from_str("css").unwrap(), ColorCollectionType::Css);
-        assert_eq!(ColorCollectionType::from_str("ral-classic").unwrap(), ColorCollectionType::RalClassic);
-        assert_eq!(ColorCollectionType::from_str("ralc").unwrap(), ColorCollectionType::RalClassic);
-        assert_eq!(ColorCollectionType::from_str("ral-design").unwrap(), ColorCollectionType::RalDesign);
-        assert_eq!(ColorCollectionType::from_str("rald").unwrap(), ColorCollectionType::RalDesign);
-        assert_eq!(ColorCollectionType::from_str("all").unwrap(), ColorCollectionType::All);
-        
+        assert_eq!(
+            ColorCollectionType::from_str("css").unwrap(),
+            ColorCollectionType::Css
+        );
+        assert_eq!(
+            ColorCollectionType::from_str("ral-classic").unwrap(),
+            ColorCollectionType::RalClassic
+        );
+        assert_eq!(
+            ColorCollectionType::from_str("ralc").unwrap(),
+            ColorCollectionType::RalClassic
+        );
+        assert_eq!(
+            ColorCollectionType::from_str("ral-design").unwrap(),
+            ColorCollectionType::RalDesign
+        );
+        assert_eq!(
+            ColorCollectionType::from_str("rald").unwrap(),
+            ColorCollectionType::RalDesign
+        );
+        assert_eq!(
+            ColorCollectionType::from_str("all").unwrap(),
+            ColorCollectionType::All
+        );
+
         assert!(ColorCollectionType::from_str("invalid").is_err());
     }
 
@@ -882,11 +936,14 @@ mod tests {
     fn test_load_css_collection() {
         let result = load_collection_colors(&ColorCollectionType::Css);
         assert!(result.is_ok(), "CSS collection should load successfully");
-        
+
         let colors = result.unwrap();
         assert!(!colors.is_empty(), "CSS collection should contain colors");
-        assert!(colors.len() > 10, "CSS collection should contain at least 10 colors");
-        
+        assert!(
+            colors.len() > 10,
+            "CSS collection should contain at least 10 colors"
+        );
+
         // Check that colors have proper collection name
         assert_eq!(colors[0].collection, "css");
     }
@@ -895,14 +952,14 @@ mod tests {
     fn test_analyze_collection_hues() {
         // Create a test color (red)
         let input_color = Lch::new(50.0, 40.0, 0.0); // Red-ish hue
-        
+
         let options = HueAnalysisOptions {
             target_hue: Some(0.0), // Red hue
             tolerance: 30.0,       // Wide tolerance
             min_saturation: None,
             min_lightness: None,
         };
-        
+
         let result = analyze_collection_hues(
             &ColorCollectionType::Css,
             &input_color,
@@ -910,12 +967,15 @@ mod tests {
             SortCriteria::HueDistance,
             5, // Limit to 5 results
         );
-        
+
         assert!(result.is_ok(), "Hue analysis should complete successfully");
         let analysis_results = result.unwrap();
-        assert!(!analysis_results.is_empty(), "Should find some matching colors");
+        assert!(
+            !analysis_results.is_empty(),
+            "Should find some matching colors"
+        );
         assert!(analysis_results.len() <= 5, "Should respect the limit");
-        
+
         // Results should be sorted by hue distance (closest first)
         if analysis_results.len() > 1 {
             assert!(
@@ -929,21 +989,19 @@ mod tests {
     fn test_export_hue_analysis() {
         let temp_dir = std::env::temp_dir();
         let test_file = temp_dir.join("test_hue_analysis.yaml");
-        
+
         // Clean up any existing test file
         let _ = std::fs::remove_file(&test_file);
-        
-        let results = vec![
-            HueAnalysisResult {
-                color: Lch::new(70.0, 30.0, 180.0),
-                name: Some("Cyan".to_string()),
-                hue_distance: 0.0,
-                saturation: 30.0,
-                lightness: 70.0,
-                collection: "css".to_string(),
-            },
-        ];
-        
+
+        let results = vec![HueAnalysisResult {
+            color: Lch::new(70.0, 30.0, 180.0),
+            name: Some("Cyan".to_string()),
+            hue_distance: 0.0,
+            saturation: 30.0,
+            lightness: 70.0,
+            collection: "css".to_string(),
+        }];
+
         let input_color = Lch::new(70.0, 30.0, 0.0);
         let options = HueAnalysisOptions {
             target_hue: Some(180.0),
@@ -953,39 +1011,39 @@ mod tests {
         };
         let collection_type = ColorCollectionType::Css;
         let sort_criteria = SortCriteria::HueDistance;
-        
+
         // Test YAML export
         let result = export_hue_analysis(
-            &results, 
-            &input_color, 
+            &results,
+            &input_color,
             &options,
-            &collection_type, 
+            &collection_type,
             &sort_criteria,
             crate::cli::OutputFormat::Yaml,
-            test_file.to_str().unwrap()
+            test_file.to_str().unwrap(),
         );
         assert!(result.is_ok(), "YAML export should succeed");
         assert!(test_file.exists(), "YAML file should be created");
-        
+
         // Clean up
         let _ = std::fs::remove_file(&test_file);
-        
-        // Test TOML export  
+
+        // Test TOML export
         let toml_file = temp_dir.join("test_hue_analysis.toml");
         let _ = std::fs::remove_file(&toml_file);
-        
+
         let result = export_hue_analysis(
-            &results, 
-            &input_color, 
+            &results,
+            &input_color,
             &options,
-            &collection_type, 
+            &collection_type,
             &sort_criteria,
             crate::cli::OutputFormat::Toml,
-            toml_file.to_str().unwrap()
+            toml_file.to_str().unwrap(),
         );
         assert!(result.is_ok(), "TOML export should succeed");
         assert!(toml_file.exists(), "TOML file should be created");
-        
+
         // Clean up
         let _ = std::fs::remove_file(&toml_file);
     }
@@ -994,7 +1052,7 @@ mod tests {
     fn test_export_hue_analysis_empty_results() {
         let temp_dir = std::env::temp_dir();
         let test_file = temp_dir.join("test_empty.yaml");
-        
+
         let results = vec![];
         let input_color = Lch::new(70.0, 30.0, 0.0);
         let options = HueAnalysisOptions {
@@ -1005,19 +1063,22 @@ mod tests {
         };
         let collection_type = ColorCollectionType::Css;
         let sort_criteria = SortCriteria::HueDistance;
-        
+
         let result = export_hue_analysis(
-            &results, 
-            &input_color, 
+            &results,
+            &input_color,
             &options,
-            &collection_type, 
+            &collection_type,
             &sort_criteria,
             crate::cli::OutputFormat::Yaml,
-            test_file.to_str().unwrap()
+            test_file.to_str().unwrap(),
         );
         assert!(result.is_ok(), "Export with empty results should succeed");
-        assert!(test_file.exists(), "YAML file should be created even with empty results");
-        
+        assert!(
+            test_file.exists(),
+            "YAML file should be created even with empty results"
+        );
+
         // Clean up
         let _ = std::fs::remove_file(&test_file);
     }

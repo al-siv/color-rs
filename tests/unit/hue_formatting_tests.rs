@@ -3,11 +3,11 @@
 //! This module tests terminal formatting, file export, and serialization functionality
 //! for hue analysis results.
 
-use color_rs::color_ops::analysis::hue::{
-    HueAnalysisResult, format_hue_analysis_terminal, export_hue_analysis,
-    ColorCollectionType, HueAnalysisOptions, SortCriteria
-};
 use color_rs::cli::OutputFormat;
+use color_rs::color_ops::analysis::hue::{
+    ColorCollectionType, HueAnalysisOptions, HueAnalysisResult, SortCriteria, export_hue_analysis,
+    format_hue_analysis_terminal,
+};
 use palette::Lch;
 use std::fs;
 use tempfile::tempdir;
@@ -47,7 +47,7 @@ fn create_sample_results() -> Vec<HueAnalysisResult> {
 fn test_format_hue_analysis_terminal_multiple_results() {
     let results = create_sample_results();
     let output = format_hue_analysis_terminal(&results);
-    
+
     // Should contain header
     assert!(output.contains("Hue Analysis Results"));
     assert!(output.contains("Hue"));
@@ -56,15 +56,15 @@ fn test_format_hue_analysis_terminal_multiple_results() {
     assert!(output.contains("LCH"));
     assert!(output.contains("Name"));
     assert!(output.contains("Hue Shift"));
-    
+
     // Should contain all color names
     assert!(output.contains("Red"));
     assert!(output.contains("Green"));
     assert!(output.contains("Blue"));
-    
+
     // Should contain total count
     assert!(output.contains("Total: 3 colors"));
-    
+
     // Should be properly formatted as a table
     assert!(output.contains("┌")); // Top border
     assert!(output.contains("└")); // Bottom border
@@ -76,11 +76,11 @@ fn test_format_hue_analysis_terminal_multiple_results() {
 fn test_format_hue_analysis_terminal_single_result() {
     let results = vec![create_sample_results()[0].clone()];
     let output = format_hue_analysis_terminal(&results);
-    
+
     assert!(output.contains("Hue Analysis Results"));
     assert!(output.contains("Red"));
     assert!(output.contains("Total: 1 colors"));
-    
+
     // Should still be properly formatted
     assert!(output.contains("┌"));
     assert!(output.contains("└"));
@@ -92,7 +92,7 @@ fn test_format_hue_analysis_terminal_single_result() {
 fn test_format_hue_analysis_terminal_empty_results() {
     let results = vec![];
     let output = format_hue_analysis_terminal(&results);
-    
+
     assert!(output.contains("No colors found"));
     // Should still be a valid table format
     assert!(!output.is_empty());
@@ -104,9 +104,9 @@ fn test_format_hue_analysis_terminal_no_names() {
     let mut result = create_sample_results()[0].clone();
     result.name = None;
     let results = vec![result];
-    
+
     let output = format_hue_analysis_terminal(&results);
-    
+
     // Should handle missing names gracefully
     assert!(output.contains("Hue Analysis Results"));
     assert!(output.contains("Total: 1 colors"));
@@ -117,7 +117,7 @@ fn test_format_hue_analysis_terminal_no_names() {
 fn test_export_hue_analysis_yaml() -> color_rs::Result<()> {
     let temp_dir = tempdir().expect("Failed to create temp directory");
     let file_path = temp_dir.path().join("test_output.yaml");
-    
+
     let results = create_sample_results();
     let input_color = Lch::new(50.0, 75.0, 0.0);
     let options = HueAnalysisOptions {
@@ -128,7 +128,7 @@ fn test_export_hue_analysis_yaml() -> color_rs::Result<()> {
     };
     let collection_type = ColorCollectionType::Css;
     let sort_criteria = SortCriteria::HueDistance;
-    
+
     // Export to YAML
     export_hue_analysis(
         &results,
@@ -139,37 +139,37 @@ fn test_export_hue_analysis_yaml() -> color_rs::Result<()> {
         OutputFormat::Yaml,
         file_path.to_str().unwrap(),
     )?;
-    
+
     // Verify file was created
     assert!(file_path.exists());
-    
+
     // Read and verify content
     let content = fs::read_to_string(&file_path)?;
-    
+
     // Should contain metadata
     assert!(content.contains("metadata:"));
     assert!(content.contains("program_name: color-rs"));
     assert!(content.contains("version:"));
     assert!(content.contains("analysis_mode: hue"));
-    
+
     // Should contain input information
     assert!(content.contains("input:"));
     assert!(content.contains("tolerance: 15"));
     assert!(content.contains("collection: css"));
-    
+
     // Should contain results
     assert!(content.contains("results:"));
     assert!(content.contains("- hue:"));
     assert!(content.contains("name: Red"));
     assert!(content.contains("name: Green"));
     assert!(content.contains("name: Blue"));
-    
+
     // Should have proper YAML structure
     assert!(content.contains("lch:"));
     assert!(content.contains("l:"));
     assert!(content.contains("c:"));
     assert!(content.contains("h:"));
-    
+
     Ok(())
 }
 
@@ -178,7 +178,7 @@ fn test_export_hue_analysis_yaml() -> color_rs::Result<()> {
 fn test_export_hue_analysis_toml() -> color_rs::Result<()> {
     let temp_dir = tempdir().expect("Failed to create temp directory");
     let file_path = temp_dir.path().join("test_output.toml");
-    
+
     let results = create_sample_results();
     let input_color = Lch::new(50.0, 75.0, 0.0);
     let options = HueAnalysisOptions {
@@ -189,7 +189,7 @@ fn test_export_hue_analysis_toml() -> color_rs::Result<()> {
     };
     let collection_type = ColorCollectionType::Css;
     let sort_criteria = SortCriteria::HueDistance;
-    
+
     // Export to TOML
     export_hue_analysis(
         &results,
@@ -200,32 +200,32 @@ fn test_export_hue_analysis_toml() -> color_rs::Result<()> {
         OutputFormat::Toml,
         file_path.to_str().unwrap(),
     )?;
-    
+
     // Verify file was created
     assert!(file_path.exists());
-    
+
     // Read and verify content
     let content = fs::read_to_string(&file_path)?;
-    
+
     // Should contain metadata section
     assert!(content.contains("[metadata]"));
     assert!(content.contains("program_name = \"color-rs\""));
     assert!(content.contains("analysis_mode = \"hue\""));
-    
+
     // Should contain input section
     assert!(content.contains("[input]"));
     assert!(content.contains("tolerance = 15"));
     assert!(content.contains("collection = \"css\""));
-    
+
     // Should contain results arrays
     assert!(content.contains("[[results]]"));
     assert!(content.contains("name = \"Red\""));
     assert!(content.contains("name = \"Green\""));
     assert!(content.contains("name = \"Blue\""));
-    
+
     // Should have proper TOML structure for LCH values
     assert!(content.contains("[results.lch]"));
-    
+
     Ok(())
 }
 
@@ -234,7 +234,7 @@ fn test_export_hue_analysis_toml() -> color_rs::Result<()> {
 fn test_export_hue_analysis_empty_results() -> color_rs::Result<()> {
     let temp_dir = tempdir().expect("Failed to create temp directory");
     let file_path = temp_dir.path().join("test_empty.yaml");
-    
+
     let results = vec![];
     let input_color = Lch::new(50.0, 75.0, 0.0);
     let options = HueAnalysisOptions {
@@ -245,7 +245,7 @@ fn test_export_hue_analysis_empty_results() -> color_rs::Result<()> {
     };
     let collection_type = ColorCollectionType::Css;
     let sort_criteria = SortCriteria::HueDistance;
-    
+
     // Export empty results
     export_hue_analysis(
         &results,
@@ -256,18 +256,18 @@ fn test_export_hue_analysis_empty_results() -> color_rs::Result<()> {
         OutputFormat::Yaml,
         file_path.to_str().unwrap(),
     )?;
-    
+
     // Verify file was created
     assert!(file_path.exists());
-    
+
     // Read and verify content
     let content = fs::read_to_string(&file_path)?;
-    
+
     // Should contain metadata and input even with empty results
     assert!(content.contains("metadata:"));
     assert!(content.contains("input:"));
     assert!(content.contains("results: []"));
-    
+
     Ok(())
 }
 
@@ -275,7 +275,7 @@ fn test_export_hue_analysis_empty_results() -> color_rs::Result<()> {
 #[test]
 fn test_export_file_extension_handling() -> color_rs::Result<()> {
     let temp_dir = tempdir().expect("Failed to create temp directory");
-    
+
     let results = create_sample_results();
     let input_color = Lch::new(50.0, 75.0, 0.0);
     let options = HueAnalysisOptions {
@@ -286,7 +286,7 @@ fn test_export_file_extension_handling() -> color_rs::Result<()> {
     };
     let collection_type = ColorCollectionType::Css;
     let sort_criteria = SortCriteria::HueDistance;
-    
+
     // Test YAML extension handling
     let yaml_base_path = temp_dir.path().join("test_yaml");
     export_hue_analysis(
@@ -298,11 +298,11 @@ fn test_export_file_extension_handling() -> color_rs::Result<()> {
         OutputFormat::Yaml,
         yaml_base_path.to_str().unwrap(),
     )?;
-    
+
     // Should create file with .yaml extension
     let yaml_file = temp_dir.path().join("test_yaml.yaml");
     assert!(yaml_file.exists());
-    
+
     // Test TOML extension handling
     let toml_base_path = temp_dir.path().join("test_toml");
     export_hue_analysis(
@@ -314,11 +314,11 @@ fn test_export_file_extension_handling() -> color_rs::Result<()> {
         OutputFormat::Toml,
         toml_base_path.to_str().unwrap(),
     )?;
-    
+
     // Should create file with .toml extension
     let toml_file = temp_dir.path().join("test_toml.toml");
     assert!(toml_file.exists());
-    
+
     Ok(())
 }
 
@@ -329,12 +329,12 @@ fn test_format_consistency() {
     let single_result = vec![create_sample_results()[0].clone()];
     let multiple_results = create_sample_results();
     let empty_results = vec![];
-    
+
     // All should produce valid, non-empty formatted output
     assert!(!format_hue_analysis_terminal(&single_result).is_empty());
     assert!(!format_hue_analysis_terminal(&multiple_results).is_empty());
     assert!(!format_hue_analysis_terminal(&empty_results).is_empty());
-    
+
     // All should contain consistent header structure
     for results in [&single_result, &multiple_results, &empty_results] {
         let output = format_hue_analysis_terminal(results);
@@ -352,7 +352,7 @@ fn test_format_consistency() {
 fn test_serialization_structure() -> color_rs::Result<()> {
     let temp_dir = tempdir().expect("Failed to create temp directory");
     let file_path = temp_dir.path().join("structure_test.yaml");
-    
+
     let results = create_sample_results();
     let input_color = Lch::new(50.0, 75.0, 0.0);
     let options = HueAnalysisOptions {
@@ -363,7 +363,7 @@ fn test_serialization_structure() -> color_rs::Result<()> {
     };
     let collection_type = ColorCollectionType::Css;
     let sort_criteria = SortCriteria::HueDistance;
-    
+
     export_hue_analysis(
         &results,
         &input_color,
@@ -373,39 +373,39 @@ fn test_serialization_structure() -> color_rs::Result<()> {
         OutputFormat::Yaml,
         file_path.to_str().unwrap(),
     )?;
-    
+
     let content = fs::read_to_string(&file_path)?;
-    
+
     // Verify all required fields are present
     let required_metadata_fields = [
-        "program_name", "version", "author", "description", 
-        "generated_at", "analysis_mode"
+        "program_name",
+        "version",
+        "author",
+        "description",
+        "generated_at",
+        "analysis_mode",
     ];
-    
+
     for field in &required_metadata_fields {
         assert!(content.contains(field), "Missing metadata field: {}", field);
     }
-    
-    let required_input_fields = [
-        "color", "tolerance", "collection", "sort_criteria"
-    ];
-    
+
+    let required_input_fields = ["color", "tolerance", "collection", "sort_criteria"];
+
     for field in &required_input_fields {
         assert!(content.contains(field), "Missing input field: {}", field);
     }
-    
-    let required_result_fields = [
-        "hue", "code", "hex", "name", "lch"
-    ];
-    
+
+    let required_result_fields = ["hue", "code", "hex", "name", "lch"];
+
     for field in &required_result_fields {
         assert!(content.contains(field), "Missing result field: {}", field);
     }
-    
+
     // Verify LCH structure
     assert!(content.contains("l:"));
     assert!(content.contains("c:"));
     assert!(content.contains("h:"));
-    
+
     Ok(())
 }
