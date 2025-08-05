@@ -3,7 +3,9 @@
 //! This module contains unified gradient calculation algorithms,
 //! breaking them down into focused, composable functions that follow single responsibility principle.
 
-use super::calculator::{UnifiedGradientStop, cubic_bezier_ease, GradientCalculator};
+use super::calculator::{UnifiedGradientStop, cubic_bezier_ease};
+#[cfg(test)]
+use super::calculator::GradientCalculator;
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use crate::config::{math_constants, algorithm_constants};
 use palette::{IntoColor, Lab, Mix, Srgb};

@@ -16,7 +16,7 @@ fn main() -> color_rs::Result<()> {
         cli::Commands::Color(args) => {
             // Validate arguments before processing
             args.validate()?;
-            let result = color_rs.color_match(args)?;
+            let result = color_rs.color_match(&args)?;
             println!("{result}");
         }
     }
