@@ -38,9 +38,9 @@ use palette::{IntoColor, Lab, Lch, Srgb};
 /// Helper function to convert RGB tuple to LAB using functional palette approach
 fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
     let srgb = Srgb::new(
-        rgb.0 as f32 / 255.0,
-        rgb.1 as f32 / 255.0,
-        rgb.2 as f32 / 255.0,
+        f32::from(rgb.0) / 255.0,
+        f32::from(rgb.1) / 255.0,
+        f32::from(rgb.2) / 255.0,
     );
     srgb.into_color()
 }
@@ -86,7 +86,7 @@ impl ColorParser {
         let input = input.trim();
 
         // Try LCH parsing first for direct LAB conversion (avoids RGB roundtrip)
-        if let Ok(lab) = self.parse_lch_color(input) {
+        if let Ok(lab) = Self::parse_lch_color(input) {
             return Ok((lab, ColorFormat::Lch));
         }
 
@@ -125,7 +125,7 @@ impl ColorParser {
         }
 
         // Try LAB color parsing (lab(L, a, b))
-        if let Ok(lab) = self.parse_lab_color(input) {
+        if let Ok(lab) = Self::parse_lab_color(input) {
             return Ok((lab, ColorFormat::Lab));
         }
 
@@ -141,7 +141,7 @@ impl ColorParser {
     }
 
     /// Parse LAB color in the format lab(L, a, b)
-    fn parse_lab_color(&self, input: &str) -> Result<Lab> {
+    fn parse_lab_color(input: &str) -> Result<Lab> {
         let input = input.trim().to_lowercase();
 
         if input.starts_with("lab(") && input.ends_with(')') {
@@ -172,7 +172,7 @@ impl ColorParser {
     }
 
     /// Parse LCH color in the format lch(L, C, H) - direct to LAB conversion
-    fn parse_lch_color(&self, input: &str) -> Result<Lab> {
+    fn parse_lch_color(input: &str) -> Result<Lab> {
         let input = input.trim().to_lowercase();
 
         if input.starts_with("lch(") && input.ends_with(')') {

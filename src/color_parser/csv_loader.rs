@@ -21,6 +21,10 @@ pub struct CsvLoader;
 impl CsvLoader {
     /// Load color data from CSV file
     /// Expected format: Code;Name;Hex (semicolon-separated)
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be opened, read, or if the CSV format is invalid.
     pub fn load_colors_from_csv<P: AsRef<Path>>(file_path: P) -> Result<Vec<CsvColorEntry>> {
         let file = File::open(&file_path).with_context(|| {
             format!("Failed to open CSV file: {}", file_path.as_ref().display())

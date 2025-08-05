@@ -8,15 +8,14 @@ use tiny_skia::{Pixmap, Transform};
 use usvg::{Options, Tree, fontdb};
 
 use crate::cli::GradientArgs;
+use crate::config::{math_constants, display_constants, algorithm_constants};
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
-use crate::{
-    config::{display_constants, algorithm_constants},
-};
 
-/// Helper function to convert LAB to hex string using palette library approach
-fn lab_to_hex(lab: Lab) -> String {
-    use crate::config::math_constants;
+/// Convert LAB color to hex string for image generation
+/// RGB values are clamped to [0,255] range before casting to u8 for safety
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+pub fn lab_to_hex(lab: Lab) -> String {
     
     let srgb: Srgb = lab.into_color();
     format!(

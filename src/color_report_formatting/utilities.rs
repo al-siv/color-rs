@@ -11,6 +11,7 @@ use palette::Lab;
 use super::core::{lab_to_hex, lab_to_hsl_tuple, lab_to_rgb, rgb_to_lab, rgb_to_srgb};
 
 /// Collect enhanced color schemes data for new flattened file output
+#[must_use]
 pub fn collect_enhanced_color_schemes_data(
     schemes: &ColorSchemeResult,
     strategy: &str,

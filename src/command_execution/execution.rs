@@ -14,7 +14,18 @@ use super::commands::{
 /// # Errors
 /// Returns error if command execution or hooks fail
 pub fn execute_command(context: &ExecutionContext) -> Result<ExecutionResult> {
-    let start_time = std::time::Instant::now();
+    execute_command_with_clock(context, &crate::clock::SystemClock)
+}
+
+/// Command execution with explicit clock dependency injection
+/// This enables testable time handling following functional programming principles
+/// # Errors  
+/// Returns error if command execution or hooks fail
+pub fn execute_command_with_clock(
+    context: &ExecutionContext, 
+    clock: &dyn crate::clock::Clock
+) -> Result<ExecutionResult> {
+    let start_time = clock.instant_now();
 
     // Apply pre-execution hooks
     for hook in &context.pre_hooks {
@@ -47,8 +58,9 @@ pub fn execute_command(context: &ExecutionContext) -> Result<ExecutionResult> {
         result = apply_post_hook(hook, result);
     }
 
-    // Update execution time
-    let execution_time = start_time.elapsed().as_millis();
+    // Update execution time using explicit clock
+    let current_time = clock.instant_now();
+    let execution_time = current_time.duration_since(start_time).as_millis();
     result = result.with_execution_time(execution_time);
 
     Ok(result)

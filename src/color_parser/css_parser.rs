@@ -26,6 +26,11 @@ impl CssColorParser {
     }
 
     /// Parse a CSS color string
+    ///
+    /// # Errors
+    ///
+    /// Returns `ColorError::InvalidColor` if the input string is empty,
+    /// malformed, or contains unsupported CSS color syntax.
     pub fn parse(&self, input: &str) -> Result<ParsedColor> {
         let input = input.trim();
         if input.is_empty() {
@@ -128,7 +133,7 @@ impl CssColorParser {
                         "HSL requires 3 parameters".to_string(),
                     ));
                 }
-                let (r, g, b) = self.parse_hsl_params(&params)?;
+                let (r, g, b) = Self::parse_hsl_params(&params)?;
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Hsl))
             }
             "hsla" => {
@@ -137,7 +142,7 @@ impl CssColorParser {
                         "HSLA requires 4 parameters".to_string(),
                     ));
                 }
-                let (r, g, b) = self.parse_hsl_params(&params[..3])?;
+                let (r, g, b) = Self::parse_hsl_params(&params[..3])?;
                 let a = ParseUtils::parse_alpha(params[3])?;
                 Ok(ParsedColor::new(r, g, b, a, ColorFormat::Hsla))
             }
@@ -147,7 +152,7 @@ impl CssColorParser {
                         "LCH requires 3 parameters".to_string(),
                     ));
                 }
-                let (r, g, b) = self.parse_lch_params(&params)?;
+                let (r, g, b) = Self::parse_lch_params(&params)?;
                 Ok(ParsedColor::from_rgb(r, g, b, ColorFormat::Lch))
             }
             _ => Err(ColorError::InvalidColor(format!(
@@ -172,7 +177,7 @@ impl CssColorParser {
     }
 
     /// Parse HSL parameters and convert to RGB
-    fn parse_hsl_params(&self, params: &[&str]) -> Result<(u8, u8, u8)> {
+    fn parse_hsl_params(params: &[&str]) -> Result<(u8, u8, u8)> {
         if params.len() != 3 {
             return Err(ColorError::InvalidColor(
                 "Expected 3 HSL parameters".to_string(),
@@ -191,6 +196,7 @@ impl CssColorParser {
 
         // Convert HSL to RGB using palette's functional approach
         let srgb: Srgb = hsl.into_color();
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
         let (red, green, blue) = (
             (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
             (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
@@ -200,7 +206,7 @@ impl CssColorParser {
     }
 
     /// Parse LCH parameters and convert to RGB
-    fn parse_lch_params(&self, params: &[&str]) -> Result<(u8, u8, u8)> {
+    fn parse_lch_params(params: &[&str]) -> Result<(u8, u8, u8)> {
         if params.len() != 3 {
             return Err(ColorError::InvalidColor(
                 "Expected 3 LCH parameters".to_string(),
@@ -228,6 +234,7 @@ impl CssColorParser {
 
         // Convert LAB to RGB using palette's functional approach
         let srgb: Srgb = lab.into_color();
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
         let (red, green, blue) = (
             (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
             (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,

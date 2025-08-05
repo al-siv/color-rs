@@ -11,15 +11,16 @@ use std::collections::HashMap;
 /// Convert RGB array to LAB array using functional palette approach
 fn rgb_array_to_lab(rgb: [u8; 3]) -> [f32; 3] {
     let srgb = Srgb::new(
-        rgb[0] as f32 / 255.0,
-        rgb[1] as f32 / 255.0,
-        rgb[2] as f32 / 255.0,
+        f32::from(rgb[0]) / 255.0,
+        f32::from(rgb[1]) / 255.0,
+        f32::from(rgb[2]) / 255.0,
     );
     let lab: Lab = srgb.into_color();
     [lab.l, lab.a, lab.b]
 }
 
 /// Convert LAB array to RGB array using functional palette approach
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
 fn lab_array_to_rgb(lab: [f32; 3]) -> [u8; 3] {
     let lab_color = Lab::new(lab[0], lab[1], lab[2]);
     let srgb: Srgb = lab_color.into_color();
@@ -81,12 +82,13 @@ impl UniversalColor {
     }
 
     /// Get WCAG relative luminance (cached)
+    #[must_use]
     pub fn luminance(&mut self) -> f64 {
         if self.luminance.is_none() {
             let srgb = Srgb::new(
-                self.rgb[0] as f32 / 255.0,
-                self.rgb[1] as f32 / 255.0,
-                self.rgb[2] as f32 / 255.0,
+                f32::from(self.rgb[0]) / 255.0,
+                f32::from(self.rgb[1]) / 255.0,
+                f32::from(self.rgb[2]) / 255.0,
             );
             self.luminance = Some(crate::color_ops::luminance::wcag_relative(srgb));
         }
@@ -375,7 +377,7 @@ impl Default for ColorCollectionManager {
 impl ColorCollectionManager {
     /// Create a new collection manager
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             collections: Vec::new(),
         }

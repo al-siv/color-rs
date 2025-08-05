@@ -59,7 +59,9 @@ pub fn create_palette(
     let segments = key_colors.len() - 1;
     
     for i in 0..steps {
+        #[allow(clippy::cast_possible_truncation)] // Safe: steps is reasonable size, position calculations are intentional
         let position = i as f32 / (steps - 1) as f32;
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: position is [0,1], floor result is non-negative
         let segment_index = (position * segments as f32).floor() as usize;
         let segment_index = segment_index.min(segments - 1);
         
@@ -121,6 +123,7 @@ pub fn weighted_mix(
 }
 
 /// Alias for `lab_interpolation` - recommended mixing method
+#[must_use]
 pub fn mix(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
     lab_interpolation(color1, color2, factor)
 }

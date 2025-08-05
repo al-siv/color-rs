@@ -438,13 +438,15 @@ impl ProgramMetadata {
     /// Panics if the system clock has gone backwards relative to UNIX_EPOCH.
     /// This is extremely rare and indicates a system clock issue.
     pub fn new(distance_strategy: Option<&str>) -> Self {
-        use std::time::{SystemTime, UNIX_EPOCH};
-
+        Self::with_clock(&crate::clock::SystemClock, distance_strategy)
+    }
+    
+    #[must_use]
+    /// Create new execution metadata with explicit clock dependency injection
+    /// This enables testable time handling following functional programming principles
+    pub fn with_clock(clock: &dyn crate::clock::Clock, distance_strategy: Option<&str>) -> Self {
         // Get current timestamp in RFC3339 format without chrono
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+        let now = clock.timestamp_secs();
 
         // Simple RFC3339-like timestamp (YYYY-MM-DDTHH:MM:SSZ)
         // For cross-compilation purposes, use a simplified version

@@ -27,6 +27,7 @@ use palette::{Lab, Lch, Mix, Srgb, IntoColor};
 /// let blue = Srgb::new(0.0, 0.0, 1.0);
 /// let purple = interpolation::linear_rgb(red, blue, 0.5);
 /// ```
+#[must_use]
 pub fn linear_rgb(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
     color1.mix(color2, factor)
 }
@@ -53,6 +54,7 @@ pub fn linear_rgb(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
 /// let blue = Srgb::new(0.0, 0.0, 1.0);
 /// let mixed = interpolation::lab_interpolation(yellow, blue, 0.3);
 /// ```
+#[must_use]
 pub fn lab_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
     let lab1: Lab = color1.into_color();
     let lab2: Lab = color2.into_color();
@@ -82,6 +84,7 @@ pub fn lab_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
 /// let green = Srgb::new(0.0, 1.0, 0.0);
 /// let mixed = interpolation::lch_interpolation(red, green, 0.5);
 /// ```
+#[must_use]
 pub fn lch_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
     let lch1: Lch = color1.into_color();
     let lch2: Lch = color2.into_color();

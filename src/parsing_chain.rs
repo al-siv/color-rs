@@ -122,7 +122,7 @@ impl ColorParser {
 
         // Extract the values between parentheses
         let values_str = &trimmed[4..trimmed.len() - 1];
-        let parts: Vec<&str> = values_str.split(',').map(|s| s.trim()).collect();
+        let parts: Vec<&str> = values_str.split(',').map(str::trim).collect();
 
         if parts.len() != 3 {
             return Ok(None);
@@ -250,7 +250,7 @@ impl ColorParsingChain {
 
     /// Creates a custom parsing chain with specified parsers
     #[must_use]
-    pub fn with_parsers(parsers: Vec<ColorParser>) -> Self {
+    pub const fn with_parsers(parsers: Vec<ColorParser>) -> Self {
         Self { parsers }
     }
 
@@ -275,7 +275,7 @@ impl ColorParsingChain {
     /// Get the names of all parsers in this chain
     #[must_use]
     pub fn parser_names(&self) -> Vec<&'static str> {
-        self.parsers.iter().map(|p| p.name()).collect()
+        self.parsers.iter().map(ColorParser::name).collect()
     }
 }
 

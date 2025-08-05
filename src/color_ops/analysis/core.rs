@@ -189,6 +189,7 @@ fn analyze_accessibility(color: Srgb) -> AccessibilityData {
 }
 
 /// Get text color recommendations for a background color
+#[allow(clippy::similar_names)] // AA and AAA are standard WCAG levels
 fn get_text_recommendations(background: Srgb) -> TextRecommendations {
     let (high_contrast, high_contrast_ratio) = find_best_contrast_color(background);
     let aa_compliant_colors = generate_compliant_colors(background, 4.5);

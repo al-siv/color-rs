@@ -28,6 +28,7 @@ use palette::{Lab, Srgb, IntoColor};
 /// let distance = distance::delta_e_cie76(red, blue);
 /// assert!(distance > 100.0); // Very different colors
 /// ```
+#[must_use]
 pub fn delta_e_cie76(color1: Srgb, color2: Srgb) -> f64 {
     let lab1: Lab = color1.into_color();
     let lab2: Lab = color2.into_color();

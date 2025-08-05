@@ -5,6 +5,7 @@
 //! including console tables, SVG, and PNG.
 
 pub mod cli;
+pub mod clock;
 pub mod color;
 pub mod color_distance_strategies;
 pub mod color_formatter;
@@ -17,7 +18,7 @@ pub mod color_parser;
 // Factory Pattern Migration (Milestone 1.3) - Modern Alternative
 pub mod color_parsing;
 pub mod color_schemes;
-// Builder Pattern Migration (Milestone 2.3) - Modern Alternative
+// Scheme Configuration - Functional builder patterns for color schemes
 pub mod scheme_config;
 // Backward Compatibility Layer (Milestone 3.1)
 pub mod compat;
@@ -26,15 +27,17 @@ pub mod error;
 pub mod file_output;
 pub mod format_utils;
 pub mod gradient;
-// Builder Pattern Optimization (Milestone 2.1) - Modern Alternative
+// Gradient Configuration - Functional gradient building patterns
 pub mod gradient_config;
 pub mod image;
 pub mod output_formats;
+// Performance validation for Milestone 7.2
+pub mod performance_validation;
 pub mod precision_utils;
 pub mod utils;
 
-// New GoF Pattern Implementations
-// Command Pattern Migration (Milestone 1.4) - Modern Alternative
+// Functional Programming Modules
+// Command Execution - Functional command processing patterns
 pub mod command_execution;
 pub mod parsing_chain;
 
@@ -57,14 +60,14 @@ pub use color_distance_strategies::{
     // Legacy compatibility
     array_to_validated_lab, validated_lab_to_array,
 };
-// Template Method Pattern Migration (Milestone 1.2) - Modern Alternative
+// Color Matching - Functional pattern matching across collections
 pub use color_matching::{
     CollectionType, MatchingConfig, 
     match_color, match_color_by_type, match_across_all_collections,
     validate_lab_basic, validate_ral_classic, validate_ral_design,
     post_process_ral_design, extract_hue_from_code
 };
-// Facade Pattern Migration (Milestone 2.2) - Modern Alternative
+// Color Operations - Comprehensive functional color operations
 pub use color_ops::{
     // Core functions
     wcag_relative, perceived_brightness, relative_luminance,
@@ -99,14 +102,14 @@ pub use color_schemes::{
     adjust_color_relative_luminance, adjust_color_lab_luminance,
     preserve_wcag_relative_luminance, preserve_lab_luminance,
 };
-// Builder Pattern Migration (Milestone 2.3) - Modern Alternative
+// Scheme Configuration - Functional builder pattern for color schemes
 pub use scheme_config::{
     ColorSchemeConfig, ConfigError, ColorSchemeCalculator as ModernColorSchemeCalculator,
     LuminanceConfig, calculate_color_schemes, 
     standard, with_relative_luminance_preservation, with_lab_luminance_preservation,
     with_target_relative_luminance, with_target_lab_luminance, complex_config
 };
-// Command Pattern Migration (Milestone 1.4) - Modern Alternative
+// Command Execution - Functional command processing and validation
 pub use command_execution::{
     CommandType, ExecutionContext, ExecutionResult,
     PreHookStep, PostHookStep,
@@ -117,7 +120,7 @@ pub use command_execution::{
 };
 pub use error::{ColorError, Result};
 pub use gradient::{GradientCalculator, GradientValue};
-// Builder Pattern Optimization (Milestone 2.1) - Modern Alternative
+// Gradient Configuration - Functional gradient configuration builders
 pub use gradient_config::{
     GradientConfig, ColorPair, EasingConfig, PositionRange, ImageOutput, StopConfig, FileOutput,
     GradientValidationError, linear_gradient, smooth_gradient, positioned_gradient

@@ -296,12 +296,13 @@ impl GradientConfig {
     }
 
     /// Get stop configuration
-    pub fn stop_config(&self) -> &StopConfig {
+    pub const fn stop_config(&self) -> &StopConfig {
         &self.stop_config
     }
 
     /// Get file output configuration
-    pub fn file_output(&self) -> Option<&FileOutput> {
+    #[must_use]
+    pub const fn file_output(&self) -> Option<&FileOutput> {
         self.file_output.as_ref()
     }
 }

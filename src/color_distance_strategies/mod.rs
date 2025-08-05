@@ -97,8 +97,15 @@ pub mod prelude {
 
 // Legacy compatibility layer - these functions maintain the old API
 
-/// Trait for types that can be converted to ValidatedLab for distance calculation
+/// Trait for types that can be converted to `ValidatedLab` for distance calculation
 pub trait IntoValidatedLab {
+        /// Convert validated lab to distance algorithm trait object
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ValidationError` if the LAB values cannot be converted to ValidatedLab:
+    /// - Invalid LAB color values (L not in [0,100], A/B not in [-128,127])
+    /// - Values outside valid color space ranges
     fn into_validated_lab(self) -> Result<ValidatedLab, ValidationError>;
 }
 
@@ -120,7 +127,7 @@ impl IntoValidatedLab for ValidatedLab {
     }
 }
 
-/// Legacy function: Main calculate_distance for backward compatibility
+/// Legacy function: Main `calculate_distance` for backward compatibility
 ///
 /// This function works with both [f32; 3] arrays and Lab objects.
 /// New code should use the enum dispatch methods directly.
@@ -137,9 +144,9 @@ where
 }
 
 impl DistanceAlgorithm {
-    /// Legacy method: from_str_or_default for backward compatibility
+    /// Legacy method: `from_str_or_default` for backward compatibility
     ///
-    /// Returns DeltaE2000 as default if parsing fails
+    /// Returns `DeltaE2000` as default if parsing fails
     #[must_use]
     pub fn from_str_or_default(s: &str) -> Self {
         s.parse().unwrap_or(Self::DeltaE2000)
@@ -174,25 +181,38 @@ pub fn calculate_euclidean_distance_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f6
 }
 
 /// Legacy function: Parse algorithm from string
+/// 
+/// # Errors
+/// 
+/// Returns error string if the algorithm name is not recognized:
+/// - Invalid algorithm name (not one of: delta_e_76, delta_e_2000, euclidean_lab, lch)
+/// - Case-sensitive matching required
 ///
-/// Maintained for backward compatibility. New code should use FromStr trait.
+/// Maintained for backward compatibility. New code should use `FromStr` trait.
 #[deprecated(since = "0.16.0", note = "Use DistanceAlgorithm::from_str() or parse() instead")]
 pub fn parse_algorithm_legacy(name: &str) -> Result<DistanceAlgorithm, String> {
     name.parse().map_err(|e: ValidationError| e.to_string())
 }
 
-/// Migration helper: Convert old array format to ValidatedLab
+/// Migration helper: Convert old array format to `ValidatedLab`
 ///
-/// Utility function to help migrate from old [f32; 3] format to ValidatedLab
+/// # Errors
+/// 
+/// Returns `ValidationError` if LAB values are invalid:
+/// - L value not in [0,100] range
+/// - A or B values not in [-128,127] range
+/// - Values outside valid color space ranges
+///
+/// Utility function to help migrate from old [f32; 3] format to `ValidatedLab`
 pub fn array_to_validated_lab(lab: [f32; 3]) -> Result<ValidatedLab, ValidationError> {
     ValidatedLab::new(lab[0], lab[1], lab[2])
 }
 
-/// Migration helper: Convert ValidatedLab to old array format
+/// Migration helper: Convert `ValidatedLab` to old array format
 ///
 /// Utility function for interfacing with code that still uses [f32; 3] format
 #[must_use]
-pub fn validated_lab_to_array(lab: ValidatedLab) -> [f32; 3] {
+pub const fn validated_lab_to_array(lab: ValidatedLab) -> [f32; 3] {
     lab.to_array()
 }
 

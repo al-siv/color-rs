@@ -3,11 +3,9 @@
 //! This module provides gradient calculation functionality split into focused submodules:
 //! - `algorithms`: Core calculation algorithms (intelligent stops, equal spacing, bezier)
 //! - `core`: Main calculator structures and unified gradient generation
-//! - `templates`: Legacy template patterns (deprecated, for backward compatibility)
 
 pub mod algorithms;
 pub mod core;
-pub mod templates;
 
 // Re-export main functionality for clean API
 pub use algorithms::{
@@ -21,15 +19,6 @@ pub use core::{
     CalculationAlgorithm,
     GradientValue,
     UnifiedGradientStop,
-};
-
-// Legacy re-exports for backward compatibility (deprecated)
-#[allow(deprecated)]
-pub use templates::{
-    GradientCalculationTemplate,
-    LegacyIntelligentStopCalculator,
-    LegacyEqualSpacingCalculator,
-    LegacyGradientCalculator,
 };
 
 #[cfg(test)]
@@ -128,18 +117,5 @@ mod integration_tests {
         // Linear easing should return input
         let linear_result = cubic_bezier_ease(0.3, 0.0, 1.0);
         assert!((linear_result - 0.3).abs() < 0.001);
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn test_legacy_compatibility() {
-        // Test that legacy interfaces still work for backward compatibility
-        let legacy_calc = LegacyGradientCalculator::with_equal_spacing();
-        let legacy_stops = legacy_calc.calculate_stops(3);
-        
-        let new_calc = GradientCalculator::with_equal_spacing();
-        let new_stops = new_calc.calculate_stops(3);
-        
-        assert_eq!(legacy_stops, new_stops);
     }
 }

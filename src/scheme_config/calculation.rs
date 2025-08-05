@@ -102,13 +102,13 @@ pub fn apply_luminance_matching_pair(
     config: LuminanceConfig,
 ) -> Result<Option<(Lab, Lab)>> {
     if config.preserve_relative_luminance {
-        let color1 = preserve_wcag_relative_luminance(colors.0, base_color)?;
-        let color2 = preserve_wcag_relative_luminance(colors.1, base_color)?;
-        Ok(Some((color1, color2)))
+        let first_color = preserve_wcag_relative_luminance(colors.0, base_color)?;
+        let second_color = preserve_wcag_relative_luminance(colors.1, base_color)?;
+        Ok(Some((first_color, second_color)))
     } else if config.preserve_lab_luminance {
-        let color1 = preserve_lab_luminance(colors.0, base_color)?;
-        let color2 = preserve_lab_luminance(colors.1, base_color)?;
-        Ok(Some((color1, color2)))
+        let first_color = preserve_lab_luminance(colors.0, base_color)?;
+        let second_color = preserve_lab_luminance(colors.1, base_color)?;
+        Ok(Some((first_color, second_color)))
     } else {
         Ok(None)
     }
@@ -121,15 +121,15 @@ pub fn apply_luminance_matching_triple(
     config: LuminanceConfig,
 ) -> Result<Option<(Lab, Lab, Lab)>> {
     if config.preserve_relative_luminance {
-        let color1 = preserve_wcag_relative_luminance(colors.0, base_color)?;
-        let color2 = preserve_wcag_relative_luminance(colors.1, base_color)?;
-        let color3 = preserve_wcag_relative_luminance(colors.2, base_color)?;
-        Ok(Some((color1, color2, color3)))
+        let first_color = preserve_wcag_relative_luminance(colors.0, base_color)?;
+        let second_color = preserve_wcag_relative_luminance(colors.1, base_color)?;
+        let third_color = preserve_wcag_relative_luminance(colors.2, base_color)?;
+        Ok(Some((first_color, second_color, third_color)))
     } else if config.preserve_lab_luminance {
-        let color1 = preserve_lab_luminance(colors.0, base_color)?;
-        let color2 = preserve_lab_luminance(colors.1, base_color)?;
-        let color3 = preserve_lab_luminance(colors.2, base_color)?;
-        Ok(Some((color1, color2, color3)))
+        let first_color = preserve_lab_luminance(colors.0, base_color)?;
+        let second_color = preserve_lab_luminance(colors.1, base_color)?;
+        let third_color = preserve_lab_luminance(colors.2, base_color)?;
+        Ok(Some((first_color, second_color, third_color)))
     } else {
         Ok(None)
     }

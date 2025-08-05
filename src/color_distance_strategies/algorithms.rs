@@ -148,11 +148,11 @@ impl std::fmt::Display for DistanceAlgorithm {
 /// Formula: √((ΔL)² + (Δa)² + (Δb)²)
 #[must_use]
 fn calculate_delta_e_76(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
-    let dl = (lab1.l() - lab2.l()) as f64;
-    let da = (lab1.a() - lab2.a()) as f64;
-    let db = (lab1.b() - lab2.b()) as f64;
+    let dl = f64::from(lab1.l() - lab2.l());
+    let da = f64::from(lab1.a() - lab2.a());
+    let db = f64::from(lab1.b() - lab2.b());
     
-    (dl * dl + da * da + db * db).sqrt()
+    (dl.mul_add(dl, da.mul_add(da, db * db))).sqrt()
 }
 
 /// Delta E 2000 (CIEDE2000) distance calculation
@@ -163,12 +163,12 @@ fn calculate_delta_e_76(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
 /// This is a simplified implementation focusing on correctness.
 #[must_use]
 fn calculate_delta_e_2000(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
-    let l1 = lab1.l() as f64;
-    let a1 = lab1.a() as f64;
-    let b1 = lab1.b() as f64;
-    let l2 = lab2.l() as f64;
-    let a2 = lab2.a() as f64;
-    let b2 = lab2.b() as f64;
+    let l1 = f64::from(lab1.l());
+    let a1 = f64::from(lab1.a());
+    let b1 = f64::from(lab1.b());
+    let l2 = f64::from(lab2.l());
+    let a2 = f64::from(lab2.a());
+    let b2 = f64::from(lab2.b());
 
     // Calculate intermediate values
     let dl = l2 - l1;
@@ -176,26 +176,27 @@ fn calculate_delta_e_2000(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     let db = b2 - b1;
 
     // Calculate C (chroma) values
-    let c1 = (a1 * a1 + b1 * b1).sqrt();
-    let c2 = (a2 * a2 + b2 * b2).sqrt();
+    let c1 = a1.hypot(b1);
+    let c2 = a2.hypot(b2);
     let dc = c2 - c1;
 
     // Calculate H (hue) values  
-    let dh_squared = da * da + db * db - dc * dc;
+        // Calculate dh-squared for the color difference formula using optimized mul_add
+    let dh_squared = dc.mul_add(-dc, da.mul_add(da, db * db));
     let dh = if dh_squared > 0.0 { dh_squared.sqrt() } else { 0.0 };
 
     // Weighting functions (simplified - full CIEDE2000 has more complex weighting)
-    let l_avg = (l1 + l2) / 2.0;
-    let c_avg = (c1 + c2) / 2.0;
+    let l_avg = f64::midpoint(l1, l2);
+    let c_avg = f64::midpoint(c1, c2);
 
-    // Lightness weighting
-    let sl = 1.0 + (algorithm_constants::DELTA_E_LIGHTNESS_FACTOR * (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2)) / (algorithm_constants::DELTA_E_LIGHTNESS_DENOMINATOR_OFFSET + (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2)).sqrt();
+    // Lightness weighting with optimized mul_add
+    let sl = 1.0 + (algorithm_constants::DELTA_E_LIGHTNESS_FACTOR * (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2)) / (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).mul_add(l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET, algorithm_constants::DELTA_E_LIGHTNESS_DENOMINATOR_OFFSET).sqrt();
     
     // Chroma weighting  
-    let sc = 1.0 + algorithm_constants::DELTA_E_CHROMA_FACTOR * c_avg;
+    let sc = algorithm_constants::DELTA_E_CHROMA_FACTOR.mul_add(c_avg, 1.0);
     
     // Hue weighting
-    let sh = 1.0 + algorithm_constants::DELTA_E_HUE_FACTOR * c_avg;
+    let sh = algorithm_constants::DELTA_E_HUE_FACTOR.mul_add(c_avg, 1.0);
 
     // Parametric factors (standard values)
     let kl = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR;
@@ -207,7 +208,7 @@ fn calculate_delta_e_2000(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     let delta_c = dc / (kc * sc);
     let delta_h = dh / (kh * sh);
 
-    (delta_l * delta_l + delta_c * delta_c + delta_h * delta_h).sqrt()
+    (delta_l.mul_add(delta_l, delta_c.mul_add(delta_c, delta_h * delta_h))).sqrt()
 }
 
 /// Euclidean distance in LAB space
@@ -226,18 +227,18 @@ fn calculate_euclidean_lab(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
 /// Separates lightness from chroma and provides better perceptual uniformity.
 #[must_use]
 fn calculate_lch_distance(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
-    let l1 = lab1.l() as f64;
-    let a1 = lab1.a() as f64;
-    let b1 = lab1.b() as f64;
-    let l2 = lab2.l() as f64;
-    let a2 = lab2.a() as f64;
-    let b2 = lab2.b() as f64;
+    let l1 = f64::from(lab1.l());
+    let a1 = f64::from(lab1.a());
+    let b1 = f64::from(lab1.b());
+    let l2 = f64::from(lab2.l());
+    let a2 = f64::from(lab2.a());
+    let b2 = f64::from(lab2.b());
 
     // Convert LAB to LCH (Lightness, Chroma, Hue)
-    let c1 = (a1 * a1 + b1 * b1).sqrt();
+    let c1 = a1.hypot(b1);
     let h1 = b1.atan2(a1);
     
-    let c2 = (a2 * a2 + b2 * b2).sqrt();
+    let c2 = a2.hypot(b2);
     let h2 = b2.atan2(a2);
 
     // Calculate differences
@@ -255,8 +256,8 @@ fn calculate_lch_distance(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     // Hue difference in chroma units
     let dh_chroma = 2.0 * (c1 * c2).sqrt() * (dh / 2.0).sin();
 
-    // LCH distance calculation
-    (dl * dl + dc * dc + dh_chroma * dh_chroma).sqrt()
+    // LCH distance calculation with optimized mul_add
+    dh_chroma.mul_add(dh_chroma, dl.mul_add(dl, dc * dc)).sqrt()
 }
 
 /// Functional composition helpers for algorithm chaining and filtering
@@ -280,7 +281,7 @@ pub fn filter_perceptual_algorithms() -> Vec<DistanceAlgorithm> {
 
 /// Get recommended algorithm based on requirements
 #[must_use]
-pub fn recommend_algorithm(require_fast: bool, require_perceptual: bool) -> Option<DistanceAlgorithm> {
+pub const fn recommend_algorithm(require_fast: bool, require_perceptual: bool) -> Option<DistanceAlgorithm> {
     match (require_fast, require_perceptual) {
         (true, true) => None, // No algorithm is both fast AND highly perceptual
         (true, false) => Some(DistanceAlgorithm::DeltaE76), // Fast and adequate

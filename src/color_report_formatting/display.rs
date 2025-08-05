@@ -14,6 +14,7 @@ pub fn display_terminal_output(formatted_output: &str, format: &OutputFormat) {
 }
 
 /// Colorize a single line of TOML/YAML output
+#[must_use]
 pub fn colorize_structured_line(line: &str, format: &OutputFormat) -> String {
     let trimmed = line.trim_start();
     let indent = &line[..line.len() - trimmed.len()];

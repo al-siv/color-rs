@@ -20,7 +20,7 @@ pub struct ColorSchemeBuilder {
 
 impl ColorSchemeBuilder {
     /// Create a new builder with default settings
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             preserve_relative_luminance: false,
             preserve_lab_luminance: false,
@@ -98,7 +98,7 @@ impl ColorSchemeCalculator {
         let lab_strategy = LabColorSchemeStrategy;
 
         // Calculate basic schemes using both strategies
-        let basic_schemes = self.calculate_basic_schemes(base_color, &hsl_strategy, &lab_strategy);
+        let basic_schemes = Self::calculate_basic_schemes(base_color, &hsl_strategy, &lab_strategy);
         
         // Calculate luminance-matched variations if requested
         let luminance_matched = self.calculate_luminance_matched_schemes(base_color, &basic_schemes)?;
@@ -137,7 +137,6 @@ impl ColorSchemeCalculator {
 
     /// Calculate basic color schemes using both strategies
     fn calculate_basic_schemes(
-        &self,
         base_color: Lab,
         hsl_strategy: &HslColorSchemeStrategy,
         lab_strategy: &LabColorSchemeStrategy,

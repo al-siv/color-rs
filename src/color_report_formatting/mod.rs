@@ -61,7 +61,7 @@ pub use utilities::{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use palette::{Lab, Srgb};
+    use palette::Lab;
 
     #[test]
     fn test_color_conversions() {
@@ -79,7 +79,7 @@ mod tests {
         assert!(rgb.2 < 50);  // Low blue
         
         // Test round-trip conversion
-        let srgb = rgb_to_srgb(rgb);
+        let _srgb = rgb_to_srgb(rgb);
         let lab_back = rgb_to_lab(rgb);
         
         // Should be approximately the same (within tolerance for conversion)

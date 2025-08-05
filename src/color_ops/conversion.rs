@@ -280,6 +280,7 @@ pub fn rgb_tuple_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
 /// let rgb = conversion::srgb_to_rgb_tuple(srgb);
 /// assert_eq!(rgb, (255, 127, 0));
 /// ```
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
 pub fn srgb_to_rgb_tuple(srgb: Srgb) -> (u8, u8, u8) {
     (
         (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
@@ -316,24 +317,24 @@ pub fn hex_to_srgb(hex: &str) -> Result<Srgb, String> {
         3 => {
             // #RGB format
             let r = u8::from_str_radix(&hex[0..1].repeat(2), 16)
-                .map_err(|_| format!("Invalid hex color: #{}", hex))?;
+                .map_err(|_| format!("Invalid hex color: #{hex}"))?;
             let g = u8::from_str_radix(&hex[1..2].repeat(2), 16)
-                .map_err(|_| format!("Invalid hex color: #{}", hex))?;
+                .map_err(|_| format!("Invalid hex color: #{hex}"))?;
             let b = u8::from_str_radix(&hex[2..3].repeat(2), 16)
-                .map_err(|_| format!("Invalid hex color: #{}", hex))?;
+                .map_err(|_| format!("Invalid hex color: #{hex}"))?;
             Ok(rgb_tuple_to_srgb((r, g, b)))
         }
         6 => {
             // #RRGGBB format
             let r = u8::from_str_radix(&hex[0..2], 16)
-                .map_err(|_| format!("Invalid hex color: #{}", hex))?;
+                .map_err(|_| format!("Invalid hex color: #{hex}"))?;
             let g = u8::from_str_radix(&hex[2..4], 16)
-                .map_err(|_| format!("Invalid hex color: #{}", hex))?;
+                .map_err(|_| format!("Invalid hex color: #{hex}"))?;
             let b = u8::from_str_radix(&hex[4..6], 16)
-                .map_err(|_| format!("Invalid hex color: #{}", hex))?;
+                .map_err(|_| format!("Invalid hex color: #{hex}"))?;
             Ok(rgb_tuple_to_srgb((r, g, b)))
         }
-        _ => Err(format!("Invalid hex color length: #{}", hex)),
+        _ => Err(format!("Invalid hex color length: #{hex}")),
     }
 }
 

@@ -24,6 +24,7 @@ use palette::{Srgb, Lab, IntoColor};
 /// let luminance = luminance::wcag_relative(red);
 /// assert!(luminance > 0.2 && luminance < 0.3);
 /// ```
+#[must_use]
 pub fn wcag_relative(srgb: Srgb) -> f64 {
     // WCAG 2.1 relative luminance formula
     let r = srgb_gamma_correct(srgb.red as f64);
@@ -59,11 +60,12 @@ fn srgb_gamma_correct(value: f64) -> f64 {
 /// let luminance = luminance::from_rgb((255, 0, 0)); // Red
 /// assert!(luminance > 0.2 && luminance < 0.3);
 /// ```
+#[must_use]
 pub fn from_rgb(rgb: (u8, u8, u8)) -> f64 {
     let srgb = Srgb::new(
-        rgb.0 as f32 / 255.0,
-        rgb.1 as f32 / 255.0,
-        rgb.2 as f32 / 255.0
+        f32::from(rgb.0) / 255.0,
+        f32::from(rgb.1) / 255.0,
+        f32::from(rgb.2) / 255.0
     );
     wcag_relative(srgb)
 }

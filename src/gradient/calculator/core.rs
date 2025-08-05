@@ -240,7 +240,7 @@ impl GradientCalculator {
                 if i == 0 {
                     // First stop: use start color
                     let start_srgb: Srgb = start_lab.into_color();
-                    let start_rgb = (
+                    let start_color_rgb = (
                         (start_srgb.red * 255.0).round() as u8,
                         (start_srgb.green * 255.0).round() as u8,
                         (start_srgb.blue * 255.0).round() as u8,
@@ -250,12 +250,12 @@ impl GradientCalculator {
                         geometric_t: 0.0,
                         bezier_t: 0.0,
                         lab_color: start_lab,
-                        rgb_color: start_rgb,
+                        rgb_color: start_color_rgb,
                     });
                 } else if i == steps - 1 {
                     // Last stop: use end color
                     let end_srgb: Srgb = end_lab.into_color();
-                    let end_rgb = (
+                    let end_color_rgb = (
                         (end_srgb.red * 255.0).round() as u8,
                         (end_srgb.green * 255.0).round() as u8,
                         (end_srgb.blue * 255.0).round() as u8,
@@ -265,7 +265,7 @@ impl GradientCalculator {
                         geometric_t: 1.0,
                         bezier_t: 1.0,
                         lab_color: end_lab,
-                        rgb_color: end_rgb,
+                        rgb_color: end_color_rgb,
                     });
                 } else {
                     // Middle stops: find geometric position that produces target Delta E distance

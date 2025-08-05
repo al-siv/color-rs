@@ -10,25 +10,36 @@ use palette::Lab;
 pub struct SmartConstructors;
 
 impl SmartConstructors {
-    /// Create ValidatedLab from RGB components with automatic conversion
+    /// Create `ValidatedLab` from RGB components with automatic conversion
     ///
     /// Performs RGB -> LAB conversion with validation
+    ///
+    /// # Errors
+    ///
+    /// Returns `ValidationError::InvalidRange` if the resulting LAB values
+    /// fall outside acceptable ranges for color calculations.
     pub fn from_rgb(r: u8, g: u8, b: u8) -> Result<ValidatedLab, ValidationError> {
         use palette::{Srgb, IntoColor};
         
         let rgb = Srgb::new(
-            r as f32 / 255.0,
-            g as f32 / 255.0, 
-            b as f32 / 255.0,
+            f32::from(r) / 255.0,
+            f32::from(g) / 255.0, 
+            f32::from(b) / 255.0,
         );
         
         let lab: Lab = rgb.into_color();
         ValidatedLab::from_lab(lab)
     }
 
-    /// Create ValidatedLab from hex color string
+    /// Create `ValidatedLab` from hex color string
     ///
     /// Supports formats: "#RRGGBB", "RRGGBB", "#RGB", "RGB"
+    ///
+    /// # Errors
+    ///
+    /// Returns `ValidationError::InvalidFormat` if the hex string is malformed
+    /// or contains invalid hexadecimal characters. Returns `ValidationError::InvalidRange`
+    /// if the resulting LAB values fall outside acceptable ranges.
     pub fn from_hex(hex: &str) -> Result<ValidatedLab, ValidationError> {
         let hex = hex.trim_start_matches('#');
         
@@ -82,12 +93,21 @@ impl SmartConstructors {
         Self::from_rgb(r, g, b)
     }
 
-    /// Create ValidatedLab from HSL components with automatic conversion
+    /// Create `ValidatedLab` from HSL components with automatic conversion
     ///
     /// # Arguments
     /// * `h` - Hue (0-360 degrees)
     /// * `s` - Saturation (0-100 percent)
     /// * `l` - Lightness (0-100 percent)
+    ///
+    /// # Errors
+    ///
+    /// Returns `ValidationError::InvalidLabValues` if HSL values are out of range:
+    /// - Hue must be in [0, 360] degrees
+    /// - Saturation must be in [0, 100] percent
+    /// - Lightness must be in [0, 100] percent
+    /// 
+    ///   Also returns validation errors if the resulting LAB values are invalid.
     pub fn from_hsl(h: f32, s: f32, l: f32) -> Result<ValidatedLab, ValidationError> {
         use palette::{Hsl, Srgb, IntoColor};
         
@@ -123,13 +143,29 @@ impl SmartConstructors {
     /// Create ValidatedLab collection from multiple sources
     ///
     /// Validates all inputs and returns either all valid colors or first error
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ValidationError` if any source fails validation:
+    /// - Invalid LAB color values (L not in [0,100], A/B not in [-128,127])
+    /// - Invalid hex color format
+    /// - Invalid RGB values (not in [0,255])
+    /// - Invalid HSL values (H not in [0,360], S/L not in [0,100])
     pub fn from_multiple_sources(sources: &[ColorSource]) -> Result<Vec<ValidatedLab>, ValidationError> {
-        sources.iter().map(|source| source.to_validated_lab()).collect()
+        sources.iter().map(ColorSource::to_validated_lab).collect()
     }
 
-    /// Create ValidatedLab with range constraints
+    /// Create `ValidatedLab` with range constraints
     ///
     /// Applies additional constraints beyond basic validation
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ValidationError` if validation fails:
+    /// - Values outside specified lightness range
+    /// - Chroma exceeds maximum allowed value
+    /// - Color outside sRGB gamut (when gamut validation enabled)
+    /// - Invalid LAB values (L not in [0,100], A/B not in [-128,127])
     pub fn with_constraints(
         l: f32, 
         a: f32, 
@@ -162,7 +198,15 @@ pub enum ColorSource {
 }
 
 impl ColorSource {
-    /// Convert any source to ValidatedLab
+    /// Convert any source to `ValidatedLab`
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ValidationError` for invalid inputs:
+    /// - Hex: Invalid format or non-hexadecimal characters
+    /// - RGB: Values outside [0,255] range
+    /// - HSL: H outside [0,360] or S/L outside [0,100] range
+    /// - Lab: Values outside valid LAB color space ranges
     pub fn to_validated_lab(&self) -> Result<ValidatedLab, ValidationError> {
         match self {
             Self::Lab(l, a, b) => ValidatedLab::new(*l, *a, *b),
@@ -201,7 +245,7 @@ impl Default for ValidationConstraints {
 impl ValidationConstraints {
     /// Create constraints for sRGB-only colors
     #[must_use]
-    pub fn srgb_only() -> Self {
+    pub const fn srgb_only() -> Self {
         Self {
             min_lightness: Some(0.0),
             max_lightness: Some(100.0),
@@ -212,7 +256,7 @@ impl ValidationConstraints {
 
     /// Create constraints for grayscale colors only
     #[must_use]
-    pub fn grayscale_only() -> Self {
+    pub const fn grayscale_only() -> Self {
         Self {
             min_lightness: Some(0.0),
             max_lightness: Some(100.0),
@@ -223,7 +267,7 @@ impl ValidationConstraints {
 
     /// Create constraints for vibrant colors (high chroma)
     #[must_use]
-    pub fn vibrant_only(_min_chroma: f32) -> Self {
+    pub const fn vibrant_only(_min_chroma: f32) -> Self {
         Self {
             min_lightness: Some(10.0), // Avoid very dark colors
             max_lightness: Some(90.0), // Avoid very light colors
@@ -233,6 +277,13 @@ impl ValidationConstraints {
     }
 
     /// Validate a color against these constraints
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ValidationError` if values fail constraint validation:
+    /// - Lightness outside specified range
+    /// - Chroma exceeds maximum value
+    /// - Color outside sRGB gamut (when enabled)
     pub fn validate(&self, lab: ValidatedLab) -> Result<(), ValidationError> {
         // Check lightness constraints
         if let Some(min_l) = self.min_lightness {
@@ -247,9 +298,9 @@ impl ValidationConstraints {
             }
         }
 
-        // Check chroma constraints
+        // Check chroma constraints with optimized mul_add
         if let Some(max_chroma) = self.max_chroma {
-            let chroma = (lab.a() * lab.a() + lab.b() * lab.b()).sqrt();
+            let chroma = lab.a().mul_add(lab.a(), lab.b() * lab.b()).sqrt();
             if chroma > max_chroma {
                 return Err(ValidationError::InvalidLabValues {
                     l: lab.l(),
@@ -260,16 +311,14 @@ impl ValidationConstraints {
             }
         }
 
-        // Check gamut constraints
-        if !self.allow_out_of_gamut {
-            if !is_in_srgb_gamut(lab) {
-                return Err(ValidationError::InvalidLabValues {
-                    l: lab.l(),
-                    a: lab.a(),
-                    b: lab.b(),
-                    reason: "Color is outside sRGB gamut".to_string(),
-                });
-            }
+        // Check gamut constraints with collapsed if statement
+        if !self.allow_out_of_gamut && !is_in_srgb_gamut(lab) {
+            return Err(ValidationError::InvalidLabValues {
+                l: lab.l(),
+                a: lab.a(),
+                b: lab.b(),
+                reason: "Color is outside sRGB gamut".to_string(),
+            });
         }
 
         Ok(())
@@ -295,6 +344,12 @@ pub struct BatchValidator;
 
 impl BatchValidator {
     /// Validate multiple LAB colors with early exit on first error
+    /// 
+    /// # Errors
+    /// 
+    /// Returns `ValidationError` on first validation failure:
+    /// - Invalid LAB color values (L not in [0,100], A/B not in [-128,127])
+    /// - Values outside valid color space ranges
     pub fn validate_all_or_fail(labs: &[(f32, f32, f32)]) -> Result<Vec<ValidatedLab>, ValidationError> {
         labs.iter()
             .map(|(l, a, b)| ValidatedLab::new(*l, *a, *b))
@@ -302,6 +357,7 @@ impl BatchValidator {
     }
 
     /// Validate multiple LAB colors, collecting all errors
+    #[must_use]
     pub fn validate_collect_errors(labs: &[(f32, f32, f32)]) -> (Vec<ValidatedLab>, Vec<ValidationError>) {
         let mut valid = Vec::new();
         let mut errors = Vec::new();
@@ -317,6 +373,7 @@ impl BatchValidator {
     }
 
     /// Validate multiple LAB colors, skipping invalid ones
+    #[must_use]
     pub fn validate_filter_valid(labs: &[(f32, f32, f32)]) -> Vec<ValidatedLab> {
         labs.iter()
             .filter_map(|(l, a, b)| ValidatedLab::new(*l, *a, *b).ok())
@@ -324,6 +381,11 @@ impl BatchValidator {
     }
 
     /// Validate with constraints applied to all colors
+    /// 
+    /// # Errors
+    /// Returns a `ValidationError` if any color fails validation against the provided constraints.
+    /// This can occur when L*, a*, or b* values are outside the specified ranges.
+    #[must_use]
     pub fn validate_with_constraints(
         labs: &[(f32, f32, f32)],
         constraints: &ValidationConstraints,
@@ -336,7 +398,7 @@ impl BatchValidator {
 
 /// Functional validation combinators
 pub mod combinators {
-    use super::*;
+    use super::ValidationError;
 
     /// Validation function type alias for functional composition
     pub type ValidationFn<T> = fn(T) -> Result<T, ValidationError>;
@@ -364,7 +426,7 @@ pub mod combinators {
 
     /// Validation that always succeeds (identity)
     #[allow(clippy::unnecessary_wraps)]
-    pub fn always_valid<T>(value: T) -> Result<T, ValidationError> {
+    pub const fn always_valid<T>(value: T) -> Result<T, ValidationError> {
         Ok(value)
     }
 

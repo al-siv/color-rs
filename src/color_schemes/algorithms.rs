@@ -8,6 +8,7 @@ use crate::error::{ColorError, Result};
 use palette::{Hsl, IntoColor, Lab, Srgb};
 
 /// Calculate complementary color in HSL space
+#[must_use]
 pub fn complementary_hsl(color: Lab) -> Lab {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();
@@ -20,6 +21,7 @@ pub fn complementary_hsl(color: Lab) -> Lab {
 }
 
 /// Calculate split-complementary colors in HSL space
+#[must_use]
 pub fn split_complementary_hsl(color: Lab) -> (Lab, Lab) {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();
@@ -39,6 +41,7 @@ pub fn split_complementary_hsl(color: Lab) -> (Lab, Lab) {
 }
 
 /// Calculate triadic colors in HSL space
+#[must_use]
 pub fn triadic_hsl(color: Lab) -> (Lab, Lab) {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();

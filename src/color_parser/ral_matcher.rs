@@ -49,15 +49,15 @@ impl RgbColor {
     #[must_use]
     pub fn to_lab(&self) -> Lab {
         let srgb = Srgb::new(
-            self.r as f32 / 255.0,
-            self.g as f32 / 255.0,
-            self.b as f32 / 255.0,
+            f32::from(self.r) / 255.0,
+            f32::from(self.g) / 255.0,
+            f32::from(self.b) / 255.0,
         );
         srgb.into_color()
     }
 }
 
-/// Find the two closest RAL Classic colors to the given RGB color
+/// Find closest RAL Classic colors
 #[must_use]
 pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
     find_closest_ral_classic_compat(rgb, max_results)

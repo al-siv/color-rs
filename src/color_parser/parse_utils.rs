@@ -22,11 +22,13 @@ impl ParseUtils {
         if let Some(percentage_str) = value.strip_suffix('%') {
             let percentage = f64::from_str(percentage_str)
                 .map_err(|_| ColorError::InvalidColor("Invalid percentage value".to_string()))?;
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
             Ok(((percentage / 100.0 * 255.0).round().clamp(0.0, 255.0)) as u8)
         } else {
             let int_val = u32::from_str(value).map_err(|_| {
                 ColorError::InvalidColor("Invalid color component value".to_string())
             })?;
+            #[allow(clippy::cast_possible_truncation)] // Safe: clamped to u8 range [0, 255]
             Ok((int_val.clamp(0, 255)) as u8)
         }
     }

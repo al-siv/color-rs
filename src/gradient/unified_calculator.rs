@@ -28,6 +28,7 @@ pub struct GradientCalculationConfig {
 type RgbTuple = (u8, u8, u8);
 
 /// Functional conversion from Lab to RGB tuple
+#[allow(clippy::cast_possible_truncation)] // Safe color value conversion [0,1] -> [0,255]
 fn lab_to_rgb_tuple(lab: Lab) -> RgbTuple {
     let srgb: Srgb = lab.into_color();
     (
@@ -43,6 +44,7 @@ fn calculate_geometric_position(step_index: usize, total_steps: usize) -> f64 {
 }
 
 /// Calculate actual position based on geometric t and position range
+#[allow(clippy::cast_possible_truncation)] // Position calculation: safe interpolation between u8 values
 fn calculate_actual_position(geometric_t: f64, start_pos: u8, end_pos: u8) -> u8 {
     (start_pos as f64 + geometric_t * (end_pos - start_pos) as f64).round() as u8
 }
@@ -95,6 +97,7 @@ fn calculate_simple_mode_stop(
 }
 
 /// Interpolate between two RGB colors using a factor
+#[allow(clippy::cast_possible_truncation)] // RGB interpolation: safe color value interpolation [0,255]
 fn interpolate_rgb(start_rgb: RgbTuple, end_rgb: RgbTuple, factor: f64) -> RgbTuple {
     let r = (start_rgb.0 as f64 + (end_rgb.0 as f64 - start_rgb.0 as f64) * factor).round() as u8;
     let g = (start_rgb.1 as f64 + (end_rgb.1 as f64 - start_rgb.1 as f64) * factor).round() as u8;

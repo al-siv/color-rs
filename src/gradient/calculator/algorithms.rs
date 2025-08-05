@@ -23,7 +23,7 @@ impl IntelligentStopCalculator {
     /// Calculate gradient stops using intelligent positioning
     #[must_use]
     pub fn calculate_stops(&self, num_stops: usize) -> Vec<f64> {
-        if let Some(simple_stops) = self.handle_simple_cases(num_stops) {
+        if let Some(simple_stops) = Self::handle_simple_cases(num_stops) {
             return simple_stops;
         }
 
@@ -39,7 +39,7 @@ impl IntelligentStopCalculator {
     }
 
     /// Handle simple cases (0-2 stops) with direct return values
-    fn handle_simple_cases(&self, num_stops: usize) -> Option<Vec<f64>> {
+    fn handle_simple_cases(num_stops: usize) -> Option<Vec<f64>> {
         match num_stops {
             0 | 1 => Some(vec![0.0]),
             2 => Some(vec![0.0, 1.0]),
@@ -62,7 +62,7 @@ impl IntelligentStopCalculator {
         let mut cumulative_importance = vec![0.0; INTELLIGENT_STOP_SAMPLE_POINTS + 1];
 
         for i in 0..INTELLIGENT_STOP_SAMPLE_POINTS {
-            let derivative_magnitude = self.calculate_derivative_magnitude(curve, i);
+            let derivative_magnitude = Self::calculate_derivative_magnitude(curve, i);
             cumulative_importance[i + 1] = cumulative_importance[i] + derivative_magnitude;
         }
 
@@ -70,7 +70,7 @@ impl IntelligentStopCalculator {
     }
 
     /// Calculate derivative magnitude at a specific sample point
-    fn calculate_derivative_magnitude(&self, curve: &CubicBez, sample_index: usize) -> f64 {
+    fn calculate_derivative_magnitude(curve: &CubicBez, sample_index: usize) -> f64 {
         let t = sample_index as f64 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
         let dt = 1.0 / INTELLIGENT_STOP_SAMPLE_POINTS as f64;
 

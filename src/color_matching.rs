@@ -216,6 +216,7 @@ pub fn validate_ral_design(target: &UniversalColor) -> Result<()> {
 }
 
 /// Extract hue value from RAL Design System+ code for sorting
+#[must_use]
 pub fn extract_hue_from_code(code: &str) -> u32 {
     // RAL Design codes follow pattern H###L##C##
     if code.starts_with('H') && code.len() >= 4 {
@@ -277,6 +278,7 @@ pub fn match_ral_design_colors(
 }
 
 /// Get the appropriate matching function for a collection type
+#[must_use]
 pub fn get_match_function(collection_type: CollectionType) -> MatchFn {
     match collection_type {
         CollectionType::Css => match_css_colors,
@@ -286,6 +288,7 @@ pub fn get_match_function(collection_type: CollectionType) -> MatchFn {
 }
 
 /// Get the appropriate validation function for a collection type
+#[must_use]
 pub fn get_validation_function(collection_type: CollectionType) -> Option<ValidationFn> {
     match collection_type {
         CollectionType::Css => None, // Uses default validation
@@ -295,6 +298,7 @@ pub fn get_validation_function(collection_type: CollectionType) -> Option<Valida
 }
 
 /// Get the appropriate post-processing function for a collection type  
+#[must_use]
 pub fn get_post_process_function(collection_type: CollectionType) -> Option<PostProcessFn> {
     match collection_type {
         CollectionType::Css | CollectionType::RalClassic => None,

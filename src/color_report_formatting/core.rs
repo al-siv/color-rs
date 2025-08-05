@@ -11,7 +11,9 @@ use crate::output_formats::ColorAnalysisOutput;
 use crate::color_distance_strategies::DistanceAlgorithm;
 use palette::{Hsl, IntoColor, Lab, Srgb};
 
-/// Convert LAB to hex string
+/// Convert LAB to hex color string
+#[must_use]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
 pub fn lab_to_hex(lab: Lab) -> String {
     let srgb: Srgb = lab.into_color();
     format!(
@@ -23,6 +25,8 @@ pub fn lab_to_hex(lab: Lab) -> String {
 }
 
 /// Convert LAB to RGB tuple
+#[must_use]
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
 pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
     let srgb: Srgb = lab.into_color();
     (
@@ -33,6 +37,7 @@ pub fn lab_to_rgb(lab: Lab) -> (u8, u8, u8) {
 }
 
 /// Convert LAB to HSL tuple
+#[must_use]
 pub fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
     let srgb: Srgb = lab.into_color();
     let hsl: Hsl = srgb.into_color();
@@ -44,15 +49,17 @@ pub fn lab_to_hsl_tuple(lab: Lab) -> (f64, f64, f64) {
 }
 
 /// Convert RGB tuple to Srgb
+#[must_use]
 pub fn rgb_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
     Srgb::new(
-        rgb.0 as f32 / 255.0,
-        rgb.1 as f32 / 255.0,
-        rgb.2 as f32 / 255.0,
+        f32::from(rgb.0) / 255.0,
+        f32::from(rgb.1) / 255.0,
+        f32::from(rgb.2) / 255.0,
     )
 }
 
 /// Convert RGB tuple to LAB
+#[must_use]
 pub fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
     let srgb = rgb_to_srgb(rgb);
     srgb.into_color()
