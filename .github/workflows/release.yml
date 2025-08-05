@@ -90,6 +90,45 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
+      - name: Create multi-platform release notes
+        run: |
+          cat > multi_platform_notes.md << 'EOF'
+          
+          ## 🎯 Multi-Platform Builds
+          
+          All platform binaries are now available:
+          
+          - **Windows x64**: `color-rs-v0.18.0-x86_64-windows.exe` 
+          - **Linux x64**: `color-rs-v0.18.0-x86_64-linux`
+          - **Linux x64 (musl)**: `color-rs-v0.18.0-x86_64-linux-musl` (static binary)
+          - **macOS x64**: `color-rs-v0.18.0-x86_64-macos`
+          - **macOS ARM64**: `color-rs-v0.18.0-aarch64-macos` (Apple Silicon)
+          
+          ### Download Instructions:
+          ```bash
+          # Windows (PowerShell)
+          Invoke-WebRequest -Uri 'https://github.com/al-siv/color-rs/releases/download/v0.18.0/color-rs-v0.18.0-x86_64-windows.exe' -OutFile 'color-rs.exe'
+          
+          # Linux x64
+          curl -L https://github.com/al-siv/color-rs/releases/download/v0.18.0/color-rs-v0.18.0-x86_64-linux -o color-rs
+          chmod +x color-rs
+          
+          # Linux x64 (static binary)
+          curl -L https://github.com/al-siv/color-rs/releases/download/v0.18.0/color-rs-v0.18.0-x86_64-linux-musl -o color-rs
+          chmod +x color-rs
+          
+          # macOS x64 (Intel)
+          curl -L https://github.com/al-siv/color-rs/releases/download/v0.18.0/color-rs-v0.18.0-x86_64-macos -o color-rs
+          chmod +x color-rs
+          
+          # macOS ARM64 (Apple Silicon)
+          curl -L https://github.com/al-siv/color-rs/releases/download/v0.18.0/color-rs-v0.18.0-aarch64-macos -o color-rs
+          chmod +x color-rs
+          ```
+          
+          🎉 **Multi-platform release complete!** This release includes optimized binaries for all major platforms.
+          EOF
+
       - name: Update release description
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -101,39 +140,8 @@ jobs:
             TAG=${GITHUB_REF#refs/tags/}
           fi
           
-          # Add a note about multi-platform completion
-          gh release edit "$TAG" --notes "$(cat releases/v0.18.0/RELEASE_NOTES.md)
-
-## 🎯 Multi-Platform Builds
-
-All platform binaries are now available:
-
-- **Windows x64**: \`color-rs-v0.18.0-x86_64-windows.exe\` 
-- **Linux x64**: \`color-rs-v0.18.0-x86_64-linux\`
-- **Linux x64 (musl)**: \`color-rs-v0.18.0-x86_64-linux-musl\` (static binary)
-- **macOS x64**: \`color-rs-v0.18.0-x86_64-macos\`
-- **macOS ARM64**: \`color-rs-v0.18.0-aarch64-macos\` (Apple Silicon)
-
-### Download Instructions:
-\`\`\`bash
-# Windows (PowerShell)
-Invoke-WebRequest -Uri 'https://github.com/al-siv/color-rs/releases/download/$TAG/color-rs-v0.18.0-x86_64-windows.exe' -OutFile 'color-rs.exe'
-
-# Linux x64
-curl -L https://github.com/al-siv/color-rs/releases/download/$TAG/color-rs-v0.18.0-x86_64-linux -o color-rs
-chmod +x color-rs
-
-# Linux x64 (static binary)
-curl -L https://github.com/al-siv/color-rs/releases/download/$TAG/color-rs-v0.18.0-x86_64-linux-musl -o color-rs
-chmod +x color-rs
-
-# macOS x64 (Intel)
-curl -L https://github.com/al-siv/color-rs/releases/download/$TAG/color-rs-v0.18.0-x86_64-macos -o color-rs
-chmod +x color-rs
-
-# macOS ARM64 (Apple Silicon)
-curl -L https://github.com/al-siv/color-rs/releases/download/$TAG/color-rs-v0.18.0-aarch64-macos -o color-rs
-chmod +x color-rs
-\`\`\`
-
-🎉 **Multi-platform release complete!** This release includes optimized binaries for all major platforms."
+          # Combine original release notes with multi-platform notes
+          cat releases/v0.18.0/RELEASE_NOTES.md multi_platform_notes.md > combined_notes.md
+          
+          # Update the release with combined notes
+          gh release edit "$TAG" --notes-file combined_notes.md
