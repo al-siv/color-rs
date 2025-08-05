@@ -22,17 +22,26 @@ impl PrecisionUtils {
             .to_string()
     }
 
-    /// Format a floating point value with exactly the specified decimal places
+    /// Format a floating point value with fixed decimal places
+    /// Does not remove trailing zeros
     #[must_use]
-    pub fn format_f64_fixed(value: f64, decimals: usize) -> String {
-        let decimals = decimals.min(MAX_DECIMAL_PLACES);
-        format!("{value:.decimals$}")
+    pub fn format_f64_fixed(value: f64, decimal_places: usize) -> String {
+        match decimal_places {
+            0 => format!("{value:.0}"),
+            1 => format!("{value:.1}"),
+            2 => format!("{value:.2}"),
+            3 => format!("{value:.3}"),
+            4 => format!("{value:.4}"),
+            5 => format!("{value:.5}"),
+            _ => format!("{value:.3}"), // Default to 3 decimal places for safety
+        }
     }
 
-    /// Format percentage with 2 decimal places maximum
+    /// Format a float as a percentage with 2 decimal places
     #[must_use]
     pub fn format_percentage(value: f64) -> String {
-        Self::format_f64_fixed(value * 100.0, 2)
+        use crate::config::math_constants;
+        Self::format_f64_fixed(value * math_constants::PERCENTAGE_MULTIPLIER, 2)
     }
 
     /// Format LAB values with standardized precision

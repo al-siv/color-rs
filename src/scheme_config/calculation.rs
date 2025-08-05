@@ -3,6 +3,7 @@
 //! This module breaks down the large calculate method into focused, composable functions.
 
 use crate::error::Result;
+use crate::config::algorithm_constants;
 use crate::color_schemes::{
     ColorSchemeResult, HslColorSchemeStrategy, LabColorSchemeStrategy, ColorSchemeStrategy,
     preserve_wcag_relative_luminance, preserve_lab_luminance,
@@ -24,7 +25,7 @@ fn adjust_color_relative_luminance(color: Lab, target_luminance: f64) -> Result<
     
     // Binary search for target luminance by scaling lightness
     let mut low = 0.0_f32;
-    let mut high = 100.0_f32;
+    let mut high = algorithm_constants::BINARY_SEARCH_HIGH_LUMINANCE;
     let mut best_color = color;
     
     for _ in 0..50 {

@@ -48,3 +48,60 @@ pub const FONT_FAMILY: &str = "'Montserrat', -apple-system, BlinkMacSystemFont, 
 pub const DEFAULT_FILTER_EXPRESSION: &str = "[all]";
 pub const FILTER_EXPRESSION_MAX_LENGTH: usize = 1000;
 pub const MAX_FILTER_RULES_PER_EXPRESSION: usize = 50;
+
+// ===== MILESTONE 5.1: MATHEMATICAL AND ALGORITHM CONSTANTS =====
+
+/// Bezier curve presets for easing functions
+pub mod bezier_presets {
+    /// Linear easing: no acceleration or deceleration
+    pub const LINEAR: (f64, f64) = (0.0, 1.0);
+    
+    /// Ease: starts slowly, then speeds up
+    pub const EASE: (f64, f64) = (0.25, 1.0);
+    
+    /// Ease-in: starts slowly
+    pub const EASE_IN: (f64, f64) = (0.42, 1.0);
+    
+    /// Ease-out: ends slowly
+    pub const EASE_OUT: (f64, f64) = (0.0, 0.58);
+    
+    /// Ease-in-out: starts and ends slowly
+    pub const EASE_IN_OUT: (f64, f64) = (0.42, 0.58);
+}
+
+/// Mathematical constants for calculations
+pub mod math_constants {
+    /// Multiplier for percentage conversion (0.0-1.0 → 0-100)
+    pub const PERCENTAGE_MULTIPLIER: f64 = 100.0;
+    
+    /// RGB color component maximum value
+    pub const RGB_MAX_VALUE: f32 = 255.0;
+    
+    /// Precision enhancement factor for mathematical operations
+    pub const PRECISION_MULTIPLIER: f64 = 100.0;
+    
+    /// Tolerance factor for floating point comparisons
+    pub const FLOAT_TOLERANCE_FACTOR: f64 = 10.0;
+}
+
+/// UI and display constants with minimum values
+pub mod display_constants {
+    /// Minimum legend height in pixels
+    pub const MIN_LEGEND_HEIGHT: f64 = 20.0;
+    
+    /// Minimum font size in pixels
+    pub const MIN_FONT_SIZE: f64 = 10.0;
+    
+    /// LAB luminance range (0-100)
+    pub const LAB_LUMINANCE_MAX: f64 = 100.0;
+    pub const LAB_LUMINANCE_MIN: f64 = 0.0;
+}
+
+/// Algorithm-specific constants
+pub mod algorithm_constants {
+    /// High luminance value for binary search algorithms
+    pub const BINARY_SEARCH_HIGH_LUMINANCE: f32 = 100.0;
+    
+    /// Percentage display precision (decimal places)
+    pub const PERCENTAGE_PRECISION: usize = 2;
+}

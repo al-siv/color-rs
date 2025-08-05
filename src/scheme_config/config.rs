@@ -1,6 +1,7 @@
 //! Main implementation methods for ColorSchemeConfig
 
 use super::types::{ColorSchemeConfig, ConfigError};
+use crate::config::display_constants;
 
 impl ColorSchemeConfig {
     /// Configuration combinator to add relative luminance preservation
@@ -48,11 +49,11 @@ impl ColorSchemeConfig {
 
     /// Configuration combinator to set target lab luminance
     pub fn set_target_lab_luminance(self, luminance: f64) -> std::result::Result<Self, ConfigError> {
-        if !(0.0..=100.0).contains(&luminance) {
+        if !(display_constants::LAB_LUMINANCE_MIN..=display_constants::LAB_LUMINANCE_MAX).contains(&luminance) {
             return Err(ConfigError::InvalidTargetLuminance {
                 value: luminance,
-                min: 0.0,
-                max: 100.0,
+                min: display_constants::LAB_LUMINANCE_MIN,
+                max: display_constants::LAB_LUMINANCE_MAX,
             });
         }
         if self.target_relative_luminance.is_some() {

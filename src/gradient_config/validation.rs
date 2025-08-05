@@ -4,6 +4,7 @@
 //! for gradient configuration types.
 
 use super::types::*;
+use crate::config::bezier_presets;
 
 // Smart Constructors and Validation Functions
 
@@ -68,32 +69,32 @@ impl EasingConfig {
     /// Ease preset
     pub fn ease() -> Self {
         Self {
-            ease_in: 0.25,
-            ease_out: 1.0,
+            ease_in: bezier_presets::EASE.0,
+            ease_out: bezier_presets::EASE.1,
         }
     }
 
     /// Ease-in preset
     pub fn ease_in() -> Self {
         Self {
-            ease_in: 0.42,
-            ease_out: 1.0,
+            ease_in: bezier_presets::EASE_IN.0,
+            ease_out: bezier_presets::EASE_IN.1,
         }
     }
 
     /// Ease-out preset
     pub fn ease_out() -> Self {
         Self {
-            ease_in: 0.0,
-            ease_out: 0.58,
+            ease_in: bezier_presets::EASE_OUT.0,
+            ease_out: bezier_presets::EASE_OUT.1,
         }
     }
 
     /// Ease-in-out preset (smooth curve)
     pub fn ease_in_out() -> Self {
         Self {
-            ease_in: 0.42,
-            ease_out: 0.58,
+            ease_in: bezier_presets::EASE_IN_OUT.0,
+            ease_out: bezier_presets::EASE_IN_OUT.1,
         }
     }
 

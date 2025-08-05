@@ -5,6 +5,7 @@
 
 use crate::error::ColorError;
 use crate::color_parser::collections::ColorCollection;
+use crate::config::math_constants;
 use palette::{IntoColor, Lab, Srgb};
 
 type Result<T> = std::result::Result<T, ColorError>;
@@ -136,9 +137,9 @@ impl ColorParser {
         };
 
         let srgb = Srgb::new(
-            f32::from(r) / 255.0,
-            f32::from(g) / 255.0,
-            f32::from(b) / 255.0,
+            f32::from(r) / math_constants::RGB_MAX_VALUE as f32,
+            f32::from(g) / math_constants::RGB_MAX_VALUE as f32,
+            f32::from(b) / math_constants::RGB_MAX_VALUE as f32,
         );
         let lab: Lab = srgb.into_color();
 

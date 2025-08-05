@@ -1,6 +1,7 @@
 //! Gradient output formatting
 
 use super::calculator::GradientValue;
+use crate::config::math_constants;
 use crate::error::Result;
 
 /// Simple gradient output formatter
@@ -8,11 +9,11 @@ pub fn format_as_json(values: &[GradientValue]) -> Result<String> {
     let json_values: Vec<serde_json::Value> = values.iter().map(|v| {
         serde_json::json!({
             "position": v.position,
-            "rgb": format!("rgb({:.0}, {:.0}, {:.0})", v.rgb.red * 255.0, v.rgb.green * 255.0, v.rgb.blue * 255.0),
+            "rgb": format!("rgb({:.0}, {:.0}, {:.0})", v.rgb.red * math_constants::RGB_MAX_VALUE, v.rgb.green * math_constants::RGB_MAX_VALUE, v.rgb.blue * math_constants::RGB_MAX_VALUE),
             "hex": format!("#{:02x}{:02x}{:02x}", 
-                (v.rgb.red * 255.0) as u8, 
-                (v.rgb.green * 255.0) as u8, 
-                (v.rgb.blue * 255.0) as u8),
+                (v.rgb.red * math_constants::RGB_MAX_VALUE) as u8, 
+                (v.rgb.green * math_constants::RGB_MAX_VALUE) as u8, 
+                (v.rgb.blue * math_constants::RGB_MAX_VALUE) as u8),
             "lab": {
                 "l": v.lab.l,
                 "a": v.lab.a,

@@ -1,6 +1,7 @@
 //! Smart constructors and validation logic for color scheme configuration
 
 use super::types::{ColorSchemeConfig, ConfigError};
+use crate::config::display_constants;
 
 impl ColorSchemeConfig {
     /// Default configuration with no special options
@@ -38,11 +39,11 @@ impl ColorSchemeConfig {
         }
 
         if let Some(lab_lum) = target_lab_luminance {
-            if !(0.0..=100.0).contains(&lab_lum) {
+            if !(display_constants::LAB_LUMINANCE_MIN..=display_constants::LAB_LUMINANCE_MAX).contains(&lab_lum) {
                 return Err(ConfigError::InvalidTargetLuminance {
                     value: lab_lum,
-                    min: 0.0,
-                    max: 100.0,
+                    min: display_constants::LAB_LUMINANCE_MIN,
+                    max: display_constants::LAB_LUMINANCE_MAX,
                 });
             }
         }

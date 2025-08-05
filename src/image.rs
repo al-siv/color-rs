@@ -19,12 +19,14 @@ use crate::{
 
 /// Helper function to convert LAB to hex string using palette library approach
 fn lab_to_hex(lab: Lab) -> String {
+    use crate::config::math_constants;
+    
     let srgb: Srgb = lab.into_color();
     format!(
         "#{:02X}{:02X}{:02X}",
-        (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
-        (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
-        (srgb.blue * 255.0).round().clamp(0.0, 255.0) as u8,
+        (srgb.red * math_constants::RGB_MAX_VALUE).round().clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
+        (srgb.green * math_constants::RGB_MAX_VALUE).round().clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
+        (srgb.blue * math_constants::RGB_MAX_VALUE).round().clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
     )
 }
 
@@ -72,7 +74,8 @@ impl ImageGenerator {
         let legend_height = if args.no_legend {
             0
         } else {
-            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
+            use crate::config::display_constants;
+            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -108,7 +111,8 @@ impl ImageGenerator {
         let legend_height = if args.no_legend {
             0
         } else {
-            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
+            use crate::config::display_constants;
+            (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -185,7 +189,8 @@ impl ImageGenerator {
 
         // Add legend if not disabled
         if !args.no_legend {
-            let font_size = (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32;
+            use crate::config::display_constants;
+            let font_size = (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32;
             let text_y = gradient_height + (f64::from(legend_height) * DEFAULT_TEXT_Y_RATIO) as u32;
 
             svg.push_str(&format!(

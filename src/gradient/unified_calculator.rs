@@ -5,6 +5,7 @@
 
 use super::calculator::{UnifiedGradientStop, cubic_bezier_ease, GradientCalculator};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
+use crate::config::math_constants;
 use palette::{IntoColor, Lab, Mix, Srgb};
 
 /// Configuration for gradient calculation
@@ -28,9 +29,9 @@ type RgbTuple = (u8, u8, u8);
 fn lab_to_rgb_tuple(lab: Lab) -> RgbTuple {
     let srgb: Srgb = lab.into_color();
     (
-        (srgb.red * 255.0).round() as u8,
-        (srgb.green * 255.0).round() as u8,
-        (srgb.blue * 255.0).round() as u8,
+        (srgb.red * math_constants::RGB_MAX_VALUE).round() as u8,
+        (srgb.green * math_constants::RGB_MAX_VALUE).round() as u8,
+        (srgb.blue * math_constants::RGB_MAX_VALUE).round() as u8,
     )
 }
 
@@ -102,9 +103,9 @@ fn interpolate_rgb(start_rgb: RgbTuple, end_rgb: RgbTuple, factor: f64) -> RgbTu
 /// Convert RGB tuple back to Lab color space
 fn rgb_tuple_to_lab(rgb: RgbTuple) -> Lab {
     let srgb = Srgb::new(
-        f32::from(rgb.0) / 255.0,
-        f32::from(rgb.1) / 255.0,
-        f32::from(rgb.2) / 255.0,
+        f32::from(rgb.0) / math_constants::RGB_MAX_VALUE as f32,
+        f32::from(rgb.1) / math_constants::RGB_MAX_VALUE as f32,
+        f32::from(rgb.2) / math_constants::RGB_MAX_VALUE as f32,
     );
     srgb.into_color()
 }

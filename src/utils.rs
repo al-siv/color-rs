@@ -2,7 +2,7 @@
 
 use crate::config::{
     BEZIER_MAX, BEZIER_MIN, DEFAULT_FONT_SIZE_RATIO, DEFAULT_LEGEND_HEIGHT_RATIO, HEIGHT_RATIO,
-    MAX_PERCENTAGE,
+    MAX_PERCENTAGE, math_constants,
 };
 use crate::error::{ColorError, Result};
 
@@ -58,7 +58,7 @@ impl Utils {
     /// Convert HSL values to string representation
     #[must_use]
     pub fn hsl_to_string(h: f64, s: f64, l: f64) -> String {
-        format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * 100.0, l * 100.0)
+        format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * math_constants::PERCENTAGE_MULTIPLIER, l * math_constants::PERCENTAGE_MULTIPLIER)
     }
 
     /// DUPLICATION ELIMINATED: Use `PrecisionUtils::format_percentage()` instead
@@ -92,12 +92,14 @@ impl Utils {
     /// Convert easing function name to control points
     #[must_use]
     pub fn easing_preset_to_points(preset: &str) -> Option<(f64, f64)> {
+        use crate::config::bezier_presets;
+        
         match preset.to_lowercase().as_str() {
-            "linear" => Some((0.0, 1.0)),
-            "ease" => Some((0.25, 1.0)),
-            "ease-in" => Some((0.42, 1.0)),
-            "ease-out" => Some((0.0, 0.58)),
-            "ease-in-out" => Some((0.42, 0.58)),
+            "linear" => Some(bezier_presets::LINEAR),
+            "ease" => Some(bezier_presets::EASE),
+            "ease-in" => Some(bezier_presets::EASE_IN),
+            "ease-out" => Some(bezier_presets::EASE_OUT),
+            "ease-in-out" => Some(bezier_presets::EASE_IN_OUT),
             _ => None,
         }
     }
@@ -117,13 +119,15 @@ impl Utils {
     /// Calculate legend height based on gradient height
     #[must_use]
     pub fn calculate_legend_height(gradient_height: u32) -> u32 {
-        (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(20.0) as u32
+        use crate::config::display_constants;
+        (f64::from(gradient_height) * DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
     }
 
     /// Calculate font size based on legend height
     #[must_use]
     pub fn calculate_font_size(legend_height: u32) -> u32 {
-        (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(10.0) as u32
+        use crate::config::display_constants;
+        (f64::from(legend_height) * DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32
     }
 
     /// Sanitize a color hex string
@@ -191,10 +195,12 @@ mod tests {
 
     #[test]
     fn test_easing_presets() {
-        assert_eq!(Utils::easing_preset_to_points("linear"), Some((0.0, 1.0)));
+        use crate::config::bezier_presets;
+        
+        assert_eq!(Utils::easing_preset_to_points("linear"), Some(bezier_presets::LINEAR));
         assert_eq!(
             Utils::easing_preset_to_points("ease-in-out"),
-            Some((0.42, 0.58))
+            Some(bezier_presets::EASE_IN_OUT)
         );
         assert_eq!(Utils::easing_preset_to_points("invalid"), None);
     }
