@@ -18,6 +18,7 @@
 //! ```rust
 //! use color_rs::color_parsing;
 //!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Quick parsing
 //! let (lab, format) = color_parsing::parse_color_fast("#FF0000")?;
 //! 
@@ -27,6 +28,8 @@
 //! 
 //! // Get color names
 //! let name = color_parsing::get_color_name_comprehensive([255, 0, 0]);
+//! # Ok(())
+//! # }
 //! ```
 
 pub mod parsers;

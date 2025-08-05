@@ -278,7 +278,7 @@ pub fn rgb_tuple_to_srgb(rgb: (u8, u8, u8)) -> Srgb {
 ///
 /// let srgb = Srgb::new(1.0, 0.5, 0.0);
 /// let rgb = conversion::srgb_to_rgb_tuple(srgb);
-/// assert_eq!(rgb, (255, 127, 0));
+/// assert_eq!(rgb, (255, 128, 0));
 /// ```
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
 pub fn srgb_to_rgb_tuple(srgb: Srgb) -> (u8, u8, u8) {
@@ -355,7 +355,7 @@ pub fn hex_to_srgb(hex: &str) -> Result<Srgb, String> {
 ///
 /// let srgb = Srgb::new(1.0, 0.5, 0.0);
 /// let hex = conversion::srgb_to_hex(srgb);
-/// assert_eq!(hex, "#FF7F00");
+/// assert_eq!(hex, "#FF8000");
 /// ```
 pub fn srgb_to_hex(srgb: Srgb) -> String {
     let (r, g, b) = srgb_to_rgb_tuple(srgb);

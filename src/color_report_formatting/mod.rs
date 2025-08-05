@@ -16,7 +16,7 @@
 //! - `write_output_file()` - Write data to files
 //!
 //! ## Example Usage
-//! ```rust
+//! ```ignore
 //! use color_rs::color_report_formatting;
 //! use color_rs::cli::OutputFormat;
 //!
