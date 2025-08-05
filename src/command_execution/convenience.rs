@@ -10,7 +10,8 @@ use crate::error::Result;
 // Convenience functions - functional equivalents of command creation
 
 /// Create gradient generation command
-pub fn create_gradient_command(start_color: String, end_color: String, stops: usize) -> CommandType {
+#[must_use]
+pub const fn create_gradient_command(start_color: String, end_color: String, stops: usize) -> CommandType {
     use crate::cli::GradientArgs;
     
     // Create GradientArgs manually with actual fields
@@ -40,6 +41,7 @@ pub fn create_gradient_command(start_color: String, end_color: String, stops: us
 }
 
 /// Create color analysis command
+#[must_use]
 pub fn create_analyze_command(color_input: String, include_schemes: bool) -> CommandType {
     CommandType::AnalyzeColor {
         color_input,
@@ -49,6 +51,7 @@ pub fn create_analyze_command(color_input: String, include_schemes: bool) -> Com
 }
 
 /// Create color matching command
+#[must_use]
 pub fn create_find_closest_command(color_input: String, count: usize) -> CommandType {
     CommandType::FindClosestColor {
         color_input,
@@ -59,7 +62,8 @@ pub fn create_find_closest_command(color_input: String, count: usize) -> Command
 }
 
 /// Create color conversion command
-pub fn create_convert_command(color_input: String, target_format: String) -> CommandType {
+#[must_use]
+pub const fn create_convert_command(color_input: String, target_format: String) -> CommandType {
     CommandType::ConvertColor {
         color_input,
         target_format,
@@ -70,16 +74,22 @@ pub fn create_convert_command(color_input: String, target_format: String) -> Com
 // Simplified execution functions
 
 /// Execute command with default context (no hooks)
+/// # Errors
+/// Returns error if command execution fails
 pub fn execute_simple(command_type: CommandType) -> Result<ExecutionResult> {
     execute_command_simple(command_type)
 }
 
 /// Execute command with validation hooks
+/// # Errors
+/// Returns error if command execution or validation fails
 pub fn execute_with_validation(command_type: CommandType) -> Result<ExecutionResult> {
     execute_command_with_validation(command_type)
 }
 
 /// Execute command with full hooks and formatting
+/// # Errors  
+/// Returns error if command execution fails
 pub fn execute_enhanced(command_type: CommandType) -> Result<ExecutionResult> {
     execute_command_enhanced(command_type)
 }

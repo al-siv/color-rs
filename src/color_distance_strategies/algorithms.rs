@@ -250,7 +250,6 @@ fn calculate_lch_distance(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
 }
 
 /// Functional composition helpers for algorithm chaining and filtering
-
 /// Filter algorithms by performance characteristics
 #[must_use]
 pub fn filter_fast_algorithms() -> Vec<DistanceAlgorithm> {

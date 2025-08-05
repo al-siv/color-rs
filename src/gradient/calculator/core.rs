@@ -185,13 +185,13 @@ impl GradientCalculator {
         if use_simple_mode {
             // Simple mode: equal geometric intervals with RGB interpolation + bezier easing
             let start_srgb: Srgb = start_lab.into_color();
-            let start_rgb = (
+            let start_rgb_tuple = (
                 (start_srgb.red * 255.0).round() as u8,
                 (start_srgb.green * 255.0).round() as u8,
                 (start_srgb.blue * 255.0).round() as u8,
             );
             let end_srgb: Srgb = end_lab.into_color();
-            let end_rgb = (
+            let end_rgb_tuple = (
                 (end_srgb.red * 255.0).round() as u8,
                 (end_srgb.green * 255.0).round() as u8,
                 (end_srgb.blue * 255.0).round() as u8,
@@ -204,11 +204,11 @@ impl GradientCalculator {
                 let bezier_t = cubic_bezier_ease(t, ease_in, ease_out);
 
                 // RGB interpolation with bezier timing
-                let r = (start_rgb.0 as f64 + (end_rgb.0 as f64 - start_rgb.0 as f64) * bezier_t)
+                let r = (start_rgb_tuple.0 as f64 + (end_rgb_tuple.0 as f64 - start_rgb_tuple.0 as f64) * bezier_t)
                     .round() as u8;
-                let g = (start_rgb.1 as f64 + (end_rgb.1 as f64 - start_rgb.1 as f64) * bezier_t)
+                let g = (start_rgb_tuple.1 as f64 + (end_rgb_tuple.1 as f64 - start_rgb_tuple.1 as f64) * bezier_t)
                     .round() as u8;
-                let b = (start_rgb.2 as f64 + (end_rgb.2 as f64 - start_rgb.2 as f64) * bezier_t)
+                let b = (start_rgb_tuple.2 as f64 + (end_rgb_tuple.2 as f64 - start_rgb_tuple.2 as f64) * bezier_t)
                     .round() as u8;
 
                 // Convert back to LAB for consistent output format using functional conversion

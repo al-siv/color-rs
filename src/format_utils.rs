@@ -74,6 +74,7 @@ impl FormatUtils {
 
     /// Convert LAB to CMYK format string with standardized precision using functional conversion
     #[must_use]
+    #[allow(clippy::many_single_char_names)] // CMYK components are traditionally single letters
     pub fn lab_to_cmyk(lab: Lab) -> String {
         let srgb: Srgb = lab.into_color();
         // Simple CMYK conversion formula

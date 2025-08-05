@@ -208,13 +208,13 @@ impl GradientArgs {
 
     /// Check if SVG generation should be enabled
     #[must_use]
-    pub fn should_generate_svg(&self) -> bool {
+    pub const fn should_generate_svg(&self) -> bool {
         self.svg.is_some()
     }
 
     /// Check if PNG generation should be enabled
     #[must_use]
-    pub fn should_generate_png(&self) -> bool {
+    pub const fn should_generate_png(&self) -> bool {
         self.png.is_some()
     }
 

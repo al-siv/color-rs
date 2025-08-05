@@ -65,6 +65,8 @@ impl ValidatedLab {
     ///
     /// # Returns
     /// * `Result<ValidatedLab, ValidationError>` - Validated LAB or error
+    /// # Errors
+    /// Returns ValidationError if LAB values are not finite or out of valid range
     pub fn new(l: f32, a: f32, b: f32) -> Result<Self, ValidationError> {
         // Check for finite values
         if !l.is_finite() || !a.is_finite() || !b.is_finite() {
@@ -91,7 +93,9 @@ impl ValidatedLab {
         })
     }
 
-    /// Create a ValidatedLab from existing Lab (with validation)
+    /// Create a `ValidatedLab` from existing Lab (with validation)
+    /// # Errors
+    /// Returns ValidationError if LAB values are not finite or out of valid range
     pub fn from_lab(lab: Lab) -> Result<Self, ValidationError> {
         Self::new(lab.l, lab.a, lab.b)
     }

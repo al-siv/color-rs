@@ -11,16 +11,22 @@ use std::collections::HashMap;
 
 // Command execution functions using pattern matching instead of virtual dispatch
 
+/// Execute gradient generation command
+/// # Errors
+/// Returns error if color parsing or gradient generation fails
 pub fn execute_generate_gradient(args: &GradientArgs, output_path: Option<&str>) -> Result<ExecutionResult> {
     let (start_lab, end_lab) = parse_gradient_colors(args)?;
     let gradient_output = generate_gradient_steps(start_lab, end_lab, args.stops);
     let format_output = append_format_outputs(args, output_path);
     let metadata = create_gradient_metadata(args);
     
-    let final_output = format!("{}{}", gradient_output, format_output);
+    let final_output = format!("{gradient_output}{format_output}");
     Ok(ExecutionResult::success_with_metadata(final_output, metadata))
 }
 
+/// Execute find closest color command
+/// # Errors
+/// Returns error if color parsing fails
 pub fn execute_find_closest_color(
     color_input: &str,
     collection: Option<&str>,
@@ -29,12 +35,11 @@ pub fn execute_find_closest_color(
 ) -> Result<ExecutionResult> {
     // Parse the color for validation
     let _lab_color = crate::color::parse_color_input(color_input)
-        .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {}", e)))?;
+        .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {e}")))?;
 
     // Create output using functional color matching
     let output = format!(
-        "Finding {} closest colors to {} using {} algorithm\n",
-        count, color_input, algorithm
+        "Finding {count} closest colors to {color_input} using {algorithm} algorithm\n"
     );
 
     let mut metadata = HashMap::new();
@@ -48,6 +53,9 @@ pub fn execute_find_closest_color(
     Ok(ExecutionResult::success_with_metadata(output, metadata))
 }
 
+/// Execute color analysis command  
+/// # Errors
+/// Returns error if color parsing fails
 pub fn execute_analyze_color(
     color_input: &str,
     include_schemes: bool,
@@ -55,10 +63,10 @@ pub fn execute_analyze_color(
 ) -> Result<ExecutionResult> {
     // Parse the color for analysis
     let _lab_color = crate::color::parse_color_input(color_input)
-        .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {}", e)))?;
+        .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {e}")))?;
 
-    let mut output = format!("Analyzing color: {}\n", color_input);
-    output.push_str(&format!("Output format: {}\n", output_format));
+    let mut output = format!("Analyzing color: {color_input}\n");
+    output.push_str(&format!("Output format: {output_format}\n"));
     
     if include_schemes {
         output.push_str("Including color schemes in analysis\n");
@@ -72,6 +80,9 @@ pub fn execute_analyze_color(
     Ok(ExecutionResult::success_with_metadata(output, metadata))
 }
 
+/// Execute color conversion command
+/// # Errors  
+/// Returns error if color parsing fails
 pub fn execute_convert_color(
     color_input: &str,
     target_format: &str,
@@ -79,11 +90,10 @@ pub fn execute_convert_color(
 ) -> Result<ExecutionResult> {
     // Parse the color for conversion
     let _lab_color = crate::color::parse_color_input(color_input)
-        .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {}", e)))?;
+        .map_err(|e| ColorError::ParseError(format!("Failed to parse color: {e}")))?;
 
     let output = format!(
-        "Converting {} to {} format with {} decimal precision\n",
-        color_input, target_format, precision
+        "Converting {color_input} to {target_format} format with {precision} decimal precision\n"
     );
 
     let mut metadata = HashMap::new();
@@ -99,16 +109,18 @@ pub fn execute_convert_color(
 /// Parse start and end colors for gradient generation
 fn parse_gradient_colors(args: &GradientArgs) -> Result<(Lab, Lab)> {
     let start_lab = crate::color::parse_color_input(&args.start_color)
-        .map_err(|e| ColorError::ParseError(format!("Failed to parse start color: {}", e)))?;
+        .map_err(|e| ColorError::ParseError(format!("Failed to parse start color: {e}")))?;
 
     let end_lab = crate::color::parse_color_input(&args.end_color)
-        .map_err(|e| ColorError::ParseError(format!("Failed to parse end color: {}", e)))?;
+        .map_err(|e| ColorError::ParseError(format!("Failed to parse end color: {e}")))?;
     
     Ok((start_lab, end_lab))
 }
 
 /// Generate gradient steps with color interpolation
 fn generate_gradient_steps(start_lab: Lab, end_lab: Lab, steps: usize) -> String {
+    use std::fmt::Write;
+    
     let mut output = String::new();
     output.push_str("Generated gradient:\n");
 
@@ -117,8 +129,7 @@ fn generate_gradient_steps(start_lab: Lab, end_lab: Lab, steps: usize) -> String
         // Use functional LAB interpolation with palette Mix trait
         let interpolated = start_lab.mix(end_lab, t as f32);
         let hex = crate::color_ops::conversion::srgb_to_hex(interpolated.into_color());
-        use std::fmt::Write;
-        writeln!(output, "Step {}: {}", i, hex).unwrap();
+        writeln!(output, "Step {i}: {hex}").unwrap();
     }
     
     output
@@ -126,13 +137,14 @@ fn generate_gradient_steps(start_lab: Lab, end_lab: Lab, steps: usize) -> String
 
 /// Generate output format messages
 fn append_format_outputs(args: &GradientArgs, output_path: Option<&str>) -> String {
+    use std::fmt::Write;
+    
     let mut output = String::new();
     
     if args.should_generate_svg() {
         output.push_str("\nSVG generated successfully\n");
         if let Some(path) = output_path {
-            use std::fmt::Write;
-            writeln!(output, "SVG saved to: {}", path).unwrap();
+            writeln!(output, "SVG saved to: {path}").unwrap();
         }
     }
 

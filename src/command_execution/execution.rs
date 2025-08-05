@@ -73,22 +73,27 @@ pub fn get_command_description(command_type: &CommandType) -> &'static str {
 }
 
 /// Check if command supports undo - pure function with pattern matching
-pub fn supports_undo(command_type: &CommandType) -> bool {
+pub const fn supports_undo(command_type: &CommandType) -> bool {
     match command_type {
-        CommandType::GenerateGradient { .. } => false, // File generation can't be undone easily
-        CommandType::FindClosestColor { .. } => false, // Read-only operation
-        CommandType::AnalyzeColor { .. } => false,     // Read-only operation
-        CommandType::ConvertColor { .. } => false,     // Pure transformation
+        // All commands are either file generation or read-only operations
+        CommandType::GenerateGradient { .. } |   // File generation can't be undone easily
+        CommandType::FindClosestColor { .. } |   // Read-only operation
+        CommandType::AnalyzeColor { .. } |       // Read-only operation
+        CommandType::ConvertColor { .. } => false, // Pure transformation
     }
 }
 
 /// Execute command with default context (no hooks)
+/// # Errors
+/// Returns error if command execution fails
 pub fn execute_command_simple(command_type: CommandType) -> Result<ExecutionResult> {
     let context = ExecutionContext::new(command_type);
     execute_command(&context)
 }
 
 /// Execute command with validation hooks
+/// # Errors
+/// Returns error if command execution or validation fails
 pub fn execute_command_with_validation(command_type: CommandType) -> Result<ExecutionResult> {
     let context = ExecutionContext::new(command_type)
         .with_pre_hook(PreHookStep::ValidateParameters)
@@ -99,6 +104,8 @@ pub fn execute_command_with_validation(command_type: CommandType) -> Result<Exec
 }
 
 /// Execute command with full hooks and formatting
+/// # Errors
+/// Returns error if command execution fails
 pub fn execute_command_enhanced(command_type: CommandType) -> Result<ExecutionResult> {
     let context = ExecutionContext::new(command_type)
         .with_pre_hook(PreHookStep::ValidateParameters)
@@ -169,7 +176,7 @@ fn validate_command_parameters(command_type: &CommandType) -> Result<()> {
     Ok(())
 }
 
-fn check_command_prerequisites(_command_type: &CommandType) -> Result<()> {
+const fn check_command_prerequisites(_command_type: &CommandType) -> Result<()> {
     // Could check for required files, permissions, etc.
     Ok(())
 }
@@ -182,7 +189,7 @@ fn format_command_output(mut result: ExecutionResult) -> ExecutionResult {
     result
 }
 
-fn save_command_output(result: ExecutionResult) -> ExecutionResult {
+const fn save_command_output(result: ExecutionResult) -> ExecutionResult {
     // Could save output to file if specified in metadata
     // For now, just return the result unchanged
     result

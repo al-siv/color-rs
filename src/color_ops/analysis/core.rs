@@ -191,14 +191,14 @@ fn analyze_accessibility(color: Srgb) -> AccessibilityData {
 /// Get text color recommendations for a background color
 fn get_text_recommendations(background: Srgb) -> TextRecommendations {
     let (high_contrast, high_contrast_ratio) = find_best_contrast_color(background);
-    let aa_compliant = generate_compliant_colors(background, 4.5);
-    let aaa_compliant = generate_compliant_colors(background, 7.0);
+    let aa_compliant_colors = generate_compliant_colors(background, 4.5);
+    let aaa_compliant_colors = generate_compliant_colors(background, 7.0);
     
     TextRecommendations {
         high_contrast: high_contrast.into(),
         high_contrast_ratio,
-        aa_compliant: aa_compliant.into_iter().map(|c| c.into()).collect(),
-        aaa_compliant: aaa_compliant.into_iter().map(|c| c.into()).collect(),
+        aa_compliant: aa_compliant_colors.into_iter().map(|c| c.into()).collect(),
+        aaa_compliant: aaa_compliant_colors.into_iter().map(|c| c.into()).collect(),
     }
 }
 

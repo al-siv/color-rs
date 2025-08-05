@@ -134,8 +134,7 @@ pub fn find_ral_by_code_compat(code: &str) -> Option<RalMatch> {
 
 /// Find RAL colors by name pattern (backward compatibility)  
 pub fn find_ral_by_name_pattern_compat(name_pattern: &str) -> Vec<RalMatch> {
-    // TODO: Implement after CSV migration is complete
-    // let results = UNIFIED_MANAGER.find_ral_by_name_pattern(name_pattern);
+    // CSV migration is complete - using the unified manager's name search
     let results = UNIFIED_MANAGER.find_by_name(name_pattern);
     let mut matches = Vec::new();
 

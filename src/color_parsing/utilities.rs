@@ -194,7 +194,6 @@ pub const AVAILABLE_PARSER_TYPES: &[ParserType] = &[
 ];
 
 /// Convenience functions - functional equivalents of factory presets
-
 /// Parse color using fast configuration (CSS only)
 pub fn parse_color_fast(input: &str) -> Result<(palette::Lab, ColorFormat)> {
     parse_color(input, &fast_parsing_config())
