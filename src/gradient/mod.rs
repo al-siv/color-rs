@@ -9,25 +9,20 @@ pub mod easing;
 pub mod output;
 
 // Functional replacements for OOP patterns
-pub mod gradient_stops;
 pub mod gradient_formatter;
+pub mod gradient_stops;
 pub mod unified_calculator;
 
 // Simple re-exports for basic functionality
 pub use calculator::{
-    GradientCalculator, 
-    CalculationAlgorithm,
-    GradientValue, 
-    UnifiedGradientStop,
-    IntelligentStopCalculator,
-    EqualSpacingCalculator,
-    cubic_bezier_ease,
+    CalculationAlgorithm, EqualSpacingCalculator, GradientCalculator, GradientValue,
+    IntelligentStopCalculator, UnifiedGradientStop, cubic_bezier_ease,
 };
 pub use easing::{EasingFactory, EasingFunction, EasingType};
 
 // Functional re-exports
+pub use gradient_formatter::{EventCallbacks, GradientFormat, GradientFormatter};
 pub use gradient_stops::{GradientStopCalculator, StopCalculationStrategy};
-pub use gradient_formatter::{GradientFormatter, GradientFormat, EventCallbacks};
 pub use unified_calculator::calculate_unified_gradient;
 
 /// Simplified gradient generation function for CLI interface
@@ -41,12 +36,13 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         EnhancedGradientStop, GradientAnalysisOutput, GradientColors, GradientConfiguration,
         GradientStop, NestedColorInfo, ProgramMetadata,
     };
-    use palette::{Lab, Srgb, IntoColor};
+    use palette::{IntoColor, Lab, Srgb};
 
     // Helper functions for functional color operations
     let lab_to_hex = |lab: Lab| -> String {
         let srgb: Srgb = lab.into_color();
-        format!("#{:02x}{:02x}{:02x}", 
+        format!(
+            "#{:02x}{:02x}{:02x}",
             (srgb.red * 255.0) as u8,
             (srgb.green * 255.0) as u8,
             (srgb.blue * 255.0) as u8
@@ -54,27 +50,39 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     };
 
     let wcag_relative_luminance_rgb = |rgb: (u8, u8, u8)| -> f64 {
-        let (r, g, b) = (rgb.0 as f64 / 255.0, rgb.1 as f64 / 255.0, rgb.2 as f64 / 255.0);
-        let to_linear = |c: f64| if c <= 0.03928 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) };
+        let (r, g, b) = (
+            rgb.0 as f64 / 255.0,
+            rgb.1 as f64 / 255.0,
+            rgb.2 as f64 / 255.0,
+        );
+        let to_linear = |c: f64| {
+            if c <= 0.03928 {
+                c / 12.92
+            } else {
+                ((c + 0.055) / 1.055).powf(2.4)
+            }
+        };
         0.2126 * to_linear(r) + 0.7152 * to_linear(g) + 0.0722 * to_linear(b)
     };
 
     let get_contrast_assessment = |rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)| -> (f32, String) {
         let l1 = wcag_relative_luminance_rgb(rgb1);
         let l2 = wcag_relative_luminance_rgb(rgb2);
-        let ratio = if l1 > l2 { 
-            (l1 + algorithm_constants::WCAG_LUMINANCE_OFFSET) / (l2 + algorithm_constants::WCAG_LUMINANCE_OFFSET) 
-        } else { 
-            (l2 + algorithm_constants::WCAG_LUMINANCE_OFFSET) / (l1 + algorithm_constants::WCAG_LUMINANCE_OFFSET) 
+        let ratio = if l1 > l2 {
+            (l1 + algorithm_constants::WCAG_LUMINANCE_OFFSET)
+                / (l2 + algorithm_constants::WCAG_LUMINANCE_OFFSET)
+        } else {
+            (l2 + algorithm_constants::WCAG_LUMINANCE_OFFSET)
+                / (l1 + algorithm_constants::WCAG_LUMINANCE_OFFSET)
         };
-        let level = if ratio >= algorithm_constants::WCAG_AAA_THRESHOLD { 
-            "AAA" 
-        } else if ratio >= algorithm_constants::WCAG_AA_THRESHOLD { 
-            "AA" 
-        } else if ratio >= algorithm_constants::WCAG_AA_LARGE_THRESHOLD { 
-            "AA Large" 
-        } else { 
-            "Fail" 
+        let level = if ratio >= algorithm_constants::WCAG_AAA_THRESHOLD {
+            "AAA"
+        } else if ratio >= algorithm_constants::WCAG_AA_THRESHOLD {
+            "AA"
+        } else if ratio >= algorithm_constants::WCAG_AA_LARGE_THRESHOLD {
+            "AA Large"
+        } else {
+            "Fail"
         };
         (ratio as f32, level.to_string())
     };
@@ -88,14 +96,14 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     let start_srgb = Srgb::new(
         start_color.r as f32 / 255.0,
         start_color.g as f32 / 255.0,
-        start_color.b as f32 / 255.0
+        start_color.b as f32 / 255.0,
     );
     let start_lab: Lab = start_srgb.into_color();
-    
+
     let end_srgb = Srgb::new(
         end_color.r as f32 / 255.0,
         end_color.g as f32 / 255.0,
-        end_color.b as f32 / 255.0
+        end_color.b as f32 / 255.0,
     );
     let end_lab: Lab = end_srgb.into_color();
 
@@ -132,8 +140,7 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     // Calculate WCAG21 relative luminance for start and end colors
     let start_luminance =
         wcag_relative_luminance_rgb((start_color.r, start_color.g, start_color.b));
-    let end_luminance =
-        wcag_relative_luminance_rgb((end_color.r, end_color.g, end_color.b));
+    let end_luminance = wcag_relative_luminance_rgb((end_color.r, end_color.g, end_color.b));
 
     // Helper function to find color collections for a given RGB color
     let find_color_collections = |rgb: [u8; 3]| -> ColorCollectionMatches {
@@ -222,7 +229,8 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let luminance = wcag_relative_luminance_rgb(stop.rgb_color);
 
         // Calculate color distance from start_color using Delta E 2000
-        let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
+        let distance =
+            calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
 
         // Find closest color names
         let closest_css = color_manager
@@ -273,7 +281,8 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
         let luminance = wcag_relative_luminance_rgb(stop.rgb_color);
 
         // Calculate color distance from start_color using Delta E 2000
-        let distance = calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
+        let distance =
+            calculate_distance(DistanceAlgorithm::DeltaE2000, start_lab, stop.lab_color) as f32;
 
         // Get color collections for this stop
         let stop_collections =

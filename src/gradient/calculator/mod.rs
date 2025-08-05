@@ -8,18 +8,9 @@ pub mod algorithms;
 pub mod core;
 
 // Re-export main functionality for clean API
-pub use algorithms::{
-    IntelligentStopCalculator,
-    EqualSpacingCalculator,
-    cubic_bezier_ease,
-};
+pub use algorithms::{EqualSpacingCalculator, IntelligentStopCalculator, cubic_bezier_ease};
 
-pub use core::{
-    GradientCalculator,
-    CalculationAlgorithm,
-    GradientValue,
-    UnifiedGradientStop,
-};
+pub use core::{CalculationAlgorithm, GradientCalculator, GradientValue, UnifiedGradientStop};
 
 #[cfg(test)]
 mod integration_tests {
@@ -63,16 +54,16 @@ mod integration_tests {
         let end_lab = Lab::new(80.0, -30.0, 40.0);
 
         let simple_stops = GradientCalculator::calculate_unified_gradient(
-            start_lab, end_lab, 0, 100, 0.25, 0.75, 4, true
+            start_lab, end_lab, 0, 100, 0.25, 0.75, 4, true,
         );
 
         let smart_stops = GradientCalculator::calculate_unified_gradient(
-            start_lab, end_lab, 0, 100, 0.25, 0.75, 4, false
+            start_lab, end_lab, 0, 100, 0.25, 0.75, 4, false,
         );
 
         assert_eq!(simple_stops.len(), 4);
         assert_eq!(smart_stops.len(), 4);
-        
+
         // Both should have same start and end positions
         assert_eq!(simple_stops[0].position, 0);
         assert_eq!(simple_stops[3].position, 100);
@@ -96,7 +87,7 @@ mod integration_tests {
         assert_eq!(values[0].position, "10%");
         assert_eq!(values[1].position, "50%");
         assert_eq!(values[2].position, "90%");
-        
+
         // Check that all values have required fields
         for value in &values {
             assert!(!value.hex.is_empty());
@@ -110,10 +101,10 @@ mod integration_tests {
         // Test the cubic bezier easing function
         assert_eq!(cubic_bezier_ease(0.0, 0.42, 0.58), 0.0);
         assert_eq!(cubic_bezier_ease(1.0, 0.42, 0.58), 1.0);
-        
+
         let mid_result = cubic_bezier_ease(0.5, 0.42, 0.58);
         assert!(mid_result > 0.0 && mid_result < 1.0);
-        
+
         // Linear easing should return input
         let linear_result = cubic_bezier_ease(0.3, 0.0, 1.0);
         assert!((linear_result - 0.3).abs() < 0.001);

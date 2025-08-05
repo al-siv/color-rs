@@ -3,23 +3,23 @@
 //! This module provides strategy pattern implementations for different color space
 //! approaches to color harmony calculations. Supports both HSL and Lab color spaces.
 
-use palette::Lab;
 use super::algorithms::*;
+use palette::Lab;
 
 /// Trait for color scheme calculation strategies
 pub trait ColorSchemeStrategy {
     /// Calculate complementary color
     fn complementary(&self, color: Lab) -> Lab;
-    
+
     /// Calculate split-complementary colors
     fn split_complementary(&self, color: Lab) -> (Lab, Lab);
-    
+
     /// Calculate triadic colors
     fn triadic(&self, color: Lab) -> (Lab, Lab);
-    
+
     /// Calculate tetradic colors
     fn tetradic(&self, color: Lab) -> (Lab, Lab, Lab);
-    
+
     /// Get the name of this strategy
     fn name(&self) -> &'static str;
 }
@@ -107,13 +107,13 @@ mod tests {
     fn test_strategy_consistency() {
         let hsl_strategy = HslColorSchemeStrategy;
         let lab_strategy = LabColorSchemeStrategy;
-        
+
         let red_lab: Lab = Srgb::new(1.0, 0.0, 0.0).into_color();
-        
+
         // Both strategies should produce results
         let hsl_triadic = hsl_strategy.triadic(red_lab);
         let lab_triadic = lab_strategy.triadic(red_lab);
-        
+
         // Results should be different (different color spaces)
         assert!(hsl_triadic.0 != lab_triadic.0);
         assert!(hsl_triadic.1 != lab_triadic.1);

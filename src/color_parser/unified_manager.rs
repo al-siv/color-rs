@@ -146,8 +146,12 @@ impl UnifiedColorManager {
         algorithm: DistanceAlgorithm,
     ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_classic_collection
-            .find_closest_with_algorithm(&target, max_results, None, algorithm)
+        self.ral_classic_collection.find_closest_with_algorithm(
+            &target,
+            max_results,
+            None,
+            algorithm,
+        )
     }
 
     /// Find closest RAL Design System+ colors with custom distance algorithm
@@ -158,8 +162,12 @@ impl UnifiedColorManager {
         algorithm: DistanceAlgorithm,
     ) -> Vec<ColorMatch> {
         let target = UniversalColor::from_rgb(rgb);
-        self.ral_design_collection
-            .find_closest_with_algorithm(&target, max_results, None, algorithm)
+        self.ral_design_collection.find_closest_with_algorithm(
+            &target,
+            max_results,
+            None,
+            algorithm,
+        )
     }
 }
 

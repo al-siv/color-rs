@@ -3,10 +3,16 @@
 //! Provides configuration structures, preset functions, and convenience utilities
 //! for color parsing operations. Uses functional composition for flexible configuration.
 
+use super::parsers::{
+    get_css_color_name, get_custom_color_name, get_full_color_name, parse_css_color,
+    parse_custom_color, parse_full_color,
+};
+use super::pipeline::{
+    PostprocessingStep, PreprocessingStep, apply_postprocessing_pipeline,
+    apply_preprocessing_pipeline,
+};
 use crate::color_parser::ColorFormat;
 use crate::error::Result;
-use super::pipeline::{PreprocessingStep, PostprocessingStep, apply_preprocessing_pipeline, apply_postprocessing_pipeline};
-use super::parsers::{parse_css_color, parse_full_color, parse_custom_color, get_css_color_name, get_full_color_name, get_custom_color_name};
 
 /// Parser type configuration using enum dispatch (replaces trait objects)
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -87,13 +93,10 @@ impl ParsingConfig {
 }
 
 /// Main functional parsing interface - replaces factory methods
-pub fn parse_color(
-    input: &str,
-    config: &ParsingConfig,
-) -> Result<(palette::Lab, ColorFormat)> {
+pub fn parse_color(input: &str, config: &ParsingConfig) -> Result<(palette::Lab, ColorFormat)> {
     // Apply preprocessing pipeline
     let processed_input = apply_preprocessing_pipeline(input, &config.preprocessing);
-    
+
     // Parse based on parser type using pattern matching (not trait dispatch)
     match &config.parser_type {
         ParserType::Css => parse_css_color(&processed_input),
@@ -105,10 +108,7 @@ pub fn parse_color(
 }
 
 /// Get color name using functional approach - replaces trait method
-pub fn get_color_name(
-    rgb: [u8; 3],
-    config: &ParsingConfig,
-) -> String {
+pub fn get_color_name(rgb: [u8; 3], config: &ParsingConfig) -> String {
     let name = match &config.parser_type {
         ParserType::Css => get_css_color_name(rgb),
         ParserType::Full => get_full_color_name(rgb, config.color_tolerance),
@@ -132,8 +132,14 @@ pub fn get_parser_capabilities(config: &ParsingConfig) -> ParserCapabilities {
         ),
         ParserType::Full => (
             vec![
-                "HEX", "RGB", "RGBA", "HSL", "HSLA", "Named", 
-                "RAL Classic", "RAL Design"
+                "HEX",
+                "RGB",
+                "RGBA",
+                "HSL",
+                "HSLA",
+                "Named",
+                "RAL Classic",
+                "RAL Design",
             ]
             .into_iter()
             .map(String::from)
@@ -162,8 +168,7 @@ pub fn get_parser_capabilities(config: &ParsingConfig) -> ParserCapabilities {
 
 /// Fast parsing configuration (CSS only)
 pub fn fast_parsing_config() -> ParsingConfig {
-    ParsingConfig::new(ParserType::Css)
-        .with_preprocessing(PreprocessingStep::Trim)
+    ParsingConfig::new(ParserType::Css).with_preprocessing(PreprocessingStep::Trim)
 }
 
 /// Comprehensive parsing configuration (all collections)
@@ -178,19 +183,23 @@ pub fn comprehensive_parsing_config() -> ParsingConfig {
 
 /// Strict parsing configuration (validation focused)
 pub fn strict_parsing_config() -> ParsingConfig {
-    ParsingConfig::new(ParserType::Custom { strict_validation: true })
-        .with_tolerance(5.0)
-        .with_fallback_naming(false)
-        .with_preprocessing(PreprocessingStep::Trim)
-        .with_preprocessing(PreprocessingStep::Normalize)
-        .with_preprocessing(PreprocessingStep::RemoveSpecialChars)
+    ParsingConfig::new(ParserType::Custom {
+        strict_validation: true,
+    })
+    .with_tolerance(5.0)
+    .with_fallback_naming(false)
+    .with_preprocessing(PreprocessingStep::Trim)
+    .with_preprocessing(PreprocessingStep::Normalize)
+    .with_preprocessing(PreprocessingStep::RemoveSpecialChars)
 }
 
 /// Available parser types - compile-time constant
 pub const AVAILABLE_PARSER_TYPES: &[ParserType] = &[
     ParserType::Css,
     ParserType::Full,
-    ParserType::Custom { strict_validation: false },
+    ParserType::Custom {
+        strict_validation: false,
+    },
 ];
 
 /// Convenience functions - functional equivalents of factory presets

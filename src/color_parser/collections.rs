@@ -105,11 +105,7 @@ impl UniversalColor {
     }
 
     /// Calculate LAB distance to another color using a specific algorithm
-    pub fn distance_to_with_algorithm(
-        &self,
-        other: &Self,
-        algorithm: DistanceAlgorithm,
-    ) -> f64 {
+    pub fn distance_to_with_algorithm(&self, other: &Self, algorithm: DistanceAlgorithm) -> f64 {
         let lab1 = Lab::new(self.lab[0], self.lab[1], self.lab[2]);
         let lab2 = Lab::new(other.lab[0], other.lab[1], other.lab[2]);
         calculate_distance(algorithm, lab1, lab2)

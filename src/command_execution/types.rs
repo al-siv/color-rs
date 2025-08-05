@@ -173,6 +173,6 @@ impl ExecutionResult {
 pub const AVAILABLE_COMMAND_TYPES: &[&str] = &[
     "generate_gradient",
     "find_closest_color",
-    "analyze_color", 
+    "analyze_color",
     "convert_color",
 ];

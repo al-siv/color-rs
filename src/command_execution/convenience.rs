@@ -3,17 +3,23 @@
 //! This module provides functional equivalents of command creation patterns,
 //! using smart constructors and preset configurations.
 
+use super::execution::{
+    execute_command_enhanced, execute_command_simple, execute_command_with_validation,
+};
 use super::types::{CommandType, ExecutionResult};
-use super::execution::{execute_command_simple, execute_command_with_validation, execute_command_enhanced};
 use crate::error::Result;
 
 // Convenience functions - functional equivalents of command creation
 
 /// Create gradient generation command
 #[must_use]
-pub const fn create_gradient_command(start_color: String, end_color: String, stops: usize) -> CommandType {
+pub const fn create_gradient_command(
+    start_color: String,
+    end_color: String,
+    stops: usize,
+) -> CommandType {
     use crate::cli::GradientArgs;
-    
+
     // Create GradientArgs manually with actual fields
     let args = GradientArgs {
         start_color,
@@ -33,7 +39,7 @@ pub const fn create_gradient_command(start_color: String, end_color: String, sto
         output_file: None,
         func_filter: None,
     };
-    
+
     CommandType::GenerateGradient {
         args,
         output_path: None,

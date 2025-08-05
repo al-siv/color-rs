@@ -12,10 +12,7 @@ impl GradientConfig {
     ///
     /// # Errors
     /// Returns `ColorError` if color pair or easing configuration is invalid
-    pub fn new(
-        colors: ColorPair,
-        easing: EasingConfig,
-    ) -> Result<Self> {
+    pub fn new(colors: ColorPair, easing: EasingConfig) -> Result<Self> {
         Ok(Self {
             colors,
             easing,
@@ -54,7 +51,10 @@ impl GradientConfig {
 
     /// Update stop configuration (immutable)
     pub fn with_stop_config(self, stop_config: StopConfig) -> Self {
-        Self { stop_config, ..self }
+        Self {
+            stop_config,
+            ..self
+        }
     }
 
     /// Add SVG output (immutable)
@@ -62,8 +62,15 @@ impl GradientConfig {
     /// # Errors
     /// Returns `ColorError` if filename validation fails
     pub fn with_svg_output(self, filename: &str) -> Result<Self> {
-        let image_output = ImageOutput::svg(filename, self.image_output.width, self.image_output.show_legend)?;
-        Ok(Self { image_output, ..self })
+        let image_output = ImageOutput::svg(
+            filename,
+            self.image_output.width,
+            self.image_output.show_legend,
+        )?;
+        Ok(Self {
+            image_output,
+            ..self
+        })
     }
 
     /// Add PNG output (immutable)
@@ -71,8 +78,15 @@ impl GradientConfig {
     /// # Errors
     /// Returns `ColorError` if filename validation fails
     pub fn with_png_output(self, filename: &str) -> Result<Self> {
-        let image_output = ImageOutput::png(filename, self.image_output.width, self.image_output.show_legend)?;
-        Ok(Self { image_output, ..self })
+        let image_output = ImageOutput::png(
+            filename,
+            self.image_output.width,
+            self.image_output.show_legend,
+        )?;
+        Ok(Self {
+            image_output,
+            ..self
+        })
     }
 
     /// Add both SVG and PNG output (immutable)
@@ -80,8 +94,16 @@ impl GradientConfig {
     /// # Errors
     /// Returns `ColorError` if filename validation fails
     pub fn with_both_outputs(self, svg_name: &str, png_name: &str) -> Result<Self> {
-        let image_output = ImageOutput::both(svg_name, png_name, self.image_output.width, self.image_output.show_legend)?;
-        Ok(Self { image_output, ..self })
+        let image_output = ImageOutput::both(
+            svg_name,
+            png_name,
+            self.image_output.width,
+            self.image_output.show_legend,
+        )?;
+        Ok(Self {
+            image_output,
+            ..self
+        })
     }
 
     /// Update image width (immutable)
@@ -94,13 +116,19 @@ impl GradientConfig {
         }
 
         let image_output = Self::update_image_width(self.image_output, width);
-        Ok(Self { image_output, ..self })
+        Ok(Self {
+            image_output,
+            ..self
+        })
     }
 
     /// Toggle legend display (immutable)
     pub fn with_legend(self, show_legend: bool) -> Self {
         let image_output = Self::update_image_legend(self.image_output, show_legend);
-        Self { image_output, ..self }
+        Self {
+            image_output,
+            ..self
+        }
     }
 
     /// Add file output (immutable)
@@ -182,23 +210,33 @@ impl GradientConfig {
         let position_range = Self::create_position_range(&args)?;
         let stop_config = Self::create_stop_config(&args);
         let file_output = Self::create_file_output(&args)?;
-        
-        Self::build_configured_gradient(colors, easing, position_range, stop_config, file_output, &args)
+
+        Self::build_configured_gradient(
+            colors,
+            easing,
+            position_range,
+            stop_config,
+            file_output,
+            &args,
+        )
     }
 
     /// Validate and create color pair from CLI arguments
     fn validate_and_create_colors(args: &GradientArgs) -> Result<ColorPair> {
-        ColorPair::new(&args.start_color, &args.end_color).map_err(|e| ColorError::InvalidGradient(e.to_string()))
+        ColorPair::new(&args.start_color, &args.end_color)
+            .map_err(|e| ColorError::InvalidGradient(e.to_string()))
     }
 
     /// Create easing configuration from CLI arguments
     fn create_easing_config(args: &GradientArgs) -> Result<EasingConfig> {
-        EasingConfig::new(args.ease_in, args.ease_out).map_err(|e| ColorError::InvalidGradient(e.to_string()))
+        EasingConfig::new(args.ease_in, args.ease_out)
+            .map_err(|e| ColorError::InvalidGradient(e.to_string()))
     }
 
     /// Create position range from CLI arguments
     fn create_position_range(args: &GradientArgs) -> Result<PositionRange> {
-        PositionRange::new(args.start_position, args.end_position).map_err(|e| ColorError::InvalidGradient(e.to_string()))
+        PositionRange::new(args.start_position, args.end_position)
+            .map_err(|e| ColorError::InvalidGradient(e.to_string()))
     }
 
     /// Create stop configuration from CLI arguments
@@ -247,7 +285,7 @@ impl GradientConfig {
         let image_configured = Self::apply_image_output(stop_configured, args)?;
         let sized_config = image_configured.with_width(args.width)?;
         let legend_config = sized_config.with_legend(!args.no_legend);
-        
+
         let final_config = if let Some(file_out) = file_output {
             legend_config.with_file_output(file_out)
         } else {
@@ -260,18 +298,10 @@ impl GradientConfig {
     /// Apply image output configuration based on CLI arguments
     fn apply_image_output(config: Self, args: &GradientArgs) -> Result<Self> {
         match (&args.svg, &args.png) {
-            (Some(svg_name), Some(png_name)) => {
-                config.with_both_outputs(svg_name, png_name)
-            }
-            (Some(svg_name), None) => {
-                config.with_svg_output(svg_name)
-            }
-            (None, Some(png_name)) => {
-                config.with_png_output(png_name)
-            }
-            (None, None) => {
-                Ok(config)
-            }
+            (Some(svg_name), Some(png_name)) => config.with_both_outputs(svg_name, png_name),
+            (Some(svg_name), None) => config.with_svg_output(svg_name),
+            (None, Some(png_name)) => config.with_png_output(png_name),
+            (None, None) => Ok(config),
         }
     }
 

@@ -3,9 +3,9 @@
 //! This module implements color parsing using enum dispatch
 //! instead of trait objects for zero-cost abstractions.
 
-use crate::error::ColorError;
 use crate::color_parser::collections::ColorCollection;
 use crate::config::math_constants;
+use crate::error::ColorError;
 use palette::{IntoColor, Lab, Srgb};
 
 type Result<T> = std::result::Result<T, ColorError>;
@@ -37,7 +37,7 @@ impl ColorParser {
     /// Returns Ok(None) if this parser cannot parse the input
     /// Returns Err if there was an error during parsing
     /// Try to parse input string with this parser
-    /// 
+    ///
     /// # Errors
     /// Returns error if parsing fails due to invalid input format or data validation issues.
     pub fn try_parse(&self, input: &str) -> Result<Option<ParseResult>> {
@@ -55,7 +55,7 @@ impl ColorParser {
     pub const fn name(&self) -> &'static str {
         match self {
             Self::Hex => "HEX Parser",
-            Self::Rgb => "RGB Parser", 
+            Self::Rgb => "RGB Parser",
             Self::CssNamed => "CSS Named Parser",
             Self::Ral => "RAL Parser",
         }
@@ -188,7 +188,9 @@ impl ColorParser {
         let trimmed = input.trim().to_uppercase();
 
         // Try RAL Classic first
-        if let Ok(ral_classic) = crate::color_parser::ral_classic_collection::RalClassicCollection::new() {
+        if let Ok(ral_classic) =
+            crate::color_parser::ral_classic_collection::RalClassicCollection::new()
+        {
             if let Some(color_entry) = ral_classic.find_by_name(&trimmed) {
                 let lab = Lab::new(
                     color_entry.color.lab[0],
@@ -204,7 +206,9 @@ impl ColorParser {
         }
 
         // Try RAL Design
-        if let Ok(ral_design) = crate::color_parser::ral_design_collection::RalDesignCollection::new() {
+        if let Ok(ral_design) =
+            crate::color_parser::ral_design_collection::RalDesignCollection::new()
+        {
             if let Some(color_entry) = ral_design.find_by_name(&trimmed) {
                 let lab = Lab::new(
                     color_entry.color.lab[0],
@@ -256,7 +260,7 @@ impl ColorParsingChain {
 
     /// Attempts to parse the input using all parsers in sequence
     /// Parse color input using the configured parser chain
-    /// 
+    ///
     /// # Errors
     /// Returns `ColorError::ParseError` if none of the parsers in the chain can
     /// successfully parse the input string.
@@ -286,13 +290,13 @@ mod tests {
     #[test]
     fn test_hex_parsing() {
         let parser = ColorParser::Hex;
-        
+
         // Test valid hex colors
         assert!(parser.try_parse("#FF0000").unwrap().is_some());
         assert!(parser.try_parse("FF0000").unwrap().is_some());
         assert!(parser.try_parse("#F00").unwrap().is_some());
         assert!(parser.try_parse("F00").unwrap().is_some());
-        
+
         // Test invalid formats
         assert!(parser.try_parse("rgb(255,0,0)").unwrap().is_none());
         assert!(parser.try_parse("red").unwrap().is_none());
@@ -302,11 +306,11 @@ mod tests {
     #[test]
     fn test_rgb_parsing() {
         let parser = ColorParser::Rgb;
-        
+
         // Test valid RGB colors
         assert!(parser.try_parse("rgb(255, 0, 0)").unwrap().is_some());
         assert!(parser.try_parse("rgb(255,0,0)").unwrap().is_some());
-        
+
         // Test invalid formats
         assert!(parser.try_parse("#FF0000").unwrap().is_none());
         assert!(parser.try_parse("red").unwrap().is_none());
@@ -316,12 +320,12 @@ mod tests {
     #[test]
     fn test_parsing_chain() {
         let chain = ColorParsingChain::new();
-        
+
         // Test that chain can parse different formats
         assert!(chain.parse("#FF0000").is_ok());
         assert!(chain.parse("rgb(255, 0, 0)").is_ok());
         assert!(chain.parse("red").is_ok());
-        
+
         // Test failure case
         assert!(chain.parse("invalid_color").is_err());
     }
@@ -330,7 +334,7 @@ mod tests {
     fn test_parser_names() {
         let chain = ColorParsingChain::new();
         let names = chain.parser_names();
-        
+
         assert_eq!(names.len(), 4);
         assert!(names.contains(&"HEX Parser"));
         assert!(names.contains(&"RGB Parser"));

@@ -1,0 +1,37 @@
+collection = "ralc"
+
+[[colors]]
+code = "RAL 2001"
+hue = 50.1
+hex = "#A74D23"
+
+[[colors]]
+code = "RAL 8002"
+hue = 50.6
+hex = "#704F40"
+
+[[colors]]
+code = "RAL 3012"
+hue = 51.0
+hex = "#B7856E"
+
+[[colors]]
+code = "RAL 2010"
+hue = 53.2
+hex = "#BC602D"
+
+[[colors]]
+code = "RAL 2009"
+hue = 53.4
+hex = "#C9560D"
+
+[[colors]]
+code = "RAL 2004"
+hue = 53.5
+hex = "#CC5608"
+
+[[colors]]
+code = "RAL 2017"
+hue = 53.6
+hex = "#DC5B00"
+

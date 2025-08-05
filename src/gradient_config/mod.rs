@@ -21,14 +21,14 @@
 //! # }
 //! ```
 
-pub mod types;
-pub mod validation;
 pub mod config;
 pub mod convenience;
+pub mod types;
+pub mod validation;
 
 // Re-export all public types and functions
-pub use types::*;
 pub use convenience::*;
+pub use types::*;
 
 #[cfg(test)]
 mod tests {
@@ -119,14 +119,17 @@ mod tests {
     #[test]
     fn test_gradient_config_immutable_updates() {
         let original = linear_gradient("#FF0000", "#0000FF").unwrap();
-        
+
         let with_svg = original.clone().with_svg_output("test.svg").unwrap();
         assert!(with_svg.image_output().has_svg());
         assert!(!original.image_output().has_svg()); // Original unchanged
 
         let with_steps = original.clone().with_steps(5).unwrap();
         assert!(matches!(with_steps.stop_config(), StopConfig::Steps(5)));
-        assert!(matches!(original.stop_config(), StopConfig::IntelligentStops(5))); // Original unchanged
+        assert!(matches!(
+            original.stop_config(),
+            StopConfig::IntelligentStops(5)
+        )); // Original unchanged
     }
 
     #[test]
@@ -185,14 +188,10 @@ mod tests {
         let result = linear_gradient("", "#0000FF");
         assert!(result.is_err());
 
-        let result = linear_gradient("#FF0000", "#0000FF")
-            .unwrap()
-            .with_steps(0);
+        let result = linear_gradient("#FF0000", "#0000FF").unwrap().with_steps(0);
         assert!(result.is_err());
 
-        let result = linear_gradient("#FF0000", "#0000FF")
-            .unwrap()
-            .with_width(0);
+        let result = linear_gradient("#FF0000", "#0000FF").unwrap().with_width(0);
         assert!(result.is_err());
     }
 }

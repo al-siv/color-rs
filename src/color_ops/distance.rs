@@ -3,8 +3,8 @@
 //! Pure functions for calculating perceptual and mathematical distances between colors.
 //! Supports multiple distance algorithms including Delta E variants.
 
-use crate::color_distance_strategies::{calculate_distance, DistanceAlgorithm};
-use palette::{Lab, Srgb, IntoColor};
+use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
+use palette::{IntoColor, Lab, Srgb};
 
 /// Calculate Delta E CIE76 distance between two colors
 ///
@@ -115,11 +115,11 @@ pub fn rgb_euclidean(color1: Srgb, color2: Srgb) -> f64 {
     let r1 = color1.red as f64;
     let g1 = color1.green as f64;
     let b1 = color1.blue as f64;
-    
+
     let r2 = color2.red as f64;
     let g2 = color2.green as f64;
     let b2 = color2.blue as f64;
-    
+
     ((r2 - r1).powi(2) + (g2 - g1).powi(2) + (b2 - b1).powi(2)).sqrt()
 }
 
@@ -189,7 +189,7 @@ pub fn lab_direct(lab1: Lab, lab2: Lab) -> f64 {
 ///     Srgb::new(0.6, 0.6, 0.6),
 ///     Srgb::new(1.0, 0.0, 0.0),
 /// ];
-/// 
+///
 /// let (closest_index, distance) = distance::find_closest(target, &candidates);
 /// ```
 pub fn find_closest(target: Srgb, candidates: &[Srgb]) -> (usize, f64) {
@@ -224,7 +224,7 @@ mod tests {
         let red = Srgb::new(1.0, 0.0, 0.0);
         let green = Srgb::new(0.0, 1.0, 0.0);
         let distance = rgb_euclidean(red, green);
-        
+
         // Should be sqrt(2) for unit distance in two dimensions
         assert!((distance - 2.0_f64.sqrt()).abs() < 1e-6);
     }
@@ -234,7 +234,7 @@ mod tests {
         let lab1 = Lab::new(50.0, 0.0, 0.0);
         let lab2 = Lab::new(60.0, 0.0, 0.0);
         let distance = lab_direct(lab1, lab2);
-        
+
         assert!((distance - 10.0).abs() < 1e-6);
     }
 
@@ -242,11 +242,11 @@ mod tests {
     fn test_find_closest() {
         let target = Srgb::new(0.5, 0.5, 0.5);
         let candidates = vec![
-            Srgb::new(0.6, 0.6, 0.6), // Close
-            Srgb::new(1.0, 0.0, 0.0), // Far
+            Srgb::new(0.6, 0.6, 0.6),   // Close
+            Srgb::new(1.0, 0.0, 0.0),   // Far
             Srgb::new(0.51, 0.49, 0.5), // Very close
         ];
-        
+
         let (closest_index, _distance) = find_closest(target, &candidates);
         assert_eq!(closest_index, 2); // The very close one
     }
@@ -255,7 +255,7 @@ mod tests {
     fn test_perceptual_distance_alias() {
         let color1 = Srgb::new(0.3, 0.6, 0.9);
         let color2 = Srgb::new(0.4, 0.7, 0.8);
-        
+
         assert_eq!(
             perceptual_distance(color1, color2),
             delta_e_2000(color1, color2)
@@ -266,7 +266,7 @@ mod tests {
     fn test_distance_symmetry() {
         let color1 = Srgb::new(0.2, 0.4, 0.8);
         let color2 = Srgb::new(0.6, 0.3, 0.1);
-        
+
         // Distance should be symmetric
         assert!((delta_e_2000(color1, color2) - delta_e_2000(color2, color1)).abs() < 1e-10);
         assert!((rgb_euclidean(color1, color2) - rgb_euclidean(color2, color1)).abs() < 1e-10);

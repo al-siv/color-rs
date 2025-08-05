@@ -3,12 +3,12 @@
 //! This module provides the main execution engine for command processing,
 //! using functional composition and pattern matching instead of virtual dispatch.
 
-use crate::error::{ColorError, Result};
-use super::types::{CommandType, ExecutionContext, ExecutionResult, PreHookStep, PostHookStep};
 use super::commands::{
-    execute_generate_gradient, execute_find_closest_color,
-    execute_analyze_color, execute_convert_color
+    execute_analyze_color, execute_convert_color, execute_find_closest_color,
+    execute_generate_gradient,
 };
+use super::types::{CommandType, ExecutionContext, ExecutionResult, PostHookStep, PreHookStep};
+use crate::error::{ColorError, Result};
 
 /// Main functional command execution - replaces Command trait methods
 /// # Errors
@@ -22,8 +22,8 @@ pub fn execute_command(context: &ExecutionContext) -> Result<ExecutionResult> {
 /// # Errors  
 /// Returns error if command execution or hooks fail
 pub fn execute_command_with_clock(
-    context: &ExecutionContext, 
-    clock: &dyn crate::clock::Clock
+    context: &ExecutionContext,
+    clock: &dyn crate::clock::Clock,
 ) -> Result<ExecutionResult> {
     let start_time = clock.instant_now();
 
@@ -39,15 +39,22 @@ pub fn execute_command_with_clock(
         CommandType::GenerateGradient { args, output_path } => {
             execute_generate_gradient(args, output_path.as_deref())
         }
-        CommandType::FindClosestColor { color_input, collection, algorithm, count } => {
-            execute_find_closest_color(color_input, collection.as_deref(), algorithm, *count)
-        }
-        CommandType::AnalyzeColor { color_input, include_schemes, output_format } => {
-            execute_analyze_color(color_input, *include_schemes, output_format)
-        }
-        CommandType::ConvertColor { color_input, target_format, precision } => {
-            execute_convert_color(color_input, target_format, *precision)
-        }
+        CommandType::FindClosestColor {
+            color_input,
+            collection,
+            algorithm,
+            count,
+        } => execute_find_closest_color(color_input, collection.as_deref(), algorithm, *count),
+        CommandType::AnalyzeColor {
+            color_input,
+            include_schemes,
+            output_format,
+        } => execute_analyze_color(color_input, *include_schemes, output_format),
+        CommandType::ConvertColor {
+            color_input,
+            target_format,
+            precision,
+        } => execute_convert_color(color_input, target_format, *precision),
     }?;
 
     // Add context metadata
@@ -116,7 +123,7 @@ pub fn execute_command_with_validation(command_type: CommandType) -> Result<Exec
         .with_pre_hook(PreHookStep::ValidateParameters)
         .with_pre_hook(PreHookStep::LogStart)
         .with_post_hook(PostHookStep::LogCompletion);
-    
+
     execute_command(&context)
 }
 
@@ -131,7 +138,7 @@ pub fn execute_command_enhanced(command_type: CommandType) -> Result<ExecutionRe
         .with_post_hook(PostHookStep::FormatOutput)
         .with_post_hook(PostHookStep::LogCompletion)
         .with_post_hook(PostHookStep::SaveOutput);
-    
+
     execute_command(&context)
 }
 
@@ -168,28 +175,46 @@ fn validate_command_parameters(command_type: &CommandType) -> Result<()> {
     match command_type {
         CommandType::GenerateGradient { args, .. } => {
             if args.start_color.is_empty() || args.end_color.is_empty() {
-                return Err(ColorError::InvalidArguments("Start and end colors required".to_string()));
+                return Err(ColorError::InvalidArguments(
+                    "Start and end colors required".to_string(),
+                ));
             }
             if args.stops < 2 {
-                return Err(ColorError::InvalidArguments("At least 2 gradient steps required".to_string()));
+                return Err(ColorError::InvalidArguments(
+                    "At least 2 gradient steps required".to_string(),
+                ));
             }
         }
-        CommandType::FindClosestColor { color_input, count, .. } => {
+        CommandType::FindClosestColor {
+            color_input, count, ..
+        } => {
             if color_input.is_empty() {
-                return Err(ColorError::InvalidArguments("Color input required".to_string()));
+                return Err(ColorError::InvalidArguments(
+                    "Color input required".to_string(),
+                ));
             }
             if *count == 0 {
-                return Err(ColorError::InvalidArguments("Count must be greater than 0".to_string()));
+                return Err(ColorError::InvalidArguments(
+                    "Count must be greater than 0".to_string(),
+                ));
             }
         }
         CommandType::AnalyzeColor { color_input, .. } => {
             if color_input.is_empty() {
-                return Err(ColorError::InvalidArguments("Color input required".to_string()));
+                return Err(ColorError::InvalidArguments(
+                    "Color input required".to_string(),
+                ));
             }
         }
-        CommandType::ConvertColor { color_input, target_format, .. } => {
+        CommandType::ConvertColor {
+            color_input,
+            target_format,
+            ..
+        } => {
             if color_input.is_empty() || target_format.is_empty() {
-                return Err(ColorError::InvalidArguments("Color input and target format required".to_string()));
+                return Err(ColorError::InvalidArguments(
+                    "Color input and target format required".to_string(),
+                ));
             }
         }
     }
@@ -203,7 +228,10 @@ const fn check_command_prerequisites(_command_type: &CommandType) {
 fn format_command_output(mut result: ExecutionResult) -> ExecutionResult {
     // Add formatting markers or structure output
     if result.success && !result.output.is_empty() {
-        result.output = format!("=== Command Output ===\n{}\n=== End Output ===", result.output);
+        result.output = format!(
+            "=== Command Output ===\n{}\n=== End Output ===",
+            result.output
+        );
     }
     result
 }

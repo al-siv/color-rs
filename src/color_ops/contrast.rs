@@ -56,12 +56,12 @@ pub fn wcag_ratio_rgb(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> f64 {
     let color1 = Srgb::new(
         rgb1.0 as f32 / 255.0,
         rgb1.1 as f32 / 255.0,
-        rgb1.2 as f32 / 255.0
+        rgb1.2 as f32 / 255.0,
     );
     let color2 = Srgb::new(
         rgb2.0 as f32 / 255.0,
         rgb2.1 as f32 / 255.0,
-        rgb2.2 as f32 / 255.0
+        rgb2.2 as f32 / 255.0,
     );
     wcag_ratio(color1, color2)
 }
@@ -84,7 +84,7 @@ pub fn wcag_ratio_rgb(rgb1: (u8, u8, u8), rgb2: (u8, u8, u8)) -> f64 {
 ///
 /// let color1 = Srgb::new(0.8, 0.8, 0.8);
 /// let color2 = Srgb::new(0.2, 0.2, 0.2);
-/// 
+///
 /// let lum1 = luminance::wcag_relative(color1);
 /// let lum2 = luminance::wcag_relative(color2);
 /// let ratio = contrast::from_luminance(lum1, lum2);
@@ -207,7 +207,7 @@ pub fn max_background_luminance(text_luminance: f64, min_ratio: f64) -> f64 {
     // For darker backgrounds: (text_lum + 0.05) / (bg_lum + 0.05) = min_ratio
     // Solving for bg_lum: bg_lum = (text_lum + 0.05) / min_ratio - 0.05
     let max_dark_bg = ((text_luminance + 0.05) / min_ratio - 0.05).max(0.0);
-    
+
     // Return the maximum background luminance
     max_dark_bg.max(0.0).min(1.0)
 }
@@ -240,7 +240,7 @@ mod tests {
     fn test_contrast_symmetry() {
         let color1 = Srgb::new(0.3, 0.6, 0.9);
         let color2 = Srgb::new(0.8, 0.2, 0.1);
-        
+
         // Contrast should be symmetric
         assert!((wcag_ratio(color1, color2) - wcag_ratio(color2, color1)).abs() < 1e-10);
     }
@@ -250,7 +250,7 @@ mod tests {
         let lum1 = 0.8;
         let lum2 = 0.2;
         let ratio = from_luminance(lum1, lum2);
-        
+
         // Manual calculation: (0.8 + 0.05) / (0.2 + 0.05) = 0.85 / 0.25 = 3.4
         assert!((ratio - 3.4).abs() < 1e-6);
     }
@@ -259,15 +259,15 @@ mod tests {
     fn test_wcag_compliance_standards() {
         // Test AA standards
         assert!(meets_aa_standard(4.5, false)); // Normal text
-        assert!(meets_aa_standard(3.0, true));  // Large text
+        assert!(meets_aa_standard(3.0, true)); // Large text
         assert!(!meets_aa_standard(4.4, false)); // Fails normal
-        assert!(!meets_aa_standard(2.9, true));  // Fails large
+        assert!(!meets_aa_standard(2.9, true)); // Fails large
 
         // Test AAA standards
         assert!(meets_aaa_standard(7.0, false)); // Normal text
-        assert!(meets_aaa_standard(4.5, true));  // Large text
+        assert!(meets_aaa_standard(4.5, true)); // Large text
         assert!(!meets_aaa_standard(6.9, false)); // Fails normal
-        assert!(!meets_aaa_standard(4.4, true));  // Fails large
+        assert!(!meets_aaa_standard(4.4, true)); // Fails large
     }
 
     #[test]
@@ -275,7 +275,7 @@ mod tests {
         assert_eq!(compliance_level(8.0, false), "AAA");
         assert_eq!(compliance_level(5.0, false), "AA");
         assert_eq!(compliance_level(3.0, false), "Fail");
-        
+
         assert_eq!(compliance_level(5.0, true), "AAA");
         assert_eq!(compliance_level(3.5, true), "AA");
         assert_eq!(compliance_level(2.5, true), "Fail");
@@ -284,11 +284,8 @@ mod tests {
     #[test]
     fn test_rgb_tuple_interface() {
         let ratio1 = wcag_ratio_rgb((255, 255, 255), (0, 0, 0));
-        let ratio2 = wcag_ratio(
-            Srgb::new(1.0, 1.0, 1.0),
-            Srgb::new(0.0, 0.0, 0.0)
-        );
-        
+        let ratio2 = wcag_ratio(Srgb::new(1.0, 1.0, 1.0), Srgb::new(0.0, 0.0, 0.0));
+
         assert!((ratio1 - ratio2).abs() < 1e-6);
     }
 
@@ -296,7 +293,7 @@ mod tests {
     fn test_ratio_alias() {
         let color1 = Srgb::new(0.7, 0.3, 0.5);
         let color2 = Srgb::new(0.2, 0.8, 0.4);
-        
+
         assert_eq!(ratio(color1, color2), wcag_ratio(color1, color2));
     }
 }

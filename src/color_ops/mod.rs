@@ -11,7 +11,7 @@
 //! - Compile-time optimizations
 //!
 //! # Module Organization
-//! 
+//!
 //! - **luminance**: WCAG luminance and brightness calculations
 //! - **distance**: Perceptual and mathematical color distance metrics
 //! - **contrast**: WCAG contrast ratios and accessibility compliance
@@ -49,27 +49,26 @@
 //! ```
 
 // Core operation modules
-pub mod luminance;
-pub mod distance;
+pub mod analysis;
 pub mod contrast;
 pub mod conversion;
-pub mod analysis;
+pub mod distance;
+pub mod luminance;
 pub mod mixing;
 
 // Re-export commonly used functions for convenience
-pub use luminance::{wcag_relative, perceived_brightness, relative_luminance};
-pub use distance::{delta_e_2000, perceptual_distance, find_closest, delta_e_cie76, delta_e_cie94};
-pub use contrast::{wcag_ratio, meets_aa_standard, meets_aaa_standard, compliance_level, ratio};
-pub use conversion::{
-    srgb_to_hsl, srgb_to_lab, srgb_to_lch, srgb_to_hsv,
-    hex_to_srgb, srgb_to_hex, rgb_tuple_to_srgb, srgb_to_rgb_tuple
-};
 pub use analysis::{
-    analyze_color, compare_colors, ColorAnalysis, ColorComparison,
-    ColorProperties, ColorSpaces, PerceptualData, AccessibilityData
+    AccessibilityData, ColorAnalysis, ColorComparison, ColorProperties, ColorSpaces,
+    PerceptualData, analyze_color, compare_colors,
 };
+pub use contrast::{compliance_level, meets_aa_standard, meets_aaa_standard, ratio, wcag_ratio};
+pub use conversion::{
+    hex_to_srgb, rgb_tuple_to_srgb, srgb_to_hex, srgb_to_hsl, srgb_to_hsv, srgb_to_lab,
+    srgb_to_lch, srgb_to_rgb_tuple,
+};
+pub use distance::{delta_e_2000, delta_e_cie76, delta_e_cie94, find_closest, perceptual_distance};
+pub use luminance::{perceived_brightness, relative_luminance, wcag_relative};
 pub use mixing::{
-    mix, lab_interpolation, lch_interpolation, linear_rgb,
-    create_palette, weighted_mix, ColorSpace,
-    multiply_blend, screen_blend, overlay_blend
+    ColorSpace, create_palette, lab_interpolation, lch_interpolation, linear_rgb, mix,
+    multiply_blend, overlay_blend, screen_blend, weighted_mix,
 };

@@ -14,16 +14,16 @@ use super::conversions::{ColorSpaces, SerializableRgb, get_color_spaces};
 pub struct ColorAnalysis {
     /// Original color being analyzed
     pub color: SerializableRgb,
-    
+
     /// Basic color properties
     pub properties: ColorProperties,
-    
+
     /// Color space representations
     pub color_spaces: ColorSpaces,
-    
+
     /// Perceptual characteristics
     pub perception: PerceptualData,
-    
+
     /// Accessibility information
     pub accessibility: AccessibilityData,
 }
@@ -33,19 +33,19 @@ pub struct ColorAnalysis {
 pub struct ColorProperties {
     /// WCAG relative luminance (0.0 to 1.0)
     pub luminance: f64,
-    
+
     /// Perceived brightness (0.0 to 100.0)
     pub brightness: f64,
-    
+
     /// Whether color is considered light
     pub is_light: bool,
-    
+
     /// Whether color is considered dark
     pub is_dark: bool,
-    
+
     /// RGB tuple representation (0-255)
     pub rgb_tuple: (u8, u8, u8),
-    
+
     /// Hexadecimal representation
     pub hex: String,
 }
@@ -55,13 +55,13 @@ pub struct ColorProperties {
 pub struct PerceptualData {
     /// Hue category (e.g., "Red", "Blue-Green")
     pub hue_category: String,
-    
+
     /// Color temperature ("Warm", "Cool", "Neutral")
     pub temperature: String,
-    
+
     /// Saturation level description
     pub saturation_level: String,
-    
+
     /// Mood/emotion association
     pub mood: String,
 }
@@ -71,7 +71,7 @@ pub struct PerceptualData {
 pub struct AccessibilityData {
     /// Text color recommendations for this background
     pub text_recommendations: TextRecommendations,
-    
+
     /// WCAG compliance information
     pub wcag_info: WcagInfo,
 }
@@ -81,13 +81,13 @@ pub struct AccessibilityData {
 pub struct TextRecommendations {
     /// Best high contrast color (black or white)
     pub high_contrast: SerializableRgb,
-    
+
     /// Contrast ratio with high contrast color
     pub high_contrast_ratio: f64,
-    
+
     /// Alternative text colors that meet AA standards
     pub aa_compliant: Vec<SerializableRgb>,
-    
+
     /// Alternative text colors that meet AAA standards
     pub aaa_compliant: Vec<SerializableRgb>,
 }
@@ -97,10 +97,10 @@ pub struct TextRecommendations {
 pub struct WcagInfo {
     /// Whether color alone can convey information (should be false)
     pub relies_on_color_alone: bool,
-    
+
     /// Minimum luminance difference needed for AA compliance
     pub min_luminance_diff_aa: f64,
-    
+
     /// Minimum luminance difference needed for AAA compliance
     pub min_luminance_diff_aaa: f64,
 }
@@ -123,7 +123,7 @@ pub struct WcagInfo {
 ///
 /// let red = Srgb::new(1.0, 0.0, 0.0);
 /// let analysis = analysis::analyze_color(red);
-/// 
+///
 /// assert!(analysis.properties.is_dark);
 /// assert_eq!(analysis.perception.hue_category, "Red");
 /// ```
@@ -132,7 +132,7 @@ pub fn analyze_color(color: Srgb) -> ColorAnalysis {
     let color_spaces = get_color_spaces(color);
     let perception = analyze_perception(color, &color_spaces);
     let accessibility = analyze_accessibility(color);
-    
+
     ColorAnalysis {
         color: color.into(),
         properties,
@@ -148,10 +148,10 @@ fn analyze_properties(color: Srgb) -> ColorProperties {
     let brightness = luminance::perceived_brightness(color);
     let is_light = luminance_val > 0.5;
     let is_dark = !is_light;
-    
+
     let rgb_tuple = crate::color_ops::conversion::srgb_to_rgb_tuple(color);
     let hex = crate::color_ops::conversion::srgb_to_hex(color);
-    
+
     ColorProperties {
         luminance: luminance_val,
         brightness,
@@ -168,7 +168,7 @@ fn analyze_perception(_color: Srgb, color_spaces: &ColorSpaces) -> PerceptualDat
     let temperature = classify_temperature(color_spaces.hsv.hue);
     let saturation_level = classify_saturation(color_spaces.hsv.saturation);
     let mood = classify_mood(&hue_category, &temperature, color_spaces.hsv.value);
-    
+
     PerceptualData {
         hue_category,
         temperature,
@@ -181,7 +181,7 @@ fn analyze_perception(_color: Srgb, color_spaces: &ColorSpaces) -> PerceptualDat
 fn analyze_accessibility(color: Srgb) -> AccessibilityData {
     let text_recommendations = get_text_recommendations(color);
     let wcag_info = get_wcag_info(color);
-    
+
     AccessibilityData {
         text_recommendations,
         wcag_info,
@@ -194,7 +194,7 @@ fn get_text_recommendations(background: Srgb) -> TextRecommendations {
     let (high_contrast, high_contrast_ratio) = find_best_contrast_color(background);
     let aa_compliant_colors = generate_compliant_colors(background, 4.5);
     let aaa_compliant_colors = generate_compliant_colors(background, 7.0);
-    
+
     TextRecommendations {
         high_contrast: high_contrast.into(),
         high_contrast_ratio,
@@ -207,10 +207,10 @@ fn get_text_recommendations(background: Srgb) -> TextRecommendations {
 fn find_best_contrast_color(background: Srgb) -> (Srgb, f64) {
     let white = Srgb::new(1.0, 1.0, 1.0);
     let black = Srgb::new(0.0, 0.0, 0.0);
-    
+
     let white_ratio = contrast::wcag_ratio(white, background);
     let black_ratio = contrast::wcag_ratio(black, background);
-    
+
     if white_ratio > black_ratio {
         (white, white_ratio)
     } else {
@@ -221,7 +221,7 @@ fn find_best_contrast_color(background: Srgb) -> (Srgb, f64) {
 /// Generate colors that meet contrast requirements
 fn generate_compliant_colors(background: Srgb, min_ratio: f64) -> Vec<Srgb> {
     let mut compliant = Vec::new();
-    
+
     // Test grayscale colors
     for lightness in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] {
         let test_color = Srgb::new(lightness, lightness, lightness);
@@ -229,7 +229,7 @@ fn generate_compliant_colors(background: Srgb, min_ratio: f64) -> Vec<Srgb> {
             compliant.push(test_color);
         }
     }
-    
+
     compliant
 }
 
@@ -293,8 +293,14 @@ pub fn classify_mood(hue_category: &str, _temperature: &str, value: f32) -> Stri
         "Red-Violet" => "Passionate",
         _ => "Neutral",
     };
-    
-    let intensity = if value > 0.7 { "Bright" } else if value < 0.3 { "Dark" } else { "Medium" };
-    
+
+    let intensity = if value > 0.7 {
+        "Bright"
+    } else if value < 0.3 {
+        "Dark"
+    } else {
+        "Medium"
+    };
+
     format!("{} {}", intensity, base_mood)
 }

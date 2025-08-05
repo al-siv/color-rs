@@ -1,19 +1,16 @@
 //! Smart Constructors and Data Validation Demo for Milestone 1.1c
-//! 
+//!
 //! This example demonstrates the advanced functional programming patterns
 //! implemented for data validation and type safety.
 
-use color_rs::color_distance_strategies::{
-    ValidatedLab, ValidationError,
-    DistanceAlgorithm
-};
+use color_rs::color_distance_strategies::{DistanceAlgorithm, ValidatedLab, ValidationError};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Smart Constructors and Data Validation Demo ===\n");
 
     // 1. Smart Constructor Validation
     println!("1. Smart Constructor Validation:");
-    
+
     // Valid LAB color
     match ValidatedLab::new(50.0, 20.0, -30.0) {
         Ok(validated_lab) => {
@@ -33,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 2. Field Access Methods
     println!("\n2. Field Access Methods:");
-    
+
     let validated = ValidatedLab::new(50.0, 20.0, -30.0)?;
     println!("Original LAB: {:?}", validated.into_lab());
     println!("Lightness: {:.2}", validated.l());
@@ -42,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 3. Immutable Updates using with_* methods
     println!("\n3. Immutable Updates:");
-    
+
     // Update lightness immutably
     let updated_lightness = validated.with_lightness(75.0)?;
     println!("Updated lightness: {:?}", updated_lightness.into_lab());
@@ -53,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 4. Validated Distance Calculations
     println!("\n4. Validated Distance Calculations:");
-    
+
     let lab1 = ValidatedLab::new(50.0, 20.0, -30.0)?;
     let lab2 = ValidatedLab::new(60.0, 10.0, -20.0)?;
 
@@ -65,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 5. Validation Error Handling
     println!("\n5. Comprehensive Validation Error Handling:");
-    
+
     let validation_cases = vec![
         (150.0, 0.0, 0.0, "Invalid lightness (>100)"),
         (-10.0, 0.0, 0.0, "Invalid lightness (<0)"),
@@ -87,13 +84,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
     let lab1 = ValidatedLab::new(50.0, 20.0, -30.0)?;
     let lab2 = ValidatedLab::new(60.0, 10.0, -20.0)?;
-    
+
     for _ in 0..100_000 {
         let _ = DistanceAlgorithm::Lch.calculate_distance(lab1, lab2);
     }
     let duration = start.elapsed();
-    println!("✅ 100,000 validated distance calculations in {:?}", duration);
-    println!("   Rate: {:.2} million calculations/second", 100.0 / duration.as_secs_f64());
+    println!(
+        "✅ 100,000 validated distance calculations in {:?}",
+        duration
+    );
+    println!(
+        "   Rate: {:.2} million calculations/second",
+        100.0 / duration.as_secs_f64()
+    );
 
     println!("\n=== Demo Complete: Smart Constructors & Data Validation ===");
     println!("✨ Milestone 1.1c: Data validation through smart constructors");

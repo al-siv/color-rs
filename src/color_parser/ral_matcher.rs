@@ -10,7 +10,7 @@ use super::compat::{
 };
 #[cfg(test)]
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
-use palette::{Lab, Srgb, IntoColor};
+use palette::{IntoColor, Lab, Srgb};
 use regex::Regex;
 use std::sync::OnceLock;
 
@@ -195,15 +195,33 @@ mod tests {
 
         // Calculate distances using functional approach
         let input_lab_color = Lab::new(input_lab[0], input_lab[1], input_lab[2]);
-        let green_6038_lab_color = Lab::new(green_6038_lab[0], green_6038_lab[1], green_6038_lab[2]);
-        let green_6018_lab_color = Lab::new(green_6018_lab[0], green_6018_lab[1], green_6018_lab[2]);
+        let green_6038_lab_color =
+            Lab::new(green_6038_lab[0], green_6038_lab[1], green_6038_lab[2]);
+        let green_6018_lab_color =
+            Lab::new(green_6018_lab[0], green_6018_lab[1], green_6018_lab[2]);
         let blue_5000_lab_color = Lab::new(blue_5000_lab[0], blue_5000_lab[1], blue_5000_lab[2]);
         let blue_5007_lab_color = Lab::new(blue_5007_lab[0], blue_5007_lab[1], blue_5007_lab[2]);
-        
-        let green_6038_dist = calculate_distance(DistanceAlgorithm::DeltaE2000, input_lab_color, green_6038_lab_color);
-        let green_6018_dist = calculate_distance(DistanceAlgorithm::DeltaE2000, input_lab_color, green_6018_lab_color);
-        let blue_5000_dist = calculate_distance(DistanceAlgorithm::DeltaE2000, input_lab_color, blue_5000_lab_color);
-        let blue_5007_dist = calculate_distance(DistanceAlgorithm::DeltaE2000, input_lab_color, blue_5007_lab_color);
+
+        let green_6038_dist = calculate_distance(
+            DistanceAlgorithm::DeltaE2000,
+            input_lab_color,
+            green_6038_lab_color,
+        );
+        let green_6018_dist = calculate_distance(
+            DistanceAlgorithm::DeltaE2000,
+            input_lab_color,
+            green_6018_lab_color,
+        );
+        let blue_5000_dist = calculate_distance(
+            DistanceAlgorithm::DeltaE2000,
+            input_lab_color,
+            blue_5000_lab_color,
+        );
+        let blue_5007_dist = calculate_distance(
+            DistanceAlgorithm::DeltaE2000,
+            input_lab_color,
+            blue_5007_lab_color,
+        );
 
         println!(
             "Input: LAB({:.2}, {:.2}, {:.2})",

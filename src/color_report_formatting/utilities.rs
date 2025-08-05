@@ -3,8 +3,8 @@
 //! Provides functions for matching colors against various collections and creating
 //! enhanced color scheme data with metadata.
 
-use crate::color_schemes::ColorSchemeResult;
 use crate::color_distance_strategies::DistanceAlgorithm;
+use crate::color_schemes::ColorSchemeResult;
 use crate::output_formats::{CollectionMatch, ColorSchemes, EnhancedColorSchemeItem};
 use palette::Lab;
 
@@ -101,7 +101,7 @@ fn get_closest_css_match(
 ) -> Option<CollectionMatch> {
     let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
     let matches = manager.find_closest_css_colors_with_algorithm(rgb, 1, distance_algorithm);
-    
+
     matches.first().map(|closest| {
         let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
         let closest_lab = rgb_to_lab((
@@ -109,21 +109,23 @@ fn get_closest_css_match(
             closest.entry.color.rgb[1],
             closest.entry.color.rgb[2],
         ));
-        let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
+        let distance = crate::color_distance_strategies::calculate_distance(
+            distance_algorithm,
+            target_lab,
+            closest_lab,
+        );
         let srgb = rgb_to_srgb((
             closest.entry.color.rgb[0],
             closest.entry.color.rgb[1],
             closest.entry.color.rgb[2],
         ));
         let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
-        
+
         CollectionMatch {
             name: closest.entry.metadata.name.clone(),
             hex: format!(
                 "#{:02X}{:02X}{:02X}",
-                closest.entry.color.rgb[0],
-                closest.entry.color.rgb[1],
-                closest.entry.color.rgb[2]
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
             ),
             distance,
             wcag_relative_luminance,
@@ -139,7 +141,7 @@ fn get_closest_ral_classic_match(
 ) -> Option<CollectionMatch> {
     let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
     let matches = manager.find_closest_ral_classic_with_algorithm(rgb, 1, distance_algorithm);
-    
+
     matches.first().map(|closest| {
         let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
         let closest_lab = rgb_to_lab((
@@ -147,21 +149,23 @@ fn get_closest_ral_classic_match(
             closest.entry.color.rgb[1],
             closest.entry.color.rgb[2],
         ));
-        let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
+        let distance = crate::color_distance_strategies::calculate_distance(
+            distance_algorithm,
+            target_lab,
+            closest_lab,
+        );
         let srgb = rgb_to_srgb((
             closest.entry.color.rgb[0],
             closest.entry.color.rgb[1],
             closest.entry.color.rgb[2],
         ));
         let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
-        
+
         CollectionMatch {
             name: closest.entry.metadata.name.clone(),
             hex: format!(
                 "#{:02X}{:02X}{:02X}",
-                closest.entry.color.rgb[0],
-                closest.entry.color.rgb[1],
-                closest.entry.color.rgb[2]
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
             ),
             distance,
             wcag_relative_luminance,
@@ -177,7 +181,7 @@ fn get_closest_ral_design_match(
 ) -> Option<CollectionMatch> {
     let rgb = [target.rgb[0], target.rgb[1], target.rgb[2]];
     let matches = manager.find_closest_ral_design_with_algorithm(rgb, 1, distance_algorithm);
-    
+
     matches.first().map(|closest| {
         let target_lab = rgb_to_lab((target.rgb[0], target.rgb[1], target.rgb[2]));
         let closest_lab = rgb_to_lab((
@@ -185,21 +189,23 @@ fn get_closest_ral_design_match(
             closest.entry.color.rgb[1],
             closest.entry.color.rgb[2],
         ));
-        let distance = crate::color_distance_strategies::calculate_distance(distance_algorithm, target_lab, closest_lab);
+        let distance = crate::color_distance_strategies::calculate_distance(
+            distance_algorithm,
+            target_lab,
+            closest_lab,
+        );
         let srgb = rgb_to_srgb((
             closest.entry.color.rgb[0],
             closest.entry.color.rgb[1],
             closest.entry.color.rgb[2],
         ));
         let wcag_relative_luminance = crate::color_ops::luminance::wcag_relative(srgb);
-        
+
         CollectionMatch {
             name: closest.entry.metadata.name.clone(),
             hex: format!(
                 "#{:02X}{:02X}{:02X}",
-                closest.entry.color.rgb[0],
-                closest.entry.color.rgb[1],
-                closest.entry.color.rgb[2]
+                closest.entry.color.rgb[0], closest.entry.color.rgb[1], closest.entry.color.rgb[2]
             ),
             distance,
             wcag_relative_luminance,

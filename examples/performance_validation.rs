@@ -7,7 +7,7 @@ use color_rs::performance_validation::run_all_performance_validations;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== Color-rs Performance Validation (Milestone 7.2) ===\n");
-    
+
     // Run all performance validation tests
     match run_all_performance_validations() {
         Ok(()) => {
@@ -24,6 +24,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(1);
         }
     }
-    
+
     Ok(())
 }

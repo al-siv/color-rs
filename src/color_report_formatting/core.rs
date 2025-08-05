@@ -4,11 +4,11 @@
 //! Handles structured data preparation and format conversion.
 
 use crate::cli::{ColorArgs, OutputFormat};
+use crate::color_distance_strategies::DistanceAlgorithm;
 use crate::color_formatter::ColorFormatter;
 use crate::color_schemes::ColorSchemeResult;
 use crate::error::{ColorError, Result};
 use crate::output_formats::ColorAnalysisOutput;
-use crate::color_distance_strategies::DistanceAlgorithm;
 use palette::{Hsl, IntoColor, Lab, Srgb};
 
 /// Convert LAB to hex color string
@@ -82,7 +82,11 @@ pub fn collect_analysis_data(
     )?;
 
     // Add color schemes data with selected strategy
-    let color_schemes = super::utilities::collect_enhanced_color_schemes_data(schemes, &args.scheme_strategy, algorithm);
+    let color_schemes = super::utilities::collect_enhanced_color_schemes_data(
+        schemes,
+        &args.scheme_strategy,
+        algorithm,
+    );
     analysis_data = analysis_data.with_color_schemes(color_schemes);
 
     Ok(analysis_data)
@@ -94,11 +98,11 @@ pub fn generate_formatted_output(
     format: &OutputFormat,
 ) -> Result<String> {
     match format {
-        OutputFormat::Toml => analysis_data.to_toml().map_err(|e| {
-            ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}"))
-        }),
-        OutputFormat::Yaml => analysis_data.to_yaml().map_err(|e| {
-            ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}"))
-        }),
+        OutputFormat::Toml => analysis_data
+            .to_toml()
+            .map_err(|e| ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}"))),
+        OutputFormat::Yaml => analysis_data
+            .to_yaml()
+            .map_err(|e| ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}"))),
     }
 }

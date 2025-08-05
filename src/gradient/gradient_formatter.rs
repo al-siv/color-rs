@@ -5,7 +5,7 @@
 
 use super::calculator::GradientValue;
 use crate::error::Result;
-use tabled::{settings::Style, Table};
+use tabled::{Table, settings::Style};
 
 /// Gradient output format using enum dispatch for zero-cost abstractions
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -48,10 +48,8 @@ fn format_as_table(values: &[GradientValue]) -> Result<String> {
         return Ok("No gradient values to display".to_string());
     }
 
-    let table = Table::new(values)
-        .with(Style::rounded())
-        .to_string();
-    
+    let table = Table::new(values).with(Style::rounded()).to_string();
+
     Ok(table)
 }
 
@@ -92,9 +90,8 @@ fn format_as_json(values: &[GradientValue]) -> Result<String> {
 fn format_as_custom(values: &[GradientValue], format_name: &str) -> Result<String> {
     // For now, fall back to table format for unknown custom formats
     // In a real implementation, this could dispatch to registered formatters
-    format_as_table(values).map(|output| {
-        format!("Custom format '{}' output:\n{}", format_name, output)
-    })
+    format_as_table(values)
+        .map(|output| format!("Custom format '{}' output:\n{}", format_name, output))
 }
 
 /// Functional event callback system to replace Observer pattern
@@ -288,7 +285,7 @@ mod tests {
     fn test_table_formatting() {
         let values = create_test_values();
         let result = format_as_table(&values).unwrap();
-        
+
         assert!(result.contains("FF0000"));
         assert!(result.contains("0000FF"));
         assert!(result.contains("0%"));
@@ -299,7 +296,7 @@ mod tests {
     fn test_css_formatting() {
         let values = create_test_values();
         let result = format_as_css(&values).unwrap();
-        
+
         assert!(result.starts_with("linear-gradient("));
         assert!(result.contains("#FF0000 0%"));
         assert!(result.contains("#0000FF 100%"));
@@ -309,7 +306,7 @@ mod tests {
     fn test_json_formatting() {
         let values = create_test_values();
         let result = format_as_json(&values).unwrap();
-        
+
         assert!(result.starts_with('['));
         assert!(result.ends_with(']'));
         assert!(result.contains("FF0000"));
@@ -319,8 +316,11 @@ mod tests {
     #[test]
     fn test_empty_values() {
         let values = vec![];
-        
-        assert_eq!(format_as_table(&values).unwrap(), "No gradient values to display");
+
+        assert_eq!(
+            format_as_table(&values).unwrap(),
+            "No gradient values to display"
+        );
         assert_eq!(format_as_css(&values).unwrap(), "");
         assert_eq!(format_as_json(&values).unwrap(), "[]");
     }
@@ -329,7 +329,7 @@ mod tests {
     fn test_gradient_formatter() {
         let manager = GradientFormatter::with_table_format();
         let values = create_test_values();
-        
+
         let result = manager.format_gradient(&values).unwrap();
         assert!(result.contains("FF0000"));
     }
@@ -337,13 +337,13 @@ mod tests {
     #[test]
     fn test_event_callbacks() {
         use std::sync::{Arc, Mutex};
-        
+
         let gradient_called = Arc::new(Mutex::new(false));
         let output_called = Arc::new(Mutex::new(false));
-        
+
         let gradient_flag = gradient_called.clone();
         let output_flag = output_called.clone();
-        
+
         let callbacks = EventCallbacks::new()
             .on_gradient_generated(move |_| {
                 *gradient_flag.lock().unwrap() = true;
@@ -351,13 +351,12 @@ mod tests {
             .on_output_formatted(move |_| {
                 *output_flag.lock().unwrap() = true;
             });
-        
-        let manager = GradientFormatter::with_table_format()
-            .with_callbacks(callbacks);
-        
+
+        let manager = GradientFormatter::with_table_format().with_callbacks(callbacks);
+
         let values = create_test_values();
         let _result = manager.format_gradient(&values).unwrap();
-        
+
         assert!(*gradient_called.lock().unwrap());
         assert!(*output_called.lock().unwrap());
     }

@@ -7,25 +7,25 @@
 //! All items in this module are deprecated and users should migrate to the modern
 //! equivalents as documented in the migration guide.
 
+use crate::color_parsing::{ParserType, ParsingConfig, get_color_name, parse_color};
+use crate::command_execution::{CommandType, ExecutionContext, execute_command};
 use crate::error::Result;
-use crate::color_parsing::{ParserType, ParsingConfig, parse_color, get_color_name};
-use crate::command_execution::{CommandType, execute_command, ExecutionContext};
 use std::collections::HashMap;
 
 /// Backward compatibility type alias for the removed ColorParserType
-/// 
+///
 /// **MIGRATION NOTE**: Use `ParserType` from `color_parsing` instead.
 pub type ColorParserType = ParserType;
 
 /// Backward compatibility function for the removed ColorParserFactory::create_parser
-/// 
+///
 /// **MIGRATION NOTE**: Use `parse_color` directly instead.
 pub fn create_parser(parser_type: ParserType) -> Result<Box<dyn ColorParserCompatTrait>> {
     Ok(Box::new(CompatParser { parser_type }))
 }
 
 /// Compatibility trait to mimic the old ColorParserTrait interface
-/// 
+///
 /// **MIGRATION NOTE**: Use modern parsing functions instead.
 pub trait ColorParserCompatTrait {
     fn parse(&self, input: &str) -> Result<(palette::Lab, crate::color_parser::ColorFormat)>;
@@ -63,12 +63,12 @@ impl ColorParserCompatTrait for CompatParser {
 }
 
 /// Backward compatibility type alias for the removed CommandType
-/// 
+///
 /// **MIGRATION NOTE**: Use `CommandType` from `command_execution` instead.
 pub type LegacyCommandType = CommandType;
 
 /// Backward compatibility function for command execution
-/// 
+///
 /// **MIGRATION NOTE**: Use `execute_command` directly instead.
 pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
     let context = ExecutionContext {
@@ -77,7 +77,7 @@ pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
         post_hooks: vec![],
         metadata: HashMap::new(),
     };
-    
+
     let result = execute_command(&context)?;
     Ok(result.output)
 }
@@ -86,10 +86,10 @@ pub fn execute_legacy_command(cmd_type: CommandType) -> Result<String> {
 pub mod legacy {
     /// Re-export for backward compatibility
     pub use super::ColorParserType;
-    
+
     /// Re-export for backward compatibility  
     pub use super::LegacyCommandType;
-    
+
     /// Re-export for backward compatibility
     pub use super::ColorParserCompatTrait;
 }
@@ -97,19 +97,19 @@ pub mod legacy {
 #[cfg(test)]
 #[allow(deprecated)]
 mod tests {
+    use super::{CommandType, create_parser, execute_legacy_command};
     use crate::cli::GradientArgs;
-    use super::{create_parser, execute_legacy_command, CommandType};
     use crate::color_parsing::ParserType;
 
     #[test]
     #[allow(deprecated)]
     fn test_compat_parser() {
         let parser = create_parser(ParserType::Css).unwrap();
-        
+
         // Test parsing
         let result = parser.parse("#FF0000");
         assert!(result.is_ok());
-        
+
         // Test color name retrieval
         let name = parser.get_color_name((255, 0, 0));
         assert!(!name.is_empty());
@@ -136,12 +136,12 @@ mod tests {
             output_file: None,
             func_filter: None,
         };
-        
+
         let cmd = CommandType::GenerateGradient {
             args,
             output_path: None,
         };
-        
+
         let result = execute_legacy_command(cmd);
         assert!(result.is_ok());
     }

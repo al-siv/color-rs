@@ -40,20 +40,19 @@ pub fn positioned_gradient(
     let colors = ColorPair::new(start_color, end_color)?;
     let easing = EasingConfig::default_config();
     let position_range = PositionRange::new(start_pos, end_pos)?;
-    
-    GradientConfig::new(colors, easing)?
-        .with_position_range(position_range)
+
+    GradientConfig::new(colors, easing)?.with_position_range(position_range)
 }
 
 /// Generate gradient using modern functional approach (Assignment 6 Milestone 6.1)
 pub fn generate_gradient(args: GradientArgs) -> Result<()> {
     // Create gradient configuration from CLI arguments
     let config = GradientConfig::from_gradient_args(args)?;
-    
+
     // Convert config to GradientArgs for the actual generation
     // This uses the validated and normalized configuration
     let gradient_args = config.to_gradient_args();
-    
+
     // Delegate to the proven gradient generation implementation
     // This approach maintains backward compatibility while using
     // the new functional configuration system for validation and construction

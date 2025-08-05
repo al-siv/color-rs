@@ -3,7 +3,7 @@
 //! Provides various color space interpolation algorithms for smooth color transitions.
 //! Each method operates in a different color space for different visual characteristics.
 
-use palette::{Lab, Lch, Mix, Srgb, IntoColor};
+use palette::{IntoColor, Lab, Lch, Mix, Srgb};
 
 /// Mix two colors using linear RGB interpolation
 ///
@@ -116,7 +116,7 @@ pub fn lch_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
 /// ```
 pub fn hsl_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
     use crate::color_ops::conversion;
-    
+
     let hsl1 = conversion::srgb_to_hsl(color1);
     let hsl2 = conversion::srgb_to_hsl(color2);
     let mixed_hsl = hsl1.mix(hsl2, factor);
@@ -147,7 +147,7 @@ pub fn hsl_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
 /// ```
 pub fn hsv_interpolation(color1: Srgb, color2: Srgb, factor: f32) -> Srgb {
     use crate::color_ops::conversion;
-    
+
     let hsv1 = conversion::srgb_to_hsv(color1);
     let hsv2 = conversion::srgb_to_hsv(color2);
     let mixed_hsv = hsv1.mix(hsv2, factor);

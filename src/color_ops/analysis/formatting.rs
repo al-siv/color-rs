@@ -43,7 +43,7 @@ pub fn compare_colors(color1: Srgb, color2: Srgb) -> ColorComparison {
     let distance_metrics = calculate_distance_metrics(color1, color2);
     let contrast_ratio = contrast::wcag_ratio(color1, color2);
     let perceptual_similarity = classify_similarity(color1, color2);
-    
+
     ColorComparison {
         color1: analysis1,
         color2: analysis2,
@@ -67,7 +67,7 @@ fn calculate_distance_metrics(color1: Srgb, color2: Srgb) -> DistanceMetrics {
 /// Classify perceptual similarity between colors
 fn classify_similarity(color1: Srgb, color2: Srgb) -> String {
     let delta_e = distance::delta_e_2000(color1, color2);
-    
+
     match delta_e {
         d if d < 1.0 => "Identical".to_string(),
         d if d < 2.3 => "Just Noticeable".to_string(),

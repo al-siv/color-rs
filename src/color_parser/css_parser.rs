@@ -196,7 +196,8 @@ impl CssColorParser {
 
         // Convert HSL to RGB using palette's functional approach
         let srgb: Srgb = hsl.into_color();
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        // Safe: values clamped to [0.0, 255.0] range
         let (red, green, blue) = (
             (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
             (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,
@@ -234,7 +235,8 @@ impl CssColorParser {
 
         // Convert LAB to RGB using palette's functional approach
         let srgb: Srgb = lab.into_color();
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: values clamped to [0.0, 255.0] range
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        // Safe: values clamped to [0.0, 255.0] range
         let (red, green, blue) = (
             (srgb.red * 255.0).round().clamp(0.0, 255.0) as u8,
             (srgb.green * 255.0).round().clamp(0.0, 255.0) as u8,

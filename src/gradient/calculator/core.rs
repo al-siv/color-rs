@@ -3,11 +3,11 @@
 //! This module contains the main gradient calculator implementations,
 //! unified gradient generation, and display value creation.
 
-use super::algorithms::{IntelligentStopCalculator, EqualSpacingCalculator, cubic_bezier_ease};
+use super::algorithms::{EqualSpacingCalculator, IntelligentStopCalculator, cubic_bezier_ease};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use crate::config::algorithm_constants;
-use crate::utils::Utils;
 use crate::gradient::easing::EasingFunction;
+use crate::utils::Utils;
 use palette::{IntoColor, Lab, Mix, Srgb};
 use tabled::Tabled;
 
@@ -122,9 +122,9 @@ impl GradientCalculator {
             // Convert to display formats using functional conversion
             let srgb: Srgb = interpolated_lab.into_color();
             let r = (srgb.red * 255.0).round() as u8;
-            let g = (srgb.green * 255.0).round() as u8; 
+            let g = (srgb.green * 255.0).round() as u8;
             let b = (srgb.blue * 255.0).round() as u8;
-            
+
             let hex_color = format!("#{:02X}{:02X}{:02X}", r, g, b);
             let wcag_luminance = crate::color_ops::luminance::wcag_relative(srgb);
 
@@ -135,7 +135,10 @@ impl GradientCalculator {
                 position: format!("{}%", position.round() as u8),
                 hex: hex_color,
                 rgb: Utils::rgb_to_string(r, g, b),
-                wcag_luminance: crate::precision_utils::PrecisionUtils::format_wcag_relative_luminance(wcag_luminance),
+                wcag_luminance:
+                    crate::precision_utils::PrecisionUtils::format_wcag_relative_luminance(
+                        wcag_luminance,
+                    ),
             });
         }
 
@@ -204,11 +207,14 @@ impl GradientCalculator {
                 let bezier_t = cubic_bezier_ease(t, ease_in, ease_out);
 
                 // RGB interpolation with bezier timing
-                let r = (start_rgb_tuple.0 as f64 + (end_rgb_tuple.0 as f64 - start_rgb_tuple.0 as f64) * bezier_t)
+                let r = (start_rgb_tuple.0 as f64
+                    + (end_rgb_tuple.0 as f64 - start_rgb_tuple.0 as f64) * bezier_t)
                     .round() as u8;
-                let g = (start_rgb_tuple.1 as f64 + (end_rgb_tuple.1 as f64 - start_rgb_tuple.1 as f64) * bezier_t)
+                let g = (start_rgb_tuple.1 as f64
+                    + (end_rgb_tuple.1 as f64 - start_rgb_tuple.1 as f64) * bezier_t)
                     .round() as u8;
-                let b = (start_rgb_tuple.2 as f64 + (end_rgb_tuple.2 as f64 - start_rgb_tuple.2 as f64) * bezier_t)
+                let b = (start_rgb_tuple.2 as f64
+                    + (end_rgb_tuple.2 as f64 - start_rgb_tuple.2 as f64) * bezier_t)
                     .round() as u8;
 
                 // Convert back to LAB for consistent output format using functional conversion
@@ -278,12 +284,15 @@ impl GradientCalculator {
 
                     for _ in 0..50 {
                         // Binary search with 50 iterations for precision
-                        let mid_t = (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR;
+                        let mid_t =
+                            (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR;
                         let bezier_t = cubic_bezier_ease(mid_t, ease_in, ease_out);
                         let test_color = start_lab.mix(end_lab, bezier_t as f32);
                         let actual_distance = calculate_distance(algorithm, start_lab, test_color);
 
-                        if (actual_distance - target_distance).abs() < algorithm_constants::GRADIENT_DISTANCE_TOLERANCE {
+                        if (actual_distance - target_distance).abs()
+                            < algorithm_constants::GRADIENT_DISTANCE_TOLERANCE
+                        {
                             best_t = mid_t;
                             break;
                         }
@@ -384,14 +393,7 @@ mod tests {
         let end_lab = Lab::new(70.0, 0.0, 0.0);
 
         let stops = GradientCalculator::calculate_unified_gradient(
-            start_lab,
-            end_lab,
-            0,
-            100,
-            0.42,
-            0.58,
-            3,
-            true, // simple mode
+            start_lab, end_lab, 0, 100, 0.42, 0.58, 3, true, // simple mode
         );
 
         assert_eq!(stops.len(), 3);

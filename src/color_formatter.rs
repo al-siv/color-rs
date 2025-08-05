@@ -33,7 +33,7 @@ use crate::output_formats::{
     ContrastInfo, GrayscaleData,
 };
 use crate::utils::Utils;
-use palette::{IntoColor, Lab, Srgb, Hsl, Lch};
+use palette::{Hsl, IntoColor, Lab, Lch, Srgb};
 
 /// Color formatter for generating comprehensive color reports
 pub struct ColorFormatter;
@@ -55,11 +55,14 @@ impl ColorFormatter {
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
         // Convert LAB to RGB using functional conversion
         let srgb: Srgb = lab_color.into_color();
-        #[allow(clippy::cast_possible_truncation)] // Converting normalized f32 [0,1] to u8 [0,255] is safe
+        #[allow(clippy::cast_possible_truncation)]
+        // Converting normalized f32 [0,1] to u8 [0,255] is safe
         let red = (srgb.red * 255.0).round() as u8;
-        #[allow(clippy::cast_possible_truncation)] // Converting normalized f32 [0,1] to u8 [0,255] is safe
+        #[allow(clippy::cast_possible_truncation)]
+        // Converting normalized f32 [0,1] to u8 [0,255] is safe
         let green = (srgb.green * 255.0).round() as u8;
-        #[allow(clippy::cast_possible_truncation)] // Converting normalized f32 [0,1] to u8 [0,255] is safe
+        #[allow(clippy::cast_possible_truncation)]
+        // Converting normalized f32 [0,1] to u8 [0,255] is safe
         let blue = (srgb.blue * 255.0).round() as u8;
 
         // Convert LAB to HSL using functional conversion
@@ -200,7 +203,7 @@ impl ColorFormatter {
         let lch2_lab: Lab = Lch::new(lch.l, lch.chroma * 0.02, lch.hue).into_color();
         let lch4_lab: Lab = Lch::new(lch.l, lch.chroma * 0.04, lch.hue).into_color();
         let lch6_lab: Lab = Lch::new(lch.l, lch.chroma * 0.06, lch.hue).into_color();
-        
+
         // Convert to hex using functional conversion
         let lch0_hex = crate::color_ops::conversion::srgb_to_hex(lch0_lab.into_color());
         let lch2_hex = crate::color_ops::conversion::srgb_to_hex(lch2_lab.into_color());
@@ -264,13 +267,16 @@ impl ColorFormatter {
                     lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
                     code: m.entry.metadata.code.clone(),
                     distance: m.distance,
-                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(match_srgb),
+                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(
+                        match_srgb,
+                    ),
                 }
             })
             .collect();
 
         // Get RAL Classic colors
-        let ral_classic_matches = manager.find_closest_ral_classic_with_algorithm(rgb, 4, algorithm);
+        let ral_classic_matches =
+            manager.find_closest_ral_classic_with_algorithm(rgb, 4, algorithm);
         let ral_classic = ral_classic_matches
             .into_iter()
             .map(|m| {
@@ -282,7 +288,9 @@ impl ColorFormatter {
                     lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
                     code: m.entry.metadata.code.clone(),
                     distance: m.distance,
-                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(match_srgb),
+                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(
+                        match_srgb,
+                    ),
                 }
             })
             .collect();
@@ -300,7 +308,9 @@ impl ColorFormatter {
                     lch: crate::format_utils::FormatUtils::lab_to_lch(match_lab),
                     code: m.entry.metadata.code.clone(),
                     distance: m.distance,
-                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(match_srgb),
+                    wcag21_relative_luminance: crate::color_ops::luminance::wcag_relative(
+                        match_srgb,
+                    ),
                 }
             })
             .collect();

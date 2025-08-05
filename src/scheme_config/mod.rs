@@ -12,29 +12,29 @@
 //! // Using smart constructors
 //! let config = ColorSchemeConfig::with_relative_luminance_preservation();
 //! let calculator = ColorSchemeCalculator::new(config);
-//! 
+//!
 //! // Using presets
 //! let preset_calculator = presets::with_relative_luminance_preservation();
 //! # Ok(())
 //! # }
 //! ```
 
+pub mod calculation;
+pub mod calculator;
+pub mod config;
+pub mod presets;
 pub mod types;
 pub mod validation;
-pub mod config;
-pub mod calculator;
-pub mod presets;
-pub mod calculation;
 
 // Re-export all public types and functions
-pub use types::*;
-pub use presets::*;
 pub use calculation::calculate_color_schemes;
+pub use presets::*;
+pub use types::*;
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use palette::{Lab, IntoColor, Srgb};
+    use palette::{IntoColor, Lab, Srgb};
 
     #[test]
     fn test_default_config() {
@@ -72,15 +72,24 @@ mod tests {
     fn test_validation_errors() {
         // Test conflicting luminance options
         let result = ColorSchemeConfig::new(true, true, None, None);
-        assert!(matches!(result, Err(ConfigError::ConflictingLuminanceOptions)));
+        assert!(matches!(
+            result,
+            Err(ConfigError::ConflictingLuminanceOptions)
+        ));
 
         // Test invalid target relative luminance
         let result = ColorSchemeConfig::with_target_relative_luminance(1.5);
-        assert!(matches!(result, Err(ConfigError::InvalidTargetLuminance { .. })));
+        assert!(matches!(
+            result,
+            Err(ConfigError::InvalidTargetLuminance { .. })
+        ));
 
         // Test invalid target lab luminance
         let result = ColorSchemeConfig::with_target_lab_luminance(150.0);
-        assert!(matches!(result, Err(ConfigError::InvalidTargetLuminance { .. })));
+        assert!(matches!(
+            result,
+            Err(ConfigError::InvalidTargetLuminance { .. })
+        ));
 
         // Test conflicting target values
         let result = ColorSchemeConfig::new(false, false, Some(0.5), Some(50.0));
@@ -116,13 +125,19 @@ mod tests {
     #[test]
     fn test_combinator_validation() {
         // Test conflicting preservation options via combinators
-        let result = ColorSchemeConfig::with_relative_luminance_preservation()
-            .preserve_lab_luminance();
-        assert!(matches!(result, Err(ConfigError::ConflictingLuminanceOptions)));
+        let result =
+            ColorSchemeConfig::with_relative_luminance_preservation().preserve_lab_luminance();
+        assert!(matches!(
+            result,
+            Err(ConfigError::ConflictingLuminanceOptions)
+        ));
 
-        let result = ColorSchemeConfig::with_lab_luminance_preservation()
-            .preserve_relative_luminance();
-        assert!(matches!(result, Err(ConfigError::ConflictingLuminanceOptions)));
+        let result =
+            ColorSchemeConfig::with_lab_luminance_preservation().preserve_relative_luminance();
+        assert!(matches!(
+            result,
+            Err(ConfigError::ConflictingLuminanceOptions)
+        ));
 
         // Test conflicting target values via combinators
         let result = ColorSchemeConfig::with_target_relative_luminance(0.5)
@@ -135,13 +150,13 @@ mod tests {
     fn test_calculator() {
         let config = ColorSchemeConfig::with_relative_luminance_preservation();
         let calculator = ColorSchemeCalculator::new(config);
-        
+
         assert_eq!(calculator.config(), config);
 
         // Test with a simple red color
         let red_srgb = Srgb::new(1.0, 0.0, 0.0);
         let red_lab: Lab = red_srgb.into_color();
-        
+
         let result = calculator.calculate(red_lab).unwrap();
         assert_eq!(result.base_color, red_lab);
     }
@@ -178,7 +193,7 @@ mod tests {
         // Test complex configuration via combinator composition
         let result = complex_config();
         assert!(result.is_ok());
-        
+
         let calculator = result.unwrap();
         let config = calculator.config();
         assert!(config.preserve_relative_luminance);
@@ -189,19 +204,19 @@ mod tests {
     fn test_functional_vs_original_consistency() {
         let red_srgb = Srgb::new(1.0, 0.0, 0.0);
         let red_lab: Lab = red_srgb.into_color();
-        
+
         let config = ColorSchemeConfig::with_relative_luminance_preservation();
-        
+
         // Test functional version
         let functional_result = calculate_color_schemes(config, red_lab).unwrap();
-        
+
         // Test original version via ColorSchemeCalculator
         let calculator = ColorSchemeCalculator::new(config);
         let original_result = calculator.calculate(red_lab).unwrap();
-        
+
         // Compare base colors (these should match exactly)
         assert_eq!(functional_result.base_color, original_result.base_color);
-        
+
         // The calculation methods may differ slightly due to implementation differences
         // Just verify both produce valid results with similar color properties
         assert!(functional_result.hsl_complementary.l > 0.0);
@@ -216,10 +231,10 @@ mod tests {
             preserve_relative_luminance: false,
             preserve_lab_luminance: false,
         };
-        
+
         let color = Lab::new(50.0, 10.0, -5.0);
         let base_color = Lab::new(30.0, 5.0, 10.0);
-        
+
         let result = calculation::apply_luminance_matching(color, base_color, config).unwrap();
         assert!(result.is_none());
     }

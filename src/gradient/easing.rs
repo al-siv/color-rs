@@ -34,9 +34,21 @@ impl EasingFunction {
     /// Create a new cubic bezier easing with control points
     #[must_use]
     pub const fn cubic_bezier(x1: f64, x2: f64) -> Self {
-        Self::CubicBezier { 
-            x1: if x1 < BEZIER_MIN { BEZIER_MIN } else if x1 > BEZIER_MAX { BEZIER_MAX } else { x1 },
-            x2: if x2 < BEZIER_MIN { BEZIER_MIN } else if x2 > BEZIER_MAX { BEZIER_MAX } else { x2 },
+        Self::CubicBezier {
+            x1: if x1 < BEZIER_MIN {
+                BEZIER_MIN
+            } else if x1 > BEZIER_MAX {
+                BEZIER_MAX
+            } else {
+                x1
+            },
+            x2: if x2 < BEZIER_MIN {
+                BEZIER_MIN
+            } else if x2 > BEZIER_MAX {
+                BEZIER_MAX
+            } else {
+                x2
+            },
         }
     }
 
@@ -91,10 +103,10 @@ impl EasingFunction {
         // Create cubic bezier curve with control points (0,0), (x1,0), (x2,1), (1,1)
         // This matches cubic-bezier specification
         let curve = CubicBez::new(
-            Point::new(0.0, 0.0),     // Start point
-            Point::new(x1, 0.0),      // First control point (x1, 0)
-            Point::new(x2, 1.0),      // Second control point (x2, 1)
-            Point::new(1.0, 1.0),     // End point
+            Point::new(0.0, 0.0), // Start point
+            Point::new(x1, 0.0),  // First control point (x1, 0)
+            Point::new(x2, 1.0),  // Second control point (x2, 1)
+            Point::new(1.0, 1.0), // End point
         );
 
         // Find parameter value that corresponds to input t using binary search
@@ -124,11 +136,7 @@ pub struct EasingFactory;
 impl EasingFactory {
     /// Create an easing function from type and parameters
     #[must_use]
-    pub fn create_easing(
-        easing_type: EasingType,
-        ease_in: f64,
-        ease_out: f64,
-    ) -> EasingFunction {
+    pub fn create_easing(easing_type: EasingType, ease_in: f64, ease_out: f64) -> EasingFunction {
         match easing_type {
             EasingType::Linear => EasingFunction::Linear,
             EasingType::CubicBezier => EasingFunction::cubic_bezier(ease_in, ease_out),
@@ -196,27 +204,45 @@ mod tests {
         assert!(matches!(linear, EasingFunction::Linear));
 
         let bezier = EasingFactory::create_easing(EasingType::CubicBezier, 0.42, 0.58);
-        assert!(matches!(bezier, EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }));
+        assert!(matches!(
+            bezier,
+            EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }
+        ));
 
         let smooth = EasingFactory::create_easing(EasingType::Smooth, 0.0, 0.0);
-        assert!(matches!(smooth, EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }));
+        assert!(matches!(
+            smooth,
+            EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }
+        ));
     }
 
     #[test]
     fn test_easing_names() {
         assert_eq!(EasingFunction::Linear.name(), "Linear");
-        assert_eq!(EasingFunction::cubic_bezier(0.42, 0.58).name(), "Cubic Bezier");
+        assert_eq!(
+            EasingFunction::cubic_bezier(0.42, 0.58).name(),
+            "Cubic Bezier"
+        );
     }
 
     #[test]
     fn test_convenience_constructors() {
         let ease_in_out = EasingFunction::ease_in_out();
-        assert!(matches!(ease_in_out, EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }));
+        assert!(matches!(
+            ease_in_out,
+            EasingFunction::CubicBezier { x1: 0.42, x2: 0.58 }
+        ));
 
         let ease_in = EasingFunction::ease_in();
-        assert!(matches!(ease_in, EasingFunction::CubicBezier { x1: 0.42, x2: 1.0 }));
+        assert!(matches!(
+            ease_in,
+            EasingFunction::CubicBezier { x1: 0.42, x2: 1.0 }
+        ));
 
         let ease_out = EasingFunction::ease_out();
-        assert!(matches!(ease_out, EasingFunction::CubicBezier { x1: 0.0, x2: 0.58 }));
+        assert!(matches!(
+            ease_out,
+            EasingFunction::CubicBezier { x1: 0.0, x2: 0.58 }
+        ));
     }
 }

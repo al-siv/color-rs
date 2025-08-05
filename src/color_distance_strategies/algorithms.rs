@@ -3,7 +3,7 @@
 //! This module contains the actual implementations of various color distance
 //! algorithms, all using pure functional programming patterns.
 
-use super::types::{DistanceAlgorithm, ValidationError, ValidatedLab};
+use super::types::{DistanceAlgorithm, ValidatedLab, ValidationError};
 use crate::config::algorithm_constants;
 use std::str::FromStr;
 
@@ -15,7 +15,7 @@ impl DistanceAlgorithm {
     /// - "`delta_e_2000`", "deltae2000", "ciede2000", "de2000" -> `DeltaE2000`  
     /// - "euclidean", "`euclidean_lab`", "lab" -> `EuclideanLab`
     /// - "lch" -> Lch
-    /// 
+    ///
     /// # Errors
     /// Returns `ValidationError::EmptyAlgorithmName` if input is empty,
     /// `ValidationError::AlgorithmNameTooLong` if input exceeds 50 characters,
@@ -26,37 +26,37 @@ impl DistanceAlgorithm {
         if trimmed.is_empty() {
             return Err(ValidationError::EmptyAlgorithmName);
         }
-        
+
         if trimmed.len() > 50 {
             return Err(ValidationError::AlgorithmNameTooLong(trimmed.len()));
         }
 
         // Normalize input: lowercase, replace spaces/hyphens with underscores
-        let normalized = trimmed
-            .to_lowercase()
-            .replace([' ', '-'], "_");
+        let normalized = trimmed.to_lowercase().replace([' ', '-'], "_");
 
         // Match against known algorithm names
         match normalized.as_str() {
             // Delta E 76 variants
             "delta_e_76" | "deltae76" | "cie76" | "de76" | "delta_e76" => Ok(Self::DeltaE76),
-            
+
             // Delta E 2000 variants
-            "delta_e_2000" | "deltae2000" | "ciede2000" | "de2000" | "delta_e2000" => Ok(Self::DeltaE2000),
-            
+            "delta_e_2000" | "deltae2000" | "ciede2000" | "de2000" | "delta_e2000" => {
+                Ok(Self::DeltaE2000)
+            }
+
             // Euclidean Lab variants
             "euclidean" | "euclidean_lab" | "lab" => Ok(Self::EuclideanLab),
-            
-            // LCH variants  
+
+            // LCH variants
             "lch" => Ok(Self::Lch),
-            
+
             _ => Err(ValidationError::UnknownAlgorithm(s.to_string())),
         }
     }
 
     /// Validate algorithm is suitable for performance requirements
     /// Validate that the algorithm meets performance requirements
-    /// 
+    ///
     /// # Errors
     /// Returns `ValidationError::AlgorithmTooSlow` if `require_fast` is true
     /// and the algorithm doesn't meet fast performance criteria.
@@ -87,7 +87,10 @@ impl DistanceAlgorithm {
     /// Optimized for batch processing - avoids repeated algorithm dispatch
     #[must_use]
     pub fn calculate_distances(self, pairs: &[(ValidatedLab, ValidatedLab)]) -> Vec<f64> {
-        pairs.iter().map(|(lab1, lab2)| self.calculate_distance(*lab1, *lab2)).collect()
+        pairs
+            .iter()
+            .map(|(lab1, lab2)| self.calculate_distance(*lab1, *lab2))
+            .collect()
     }
 
     /// Calculate distance matrix for a set of colors
@@ -97,7 +100,7 @@ impl DistanceAlgorithm {
     pub fn calculate_distance_matrix(self, colors: &[ValidatedLab]) -> Vec<Vec<f64>> {
         let n = colors.len();
         let mut matrix = Vec::with_capacity(n);
-        
+
         for i in 0..n {
             let mut row = Vec::with_capacity(n - i);
             for j in i..n {
@@ -109,7 +112,7 @@ impl DistanceAlgorithm {
             }
             matrix.push(row);
         }
-        
+
         matrix
     }
 
@@ -117,12 +120,20 @@ impl DistanceAlgorithm {
     ///
     /// Returns (index, distance) of the closest match
     #[must_use]
-    pub fn find_closest(self, target: ValidatedLab, candidates: &[ValidatedLab]) -> Option<(usize, f64)> {
+    pub fn find_closest(
+        self,
+        target: ValidatedLab,
+        candidates: &[ValidatedLab],
+    ) -> Option<(usize, f64)> {
         candidates
             .iter()
             .enumerate()
             .map(|(i, &candidate)| (i, self.calculate_distance(target, candidate)))
-            .min_by(|(_, dist1), (_, dist2)| dist1.partial_cmp(dist2).unwrap_or(std::cmp::Ordering::Equal))
+            .min_by(|(_, dist1), (_, dist2)| {
+                dist1
+                    .partial_cmp(dist2)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
     }
 }
 
@@ -151,7 +162,7 @@ fn calculate_delta_e_76(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     let dl = f64::from(lab1.l() - lab2.l());
     let da = f64::from(lab1.a() - lab2.a());
     let db = f64::from(lab1.b() - lab2.b());
-    
+
     (dl.mul_add(dl, da.mul_add(da, db * db))).sqrt()
 }
 
@@ -159,7 +170,7 @@ fn calculate_delta_e_76(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
 ///
 /// Pure function implementing the CIEDE2000 color difference formula.
 /// Most perceptually accurate but computationally more expensive.
-/// 
+///
 /// This is a simplified implementation focusing on correctness.
 #[must_use]
 fn calculate_delta_e_2000(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
@@ -180,27 +191,39 @@ fn calculate_delta_e_2000(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     let c2 = a2.hypot(b2);
     let dc = c2 - c1;
 
-    // Calculate H (hue) values  
-        // Calculate dh-squared for the color difference formula using optimized mul_add
+    // Calculate H (hue) values
+    // Calculate dh-squared for the color difference formula using optimized mul_add
     let dh_squared = dc.mul_add(-dc, da.mul_add(da, db * db));
-    let dh = if dh_squared > 0.0 { dh_squared.sqrt() } else { 0.0 };
+    let dh = if dh_squared > 0.0 {
+        dh_squared.sqrt()
+    } else {
+        0.0
+    };
 
     // Weighting functions (simplified - full CIEDE2000 has more complex weighting)
     let l_avg = f64::midpoint(l1, l2);
     let c_avg = f64::midpoint(c1, c2);
 
     // Lightness weighting with optimized mul_add
-    let sl = 1.0 + (algorithm_constants::DELTA_E_LIGHTNESS_FACTOR * (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2)) / (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).mul_add(l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET, algorithm_constants::DELTA_E_LIGHTNESS_DENOMINATOR_OFFSET).sqrt();
-    
-    // Chroma weighting  
+    let sl = 1.0
+        + (algorithm_constants::DELTA_E_LIGHTNESS_FACTOR
+            * (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET).powi(2))
+            / (l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET)
+                .mul_add(
+                    l_avg - algorithm_constants::DELTA_E_LIGHTNESS_OFFSET,
+                    algorithm_constants::DELTA_E_LIGHTNESS_DENOMINATOR_OFFSET,
+                )
+                .sqrt();
+
+    // Chroma weighting
     let sc = algorithm_constants::DELTA_E_CHROMA_FACTOR.mul_add(c_avg, 1.0);
-    
+
     // Hue weighting
     let sh = algorithm_constants::DELTA_E_HUE_FACTOR.mul_add(c_avg, 1.0);
 
     // Parametric factors (standard values)
     let kl = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR;
-    let kc = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR; 
+    let kc = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR;
     let kh = algorithm_constants::DELTA_E_PARAMETRIC_FACTOR;
 
     // Final Delta E 2000 calculation
@@ -237,14 +260,14 @@ fn calculate_lch_distance(lab1: ValidatedLab, lab2: ValidatedLab) -> f64 {
     // Convert LAB to LCH (Lightness, Chroma, Hue)
     let c1 = a1.hypot(b1);
     let h1 = b1.atan2(a1);
-    
+
     let c2 = a2.hypot(b2);
     let h2 = b2.atan2(a2);
 
     // Calculate differences
     let dl = l2 - l1;
     let dc = c2 - c1;
-    
+
     // Hue difference (handle circular nature)
     let mut dh = h2 - h1;
     if dh > std::f64::consts::PI {
@@ -281,7 +304,10 @@ pub fn filter_perceptual_algorithms() -> Vec<DistanceAlgorithm> {
 
 /// Get recommended algorithm based on requirements
 #[must_use]
-pub const fn recommend_algorithm(require_fast: bool, require_perceptual: bool) -> Option<DistanceAlgorithm> {
+pub const fn recommend_algorithm(
+    require_fast: bool,
+    require_perceptual: bool,
+) -> Option<DistanceAlgorithm> {
     match (require_fast, require_perceptual) {
         (true, true) => None, // No algorithm is both fast AND highly perceptual
         (true, false) => Some(DistanceAlgorithm::DeltaE76), // Fast and adequate

@@ -12,7 +12,7 @@ use palette::{Hsl, IntoColor, Lab, Srgb};
 pub fn complementary_hsl(color: Lab) -> Lab {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();
-    
+
     // Complementary color is 180 degrees opposite on the hue wheel
     let complementary_hue = (hsl.hue.into_positive_degrees() + 180.0) % 360.0;
     let complementary_hsl = Hsl::new(complementary_hue, hsl.saturation, hsl.lightness);
@@ -25,18 +25,18 @@ pub fn complementary_hsl(color: Lab) -> Lab {
 pub fn split_complementary_hsl(color: Lab) -> (Lab, Lab) {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();
-    
+
     // Split-complementary: 150 and 210 degrees from original hue
     let base_hue = hsl.hue.into_positive_degrees();
     let color1_hue = (base_hue + 150.0) % 360.0;
     let color2_hue = (base_hue + 210.0) % 360.0;
-    
+
     let color1_hsl = Hsl::new(color1_hue, hsl.saturation, hsl.lightness);
     let color2_hsl = Hsl::new(color2_hue, hsl.saturation, hsl.lightness);
-    
+
     let color1_srgb: Srgb = color1_hsl.into_color();
     let color2_srgb: Srgb = color2_hsl.into_color();
-    
+
     (color1_srgb.into_color(), color2_srgb.into_color())
 }
 
@@ -45,18 +45,18 @@ pub fn split_complementary_hsl(color: Lab) -> (Lab, Lab) {
 pub fn triadic_hsl(color: Lab) -> (Lab, Lab) {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();
-    
+
     // Triadic: 120 and 240 degrees from original hue
     let base_hue = hsl.hue.into_positive_degrees();
     let color1_hue = (base_hue + 120.0) % 360.0;
     let color2_hue = (base_hue + 240.0) % 360.0;
-    
+
     let color1_hsl = Hsl::new(color1_hue, hsl.saturation, hsl.lightness);
     let color2_hsl = Hsl::new(color2_hue, hsl.saturation, hsl.lightness);
-    
+
     let color1_srgb: Srgb = color1_hsl.into_color();
     let color2_srgb: Srgb = color2_hsl.into_color();
-    
+
     (color1_srgb.into_color(), color2_srgb.into_color())
 }
 
@@ -64,22 +64,26 @@ pub fn triadic_hsl(color: Lab) -> (Lab, Lab) {
 pub fn tetradic_hsl(color: Lab) -> (Lab, Lab, Lab) {
     let srgb: Srgb = color.into_color();
     let hsl: Hsl = srgb.into_color();
-    
+
     // Tetradic: 90, 180, and 270 degrees from original hue (square on color wheel)
     let base_hue = hsl.hue.into_positive_degrees();
     let color1_hue = (base_hue + 90.0) % 360.0;
     let color2_hue = (base_hue + 180.0) % 360.0;
     let color3_hue = (base_hue + 270.0) % 360.0;
-    
+
     let color1_hsl = Hsl::new(color1_hue, hsl.saturation, hsl.lightness);
     let color2_hsl = Hsl::new(color2_hue, hsl.saturation, hsl.lightness);
     let color3_hsl = Hsl::new(color3_hue, hsl.saturation, hsl.lightness);
-    
+
     let color1_srgb: Srgb = color1_hsl.into_color();
     let color2_srgb: Srgb = color2_hsl.into_color();
     let color3_srgb: Srgb = color3_hsl.into_color();
-    
-    (color1_srgb.into_color(), color2_srgb.into_color(), color3_srgb.into_color())
+
+    (
+        color1_srgb.into_color(),
+        color2_srgb.into_color(),
+        color3_srgb.into_color(),
+    )
 }
 
 /// Calculate complementary color in Lab space
@@ -93,17 +97,17 @@ pub fn split_complementary_lab(color: Lab) -> (Lab, Lab) {
     // Split-complementary approximated in Lab space by rotating a/b vector
     let a = f64::from(color.a);
     let b = f64::from(color.b);
-    
+
     // Rotate by approximately ±150 degrees (2.618 radians)
     let cos_150 = -0.866; // cos(150°)
-    let sin_150 = 0.5;     // sin(150°)
-    
+    let sin_150 = 0.5; // sin(150°)
+
     let a1 = a * cos_150 - b * sin_150;
     let b1 = a * sin_150 + b * cos_150;
-    
+
     let a2 = a * cos_150 + b * sin_150;
     let b2 = -a * sin_150 + b * cos_150;
-    
+
     (
         Lab::new(color.l, a1 as f32, b1 as f32),
         Lab::new(color.l, a2 as f32, b2 as f32),
@@ -115,17 +119,17 @@ pub fn triadic_lab(color: Lab) -> (Lab, Lab) {
     // Triadic in Lab space: rotate a/b vector by ±120 degrees
     let a = f64::from(color.a);
     let b = f64::from(color.b);
-    
+
     // Rotate by ±120 degrees
     let cos_120 = -0.5; // cos(120°)
     let sin_120 = 0.866; // sin(120°)
-    
+
     let a1 = a * cos_120 - b * sin_120;
     let b1 = a * sin_120 + b * cos_120;
-    
+
     let a2 = a * cos_120 + b * sin_120;
     let b2 = -a * sin_120 + b * cos_120;
-    
+
     (
         Lab::new(color.l, a1 as f32, b1 as f32),
         Lab::new(color.l, a2 as f32, b2 as f32),
@@ -137,19 +141,19 @@ pub fn tetradic_lab(color: Lab) -> (Lab, Lab, Lab) {
     // Tetradic in Lab space: rotate a/b vector by 90°, 180°, 270°
     let a = f64::from(color.a);
     let b = f64::from(color.b);
-    
+
     // 90 degrees rotation
     let a1 = -b;
     let b1 = a;
-    
+
     // 180 degrees rotation (complementary)
     let a2 = -a;
     let b2 = -b;
-    
+
     // 270 degrees rotation
     let a3 = b;
     let b3 = -a;
-    
+
     (
         Lab::new(color.l, a1 as f32, b1 as f32),
         Lab::new(color.l, a2 as f32, b2 as f32),

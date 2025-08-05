@@ -59,9 +59,9 @@ pub fn apply_preprocessing_step(input: &str, step: &PreprocessingStep) -> String
 
 /// Apply postprocessing pipeline using function composition
 pub fn apply_postprocessing_pipeline(input: String, steps: &[PostprocessingStep]) -> String {
-    steps.iter().fold(input, |acc, step| {
-        apply_postprocessing_step(acc, step)
-    })
+    steps
+        .iter()
+        .fold(input, |acc, step| apply_postprocessing_step(acc, step))
 }
 
 /// Apply a single postprocessing step
@@ -77,7 +77,8 @@ pub fn apply_postprocessing_step(input: String, step: &PostprocessingStep) -> St
 
 /// Normalize whitespace and clean up input
 fn normalize_input(input: &str) -> String {
-    input.chars()
+    input
+        .chars()
         .map(|c| if c.is_whitespace() { ' ' } else { c })
         .collect::<String>()
         .split_whitespace()
@@ -87,8 +88,16 @@ fn normalize_input(input: &str) -> String {
 
 /// Remove special characters while preserving color format characters
 fn remove_special_chars(input: &str) -> String {
-    input.chars()
-        .filter(|c| c.is_alphanumeric() || c.is_whitespace() || *c == '(' || *c == ')' || *c == ',' || *c == '#')
+    input
+        .chars()
+        .filter(|c| {
+            c.is_alphanumeric()
+                || c.is_whitespace()
+                || *c == '('
+                || *c == ')'
+                || *c == ','
+                || *c == '#'
+        })
         .collect()
 }
 
@@ -103,7 +112,8 @@ fn capitalize_first(input: &str) -> String {
 
 /// Convert string to title case
 fn to_title_case(input: &str) -> String {
-    input.split_whitespace()
+    input
+        .split_whitespace()
         .map(capitalize_first)
         .collect::<Vec<String>>()
         .join(" ")

@@ -4,10 +4,10 @@
 //! for comprehensive color scheme calculations using multiple strategies and
 //! luminance preservation options.
 
-use crate::error::Result;
-use palette::Lab;
 use super::algorithms::*;
 use super::strategies::*;
+use crate::error::Result;
+use palette::Lab;
 
 /// Builder for configuring color scheme calculations
 #[derive(Debug, Clone)]
@@ -99,9 +99,10 @@ impl ColorSchemeCalculator {
 
         // Calculate basic schemes using both strategies
         let basic_schemes = Self::calculate_basic_schemes(base_color, &hsl_strategy, &lab_strategy);
-        
+
         // Calculate luminance-matched variations if requested
-        let luminance_matched = self.calculate_luminance_matched_schemes(base_color, &basic_schemes)?;
+        let luminance_matched =
+            self.calculate_luminance_matched_schemes(base_color, &basic_schemes)?;
 
         Ok(ColorSchemeResult {
             base_color,
@@ -166,8 +167,14 @@ impl ColorSchemeCalculator {
                     base_color,
                 )?),
                 hsl_split_complementary: Some((
-                    preserve_wcag_relative_luminance(basic_schemes.hsl_split_complementary.0, base_color)?,
-                    preserve_wcag_relative_luminance(basic_schemes.hsl_split_complementary.1, base_color)?,
+                    preserve_wcag_relative_luminance(
+                        basic_schemes.hsl_split_complementary.0,
+                        base_color,
+                    )?,
+                    preserve_wcag_relative_luminance(
+                        basic_schemes.hsl_split_complementary.1,
+                        base_color,
+                    )?,
                 )),
                 hsl_triadic: Some((
                     preserve_wcag_relative_luminance(basic_schemes.hsl_triadic.0, base_color)?,
@@ -183,8 +190,14 @@ impl ColorSchemeCalculator {
                     base_color,
                 )?),
                 lab_split_complementary: Some((
-                    preserve_wcag_relative_luminance(basic_schemes.lab_split_complementary.0, base_color)?,
-                    preserve_wcag_relative_luminance(basic_schemes.lab_split_complementary.1, base_color)?,
+                    preserve_wcag_relative_luminance(
+                        basic_schemes.lab_split_complementary.0,
+                        base_color,
+                    )?,
+                    preserve_wcag_relative_luminance(
+                        basic_schemes.lab_split_complementary.1,
+                        base_color,
+                    )?,
                 )),
                 lab_triadic: Some((
                     preserve_wcag_relative_luminance(basic_schemes.lab_triadic.0, base_color)?,
@@ -329,9 +342,7 @@ mod tests {
 
     #[test]
     fn test_color_scheme_builder_lab_luminance() {
-        let calculator = ColorSchemeBuilder::new()
-            .preserve_lab_luminance()
-            .build();
+        let calculator = ColorSchemeBuilder::new().preserve_lab_luminance().build();
 
         assert!(!calculator.preserve_relative_luminance);
         assert!(calculator.preserve_lab_luminance);
@@ -377,7 +388,7 @@ mod tests {
         let red_lab: Lab = Srgb::new(1.0, 0.0, 0.0).into_color();
 
         let result = calculator.calculate(red_lab).unwrap();
-        
+
         // Should have basic schemes but no luminance matching
         assert!(result.luminance_matched_hsl_complementary.is_none());
         assert!(result.luminance_matched_lab_complementary.is_none());

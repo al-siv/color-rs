@@ -10,22 +10,27 @@ use palette::Lab;
 pub enum ValidationError {
     /// Empty algorithm name provided
     EmptyAlgorithmName,
-    
+
     /// Algorithm name exceeds maximum length
     AlgorithmNameTooLong(usize),
-    
+
     /// Unknown/unsupported algorithm name
     UnknownAlgorithm(String),
-    
+
     /// Algorithm too slow for performance requirements
     AlgorithmTooSlow(DistanceAlgorithm),
-    
+
     /// Invalid LAB color values
-    InvalidLabValues { l: f32, a: f32, b: f32, reason: String },
-    
+    InvalidLabValues {
+        l: f32,
+        a: f32,
+        b: f32,
+        reason: String,
+    },
+
     /// LAB lightness out of valid range
     LabLightnessOutOfRange(f32),
-    
+
     /// LAB color values contain NaN or infinite values
     LabValuesNotFinite,
 }
@@ -34,12 +39,22 @@ impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::EmptyAlgorithmName => write!(f, "Algorithm name cannot be empty"),
-            Self::AlgorithmNameTooLong(len) => write!(f, "Algorithm name too long: {len} characters (max 50)"),
+            Self::AlgorithmNameTooLong(len) => {
+                write!(f, "Algorithm name too long: {len} characters (max 50)")
+            }
             Self::UnknownAlgorithm(name) => write!(f, "Unknown algorithm: '{name}'"),
-            Self::AlgorithmTooSlow(alg) => write!(f, "Algorithm {} is too slow for performance requirements", alg.name()),
-            Self::InvalidLabValues { l, a, b, reason } => write!(f, "Invalid LAB values L:{l} a:{a} b:{b} - {reason}"),
+            Self::AlgorithmTooSlow(alg) => write!(
+                f,
+                "Algorithm {} is too slow for performance requirements",
+                alg.name()
+            ),
+            Self::InvalidLabValues { l, a, b, reason } => {
+                write!(f, "Invalid LAB values L:{l} a:{a} b:{b} - {reason}")
+            }
             Self::LabLightnessOutOfRange(l) => write!(f, "LAB lightness {l} out of range [0, 100]"),
-            Self::LabValuesNotFinite => write!(f, "LAB values must be finite (not NaN or infinite)"),
+            Self::LabValuesNotFinite => {
+                write!(f, "LAB values must be finite (not NaN or infinite)")
+            }
         }
     }
 }
@@ -299,15 +314,15 @@ pub enum DistanceAlgorithm {
     /// Delta E 76 (CIE76) - Original CIE formula from 1976
     /// Fast but less perceptually accurate than newer methods
     DeltaE76,
-    
+
     /// Delta E 2000 (CIEDE2000) - Industry standard perceptual distance
     /// Most accurate perceptual color differences, computationally more expensive
     DeltaE2000,
-    
+
     /// Euclidean distance in LAB space
     /// Simple and fast but not perceptually uniform
     EuclideanLab,
-    
+
     /// LCH Color Space distance calculation
     /// Distance in cylindrical color space, separates lightness from chroma
     Lch,
@@ -319,7 +334,7 @@ impl DistanceAlgorithm {
     pub const fn name(self) -> &'static str {
         match self {
             Self::DeltaE76 => "Delta E 76",
-            Self::DeltaE2000 => "Delta E 2000", 
+            Self::DeltaE2000 => "Delta E 2000",
             Self::EuclideanLab => "Euclidean distance",
             Self::Lch => "LCH Color Space",
         }
@@ -332,14 +347,21 @@ impl DistanceAlgorithm {
             Self::DeltaE76 => "Original CIE76 formula - Fast but less perceptually accurate",
             Self::DeltaE2000 => "CIEDE2000 formula - Most perceptually accurate, industry standard",
             Self::EuclideanLab => "Simple Euclidean distance - Fast but not perceptually uniform",
-            Self::Lch => "Distance calculation in LCH cylindrical color space - Separates lightness from chroma",
+            Self::Lch => {
+                "Distance calculation in LCH cylindrical color space - Separates lightness from chroma"
+            }
         }
     }
 
     /// Get all available algorithms
     #[must_use]
     pub const fn all() -> [Self; 4] {
-        [Self::DeltaE76, Self::DeltaE2000, Self::EuclideanLab, Self::Lch]
+        [
+            Self::DeltaE76,
+            Self::DeltaE2000,
+            Self::EuclideanLab,
+            Self::Lch,
+        ]
     }
 
     /// Check if this algorithm is considered fast for real-time usage
@@ -349,7 +371,7 @@ impl DistanceAlgorithm {
     }
 
     /// Check if this algorithm is perceptually accurate
-    #[must_use] 
+    #[must_use]
     pub const fn is_perceptually_accurate(self) -> bool {
         matches!(self, Self::DeltaE2000 | Self::Lch)
     }

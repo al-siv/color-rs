@@ -3,11 +3,11 @@
 //! This module contains unified gradient calculation algorithms,
 //! breaking them down into focused, composable functions that follow single responsibility principle.
 
-use super::calculator::{UnifiedGradientStop, cubic_bezier_ease};
 #[cfg(test)]
 use super::calculator::GradientCalculator;
+use super::calculator::{UnifiedGradientStop, cubic_bezier_ease};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
-use crate::config::{math_constants, algorithm_constants};
+use crate::config::{algorithm_constants, math_constants};
 use palette::{IntoColor, Lab, Mix, Srgb};
 
 /// Configuration for gradient calculation
@@ -70,7 +70,7 @@ fn create_gradient_stop(
 fn calculate_simple_mode_stops(config: GradientCalculationConfig) -> Vec<UnifiedGradientStop> {
     let start_rgb = lab_to_rgb_tuple(config.start_lab);
     let end_rgb = lab_to_rgb_tuple(config.end_lab);
-    
+
     (0..config.steps)
         .map(|i| calculate_simple_mode_stop(i, config, start_rgb, end_rgb))
         .collect()
@@ -85,14 +85,15 @@ fn calculate_simple_mode_stop(
 ) -> UnifiedGradientStop {
     let geometric_t = calculate_geometric_position(step_index, config.steps);
     let bezier_t = cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
-    
+
     // RGB interpolation with bezier timing
     let interpolated_rgb = interpolate_rgb(start_rgb, end_rgb, bezier_t);
-    
+
     // Convert back to LAB for consistent output format
     let lab_color = rgb_tuple_to_lab(interpolated_rgb);
-    let position = calculate_actual_position(geometric_t, config.start_position, config.end_position);
-    
+    let position =
+        calculate_actual_position(geometric_t, config.start_position, config.end_position);
+
     create_gradient_stop(position, geometric_t, bezier_t, lab_color, interpolated_rgb)
 }
 
@@ -119,7 +120,7 @@ fn rgb_tuple_to_lab(rgb: RgbTuple) -> Lab {
 fn calculate_smart_mode_stops(config: GradientCalculationConfig) -> Vec<UnifiedGradientStop> {
     let total_distance = calculate_distance(config.algorithm, config.start_lab, config.end_lab);
     let step_distance = total_distance / (config.steps - 1) as f64;
-    
+
     (0..config.steps)
         .map(|i| calculate_smart_mode_stop(i, config, step_distance))
         .collect()
@@ -141,25 +142,13 @@ fn calculate_smart_mode_stop(
 /// Create the starting gradient stop
 fn create_start_stop(config: GradientCalculationConfig) -> UnifiedGradientStop {
     let start_rgb = lab_to_rgb_tuple(config.start_lab);
-    create_gradient_stop(
-        config.start_position,
-        0.0,
-        0.0,
-        config.start_lab,
-        start_rgb,
-    )
+    create_gradient_stop(config.start_position, 0.0, 0.0, config.start_lab, start_rgb)
 }
 
 /// Create the ending gradient stop
 fn create_end_stop(config: GradientCalculationConfig) -> UnifiedGradientStop {
     let end_rgb = lab_to_rgb_tuple(config.end_lab);
-    create_gradient_stop(
-        config.end_position,
-        1.0,
-        1.0,
-        config.end_lab,
-        end_rgb,
-    )
+    create_gradient_stop(config.end_position, 1.0, 1.0, config.end_lab, end_rgb)
 }
 
 /// Create a middle gradient stop using binary search
@@ -173,8 +162,9 @@ fn create_middle_stop(
     let bezier_t = cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
     let lab_color = config.start_lab.mix(config.end_lab, bezier_t as f32);
     let rgb_color = lab_to_rgb_tuple(lab_color);
-    let position = calculate_actual_position(geometric_t, config.start_position, config.end_position);
-    
+    let position =
+        calculate_actual_position(geometric_t, config.start_position, config.end_position);
+
     create_gradient_stop(position, geometric_t, bezier_t, lab_color, rgb_color)
 }
 
@@ -218,7 +208,7 @@ fn find_geometric_position_for_distance(
         gradient_config: config,
         ..Default::default()
     };
-    
+
     binary_search_for_position(search_config)
 }
 
@@ -227,32 +217,29 @@ fn binary_search_for_position(search_config: BinarySearchConfig) -> f64 {
     let mut low = 0.0;
     let mut high = 1.0;
     let mut best_t = 0.5;
-    
+
     for _ in 0..search_config.max_iterations {
         let mid_t = (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR;
         let actual_distance = calculate_distance_at_position(mid_t, search_config.gradient_config);
-        
+
         if (actual_distance - search_config.target_distance).abs() < search_config.tolerance {
             return mid_t;
         }
-        
+
         if actual_distance < search_config.target_distance {
             low = mid_t;
         } else {
             high = mid_t;
         }
-        
+
         best_t = mid_t;
     }
-    
+
     best_t
 }
 
 /// Calculate distance from start color at a given geometric position
-fn calculate_distance_at_position(
-    geometric_t: f64,
-    config: GradientCalculationConfig,
-) -> f64 {
+fn calculate_distance_at_position(geometric_t: f64, config: GradientCalculationConfig) -> f64 {
     let bezier_t = cubic_bezier_ease(geometric_t, config.ease_in, config.ease_out);
     let test_color = config.start_lab.mix(config.end_lab, bezier_t as f32);
     calculate_distance(config.algorithm, config.start_lab, test_color)
@@ -281,7 +268,7 @@ pub fn calculate_unified_gradient(
         use_simple_mode,
         algorithm,
     };
-    
+
     if use_simple_mode {
         calculate_simple_mode_stops(config)
     } else {
@@ -308,7 +295,10 @@ mod tests {
     fn test_geometric_position_calculation() {
         assert_eq!(calculate_geometric_position(0, 10), 0.0);
         assert_eq!(calculate_geometric_position(9, 10), 1.0);
-        assert!((calculate_geometric_position(5, 11) - 0.5).abs() < algorithm_constants::GEOMETRIC_TOLERANCE);
+        assert!(
+            (calculate_geometric_position(5, 11) - 0.5).abs()
+                < algorithm_constants::GEOMETRIC_TOLERANCE
+        );
     }
 
     #[test]
@@ -321,11 +311,11 @@ mod tests {
     #[test]
     fn test_rgb_interpolation() {
         let start = (255, 0, 0); // Red
-        let end = (0, 255, 0);   // Green
-        
+        let end = (0, 255, 0); // Green
+
         let mid = interpolate_rgb(start, end, 0.5);
         assert_eq!(mid, (128, 128, 0)); // Middle should be yellow-ish
-        
+
         let quarter = interpolate_rgb(start, end, 0.25);
         assert_eq!(quarter, (191, 64, 0));
     }
@@ -335,7 +325,7 @@ mod tests {
         let original_rgb = (255, 128, 64);
         let lab = rgb_tuple_to_lab(original_rgb);
         let converted_rgb = lab_to_rgb_tuple(lab);
-        
+
         // Should be approximately the same (allowing for conversion precision)
         assert!((original_rgb.0 as i16 - converted_rgb.0 as i16).abs() <= 2);
         assert!((original_rgb.1 as i16 - converted_rgb.1 as i16).abs() <= 2);
@@ -358,15 +348,15 @@ mod tests {
 
         let stops = calculate_simple_mode_stops(config);
         assert_eq!(stops.len(), 3);
-        
+
         // First stop should be at start
         assert_eq!(stops[0].position, 0);
         assert_eq!(stops[0].geometric_t, 0.0);
-        
+
         // Last stop should be at end
         assert_eq!(stops[2].position, 100);
         assert_eq!(stops[2].geometric_t, 1.0);
-        
+
         // Middle stop should be halfway
         assert_eq!(stops[1].position, 50);
         assert!((stops[1].geometric_t - 0.5).abs() < 0.001);
@@ -376,18 +366,34 @@ mod tests {
     fn test_unified_calculator_equivalence() {
         let start_lab = Lab::new(20.0, 10.0, -5.0);
         let end_lab = Lab::new(80.0, -10.0, 15.0);
-        
+
         // Test that functional version produces same structure as original
         let functional_stops = calculate_unified_gradient(
-            start_lab, end_lab, 0, 100, 0.42, 1.0, 5, true, DistanceAlgorithm::DeltaE2000
+            start_lab,
+            end_lab,
+            0,
+            100,
+            0.42,
+            1.0,
+            5,
+            true,
+            DistanceAlgorithm::DeltaE2000,
         );
-        
+
         let original_stops = GradientCalculator::calculate_unified_gradient_with_algorithm(
-            start_lab, end_lab, 0, 100, 0.42, 1.0, 5, true, DistanceAlgorithm::DeltaE2000
+            start_lab,
+            end_lab,
+            0,
+            100,
+            0.42,
+            1.0,
+            5,
+            true,
+            DistanceAlgorithm::DeltaE2000,
         );
-        
+
         assert_eq!(functional_stops.len(), original_stops.len());
-        
+
         // Check that all stops have equivalent positions (allowing for floating point precision)
         for (func_stop, orig_stop) in functional_stops.iter().zip(original_stops.iter()) {
             assert_eq!(func_stop.position, orig_stop.position);
@@ -408,14 +414,14 @@ mod tests {
             use_simple_mode: false,
             algorithm: DistanceAlgorithm::DeltaE2000,
         };
-        
+
         // Test that binary search finds a reasonable position
         let target_distance = 20.0;
         let found_t = find_geometric_position_for_distance(target_distance, config);
-        
+
         assert!(found_t >= 0.0);
         assert!(found_t <= 1.0);
-        
+
         // Verify the found position produces distance close to target
         let actual_distance = calculate_distance_at_position(found_t, config);
         assert!((actual_distance - target_distance).abs() < 0.1);

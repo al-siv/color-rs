@@ -8,7 +8,7 @@ use tiny_skia::{Pixmap, Transform};
 use usvg::{Options, Tree, fontdb};
 
 use crate::cli::GradientArgs;
-use crate::config::{math_constants, display_constants, algorithm_constants};
+use crate::config::{algorithm_constants, display_constants, math_constants};
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
 
@@ -16,13 +16,18 @@ use crate::gradient::GradientCalculator;
 /// RGB values are clamped to [0,255] range before casting to u8 for safety
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn lab_to_hex(lab: Lab) -> String {
-    
     let srgb: Srgb = lab.into_color();
     format!(
         "#{:02X}{:02X}{:02X}",
-        (srgb.red * math_constants::RGB_MAX_VALUE).round().clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
-        (srgb.green * math_constants::RGB_MAX_VALUE).round().clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
-        (srgb.blue * math_constants::RGB_MAX_VALUE).round().clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
+        (srgb.red * math_constants::RGB_MAX_VALUE)
+            .round()
+            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
+        (srgb.green * math_constants::RGB_MAX_VALUE)
+            .round()
+            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
+        (srgb.blue * math_constants::RGB_MAX_VALUE)
+            .round()
+            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
     )
 }
 
@@ -70,7 +75,8 @@ impl ImageGenerator {
         let legend_height = if args.no_legend {
             0
         } else {
-            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
+            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO)
+                .max(display_constants::MIN_LEGEND_HEIGHT) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -95,7 +101,7 @@ impl ImageGenerator {
     }
 
     /// Create SVG content string
-    /// 
+    ///
     /// # Errors
     /// This function currently cannot fail but returns Result for future extensibility
     /// when error conditions may be added (e.g., invalid color spaces, malformed arguments).
@@ -110,7 +116,8 @@ impl ImageGenerator {
         let legend_height = if args.no_legend {
             0
         } else {
-            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
+            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO)
+                .max(display_constants::MIN_LEGEND_HEIGHT) as u32
         };
         let total_height = gradient_height + legend_height;
 
@@ -154,7 +161,9 @@ impl ImageGenerator {
             // Convert absolute position to relative position within the gradient with 0.5% precision
             let relative_offset_precise =
                 (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
-            let relative_offset = (relative_offset_precise * algorithm_constants::GRADIENT_OFFSET_PRECISION).round() / algorithm_constants::GRADIENT_OFFSET_PRECISION; // Round to nearest 0.5%
+            let relative_offset =
+                (relative_offset_precise * algorithm_constants::GRADIENT_OFFSET_PRECISION).round()
+                    / algorithm_constants::GRADIENT_OFFSET_PRECISION; // Round to nearest 0.5%
 
             // Skip duplicates - only add if offset changed by at least 0.5%
             if let Some(last) = last_offset {
@@ -187,8 +196,10 @@ impl ImageGenerator {
 
         // Add legend if not disabled
         if !args.no_legend {
-            let font_size = (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32;
-            let text_y = gradient_height + (f64::from(legend_height) * display_constants::DEFAULT_TEXT_Y_RATIO) as u32;
+            let font_size = (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO)
+                .max(display_constants::MIN_FONT_SIZE) as u32;
+            let text_y = gradient_height
+                + (f64::from(legend_height) * display_constants::DEFAULT_TEXT_Y_RATIO) as u32;
 
             svg.push_str(&format!(
                 "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
@@ -219,7 +230,7 @@ impl ImageGenerator {
 
     /// Validate image generation parameters
     /// Validate image generation parameters
-    /// 
+    ///
     /// # Errors
     /// Returns error if filenames don't have proper extensions or if validation fails
     /// for any required parameter values.
@@ -289,7 +300,7 @@ mod tests {
     fn test_svg_content_creation() {
         let generator = ImageGenerator::new();
         let args = create_test_args();
-        
+
         // Parse hex colors using color_parser modern approach
         use crate::color_parser::ColorParser;
         let parser = ColorParser::new();

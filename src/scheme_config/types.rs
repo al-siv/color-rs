@@ -3,7 +3,7 @@
 use palette::Lab;
 
 /// Immutable configuration for color scheme calculations
-/// 
+///
 /// This struct replaces the mutable ColorSchemeBuilder with an immutable configuration
 /// that is validated at construction time using smart constructors.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -29,13 +29,22 @@ impl std::fmt::Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ConflictingLuminanceOptions => {
-                write!(f, "Cannot preserve both relative and lab luminance simultaneously")
+                write!(
+                    f,
+                    "Cannot preserve both relative and lab luminance simultaneously"
+                )
             }
             Self::InvalidTargetLuminance { value, min, max } => {
-                write!(f, "Target luminance {value} is outside valid range [{min}, {max}]")
+                write!(
+                    f,
+                    "Target luminance {value} is outside valid range [{min}, {max}]"
+                )
             }
             Self::ConflictingTargetValues => {
-                write!(f, "Cannot specify both relative and lab target luminance values")
+                write!(
+                    f,
+                    "Cannot specify both relative and lab target luminance values"
+                )
             }
         }
     }

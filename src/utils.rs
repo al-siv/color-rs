@@ -1,8 +1,6 @@
 //! Utility functions for color-rs
 
-use crate::config::{
-    BEZIER_MAX, BEZIER_MIN, MAX_PERCENTAGE, math_constants, display_constants,
-};
+use crate::config::{BEZIER_MAX, BEZIER_MIN, MAX_PERCENTAGE, display_constants, math_constants};
 use crate::error::{ColorError, Result};
 
 /// Utility functions for various operations
@@ -30,7 +28,7 @@ impl Utils {
 
     /// Validate a percentage value (0-100)
     /// Validate percentage value is in range 0-100
-    /// 
+    ///
     /// # Errors
     /// Returns `ColorError::InvalidValue` if the percentage is outside the valid range.
     pub fn validate_percentage(value: u8) -> Result<()> {
@@ -44,7 +42,7 @@ impl Utils {
 
     /// Validate a cubic-bezier control point (0.0-1.0)
     /// Validate bezier control point is in range 0.0-1.0
-    /// 
+    ///
     /// # Errors
     /// Returns `ColorError::InvalidValue` if the bezier point is outside the valid range.
     pub fn validate_bezier_point(value: f64) -> Result<()> {
@@ -65,7 +63,12 @@ impl Utils {
     /// Convert HSL values to string representation
     #[must_use]
     pub fn hsl_to_string(h: f64, s: f64, l: f64) -> String {
-        format!("HSL({:.1}°, {:.1}%, {:.1}%)", h, s * math_constants::PERCENTAGE_MULTIPLIER, l * math_constants::PERCENTAGE_MULTIPLIER)
+        format!(
+            "HSL({:.1}°, {:.1}%, {:.1}%)",
+            h,
+            s * math_constants::PERCENTAGE_MULTIPLIER,
+            l * math_constants::PERCENTAGE_MULTIPLIER
+        )
     }
 
     /// DUPLICATION ELIMINATED: Use `PrecisionUtils::format_percentage()` instead
@@ -77,7 +80,7 @@ impl Utils {
 
     /// Check if a string is a valid filename
     /// Validate filename contains only safe characters
-    /// 
+    ///
     /// # Errors
     /// Returns `ColorError::InvalidFilename` if the filename contains illegal characters
     /// or patterns that could cause file system issues.
@@ -105,7 +108,7 @@ impl Utils {
     #[must_use]
     pub fn easing_preset_to_points(preset: &str) -> Option<(f64, f64)> {
         use crate::config::bezier_presets;
-        
+
         match preset.to_lowercase().as_str() {
             "linear" => Some(bezier_presets::LINEAR),
             "ease" => Some(bezier_presets::EASE),
@@ -131,13 +134,15 @@ impl Utils {
     /// Calculate legend height based on gradient height
     #[must_use]
     pub fn calculate_legend_height(gradient_height: u32) -> u32 {
-        (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO).max(display_constants::MIN_LEGEND_HEIGHT) as u32
+        (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO)
+            .max(display_constants::MIN_LEGEND_HEIGHT) as u32
     }
 
     /// Calculate font size based on legend height
     #[must_use]
     pub fn calculate_font_size(legend_height: u32) -> u32 {
-        (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO).max(display_constants::MIN_FONT_SIZE) as u32
+        (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO)
+            .max(display_constants::MIN_FONT_SIZE) as u32
     }
 
     /// Sanitize a color hex string
@@ -206,8 +211,11 @@ mod tests {
     #[test]
     fn test_easing_presets() {
         use crate::config::bezier_presets;
-        
-        assert_eq!(Utils::easing_preset_to_points("linear"), Some(bezier_presets::LINEAR));
+
+        assert_eq!(
+            Utils::easing_preset_to_points("linear"),
+            Some(bezier_presets::LINEAR)
+        );
         assert_eq!(
             Utils::easing_preset_to_points("ease-in-out"),
             Some(bezier_presets::EASE_IN_OUT)

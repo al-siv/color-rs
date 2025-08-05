@@ -18,27 +18,31 @@ pub fn with_lab_luminance_preservation() -> ColorSchemeCalculator {
 }
 
 /// Color scheme calculation with target relative luminance
-pub fn with_target_relative_luminance(luminance: f64) -> std::result::Result<ColorSchemeCalculator, ConfigError> {
+pub fn with_target_relative_luminance(
+    luminance: f64,
+) -> std::result::Result<ColorSchemeCalculator, ConfigError> {
     Ok(ColorSchemeCalculator::new(
-        ColorSchemeConfig::with_target_relative_luminance(luminance)?
+        ColorSchemeConfig::with_target_relative_luminance(luminance)?,
     ))
 }
 
 /// Color scheme calculation with target lab luminance
-pub fn with_target_lab_luminance(luminance: f64) -> std::result::Result<ColorSchemeCalculator, ConfigError> {
+pub fn with_target_lab_luminance(
+    luminance: f64,
+) -> std::result::Result<ColorSchemeCalculator, ConfigError> {
     Ok(ColorSchemeCalculator::new(
-        ColorSchemeConfig::with_target_lab_luminance(luminance)?
+        ColorSchemeConfig::with_target_lab_luminance(luminance)?,
     ))
 }
 
 /// Builder-like configuration composition for complex configurations
-/// 
+///
 /// This function demonstrates how configuration composition can replace
 /// traditional builder patterns with compile-time safety.
 pub fn complex_config() -> std::result::Result<ColorSchemeCalculator, ConfigError> {
     let config = ColorSchemeConfig::default()
         .preserve_relative_luminance()?
         .set_target_relative_luminance(0.5)?;
-    
+
     Ok(ColorSchemeCalculator::new(config))
 }

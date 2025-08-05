@@ -2,51 +2,50 @@
 //!
 //! This module breaks down the large calculate method into focused, composable functions.
 
-use crate::error::Result;
-use crate::config::algorithm_constants;
-use crate::color_schemes::{
-    ColorSchemeResult, HslColorSchemeStrategy, LabColorSchemeStrategy, ColorSchemeStrategy,
-    preserve_wcag_relative_luminance, preserve_lab_luminance,
-    adjust_color_lab_luminance,
-};
+use super::types::{BasicColorSchemes, ColorSchemeConfig, LuminanceConfig};
 use crate::color_ops::luminance::wcag_relative;
-use palette::{Lab, IntoColor, Srgb};
-use super::types::{ColorSchemeConfig, LuminanceConfig, BasicColorSchemes};
+use crate::color_schemes::{
+    ColorSchemeResult, ColorSchemeStrategy, HslColorSchemeStrategy, LabColorSchemeStrategy,
+    adjust_color_lab_luminance, preserve_lab_luminance, preserve_wcag_relative_luminance,
+};
+use crate::config::algorithm_constants;
+use crate::error::Result;
+use palette::{IntoColor, Lab, Srgb};
 
 /// Local implementation of relative luminance adjustment since the original is private
 fn adjust_color_relative_luminance(color: Lab, target_luminance: f64) -> Result<Lab> {
     // Convert to RGB, check current luminance
     let srgb: Srgb = color.into_color();
     let current_luminance = wcag_relative(srgb);
-    
+
     if (current_luminance - target_luminance).abs() < algorithm_constants::LUMINANCE_TOLERANCE {
         return Ok(color);
     }
-    
+
     // Binary search for target luminance by scaling lightness
     let mut low = 0.0_f32;
     let mut high = algorithm_constants::BINARY_SEARCH_HIGH_LUMINANCE;
     let mut best_color = color;
-    
+
     for _ in 0..50 {
         let mid = (low + high) / algorithm_constants::BINARY_SEARCH_DIVISION_FACTOR as f32;
         let test_color = Lab::new(mid, color.a, color.b);
         let test_srgb: Srgb = test_color.into_color();
         let test_luminance = wcag_relative(test_srgb);
-        
+
         if (test_luminance - target_luminance).abs() < algorithm_constants::LUMINANCE_TOLERANCE {
             return Ok(test_color);
         }
-        
+
         if test_luminance < target_luminance {
             low = mid;
         } else {
             high = mid;
         }
-        
+
         best_color = test_color;
     }
-    
+
     Ok(best_color)
 }
 
@@ -153,13 +152,15 @@ pub fn calculate_color_schemes(
         basic_schemes.lab_complementary,
         adjusted_base_color,
         luminance_config,
-    )?.unwrap_or(basic_schemes.lab_complementary);
+    )?
+    .unwrap_or(basic_schemes.lab_complementary);
 
     let hsl_complementary = apply_luminance_matching(
         basic_schemes.hsl_complementary,
         adjusted_base_color,
         luminance_config,
-    )?.unwrap_or(basic_schemes.hsl_complementary);
+    )?
+    .unwrap_or(basic_schemes.hsl_complementary);
 
     // Create a result with basic scheme structure
     // (This is a simplified version - the original has more complex structure)
@@ -167,12 +168,26 @@ pub fn calculate_color_schemes(
         base_color: adjusted_base_color,
         hsl_complementary,
         lab_complementary,
-        hsl_split_complementary: (basic_schemes.split_complementary_1, basic_schemes.split_complementary_2),
+        hsl_split_complementary: (
+            basic_schemes.split_complementary_1,
+            basic_schemes.split_complementary_2,
+        ),
         hsl_triadic: (basic_schemes.triadic_1, basic_schemes.triadic_2),
-        hsl_tetradic: (basic_schemes.tetradic_1, basic_schemes.tetradic_2, basic_schemes.tetradic_3),
-        lab_split_complementary: (basic_schemes.split_complementary_1, basic_schemes.split_complementary_2),
+        hsl_tetradic: (
+            basic_schemes.tetradic_1,
+            basic_schemes.tetradic_2,
+            basic_schemes.tetradic_3,
+        ),
+        lab_split_complementary: (
+            basic_schemes.split_complementary_1,
+            basic_schemes.split_complementary_2,
+        ),
         lab_triadic: (basic_schemes.triadic_1, basic_schemes.triadic_2),
-        lab_tetradic: (basic_schemes.tetradic_1, basic_schemes.tetradic_2, basic_schemes.tetradic_3),
+        lab_tetradic: (
+            basic_schemes.tetradic_1,
+            basic_schemes.tetradic_2,
+            basic_schemes.tetradic_3,
+        ),
         luminance_matched_hsl_complementary: apply_luminance_matching(
             basic_schemes.hsl_complementary,
             adjusted_base_color,
@@ -184,7 +199,10 @@ pub fn calculate_color_schemes(
             luminance_config,
         )?,
         luminance_matched_hsl_split_complementary: apply_luminance_matching_pair(
-            (basic_schemes.split_complementary_1, basic_schemes.split_complementary_2),
+            (
+                basic_schemes.split_complementary_1,
+                basic_schemes.split_complementary_2,
+            ),
             adjusted_base_color,
             luminance_config,
         )?,
@@ -194,12 +212,19 @@ pub fn calculate_color_schemes(
             luminance_config,
         )?,
         luminance_matched_hsl_tetradic: apply_luminance_matching_triple(
-            (basic_schemes.tetradic_1, basic_schemes.tetradic_2, basic_schemes.tetradic_3),
+            (
+                basic_schemes.tetradic_1,
+                basic_schemes.tetradic_2,
+                basic_schemes.tetradic_3,
+            ),
             adjusted_base_color,
             luminance_config,
         )?,
         luminance_matched_lab_split_complementary: apply_luminance_matching_pair(
-            (basic_schemes.split_complementary_1, basic_schemes.split_complementary_2),
+            (
+                basic_schemes.split_complementary_1,
+                basic_schemes.split_complementary_2,
+            ),
             adjusted_base_color,
             luminance_config,
         )?,
@@ -209,7 +234,11 @@ pub fn calculate_color_schemes(
             luminance_config,
         )?,
         luminance_matched_lab_tetradic: apply_luminance_matching_triple(
-            (basic_schemes.tetradic_1, basic_schemes.tetradic_2, basic_schemes.tetradic_3),
+            (
+                basic_schemes.tetradic_1,
+                basic_schemes.tetradic_2,
+                basic_schemes.tetradic_3,
+            ),
             adjusted_base_color,
             luminance_config,
         )?,

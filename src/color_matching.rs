@@ -13,7 +13,7 @@ pub enum CollectionType {
     /// CSS named colors
     Css,
     /// RAL Classic color system
-    RalClassic, 
+    RalClassic,
     /// RAL Design System+ colors
     RalDesign,
 }
@@ -23,7 +23,7 @@ impl CollectionType {
     pub const fn name(self) -> &'static str {
         match self {
             Self::Css => "CSS Colors",
-            Self::RalClassic => "RAL Classic",  
+            Self::RalClassic => "RAL Classic",
             Self::RalDesign => "RAL Design System+",
         }
     }
@@ -115,11 +115,10 @@ pub fn match_color(
     target: &UniversalColor,
     config: &MatchingConfig,
     validation_fn: Option<ValidationFn>,
-    preprocess_fn: Option<PreprocessFn>, 
+    preprocess_fn: Option<PreprocessFn>,
     match_fn: MatchFn,
     post_process_fn: Option<PostProcessFn>,
 ) -> Result<Vec<ColorMatch>> {
-    
     // Step 1: Validation pipeline
     if config.enable_validation {
         // Apply collection-specific validation if provided
@@ -131,7 +130,7 @@ pub fn match_color(
         }
     }
 
-    // Step 2: Preprocessing pipeline  
+    // Step 2: Preprocessing pipeline
     let processed_target = if config.enable_preprocessing {
         if let Some(preprocessor) = preprocess_fn {
             preprocessor(target)?
@@ -186,9 +185,9 @@ pub fn validate_lab_basic(target: &UniversalColor) -> Result<()> {
 
 /// RAL Classic specific validation function
 pub fn validate_ral_classic(target: &UniversalColor) -> Result<()> {
-    // First apply basic validation  
+    // First apply basic validation
     validate_lab_basic(target)?;
-    
+
     // RAL-specific validation: ensure LAB values are reasonable for RAL colors
     let lab = target.lab;
     if !(5.0..=95.0).contains(&lab[0]) {
@@ -204,7 +203,7 @@ pub fn validate_ral_classic(target: &UniversalColor) -> Result<()> {
 pub fn validate_ral_design(target: &UniversalColor) -> Result<()> {
     // First apply basic validation
     validate_lab_basic(target)?;
-    
+
     // RAL Design System+ specific validation
     let lab = target.lab;
     if !(10.0..=90.0).contains(&lab[0]) {
@@ -341,8 +340,13 @@ pub fn match_across_all_collections(
     let mut all_matches = Vec::new();
 
     // Use functional approach for each collection
-    for collection_type in [CollectionType::Css, CollectionType::RalClassic, CollectionType::RalDesign] {
-        let matches = match_color_by_type(target, collection_type, algorithm, limit_per_collection)?;
+    for collection_type in [
+        CollectionType::Css,
+        CollectionType::RalClassic,
+        CollectionType::RalDesign,
+    ] {
+        let matches =
+            match_color_by_type(target, collection_type, algorithm, limit_per_collection)?;
         all_matches.extend(matches);
     }
 
@@ -364,17 +368,18 @@ mod tests {
     #[test]
     fn test_functional_css_matching() {
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
-        let config = MatchingConfig::new(CollectionType::Css, DistanceAlgorithm::DeltaE76)
-            .with_limit(5);
+        let config =
+            MatchingConfig::new(CollectionType::Css, DistanceAlgorithm::DeltaE76).with_limit(5);
 
         let matches = match_color(
             &target,
             &config,
             None, // No custom validation
-            None, // No preprocessing  
+            None, // No preprocessing
             match_css_colors,
             None, // No post-processing
-        ).unwrap();
+        )
+        .unwrap();
 
         assert!(!matches.is_empty());
         assert!(matches.len() <= 5);
@@ -411,12 +416,8 @@ mod tests {
     #[test]
     fn test_convenience_function() {
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
-        let matches = match_color_by_type(
-            &target,
-            CollectionType::Css,
-            DistanceAlgorithm::Lch,
-            5,
-        ).unwrap();
+        let matches =
+            match_color_by_type(&target, CollectionType::Css, DistanceAlgorithm::Lch, 5).unwrap();
 
         assert!(!matches.is_empty());
         assert!(matches.len() <= 5);

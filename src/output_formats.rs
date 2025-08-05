@@ -82,6 +82,41 @@ pub struct EnhancedGradientAnalysisOutput {
     pub gradient_stops: Vec<EnhancedGradientStop>,
 }
 
+/// Hue collection analysis output with structured color information
+#[derive(Debug, Clone, Serialize)]
+pub struct HueCollectionOutput {
+    /// Program metadata
+    pub metadata: ProgramMetadata,
+    /// Collection configuration
+    pub configuration: HueCollectionConfiguration,
+    /// Filtered and sorted color entries
+    pub colors: Vec<HueColorEntry>,
+}
+
+/// Hue collection configuration information
+#[derive(Debug, Clone, Serialize)]
+pub struct HueCollectionConfiguration {
+    pub collection: String,
+    pub total_colors: usize,
+    pub hue_range: Option<String>,
+    pub lightness_range: Option<String>,
+    pub chroma_range: Option<String>,
+}
+
+/// Individual hue color entry
+#[derive(Debug, Clone, Serialize)]
+pub struct HueColorEntry {
+    pub code: String,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
+    pub hue: f64,
+    pub hex: String,
+    pub rgb: [u8; 3],
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
+    pub lightness: f64,
+    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
+    pub chroma: f64,
+}
+
 /// Gradient configuration section
 #[derive(Debug, Clone, Serialize)]
 pub struct GradientConfiguration {
@@ -372,7 +407,7 @@ impl ColorAnalysisOutput {
     }
 
     /// Serialize to TOML format
-    /// 
+    ///
     /// # Errors
     /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
     /// or unsupported data types.
@@ -381,7 +416,7 @@ impl ColorAnalysisOutput {
     }
 
     /// Serialize to YAML format
-    /// 
+    ///
     /// # Errors
     /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
     /// or unsupported data types.
@@ -392,7 +427,7 @@ impl ColorAnalysisOutput {
 
 impl GradientAnalysisOutput {
     /// Serialize to TOML format
-    /// 
+    ///
     /// # Errors
     /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
     /// or unsupported data types.
@@ -401,7 +436,7 @@ impl GradientAnalysisOutput {
     }
 
     /// Serialize to YAML format
-    /// 
+    ///
     /// # Errors
     /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
     /// or unsupported data types.
@@ -412,7 +447,7 @@ impl GradientAnalysisOutput {
 
 impl EnhancedGradientAnalysisOutput {
     /// Serialize to TOML format
-    /// 
+    ///
     /// # Errors
     /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
     /// or unsupported data types.
@@ -421,7 +456,7 @@ impl EnhancedGradientAnalysisOutput {
     }
 
     /// Serialize to YAML format
-    /// 
+    ///
     /// # Errors
     /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
     /// or unsupported data types.
@@ -430,17 +465,73 @@ impl EnhancedGradientAnalysisOutput {
     }
 }
 
+impl HueCollectionOutput {
+    /// Create a new hue collection output
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            metadata: ProgramMetadata::new(None),
+            configuration: HueCollectionConfiguration::default(),
+            colors: Vec::new(),
+        }
+    }
+
+    /// Set collection configuration
+    #[must_use]
+    pub fn with_configuration(mut self, configuration: HueCollectionConfiguration) -> Self {
+        self.configuration = configuration;
+        self
+    }
+
+    /// Set color entries
+    #[must_use]
+    pub fn with_colors(mut self, colors: Vec<HueColorEntry>) -> Self {
+        self.colors = colors;
+        self
+    }
+
+    /// Serialize to TOML format
+    ///
+    /// # Errors
+    /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
+    /// or unsupported data types.
+    pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string_pretty(self)
+    }
+
+    /// Serialize to YAML format
+    ///
+    /// # Errors
+    /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
+    /// or unsupported data types.
+    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
+        serde_yml::to_string(self)
+    }
+}
+
+impl Default for HueCollectionConfiguration {
+    fn default() -> Self {
+        Self {
+            collection: String::new(),
+            total_colors: 0,
+            hue_range: None,
+            lightness_range: None,
+            chroma_range: None,
+        }
+    }
+}
+
 impl ProgramMetadata {
     #[must_use]
     /// Create new execution metadata with current timestamp
-    /// 
+    ///
     /// # Panics
     /// Panics if the system clock has gone backwards relative to UNIX_EPOCH.
     /// This is extremely rare and indicates a system clock issue.
     pub fn new(distance_strategy: Option<&str>) -> Self {
         Self::with_clock(&crate::clock::SystemClock, distance_strategy)
     }
-    
+
     #[must_use]
     /// Create new execution metadata with explicit clock dependency injection
     /// This enables testable time handling following functional programming principles

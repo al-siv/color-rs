@@ -13,7 +13,7 @@ impl ColorSchemeConfig {
     };
 
     /// Create a validated configuration
-    /// 
+    ///
     /// This smart constructor performs validation at compile time where possible
     /// and at runtime for dynamic values, returning a Result for error handling.
     pub fn new(
@@ -39,7 +39,9 @@ impl ColorSchemeConfig {
         }
 
         if let Some(lab_lum) = target_lab_luminance {
-            if !(display_constants::LAB_LUMINANCE_MIN..=display_constants::LAB_LUMINANCE_MAX).contains(&lab_lum) {
+            if !(display_constants::LAB_LUMINANCE_MIN..=display_constants::LAB_LUMINANCE_MAX)
+                .contains(&lab_lum)
+            {
                 return Err(ConfigError::InvalidTargetLuminance {
                     value: lab_lum,
                     min: display_constants::LAB_LUMINANCE_MIN,
@@ -82,7 +84,9 @@ impl ColorSchemeConfig {
     }
 
     /// Smart constructor for target relative luminance
-    pub fn with_target_relative_luminance(luminance: f64) -> std::result::Result<Self, ConfigError> {
+    pub fn with_target_relative_luminance(
+        luminance: f64,
+    ) -> std::result::Result<Self, ConfigError> {
         Self::new(false, false, Some(luminance), None)
     }
 

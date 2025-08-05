@@ -1,7 +1,7 @@
 //! Color operations and conversions for color-rs
 
 use crate::color_formatter::ColorFormatter;
-use crate::color_report_formatting::{lab_to_hex, lab_to_rgb, lab_to_hsl_tuple, rgb_to_srgb};
+use crate::color_report_formatting::{lab_to_hex, lab_to_hsl_tuple, lab_to_rgb, rgb_to_srgb};
 use crate::config::HEX_COLOR_LENGTH;
 use crate::error::{ColorError, Result};
 use crate::utils::Utils;
@@ -186,7 +186,7 @@ pub fn color_match_with_schemes(
 
     // Build color scheme configuration using modern immutable approach
     let scheme_config = build_scheme_config_from_args(args)?;
-    
+
     // Calculate color schemes using modern approach
     let schemes = crate::scheme_config::calculate_color_schemes(scheme_config, lab_color)?;
 
@@ -201,7 +201,9 @@ pub fn color_match_with_schemes(
 }
 
 /// Build `ColorSchemeConfig` from command line arguments using modern immutable pattern
-fn build_scheme_config_from_args(args: &crate::cli::ColorArgs) -> Result<crate::scheme_config::ColorSchemeConfig> {
+fn build_scheme_config_from_args(
+    args: &crate::cli::ColorArgs,
+) -> Result<crate::scheme_config::ColorSchemeConfig> {
     use crate::scheme_config::ColorSchemeConfig;
 
     // Start with default configuration
@@ -235,7 +237,8 @@ fn format_comprehensive_report_with_structured_output(
     args: &crate::cli::ColorArgs,
 ) -> Result<String> {
     use crate::color_report_formatting::{
-        collect_analysis_data, generate_formatted_output, display_terminal_output, write_output_file
+        collect_analysis_data, display_terminal_output, generate_formatted_output,
+        write_output_file,
     };
 
     // Collect and structure analysis data

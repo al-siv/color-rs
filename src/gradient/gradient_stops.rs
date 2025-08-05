@@ -67,22 +67,32 @@ fn generate_intelligent_stops(num_stops: usize, ease_in: f64, ease_out: f64) -> 
     }
 
     let mut stops = Vec::with_capacity(num_stops);
-    
+
     for i in 0..num_stops {
         let linear_position = i as f64 / (num_stops - 1) as f64;
-        
+
         // Apply easing transformation
         let eased_position = if linear_position <= algorithm_constants::BEZIER_TRANSITION_POINT {
             // First half: ease-in
-            algorithm_constants::BEZIER_TRANSITION_POINT * ease_function(algorithm_constants::BEZIER_CALCULATION_FACTOR * linear_position, ease_in)
+            algorithm_constants::BEZIER_TRANSITION_POINT
+                * ease_function(
+                    algorithm_constants::BEZIER_CALCULATION_FACTOR * linear_position,
+                    ease_in,
+                )
         } else {
             // Second half: ease-out
-            algorithm_constants::BEZIER_TRANSITION_POINT + algorithm_constants::BEZIER_TRANSITION_POINT * ease_function(algorithm_constants::BEZIER_CALCULATION_FACTOR * (linear_position - algorithm_constants::BEZIER_TRANSITION_POINT), ease_out)
+            algorithm_constants::BEZIER_TRANSITION_POINT
+                + algorithm_constants::BEZIER_TRANSITION_POINT
+                    * ease_function(
+                        algorithm_constants::BEZIER_CALCULATION_FACTOR
+                            * (linear_position - algorithm_constants::BEZIER_TRANSITION_POINT),
+                        ease_out,
+                    )
         };
-        
+
         stops.push(eased_position);
     }
-    
+
     stops
 }
 
@@ -91,7 +101,7 @@ fn ease_function(t: f64, ease_factor: f64) -> f64 {
     if ease_factor == 0.0 {
         return t; // Linear
     }
-    
+
     // Cubic easing formula
     let normalized_ease = ease_factor.clamp(0.0, 1.0);
     let power = 1.0 + algorithm_constants::BEZIER_CALCULATION_FACTOR * normalized_ease;
@@ -104,7 +114,7 @@ fn post_process_stops(mut stops: Vec<f64>) -> Vec<f64> {
     for stop in &mut stops {
         *stop = stop.clamp(0.0, 1.0);
     }
-    
+
     // Ensure first is 0.0 and last is 1.0 for gradient endpoints
     if let Some(first) = stops.first_mut() {
         *first = 0.0;
@@ -112,7 +122,7 @@ fn post_process_stops(mut stops: Vec<f64>) -> Vec<f64> {
     if let Some(last) = stops.last_mut() {
         *last = 1.0;
     }
-    
+
     stops
 }
 
@@ -158,21 +168,21 @@ impl GradientStopCalculator {
 
         // Generate stops using functional approach
         let stops = self.calculate_stops(num_stops)?;
-        
+
         // Functional composition pipeline for value generation
         let gradient_values = stops
             .into_iter()
             .map(|stop| {
                 // Apply easing function
                 let eased_t = easing_function.ease(stop);
-                
+
                 // Interpolate color in LAB space
                 let interpolated_lab = interpolate_lab(start_lab, end_lab, eased_t);
-                
+
                 // Calculate position
                 let position_range = f64::from(end_position) - f64::from(start_position);
                 let position = f64::from(start_position) + (stop * position_range);
-                
+
                 // Convert to gradient value
                 create_gradient_value(interpolated_lab, position)
             })
@@ -194,17 +204,17 @@ fn interpolate_lab(start: Lab, end: Lab, t: f64) -> Lab {
 /// Pure function for creating gradient values
 fn create_gradient_value(lab: Lab, position: f64) -> Result<GradientValue> {
     use palette::{IntoColor, Srgb};
-    
+
     let srgb: Srgb = lab.into_color();
     let rgb = [
         (srgb.red * 255.0).round() as u8,
         (srgb.green * 255.0).round() as u8,
         (srgb.blue * 255.0).round() as u8,
     ];
-    
+
     // Calculate WCAG luminance
     let luminance = crate::color_ops::luminance::from_rgb((rgb[0], rgb[1], rgb[2]));
-    
+
     Ok(GradientValue {
         position: format!("{}%", position.round() as u8),
         hex: format!("#{:02X}{:02X}{:02X}", rgb[0], rgb[1], rgb[2]),
@@ -222,7 +232,7 @@ mod tests {
     fn test_equal_spacing_calculation() {
         let strategy = StopCalculationStrategy::EqualSpacing;
         let stops = strategy.calculate_stops(5).unwrap();
-        
+
         assert_eq!(stops.len(), 5);
         assert_eq!(stops[0], 0.0);
         assert_eq!(stops[4], 1.0);
@@ -236,7 +246,7 @@ mod tests {
             ease_out: 0.5,
         };
         let stops = strategy.calculate_stops(3).unwrap();
-        
+
         assert_eq!(stops.len(), 3);
         assert_eq!(stops[0], 0.0);
         assert_eq!(stops[2], 1.0);
@@ -246,7 +256,7 @@ mod tests {
     fn test_gradient_stop_calculator() {
         let calculator = GradientStopCalculator::with_equal_spacing();
         let stops = calculator.calculate_stops(3).unwrap();
-        
+
         assert_eq!(stops, vec![0.0, 0.5, 1.0]);
     }
 
@@ -255,7 +265,7 @@ mod tests {
         let start = Lab::new(50.0, 10.0, 20.0);
         let end = Lab::new(70.0, 30.0, 40.0);
         let mid = interpolate_lab(start, end, 0.5);
-        
+
         assert!((mid.l - 60.0).abs() < 1e-6);
         assert!((mid.a - 20.0).abs() < 1e-6);
         assert!((mid.b - 30.0).abs() < 1e-6);
@@ -281,7 +291,7 @@ mod tests {
     fn test_validation_error() {
         let strategy = StopCalculationStrategy::EqualSpacing;
         let result = strategy.calculate_stops(0);
-        
+
         assert!(result.is_err());
     }
 }

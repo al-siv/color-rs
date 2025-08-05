@@ -4,31 +4,30 @@
 //! Instead of trait objects and command invokers, it uses enum-based dispatch and pure functions
 //! for zero-cost abstraction and better performance.
 
-pub mod types;
-pub mod execution;
 pub mod commands;
 pub mod convenience;
+pub mod execution;
+pub mod types;
 
 // Re-export main types and functions for public API
 pub use types::{
-    CommandType, ExecutionContext, ExecutionResult, 
-    PreHookStep, PostHookStep, AVAILABLE_COMMAND_TYPES
+    AVAILABLE_COMMAND_TYPES, CommandType, ExecutionContext, ExecutionResult, PostHookStep,
+    PreHookStep,
 };
 
 pub use execution::{
-    execute_command, get_command_name, get_command_description, supports_undo,
-    execute_command_simple, execute_command_with_validation, execute_command_enhanced
+    execute_command, execute_command_enhanced, execute_command_simple,
+    execute_command_with_validation, get_command_description, get_command_name, supports_undo,
 };
 
 pub use commands::{
-    execute_generate_gradient, execute_find_closest_color,
-    execute_analyze_color, execute_convert_color
+    execute_analyze_color, execute_convert_color, execute_find_closest_color,
+    execute_generate_gradient, execute_hue_analysis,
 };
 
 pub use convenience::{
-    create_gradient_command, create_analyze_command, 
-    create_find_closest_command, create_convert_command,
-    execute_simple, execute_with_validation, execute_enhanced
+    create_analyze_command, create_convert_command, create_find_closest_command,
+    create_gradient_command, execute_enhanced, execute_simple, execute_with_validation,
 };
 
 #[cfg(test)]
@@ -51,7 +50,10 @@ mod tests {
     fn test_command_name_description() {
         let gradient_cmd = create_gradient_command("red".to_string(), "blue".to_string(), 5);
         assert_eq!(get_command_name(&gradient_cmd), "generate_gradient");
-        assert_eq!(get_command_description(&gradient_cmd), "Generate a color gradient between two colors");
+        assert_eq!(
+            get_command_description(&gradient_cmd),
+            "Generate a color gradient between two colors"
+        );
     }
 
     #[test]
@@ -66,7 +68,7 @@ mod tests {
     fn test_supports_undo() {
         let gradient_cmd = create_gradient_command("red".to_string(), "blue".to_string(), 5);
         let analyze_cmd = create_analyze_command("#ff0000".to_string(), false);
-        
+
         assert!(!supports_undo(&gradient_cmd));
         assert!(!supports_undo(&analyze_cmd));
     }
@@ -78,7 +80,7 @@ mod tests {
             .with_pre_hook(PreHookStep::ValidateParameters)
             .with_post_hook(PostHookStep::FormatOutput)
             .with_metadata("test".to_string(), "value".to_string());
-        
+
         assert_eq!(context.pre_hooks.len(), 1);
         assert_eq!(context.post_hooks.len(), 1);
         assert_eq!(context.metadata.get("test").unwrap(), "value");
@@ -105,8 +107,11 @@ mod tests {
             output_file: None,
             func_filter: None,
         };
-        
-        let cmd = CommandType::GenerateGradient { args, output_path: None };
+
+        let cmd = CommandType::GenerateGradient {
+            args,
+            output_path: None,
+        };
         let result = execute_command_with_validation(cmd);
         assert!(result.is_ok()); // The execution returns a failure result, but no error
         let result = result.unwrap();
@@ -130,7 +135,9 @@ mod tests {
         }
 
         match analyze_cmd {
-            CommandType::AnalyzeColor { include_schemes, .. } => {
+            CommandType::AnalyzeColor {
+                include_schemes, ..
+            } => {
                 assert!(include_schemes);
             }
             _ => panic!("Wrong command type"),
@@ -154,15 +161,15 @@ mod tests {
     #[test]
     fn test_execution_with_hooks() {
         let cmd = create_analyze_command("#ff0000".to_string(), false);
-        
+
         // Test simple execution
         let result = execute_command_simple(cmd.clone());
         assert!(result.is_ok());
-        
+
         // Test execution with validation
         let result = execute_command_with_validation(cmd.clone());
         assert!(result.is_ok());
-        
+
         // Test enhanced execution
         let result = execute_command_enhanced(cmd);
         assert!(result.is_ok());
@@ -171,12 +178,12 @@ mod tests {
     #[test]
     fn test_convenience_execution_aliases() {
         let cmd = create_analyze_command("#ff0000".to_string(), false);
-        
+
         // Test convenience aliases
         let result1 = execute_simple(cmd.clone());
         let result2 = execute_with_validation(cmd.clone());
         let result3 = execute_enhanced(cmd);
-        
+
         assert!(result1.is_ok());
         assert!(result2.is_ok());
         assert!(result3.is_ok());

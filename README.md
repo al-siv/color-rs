@@ -160,7 +160,7 @@ All commands output structured data in YAML format containing:
 ```yaml
 metadata:
   program_name: color-rs
-  version: '0.14.1'
+  version: '0.19.0'
   author: al-siv <https://github.com/al-siv>
   description: CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations
   generated_at: '2025-07-22T21:52:57.453462200+00:00'

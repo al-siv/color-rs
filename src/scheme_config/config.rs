@@ -5,7 +5,7 @@ use crate::config::display_constants;
 
 impl ColorSchemeConfig {
     /// Configuration combinator to add relative luminance preservation
-    /// 
+    ///
     /// Returns a new configuration with relative luminance preservation enabled.
     /// This is a pure function that doesn't mutate the original configuration.
     pub fn preserve_relative_luminance(self) -> std::result::Result<Self, ConfigError> {
@@ -30,7 +30,10 @@ impl ColorSchemeConfig {
     }
 
     /// Configuration combinator to set target relative luminance
-    pub fn set_target_relative_luminance(self, luminance: f64) -> std::result::Result<Self, ConfigError> {
+    pub fn set_target_relative_luminance(
+        self,
+        luminance: f64,
+    ) -> std::result::Result<Self, ConfigError> {
         if !(0.0..=1.0).contains(&luminance) {
             return Err(ConfigError::InvalidTargetLuminance {
                 value: luminance,
@@ -48,8 +51,13 @@ impl ColorSchemeConfig {
     }
 
     /// Configuration combinator to set target lab luminance
-    pub fn set_target_lab_luminance(self, luminance: f64) -> std::result::Result<Self, ConfigError> {
-        if !(display_constants::LAB_LUMINANCE_MIN..=display_constants::LAB_LUMINANCE_MAX).contains(&luminance) {
+    pub fn set_target_lab_luminance(
+        self,
+        luminance: f64,
+    ) -> std::result::Result<Self, ConfigError> {
+        if !(display_constants::LAB_LUMINANCE_MIN..=display_constants::LAB_LUMINANCE_MAX)
+            .contains(&luminance)
+        {
             return Err(ConfigError::InvalidTargetLuminance {
                 value: luminance,
                 min: display_constants::LAB_LUMINANCE_MIN,

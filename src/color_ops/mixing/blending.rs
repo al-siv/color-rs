@@ -3,8 +3,8 @@
 //! Implements various blending modes similar to those found in image editing software.
 //! All blending functions take base and overlay colors plus an opacity factor.
 
-use palette::Srgb;
 use super::interpolation::linear_rgb;
+use palette::Srgb;
 
 /// Blend two colors using multiply mode
 ///
@@ -34,7 +34,7 @@ pub fn multiply_blend(base: Srgb, overlay: Srgb, opacity: f32) -> Srgb {
         base.green * overlay.green,
         base.blue * overlay.blue,
     );
-    
+
     linear_rgb(base, blended, opacity)
 }
 
@@ -66,7 +66,7 @@ pub fn screen_blend(base: Srgb, overlay: Srgb, opacity: f32) -> Srgb {
         1.0 - (1.0 - base.green) * (1.0 - overlay.green),
         1.0 - (1.0 - base.blue) * (1.0 - overlay.blue),
     );
-    
+
     linear_rgb(base, blended, opacity)
 }
 
@@ -100,12 +100,12 @@ pub fn overlay_blend(base: Srgb, overlay: Srgb, opacity: f32) -> Srgb {
             1.0 - 2.0 * (1.0 - base) * (1.0 - overlay)
         }
     };
-    
+
     let blended = Srgb::new(
         blend_component(base.red, overlay.red),
         blend_component(base.green, overlay.green),
         blend_component(base.blue, overlay.blue),
     );
-    
+
     linear_rgb(base, blended, opacity)
 }

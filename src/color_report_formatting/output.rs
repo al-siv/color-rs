@@ -22,32 +22,32 @@ pub fn write_output_file(
 }
 
 /// Write analysis data to TOML file
-fn write_toml_file(
-    analysis_data: &ColorAnalysisOutput,
-    filename: &str,
-) -> Result<()> {
+fn write_toml_file(analysis_data: &ColorAnalysisOutput, filename: &str) -> Result<()> {
     let toml_filename = ensure_file_extension(filename, "toml");
-    let toml_content = analysis_data.to_toml().map_err(|e| {
-        ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}"))
-    })?;
-    
+    let toml_content = analysis_data
+        .to_toml()
+        .map_err(|e| ColorError::InvalidArguments(format!("Failed to serialize to TOML: {e}")))?;
+
     write_file_content(&toml_filename, &toml_content)?;
-    println!("Color analysis saved to TOML file: {}", toml_filename.green());
+    println!(
+        "Color analysis saved to TOML file: {}",
+        toml_filename.green()
+    );
     Ok(())
 }
 
 /// Write analysis data to YAML file
-fn write_yaml_file(
-    analysis_data: &ColorAnalysisOutput,
-    filename: &str,
-) -> Result<()> {
+fn write_yaml_file(analysis_data: &ColorAnalysisOutput, filename: &str) -> Result<()> {
     let yaml_filename = ensure_yaml_extension(filename);
-    let yaml_content = analysis_data.to_yaml().map_err(|e| {
-        ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}"))
-    })?;
-    
+    let yaml_content = analysis_data
+        .to_yaml()
+        .map_err(|e| ColorError::InvalidArguments(format!("Failed to serialize to YAML: {e}")))?;
+
     write_file_content(&yaml_filename, &yaml_content)?;
-    println!("Color analysis saved to YAML file: {}", yaml_filename.green());
+    println!(
+        "Color analysis saved to YAML file: {}",
+        yaml_filename.green()
+    );
     Ok(())
 }
 
@@ -83,10 +83,10 @@ fn write_file_content(filename: &str, content: &str) -> Result<()> {
     let mut file = File::create(filename).map_err(|e| {
         ColorError::InvalidArguments(format!("Failed to create file {filename}: {e}"))
     })?;
-    
+
     file.write_all(content.as_bytes()).map_err(|e| {
         ColorError::InvalidArguments(format!("Failed to write to file {filename}: {e}"))
     })?;
-    
+
     Ok(())
 }

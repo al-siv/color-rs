@@ -19,6 +19,11 @@ fn main() -> color_rs::Result<()> {
             let result = color_rs.color_match(&args)?;
             println!("{result}");
         }
+        cli::Commands::Hue(args) => {
+            // Validate arguments before processing
+            args.validate()?;
+            color_rs.analyze_hue(&args)?;
+        }
     }
 
     Ok(())

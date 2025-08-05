@@ -3,12 +3,12 @@
 //! Pure functions for calculating color luminance using various methods.
 //! All functions operate directly on color values without object instantiation.
 
-use palette::{Srgb, Lab, IntoColor};
+use palette::{IntoColor, Lab, Srgb};
 
 /// Calculate WCAG relative luminance for a color
 ///
 /// Implements the WCAG 2.1 relative luminance formula for accessibility compliance.
-/// 
+///
 /// # Arguments
 /// * `srgb` - Source color in sRGB color space
 ///
@@ -28,9 +28,9 @@ use palette::{Srgb, Lab, IntoColor};
 pub fn wcag_relative(srgb: Srgb) -> f64 {
     // WCAG 2.1 relative luminance formula
     let r = srgb_gamma_correct(srgb.red as f64);
-    let g = srgb_gamma_correct(srgb.green as f64); 
+    let g = srgb_gamma_correct(srgb.green as f64);
     let b = srgb_gamma_correct(srgb.blue as f64);
-    
+
     0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
@@ -65,7 +65,7 @@ pub fn from_rgb(rgb: (u8, u8, u8)) -> f64 {
     let srgb = Srgb::new(
         f32::from(rgb.0) / 255.0,
         f32::from(rgb.1) / 255.0,
-        f32::from(rgb.2) / 255.0
+        f32::from(rgb.2) / 255.0,
     );
     wcag_relative(srgb)
 }
@@ -124,7 +124,7 @@ mod tests {
         let red_luminance = from_rgb((255, 0, 0));
         let srgb_red = Srgb::new(1.0, 0.0, 0.0);
         let srgb_luminance = wcag_relative(srgb_red);
-        
+
         // Should be approximately equal
         assert!((red_luminance - srgb_luminance).abs() < 1e-6);
     }

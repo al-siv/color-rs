@@ -40,7 +40,10 @@ impl PrecisionUtils {
     #[must_use]
     pub fn format_percentage(value: f64) -> String {
         use crate::config::math_constants;
-        Self::format_f64_fixed(value * math_constants::PERCENTAGE_MULTIPLIER, algorithm_constants::PERCENTAGE_DECIMAL_PLACES)
+        Self::format_f64_fixed(
+            value * math_constants::PERCENTAGE_MULTIPLIER,
+            algorithm_constants::PERCENTAGE_DECIMAL_PLACES,
+        )
     }
 
     /// Format LAB values with standardized precision
@@ -129,26 +132,32 @@ impl PrecisionUtils {
 
     /// Serialize f64 values with 3 decimal places max
     /// Serialize f64 with 3 decimal places precision
-    /// 
+    ///
     /// # Errors
     /// Returns serialization error if the serializer fails to process the formatted string.
     pub fn serialize_f64_3<S>(value: &f64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        serializer.serialize_f64((*value * algorithm_constants::PRECISION_MULTIPLIER_3_DECIMAL).round() / algorithm_constants::PRECISION_MULTIPLIER_3_DECIMAL)
+        serializer.serialize_f64(
+            (*value * algorithm_constants::PRECISION_MULTIPLIER_3_DECIMAL).round()
+                / algorithm_constants::PRECISION_MULTIPLIER_3_DECIMAL,
+        )
     }
 
     /// Serialize WCAG relative luminance values with 4 decimal places
     /// Serialize luminance value with appropriate precision
-    /// 
+    ///
     /// # Errors
     /// Returns serialization error if the serializer fails to process the formatted string.
     pub fn serialize_wcag_luminance<S>(value: &f64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        serializer.serialize_f64((*value * algorithm_constants::PRECISION_MULTIPLIER_4_DECIMAL).round() / algorithm_constants::PRECISION_MULTIPLIER_4_DECIMAL)
+        serializer.serialize_f64(
+            (*value * algorithm_constants::PRECISION_MULTIPLIER_4_DECIMAL).round()
+                / algorithm_constants::PRECISION_MULTIPLIER_4_DECIMAL,
+        )
     }
 }
 

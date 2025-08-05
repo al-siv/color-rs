@@ -40,33 +40,20 @@
 
 // Re-export all public types and functions for backward compatibility
 pub use types::{
-    DistanceAlgorithm, 
-    ValidationError, 
-    ValidatedLab,
-    LabLens,
-    LightnessLens,
-    ALens,
-    BLens,
+    ALens, BLens, DistanceAlgorithm, LabLens, LightnessLens, ValidatedLab, ValidationError,
 };
 
 pub use algorithms::{
-    filter_fast_algorithms,
-    filter_perceptual_algorithms,
-    recommend_algorithm,
-    compare_algorithms,
+    compare_algorithms, filter_fast_algorithms, filter_perceptual_algorithms, recommend_algorithm,
 };
 
 pub use validation::{
-    SmartConstructors,
-    ColorSource,
-    ValidationConstraints,
-    BatchValidator,
-    combinators,
+    BatchValidator, ColorSource, SmartConstructors, ValidationConstraints, combinators,
 };
 
 // Module declarations
-mod types;
 mod algorithms;
+mod types;
 mod validation;
 
 // Additional convenience re-exports for common patterns
@@ -79,30 +66,20 @@ pub use validation::SmartConstructors as Constructors;
 /// Use `use crate::color_distance_strategies::prelude::*;` to import
 /// the most commonly used types and functions.
 pub mod prelude {
-    pub use super::{
-        DistanceAlgorithm,
-        ValidatedLab,
-        SmartConstructors,
-        ValidationError,
-    };
-    
+    pub use super::{DistanceAlgorithm, SmartConstructors, ValidatedLab, ValidationError};
+
     // Common algorithm variants for convenience
-    pub use super::DistanceAlgorithm::{
-        DeltaE76,
-        DeltaE2000,
-        EuclideanLab,
-        Lch,
-    };
+    pub use super::DistanceAlgorithm::{DeltaE76, DeltaE2000, EuclideanLab, Lch};
 }
 
 // Legacy compatibility layer - these functions maintain the old API
 
 /// Trait for types that can be converted to `ValidatedLab` for distance calculation
 pub trait IntoValidatedLab {
-        /// Convert validated lab to distance algorithm trait object
-    /// 
+    /// Convert validated lab to distance algorithm trait object
+    ///
     /// # Errors
-    /// 
+    ///
     /// Returns `ValidationError` if the LAB values cannot be converted to ValidatedLab:
     /// - Invalid LAB color values (L not in [0,100], A/B not in [-128,127])
     /// - Values outside valid color space ranges
@@ -132,8 +109,8 @@ impl IntoValidatedLab for ValidatedLab {
 /// This function works with both [f32; 3] arrays and Lab objects.
 /// New code should use the enum dispatch methods directly.
 #[must_use]
-pub fn calculate_distance<T1, T2>(algorithm: DistanceAlgorithm, lab1: T1, lab2: T2) -> f64 
-where 
+pub fn calculate_distance<T1, T2>(algorithm: DistanceAlgorithm, lab1: T1, lab2: T2) -> f64
+where
     T1: IntoValidatedLab,
     T2: IntoValidatedLab,
 {
@@ -156,7 +133,10 @@ impl DistanceAlgorithm {
 /// Legacy function: Calculate distance using Delta E 76
 ///
 /// Maintained for backward compatibility. New code should use the enum dispatch.
-#[deprecated(since = "0.16.0", note = "Use DistanceAlgorithm::DeltaE76.calculate_distance() instead")]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use DistanceAlgorithm::DeltaE76.calculate_distance() instead"
+)]
 #[must_use]
 pub fn calculate_delta_e_76_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
     calculate_distance(DistanceAlgorithm::DeltaE76, lab1, lab2)
@@ -165,7 +145,10 @@ pub fn calculate_delta_e_76_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
 /// Legacy function: Calculate distance using Delta E 2000
 ///
 /// Maintained for backward compatibility. New code should use the enum dispatch.
-#[deprecated(since = "0.16.0", note = "Use DistanceAlgorithm::DeltaE2000.calculate_distance() instead")]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use DistanceAlgorithm::DeltaE2000.calculate_distance() instead"
+)]
 #[must_use]
 pub fn calculate_delta_e_2000_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
     calculate_distance(DistanceAlgorithm::DeltaE2000, lab1, lab2)
@@ -174,22 +157,28 @@ pub fn calculate_delta_e_2000_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
 /// Legacy function: Calculate Euclidean distance
 ///
 /// Maintained for backward compatibility. New code should use the enum dispatch.
-#[deprecated(since = "0.16.0", note = "Use DistanceAlgorithm::EuclideanLab.calculate_distance() instead")]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use DistanceAlgorithm::EuclideanLab.calculate_distance() instead"
+)]
 #[must_use]
 pub fn calculate_euclidean_distance_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
     calculate_distance(DistanceAlgorithm::EuclideanLab, lab1, lab2)
 }
 
 /// Legacy function: Parse algorithm from string
-/// 
+///
 /// # Errors
-/// 
+///
 /// Returns error string if the algorithm name is not recognized:
 /// - Invalid algorithm name (not one of: delta_e_76, delta_e_2000, euclidean_lab, lch)
 /// - Case-sensitive matching required
 ///
 /// Maintained for backward compatibility. New code should use `FromStr` trait.
-#[deprecated(since = "0.16.0", note = "Use DistanceAlgorithm::from_str() or parse() instead")]
+#[deprecated(
+    since = "0.16.0",
+    note = "Use DistanceAlgorithm::from_str() or parse() instead"
+)]
 pub fn parse_algorithm_legacy(name: &str) -> Result<DistanceAlgorithm, String> {
     name.parse().map_err(|e: ValidationError| e.to_string())
 }
@@ -197,7 +186,7 @@ pub fn parse_algorithm_legacy(name: &str) -> Result<DistanceAlgorithm, String> {
 /// Migration helper: Convert old array format to `ValidatedLab`
 ///
 /// # Errors
-/// 
+///
 /// Returns `ValidationError` if LAB values are invalid:
 /// - L value not in [0,100] range
 /// - A or B values not in [-128,127] range
@@ -227,10 +216,10 @@ mod integration_tests {
         // Test the complete workflow from input to output
         let lab1 = ValidatedLab::new(50.0, 0.0, 0.0).unwrap();
         let lab2 = SmartConstructors::from_hex("#FF0000").unwrap();
-        
+
         let algorithm = DistanceAlgorithm::DeltaE2000;
         let distance = algorithm.calculate_distance(lab1, lab2);
-        
+
         assert!(distance > 0.0);
         assert!(distance.is_finite());
     }
@@ -238,10 +227,19 @@ mod integration_tests {
     #[test]
     fn test_algorithm_parsing() {
         // Test all algorithm parsing variants
-        assert_eq!(DistanceAlgorithm::from_str("deltae2000").unwrap(), DistanceAlgorithm::DeltaE2000);
-        assert_eq!(DistanceAlgorithm::from_str("Delta E 2000").unwrap(), DistanceAlgorithm::DeltaE2000);
-        assert_eq!(DistanceAlgorithm::from_str("CIEDE2000").unwrap(), DistanceAlgorithm::DeltaE2000);
-        
+        assert_eq!(
+            DistanceAlgorithm::from_str("deltae2000").unwrap(),
+            DistanceAlgorithm::DeltaE2000
+        );
+        assert_eq!(
+            DistanceAlgorithm::from_str("Delta E 2000").unwrap(),
+            DistanceAlgorithm::DeltaE2000
+        );
+        assert_eq!(
+            DistanceAlgorithm::from_str("CIEDE2000").unwrap(),
+            DistanceAlgorithm::DeltaE2000
+        );
+
         assert!(DistanceAlgorithm::from_str("invalid").is_err());
         assert!(DistanceAlgorithm::from_str("").is_err());
     }
@@ -253,7 +251,7 @@ mod integration_tests {
         let from_rgb = SmartConstructors::from_rgb(255, 0, 0).unwrap();
         let from_hex = SmartConstructors::from_hex("#FF0000").unwrap();
         let from_hsl = SmartConstructors::from_hsl(0.0, 100.0, 50.0).unwrap();
-        
+
         // All should be valid
         assert!(from_lab.l() >= 0.0 && from_lab.l() <= 100.0);
         assert!(from_rgb.l() >= 0.0 && from_rgb.l() <= 100.0);
@@ -266,13 +264,13 @@ mod integration_tests {
         // Test functional lens patterns
         let lab = ValidatedLab::new(50.0, 10.0, -5.0).unwrap();
         let lens = ValidatedLab::lens();
-        
+
         // Test individual lens operations
         let brighter = lens.lightness().set(lab, 75.0).unwrap();
         assert_eq!(brighter.l(), 75.0);
         assert_eq!(brighter.a(), lab.a());
         assert_eq!(brighter.b(), lab.b());
-        
+
         let modified_a = lens.a_component().modify(lab, |a| a + 5.0).unwrap();
         assert_eq!(modified_a.a(), 15.0);
         assert_eq!(modified_a.l(), lab.l());
@@ -287,30 +285,31 @@ mod integration_tests {
             ValidatedLab::new(50.0, 0.0, 0.0).unwrap(),
             ValidatedLab::new(100.0, 0.0, 0.0).unwrap(),
         ];
-        
+
         let algorithm = DistanceAlgorithm::DeltaE76;
         let matrix = algorithm.calculate_distance_matrix(&colors);
-        
+
         // Check matrix properties (upper triangular matrix)
         assert_eq!(matrix.len(), 3);
         assert_eq!(matrix[0][0], 0.0); // Distance to self is 0
-        assert!(matrix[0][1] > 0.0);   // Distance to different color > 0
+        assert!(matrix[0][1] > 0.0); // Distance to different color > 0
         assert_eq!(matrix[1][0], 0.0); // Distance to self is 0 (second color)
-        assert!(matrix[0][2] > 0.0);   // Distance to different color > 0
+        assert!(matrix[0][2] > 0.0); // Distance to different color > 0
     }
 
     #[test]
     fn test_validation_constraints() {
         // Test advanced validation patterns
         let constraints = ValidationConstraints::srgb_only();
-        
+
         // Valid sRGB color
         let valid_lab = SmartConstructors::with_constraints(50.0, 0.0, 0.0, &constraints);
         assert!(valid_lab.is_ok());
-        
+
         // Constraints should be enforced
         let grayscale_constraints = ValidationConstraints::grayscale_only();
-        let colorful_lab = SmartConstructors::with_constraints(50.0, 50.0, 50.0, &grayscale_constraints);
+        let colorful_lab =
+            SmartConstructors::with_constraints(50.0, 50.0, 50.0, &grayscale_constraints);
         assert!(colorful_lab.is_err());
     }
 
@@ -319,14 +318,14 @@ mod integration_tests {
         // Test algorithm metadata and characteristics
         assert!(DistanceAlgorithm::DeltaE76.is_fast());
         assert!(!DistanceAlgorithm::DeltaE76.is_perceptually_accurate());
-        
+
         assert!(!DistanceAlgorithm::DeltaE2000.is_fast());
         assert!(DistanceAlgorithm::DeltaE2000.is_perceptually_accurate());
-        
+
         // Test recommendations
         let fast_algo = recommend_algorithm(true, false);
         assert_eq!(fast_algo, Some(DistanceAlgorithm::DeltaE76));
-        
+
         let perceptual_algo = recommend_algorithm(false, true);
         assert_eq!(perceptual_algo, Some(DistanceAlgorithm::DeltaE2000));
     }
@@ -340,7 +339,7 @@ mod integration_tests {
             assert!(distance > 0.0);
             assert!(distance.is_finite());
         }
-        
+
         // Test migration helpers
         let array = [50.0, 10.0, -5.0];
         let lab = array_to_validated_lab(array).unwrap();
@@ -354,10 +353,10 @@ mod integration_tests {
         assert!(ValidatedLab::new(f32::NAN, 0.0, 0.0).is_err());
         assert!(ValidatedLab::new(-10.0, 0.0, 0.0).is_err());
         assert!(ValidatedLab::new(110.0, 0.0, 0.0).is_err());
-        
+
         assert!(SmartConstructors::from_hex("invalid").is_err());
         assert!(SmartConstructors::from_hsl(400.0, 50.0, 50.0).is_err());
-        
+
         let error = DistanceAlgorithm::from_str("nonexistent").unwrap_err();
         assert!(matches!(error, ValidationError::UnknownAlgorithm(_)));
     }

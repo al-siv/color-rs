@@ -30,7 +30,7 @@ impl IntelligentStopCalculator {
         let curve = self.create_bezier_curve();
         let cumulative_importance = self.calculate_cumulative_importance(&curve);
         let total_importance = cumulative_importance[INTELLIGENT_STOP_SAMPLE_POINTS];
-        
+
         if total_importance == 0.0 {
             return self.fallback_to_equal_spacing(num_stops);
         }
@@ -96,7 +96,7 @@ impl IntelligentStopCalculator {
         total_importance: f64,
     ) -> Vec<f64> {
         let mut stops = Vec::new();
-        
+
         for i in 0..num_stops {
             let target_importance = (i as f64 / (num_stops - 1).max(1) as f64) * total_importance;
             let t = self.find_position_for_importance(cumulative_importance, target_importance);
@@ -107,13 +107,21 @@ impl IntelligentStopCalculator {
     }
 
     /// Find the position (t) for a given target importance using binary search
-    fn find_position_for_importance(&self, cumulative_importance: &[f64], target_importance: f64) -> f64 {
+    fn find_position_for_importance(
+        &self,
+        cumulative_importance: &[f64],
+        target_importance: f64,
+    ) -> f64 {
         let (low, high) = self.binary_search_importance(cumulative_importance, target_importance);
         self.interpolate_position(cumulative_importance, target_importance, low, high)
     }
 
     /// Binary search to find the importance range containing the target
-    fn binary_search_importance(&self, cumulative_importance: &[f64], target_importance: f64) -> (usize, usize) {
+    fn binary_search_importance(
+        &self,
+        cumulative_importance: &[f64],
+        target_importance: f64,
+    ) -> (usize, usize) {
         let mut low = 0;
         let mut high = INTELLIGENT_STOP_SAMPLE_POINTS;
 
@@ -238,11 +246,11 @@ mod tests {
     fn test_cubic_bezier_ease() {
         // Test linear easing
         assert!((cubic_bezier_ease(0.5, 0.0, 1.0) - 0.5).abs() < 0.001);
-        
+
         // Test ease-in
         let ease_in_result = cubic_bezier_ease(0.5, 0.42, 1.0);
         assert!(ease_in_result < 0.5); // Should be slower at start
-        
+
         // Test edge cases
         assert_eq!(cubic_bezier_ease(0.0, 0.42, 0.58), 0.0);
         assert_eq!(cubic_bezier_ease(1.0, 0.42, 0.58), 1.0);

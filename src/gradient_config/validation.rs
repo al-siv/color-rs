@@ -156,7 +156,11 @@ impl ImageOutput {
     ///
     /// # Errors
     /// Returns `GradientValidationError` if filename is empty or width is 0
-    pub fn svg(filename: &str, width: u32, show_legend: bool) -> std::result::Result<Self, GradientValidationError> {
+    pub fn svg(
+        filename: &str,
+        width: u32,
+        show_legend: bool,
+    ) -> std::result::Result<Self, GradientValidationError> {
         if filename.trim().is_empty() {
             return Err(GradientValidationError::EmptyFilename);
         }
@@ -176,7 +180,11 @@ impl ImageOutput {
     ///
     /// # Errors
     /// Returns `GradientValidationError` if filename is empty or width is 0
-    pub fn png(filename: &str, width: u32, show_legend: bool) -> std::result::Result<Self, GradientValidationError> {
+    pub fn png(
+        filename: &str,
+        width: u32,
+        show_legend: bool,
+    ) -> std::result::Result<Self, GradientValidationError> {
         if filename.trim().is_empty() {
             return Err(GradientValidationError::EmptyFilename);
         }
@@ -196,7 +204,12 @@ impl ImageOutput {
     ///
     /// # Errors
     /// Returns `GradientValidationError` if filenames are empty or width is 0
-    pub fn both(svg_filename: &str, png_filename: &str, width: u32, show_legend: bool) -> std::result::Result<Self, GradientValidationError> {
+    pub fn both(
+        svg_filename: &str,
+        png_filename: &str,
+        width: u32,
+        show_legend: bool,
+    ) -> std::result::Result<Self, GradientValidationError> {
         if svg_filename.trim().is_empty() || png_filename.trim().is_empty() {
             return Err(GradientValidationError::EmptyFilename);
         }
@@ -291,7 +304,10 @@ impl FileOutput {
     ///
     /// # Errors
     /// Returns `GradientValidationError` if filename is empty
-    pub fn new(format: crate::cli::OutputFormat, filename: &str) -> std::result::Result<Self, GradientValidationError> {
+    pub fn new(
+        format: crate::cli::OutputFormat,
+        filename: &str,
+    ) -> std::result::Result<Self, GradientValidationError> {
         if filename.trim().is_empty() {
             return Err(GradientValidationError::EmptyFilename);
         }

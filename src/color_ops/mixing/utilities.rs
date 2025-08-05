@@ -3,8 +3,10 @@
 //! High-level utility functions for creating color palettes, weighted mixing,
 //! and other complex color manipulation operations.
 
+use super::interpolation::{
+    hsl_interpolation, hsv_interpolation, lab_interpolation, lch_interpolation, linear_rgb,
+};
 use palette::Srgb;
-use super::interpolation::{linear_rgb, lab_interpolation, lch_interpolation, hsl_interpolation, hsv_interpolation};
 
 /// Color space options for interpolation
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -46,30 +48,28 @@ pub enum ColorSpace {
 /// ];
 /// let palette = utilities::create_palette(&keys, 10, utilities::ColorSpace::Lab);
 /// ```
-pub fn create_palette(
-    key_colors: &[Srgb],
-    steps: usize,
-    color_space: ColorSpace,
-) -> Vec<Srgb> {
+pub fn create_palette(key_colors: &[Srgb], steps: usize, color_space: ColorSpace) -> Vec<Srgb> {
     if key_colors.len() < 2 || steps < 2 {
         return key_colors.to_vec();
     }
-    
+
     let mut palette = Vec::with_capacity(steps);
     let segments = key_colors.len() - 1;
-    
+
     for i in 0..steps {
-        #[allow(clippy::cast_possible_truncation)] // Safe: steps is reasonable size, position calculations are intentional
+        #[allow(clippy::cast_possible_truncation)]
+        // Safe: steps is reasonable size, position calculations are intentional
         let position = i as f32 / (steps - 1) as f32;
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // Safe: position is [0,1], floor result is non-negative
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        // Safe: position is [0,1], floor result is non-negative
         let segment_index = (position * segments as f32).floor() as usize;
         let segment_index = segment_index.min(segments - 1);
-        
+
         let local_position = (position * segments as f32) - segment_index as f32;
-        
+
         let color1 = key_colors[segment_index];
         let color2 = key_colors[segment_index + 1];
-        
+
         let mixed = match color_space {
             ColorSpace::Rgb => linear_rgb(color1, color2, local_position),
             ColorSpace::Lab => lab_interpolation(color1, color2, local_position),
@@ -77,10 +77,10 @@ pub fn create_palette(
             ColorSpace::Hsl => hsl_interpolation(color1, color2, local_position),
             ColorSpace::Hsv => hsv_interpolation(color1, color2, local_position),
         };
-        
+
         palette.push(mixed);
     }
-    
+
     palette
 }
 
@@ -107,10 +107,7 @@ pub fn create_palette(
 /// ];
 /// let mixed = utilities::weighted_mix(colors, utilities::ColorSpace::Lab).unwrap();
 /// ```
-pub fn weighted_mix(
-    colors_and_weights: &[(Srgb, f32)],
-    color_space: ColorSpace,
-) -> Option<Srgb> {
+pub fn weighted_mix(colors_and_weights: &[(Srgb, f32)], color_space: ColorSpace) -> Option<Srgb> {
     if let Some(total_weight) = validate_weights(colors_and_weights) {
         match color_space {
             ColorSpace::Rgb => Some(mix_in_rgb_space(colors_and_weights, total_weight)),
@@ -133,7 +130,7 @@ fn validate_weights(colors_and_weights: &[(Srgb, f32)]) -> Option<f32> {
     if colors_and_weights.is_empty() {
         return None;
     }
-    
+
     let total_weight: f32 = colors_and_weights.iter().map(|(_, w)| w).sum();
     if total_weight <= 0.0 {
         None
@@ -147,25 +144,25 @@ fn mix_in_rgb_space(colors_and_weights: &[(Srgb, f32)], total_weight: f32) -> Sr
     let mut r = 0.0;
     let mut g = 0.0;
     let mut b = 0.0;
-    
+
     for &(color, weight) in colors_and_weights {
         let normalized_weight = weight / total_weight;
         r += color.red * normalized_weight;
         g += color.green * normalized_weight;
         b += color.blue * normalized_weight;
     }
-    
+
     Srgb::new(r, g, b)
 }
 
 /// Mix colors in LAB color space
 fn mix_in_lab_space(colors_and_weights: &[(Srgb, f32)], total_weight: f32) -> Srgb {
-    use palette::{Lab, IntoColor};
-    
+    use palette::{IntoColor, Lab};
+
     let mut l = 0.0f32;
     let mut a = 0.0f32;
     let mut b = 0.0f32;
-    
+
     for &(color, weight) in colors_and_weights {
         let lab: Lab = color.into_color();
         let normalized_weight = weight / total_weight;
@@ -173,7 +170,7 @@ fn mix_in_lab_space(colors_and_weights: &[(Srgb, f32)], total_weight: f32) -> Sr
         a += lab.a * normalized_weight;
         b += lab.b * normalized_weight;
     }
-    
+
     let mixed_lab = Lab::new(l, a, b);
     mixed_lab.into_color()
 }

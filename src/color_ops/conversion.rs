@@ -3,7 +3,7 @@
 //! Pure functions for converting between different color spaces.
 //! All conversions use the palette crate's color space implementations.
 
-use palette::{Hsl, Hsv, Lab, Lch, Srgb, Xyz, IntoColor};
+use palette::{Hsl, Hsv, IntoColor, Lab, Lch, Srgb, Xyz};
 
 // ============================================================================
 // RGB Conversions
@@ -312,7 +312,7 @@ pub fn srgb_to_rgb_tuple(srgb: Srgb) -> (u8, u8, u8) {
 /// ```
 pub fn hex_to_srgb(hex: &str) -> Result<Srgb, String> {
     let hex = hex.trim_start_matches('#');
-    
+
     match hex.len() {
         3 => {
             // #RGB format
@@ -372,7 +372,7 @@ mod tests {
         let original = Srgb::new(0.8, 0.3, 0.6);
         let hsl = srgb_to_hsl(original);
         let converted = hsl_to_srgb(hsl);
-        
+
         assert!((original.red - converted.red).abs() < 1e-6);
         assert!((original.green - converted.green).abs() < 1e-6);
         assert!((original.blue - converted.blue).abs() < 1e-6);
@@ -383,7 +383,7 @@ mod tests {
         let original = Srgb::new(0.7, 0.2, 0.9);
         let hsv = srgb_to_hsv(original);
         let converted = hsv_to_srgb(hsv);
-        
+
         assert!((original.red - converted.red).abs() < 1e-6);
         assert!((original.green - converted.green).abs() < 1e-6);
         assert!((original.blue - converted.blue).abs() < 1e-6);
@@ -394,7 +394,7 @@ mod tests {
         let original = Srgb::new(0.5, 0.7, 0.2);
         let lab = srgb_to_lab(original);
         let converted = lab_to_srgb(lab);
-        
+
         // LAB conversion may have some precision loss
         assert!((original.red - converted.red).abs() < 1e-3);
         assert!((original.green - converted.green).abs() < 1e-3);
@@ -406,7 +406,7 @@ mod tests {
         let rgb = (255, 128, 64);
         let srgb = rgb_tuple_to_srgb(rgb);
         let converted = srgb_to_rgb_tuple(srgb);
-        
+
         assert_eq!(rgb, converted);
     }
 
@@ -416,13 +416,13 @@ mod tests {
         let srgb = hex_to_srgb("#FF8040").unwrap();
         let hex = srgb_to_hex(srgb);
         assert_eq!(hex, "#FF8040");
-        
+
         // Test #RGB format
         let srgb_short = hex_to_srgb("#F84").unwrap();
         assert!((srgb_short.red - (255.0 / 255.0)).abs() < 1e-6);
         assert!((srgb_short.green - (136.0 / 255.0)).abs() < 1e-6);
         assert!((srgb_short.blue - (68.0 / 255.0)).abs() < 1e-6);
-        
+
         // Test without # prefix
         let srgb_no_hash = hex_to_srgb("FF8040").unwrap();
         assert_eq!(srgb_to_hex(srgb_no_hash), "#FF8040");
@@ -431,7 +431,7 @@ mod tests {
     #[test]
     fn test_hex_error_cases() {
         assert!(hex_to_srgb("#GG0000").is_err()); // Invalid hex
-        assert!(hex_to_srgb("#FF00").is_err());   // Wrong length
+        assert!(hex_to_srgb("#FF00").is_err()); // Wrong length
         assert!(hex_to_srgb("#FF00000").is_err()); // Wrong length
     }
 
@@ -442,7 +442,7 @@ mod tests {
         let red_hsl = srgb_to_hsl(red);
         assert!((red_hsl.hue.into_inner() - 0.0).abs() < 1e-6);
         assert!((red_hsl.saturation - 1.0).abs() < 1e-6);
-        
+
         // Test green in HSV
         let green = Srgb::new(0.0, 1.0, 0.0);
         let green_hsv = srgb_to_hsv(green);

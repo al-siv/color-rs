@@ -6,7 +6,7 @@
 use crate::color_ops::conversion;
 use crate::precision_utils::PrecisionUtils;
 use crate::utils::Utils;
-use palette::{Lab, Srgb, Hsl, Hsv, Lch, Xyz, IntoColor};
+use palette::{Hsl, Hsv, IntoColor, Lab, Lch, Srgb, Xyz};
 
 /// Consolidated color format utilities
 pub struct FormatUtils;
@@ -81,7 +81,7 @@ impl FormatUtils {
         let r = srgb.red;
         let g = srgb.green;
         let b = srgb.blue;
-        
+
         let k = 1.0 - r.max(g).max(b);
         if k >= 1.0 {
             PrecisionUtils::format_cmyk(0.0, 0.0, 0.0, 100.0)
@@ -116,11 +116,7 @@ impl FormatUtils {
     #[must_use]
     pub fn lab_to_lch(lab: Lab) -> String {
         let lch: Lch = lab.into_color();
-        PrecisionUtils::format_lch(
-            lch.l as f64,
-            lch.chroma as f64,
-            lch.hue.into_inner() as f64,
-        )
+        PrecisionUtils::format_lch(lch.l as f64, lch.chroma as f64, lch.hue.into_inner() as f64)
     }
 
     /// Convert LAB to OKLCH format string with standardized precision using functional conversion
@@ -129,11 +125,7 @@ impl FormatUtils {
         // For now, use LCH as approximation for OKLCH since palette doesn't have native OKLCH
         // This is a simplified conversion - for true OKLCH, more complex color space conversion would be needed
         let lch: Lch = lab.into_color();
-        PrecisionUtils::format_oklch(
-            lch.l as f64,
-            lch.chroma as f64,
-            lch.hue.into_inner() as f64,
-        )
+        PrecisionUtils::format_oklch(lch.l as f64, lch.chroma as f64, lch.hue.into_inner() as f64)
     }
 
     /// Get all color format strings - this is the ONLY non-duplicate function in `FormatUtils`

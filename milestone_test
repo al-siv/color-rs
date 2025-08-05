@@ -1,0 +1,77 @@
+collection: css
+colors:
+  - code: darkolivegreen
+    hue: 121.6
+    hex: "#556B2F"
+  - code: greenyellow
+    hue: 122.7
+    hex: "#ADFF2F"
+  - code: chartreuse
+    hue: 128.4
+    hex: "#7FFF00"
+  - code: lawngreen
+    hue: 128.6
+    hex: "#7CFC00"
+  - code: darkgreen
+    hue: 136.0
+    hex: "#006400"
+  - code: lime
+    hue: 136.0
+    hex: "#00FF00"
+  - code: green
+    hue: 136.0
+    hex: "#008000"
+  - code: limegreen
+    hue: 137.5
+    hex: "#32CD32"
+  - code: forestgreen
+    hue: 137.8
+    hex: "#228B22"
+  - code: palegreen
+    hue: 141.4
+    hex: "#98FB98"
+  - code: lightgreen
+    hue: 141.4
+    hex: "#90EE90"
+  - code: darkseagreen
+    hue: 142.9
+    hex: "#8FBC8F"
+  - code: honeydew
+    hue: 144.1
+    hex: "#F0FFF0"
+  - code: springgreen
+    hue: 148.6
+    hex: "#00FF7F"
+  - code: seagreen
+    hue: 153.2
+    hex: "#2E8B57"
+  - code: mediumseagreen
+    hue: 153.3
+    hex: "#3CB371"
+  - code: mediumspringgreen
+    hue: 155.3
+    hex: "#00FA9A"
+  - code: gainsboro
+    hue: 158.2
+    hex: "#DCDCDC"
+  - code: gray
+    hue: 158.2
+    hex: "#808080"
+  - code: grey
+    hue: 158.2
+    hex: "#808080"
+  - code: lightgray
+    hue: 158.2
+    hex: "#D3D3D3"
+  - code: lightgrey
+    hue: 158.2
+    hex: "#D3D3D3"
+  - code: mintcream
+    hue: 163.3
+    hex: "#F5FFFA"
+  - code: mediumaquamarine
+    hue: 167.8
+    hex: "#66CDAA"
+  - code: aquamarine
+    hue: 167.9
+    hex: "#7FFFD4"
