@@ -1,25 +1,53 @@
 //! Color analysis functions
 //!
 //! Pure functions for analyzing color properties and characteristics.
-//! This module has been decomposed into focused submodules:
-//!
-//! - `conversions` - Type conversion logic and serializable color representations
-//! - `core` - Core analysis functions and main logic
-//! - `formatting` - Result formatting and comparison functions
-//!
-//! All original functions and types are re-exported for backward compatibility.
+//! Provides unified analysis structure replacing facade pattern analysis.
 
-// Re-export all public items from the decomposed submodules
-pub use self::{
-    conversions::*,
-    core::*,
-    formatting::*,
-};
+use crate::color_ops::{contrast, distance, luminance};
+use palette::{Hsl, Hsv, Lab, Lch, Srgb};
+use serde::{Deserialize, Serialize};
 
-// Declare the submodules
-pub mod conversions;
-pub mod core; 
-pub mod formatting;
+/// Serializable RGB color representation
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SerializableRgb {
+    pub red: f32,
+    pub green: f32,
+    pub blue: f32,
+}
+
+impl From<Srgb> for SerializableRgb {
+    fn from(srgb: Srgb) -> Self {
+        Self {
+            red: srgb.red,
+            green: srgb.green,
+            blue: srgb.blue,
+        }
+    }
+}
+
+impl From<SerializableRgb> for Srgb {
+    fn from(rgb: SerializableRgb) -> Self {
+        Srgb::new(rgb.red, rgb.green, rgb.blue)
+    }
+}
+
+/// Serializable HSL color representation  
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SerializableHsl {
+    pub hue: f32,
+    pub saturation: f32,
+    pub lightness: f32,
+}
+
+impl From<Hsl> for SerializableHsl {
+    fn from(hsl: Hsl) -> Self {
+        Self {
+            hue: hsl.hue.into_inner(),
+            saturation: hsl.saturation,
+            lightness: hsl.lightness,
+        }
+    }
+}
 
 /// Serializable HSV color representation
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
