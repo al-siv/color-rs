@@ -16,25 +16,9 @@
 //! - Functional composition and pipeline patterns
 //!
 //! ## Example Usage
-//! ```rust
-//! use color_rs::color_ops::analysis::hue::{HueAnalysisOptions, analyze_hue_relationships};
-//! use palette::{Lch, Srgb};
-//!
-//! let input_color = Lch::new(50.0, 40.0, 120.0);
-//! let color_collection = vec![
-//!     Lch::new(45.0, 35.0, 115.0),
-//!     Lch::new(55.0, 45.0, 125.0),
-//! ];
-//!
-//! let options = HueAnalysisOptions {
-//!     target_hue: Some(120.0),
-//!     tolerance: 15.0,
-//!     min_saturation: Some(20.0),
-//!     min_lightness: Some(30.0),
-//! };
-//!
-//! let result = analyze_hue_relationships(&input_color, &color_collection, &options);
-//! ```
+//! 
+//! This module provides comprehensive hue analysis capabilities for color collections.
+//! See individual function documentation for specific usage examples.
 
 use crate::color_parser::collections::ColorCollection;
 use crate::color_parser::{CssColorCollection, RalClassicCollection, RalDesignCollection};

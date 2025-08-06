@@ -40,6 +40,12 @@ mod test_suite_runner {
             hue_range: Some("[0...30]".to_string()),
             lightness_range: None,
             chroma_range: None,
+            grad: false,
+            pal: false,
+            svg: None,
+            png: None,
+            width: 1000,
+            no_labels: false,
             output_format: Some(OutputFormat::Yaml),
             output_file: None,
         };
