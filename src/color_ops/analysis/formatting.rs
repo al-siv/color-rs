@@ -37,6 +37,7 @@ pub struct DistanceMetrics {
 ///
 /// # Returns
 /// * Detailed color comparison structure
+#[must_use]
 pub fn compare_colors(color1: Srgb, color2: Srgb) -> ColorComparison {
     let analysis1 = analyze_color(color1);
     let analysis2 = analyze_color(color2);

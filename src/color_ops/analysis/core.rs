@@ -275,6 +275,7 @@ pub fn classify_temperature(hue_degrees: f32) -> String {
 }
 
 /// Classify saturation level
+#[must_use]
 pub fn classify_saturation(saturation: f32) -> String {
     match saturation {
         s if s < 0.2 => "Very Low".to_string(),
@@ -286,6 +287,7 @@ pub fn classify_saturation(saturation: f32) -> String {
 }
 
 /// Classify color mood
+#[must_use]
 pub fn classify_mood(hue_category: &str, _temperature: &str, value: f32) -> String {
     let base_mood = match hue_category {
         "Red" | "Red-Orange" => "Energetic",

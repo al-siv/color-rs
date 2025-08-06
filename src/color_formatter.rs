@@ -55,15 +55,9 @@ impl ColorFormatter {
     pub fn format_color_info(lab_color: Lab, label: &str) -> crate::color::ColorInfo {
         // Convert LAB to RGB using functional conversion
         let srgb: Srgb = lab_color.into_color();
-        #[allow(clippy::cast_possible_truncation)]
-        // Converting normalized f32 [0,1] to u8 [0,255] is safe
-        let red = (srgb.red * 255.0).round() as u8;
-        #[allow(clippy::cast_possible_truncation)]
-        // Converting normalized f32 [0,1] to u8 [0,255] is safe
-        let green = (srgb.green * 255.0).round() as u8;
-        #[allow(clippy::cast_possible_truncation)]
-        // Converting normalized f32 [0,1] to u8 [0,255] is safe
-        let blue = (srgb.blue * 255.0).round() as u8;
+        let red = f32_to_u8_clamped(srgb.red);
+        let green = f32_to_u8_clamped(srgb.green);
+        let blue = f32_to_u8_clamped(srgb.blue);
 
         // Convert LAB to HSL using functional conversion
         let hsl: Hsl = srgb.into_color();
