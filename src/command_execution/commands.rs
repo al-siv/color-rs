@@ -369,6 +369,44 @@ pub fn execute_hue_analysis(
         export_hue_collection_display(&hue_output, output_format, file_path)?;
     }
 
+    // Handle visual output if requested
+    if args.should_generate_visual() {
+        // Convert filtered colors to HueAnalysisResult format for visual generation
+        let analysis_results: Vec<crate::color_ops::analysis::hue::HueAnalysisResult> = 
+            filtered_colors
+                .iter()
+                .map(|(color_entry, lch)| {
+                    crate::color_ops::analysis::hue::HueAnalysisResult {
+                        color: *lch,
+                        name: Some(color_entry.metadata.name.clone()),
+                        hue_distance: 0.0, // Not used for visual generation
+                        saturation: lch.chroma as f64,
+                        lightness: lch.l as f64,
+                        collection: args.collection.clone(),
+                    }
+                })
+                .collect();
+
+        // Generate visual output
+        let image_generator = crate::image::ImageGenerator::new();
+        
+        if args.should_generate_gradient() {
+            println!("Generating horizontal gradient: {}", args.gradient_name());
+            image_generator.generate_hue_gradient(args, &analysis_results)?;
+            if args.should_generate_png() {
+                println!("Generated PNG: {}", args.png_name());
+            }
+        }
+        
+        if args.should_generate_palette() {
+            println!("Generating vertical palette: {}", args.palette_name());
+            image_generator.generate_hue_palette(args, &analysis_results)?;
+            if args.should_generate_png() {
+                println!("Generated PNG: {}", args.png_name());
+            }
+        }
+    }
+
     // Create metadata
     let mut metadata = HashMap::new();
     metadata.insert("collection".to_string(), args.collection.clone());
