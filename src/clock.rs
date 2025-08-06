@@ -2,7 +2,7 @@
 //!
 //! This module provides a Clock trait for dependency injection of time sources,
 //! following functional programming principles by making time access explicit
-//! rather than hidden through direct SystemTime::now() calls.
+//! rather than hidden through direct `SystemTime::now()` calls.
 
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 

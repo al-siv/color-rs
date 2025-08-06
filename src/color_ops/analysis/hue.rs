@@ -449,7 +449,7 @@ pub fn load_collection_colors(
 /// Helper function to convert from the collection trait to our domain types.
 ///
 /// # Arguments
-/// * `collection` - Color collection implementing the ColorCollection trait
+/// * `collection` - Color collection implementing the `ColorCollection` trait
 /// * `collection_name` - Name identifier for the collection
 ///
 /// # Returns
@@ -540,7 +540,7 @@ impl HueDisplayItem {
     /// * `previous_hue` - Previous color's hue for calculating shift
     ///
     /// # Returns
-    /// New HueDisplayItem for display
+    /// New `HueDisplayItem` for display
     pub fn from_analysis_result(result: &HueAnalysisResult, previous_hue: Option<f64>) -> Self {
         let hue = f64::from(result.color.hue.into_degrees());
         let hue_shift = previous_hue.map(|prev| {
@@ -679,7 +679,7 @@ pub struct HueInputInfo {
     pub sort_criteria: String,
 }
 
-/// Serializable version of HueDisplayItem
+/// Serializable version of `HueDisplayItem`
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HueDisplayItemSerialized {
     /// Hue angle in degrees

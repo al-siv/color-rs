@@ -127,6 +127,7 @@ pub struct WcagInfo {
 /// assert!(analysis.properties.is_dark);
 /// assert_eq!(analysis.perception.hue_category, "Red");
 /// ```
+#[must_use]
 pub fn analyze_color(color: Srgb) -> ColorAnalysis {
     let properties = analyze_properties(color);
     let color_spaces = get_color_spaces(color);
@@ -243,6 +244,7 @@ fn get_wcag_info(_color: Srgb) -> WcagInfo {
 }
 
 /// Classify hue into named categories
+#[must_use]
 pub fn classify_hue(hue_degrees: f32) -> String {
     match hue_degrees {
         h if h >= 345.0 || h < 15.0 => "Red".to_string(),
@@ -262,6 +264,7 @@ pub fn classify_hue(hue_degrees: f32) -> String {
 }
 
 /// Classify color temperature
+#[must_use]
 pub fn classify_temperature(hue_degrees: f32) -> String {
     match hue_degrees {
         h if h >= 315.0 || h < 135.0 => "Warm".to_string(),

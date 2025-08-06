@@ -80,7 +80,7 @@ pub trait IntoValidatedLab {
     ///
     /// # Errors
     ///
-    /// Returns `ValidationError` if the LAB values cannot be converted to ValidatedLab:
+    /// Returns `ValidationError` if the LAB values cannot be converted to `ValidatedLab`:
     /// - Invalid LAB color values (L not in [0,100], A/B not in [-128,127])
     /// - Values outside valid color space ranges
     fn into_validated_lab(self) -> Result<ValidatedLab, ValidationError>;
@@ -171,7 +171,7 @@ pub fn calculate_euclidean_distance_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f6
 /// # Errors
 ///
 /// Returns error string if the algorithm name is not recognized:
-/// - Invalid algorithm name (not one of: delta_e_76, delta_e_2000, euclidean_lab, lch)
+/// - Invalid algorithm name (not one of: `delta_e_76`, `delta_e_2000`, `euclidean_lab`, `lch`)
 /// - Case-sensitive matching required
 ///
 /// Maintained for backward compatibility. New code should use `FromStr` trait.

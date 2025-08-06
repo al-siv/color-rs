@@ -166,7 +166,7 @@ impl SmartConstructors {
         ValidatedLab::from_lab(lab)
     }
 
-    /// Create ValidatedLab collection from multiple sources
+    /// Create `ValidatedLab` collection from multiple sources
     ///
     /// Validates all inputs and returns either all valid colors or first error
     ///
