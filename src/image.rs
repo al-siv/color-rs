@@ -13,22 +13,35 @@ use crate::config::{algorithm_constants, display_constants, math_constants};
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
 
+/// Convert a color component from 0.0-1.0 range to 0-255 u8
+/// 
+/// # Arguments
+/// * `component` - Color component value in 0.0-1.0 range
+/// 
+/// # Returns
+/// u8 value in 0-255 range
+#[must_use]
+fn component_to_u8(component: f32) -> u8 {
+    // Since RGB_MAX_VALUE is 255.0 and we clamp to this range,
+    // the cast to u8 is safe and will never wrap
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+    {
+        (component * math_constants::RGB_MAX_VALUE)
+            .round()
+            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8
+    }
+}
+
 /// Convert LAB color to hex string for image generation
 /// RGB values are clamped to [0,255] range before casting to u8 for safety
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[must_use]
 pub fn lab_to_hex(lab: Lab) -> String {
     let srgb: Srgb = lab.into_color();
     format!(
         "#{:02X}{:02X}{:02X}",
-        (srgb.red * math_constants::RGB_MAX_VALUE)
-            .round()
-            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
-        (srgb.green * math_constants::RGB_MAX_VALUE)
-            .round()
-            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
-        (srgb.blue * math_constants::RGB_MAX_VALUE)
-            .round()
-            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
+        component_to_u8(srgb.red),
+        component_to_u8(srgb.green),
+        component_to_u8(srgb.blue),
     )
 }
 
@@ -184,7 +197,7 @@ impl ImageGenerator {
 
             // Format offset with proper precision (show .5 when needed, hide .0)
             let offset_str = if relative_offset.fract() == 0.0 {
-                format!("{}%", relative_offset as u8)
+                format!("{}%", relative_offset.round() as u8)
             } else {
                 format!("{relative_offset:.1}%")
             };

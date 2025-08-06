@@ -71,6 +71,7 @@ pub fn validate_stack_allocation_usage() -> Result<(), String> {
 
     // Test 2: Color analysis uses minimal allocation
     for &(r, g, b) in &test_data.rgb_colors {
+        #[allow(clippy::cast_precision_loss)] // u8 to f32 conversion for color normalization
         let srgb = palette::Srgb::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
         let _analysis = black_box(analyze_color(srgb));
         // Most fields should be stack-allocated primitives
