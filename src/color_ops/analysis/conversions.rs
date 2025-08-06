@@ -112,6 +112,7 @@ pub struct ColorSpaces {
 }
 
 /// Get color space representations
+#[must_use]
 pub fn get_color_spaces(color: Srgb) -> ColorSpaces {
     use crate::color_ops::conversion;
 

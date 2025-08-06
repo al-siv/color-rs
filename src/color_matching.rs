@@ -20,6 +20,7 @@ pub enum CollectionType {
 
 impl CollectionType {
     /// Get the display name for the collection
+    #[must_use]
     pub const fn name(self) -> &'static str {
         match self {
             Self::Css => "CSS Colors",
@@ -48,6 +49,7 @@ pub struct MatchingConfig {
 
 impl MatchingConfig {
     /// Create a basic configuration with defaults
+    #[must_use]
     pub const fn new(collection_type: CollectionType, algorithm: DistanceAlgorithm) -> Self {
         Self {
             collection_type,
@@ -60,24 +62,28 @@ impl MatchingConfig {
     }
 
     /// Builder pattern for configuration
+    #[must_use]
     pub const fn with_limit(mut self, limit: usize) -> Self {
         self.limit = limit;
         self
     }
 
     /// Builder pattern for validation
+    #[must_use]
     pub const fn with_validation(mut self, enable: bool) -> Self {
         self.enable_validation = enable;
         self
     }
 
     /// Builder pattern for preprocessing
+    #[must_use]
     pub const fn with_preprocessing(mut self, enable: bool) -> Self {
         self.enable_preprocessing = enable;
         self
     }
 
     /// Builder pattern for post-processing
+    #[must_use]
     pub const fn with_post_processing(mut self, enable: bool) -> Self {
         self.enable_post_processing = enable;
         self
