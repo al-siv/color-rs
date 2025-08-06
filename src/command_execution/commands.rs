@@ -391,7 +391,7 @@ pub fn execute_hue_analysis(
         let image_generator = crate::image::ImageGenerator::new();
         
         if args.should_generate_gradient() {
-            println!("Generating horizontal gradient: {}", args.gradient_name());
+            println!("Generating horizontal gradient: {}", args.svg_name());
             image_generator.generate_hue_gradient(args, &analysis_results)?;
             if args.should_generate_png() {
                 println!("Generated PNG: {}", args.png_name());
@@ -399,7 +399,7 @@ pub fn execute_hue_analysis(
         }
         
         if args.should_generate_palette() {
-            println!("Generating vertical palette: {}", args.palette_name());
+            println!("Generating vertical palette: {}", args.svg_name());
             image_generator.generate_hue_palette(args, &analysis_results)?;
             if args.should_generate_png() {
                 println!("Generated PNG: {}", args.png_name());

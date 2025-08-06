@@ -389,15 +389,19 @@ pub struct HueArgs {
     )]
     pub chroma_range: Option<String>,
 
-    /// Generate horizontal gradient SVG showing hue progression
-    #[arg(long, value_name = "FILENAME", conflicts_with = "pal", help = "Generate horizontal gradient SVG")]
-    pub grad: Option<String>,
+    /// Generate horizontal gradient layout
+    #[arg(long, conflicts_with = "pal", help = "Generate horizontal gradient layout")]
+    pub grad: bool,
 
-    /// Generate vertical palette SVG showing color swatches with labels
-    #[arg(long, value_name = "FILENAME", conflicts_with = "grad", help = "Generate vertical palette SVG")]
-    pub pal: Option<String>,
+    /// Generate vertical palette layout  
+    #[arg(long, conflicts_with = "grad", help = "Generate vertical palette layout")]
+    pub pal: bool,
 
-    /// Generate PNG version of visual output (requires --grad or --pal)
+    /// SVG output filename (requires --grad or --pal)
+    #[arg(long, value_name = "FILENAME", help = "SVG output filename")]
+    pub svg: Option<String>,
+
+    /// Generate PNG version of visual output (requires --grad or --pal and --svg)
     #[arg(long, value_name = "FILENAME", help = "Generate PNG version")]
     pub png: Option<String>,
 
@@ -436,6 +440,9 @@ pub struct Range {
 
 impl Range {
     /// Parse range from bracket syntax: [min...max]
+    /// 
+    /// # Errors
+    /// Returns error if range format is invalid or values cannot be parsed
     pub fn parse(input: &str) -> crate::error::Result<Self> {
         if !input.starts_with('[') || !input.ends_with(']') {
             return Err(crate::error::ColorError::ParseError(
@@ -459,10 +466,11 @@ impl Range {
             crate::error::ColorError::ParseError(format!("Invalid maximum value: {}", parts[1]))
         })?;
 
-        Ok(Range { min, max })
+        Ok(Self { min, max })
     }
 
     /// Check if value is within range, supporting wraparound for hue values
+    #[must_use]
     pub fn contains_with_wrap(&self, value: f64, _wrap_limit: f64) -> bool {
         if self.min <= self.max {
             // Normal range
@@ -474,6 +482,7 @@ impl Range {
     }
 
     /// Check if value is within range for linear values (lightness, chroma)
+    #[must_use]
     pub fn contains_linear(&self, value: f64) -> bool {
         value >= self.min && value <= self.max
     }
@@ -481,6 +490,9 @@ impl Range {
 
 impl HueArgs {
     /// Validate the hue arguments
+    /// 
+    /// # Errors
+    /// Returns error if visual output parameters are inconsistent or invalid
     pub fn validate(&self) -> Result<()> {
         // Validate collection name
         match self.collection.as_str() {
@@ -526,6 +538,13 @@ impl HueArgs {
 
         // Validate visual output parameters
         if self.should_generate_visual() {
+            // Check that SVG filename is provided
+            if self.svg.is_none() {
+                return Err(ColorError::InvalidArguments(
+                    "SVG filename (--svg) is required when using --grad or --pal".to_string(),
+                ));
+            }
+
             // Validate width
             if self.width == 0 {
                 return Err(ColorError::InvalidArguments(
@@ -540,23 +559,37 @@ impl HueArgs {
             }
 
             // Validate filename extensions
-            if self.should_generate_gradient() && !self.gradient_name().ends_with(".svg") {
+            if self.should_generate_svg() && !std::path::Path::new(&self.svg_name())
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("svg"))
+            {
                 return Err(ColorError::InvalidArguments(
-                    "Gradient filename must end with .svg extension".to_string(),
+                    "SVG filename must end with .svg extension".to_string(),
                 ));
             }
 
-            if self.should_generate_palette() && !self.palette_name().ends_with(".svg") {
-                return Err(ColorError::InvalidArguments(
-                    "Palette filename must end with .svg extension".to_string(),
-                ));
-            }
-
-            if self.should_generate_png() && !self.png_name().ends_with(".png") {
+            if self.should_generate_png() && !std::path::Path::new(&self.png_name())
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+            {
                 return Err(ColorError::InvalidArguments(
                     "PNG filename must end with .png extension".to_string(),
                 ));
             }
+        }
+
+        // Validate PNG without visual output
+        if self.png.is_some() && !self.should_generate_visual() {
+            return Err(ColorError::InvalidArguments(
+                "PNG output (--png) requires --grad or --pal".to_string(),
+            ));
+        }
+
+        // Validate SVG without visual output  
+        if self.svg.is_some() && !self.should_generate_visual() {
+            return Err(ColorError::InvalidArguments(
+                "SVG output (--svg) requires --grad or --pal".to_string(),
+            ));
         }
 
         // Validate --no-labels usage
@@ -570,6 +603,9 @@ impl HueArgs {
     }
 
     /// Parse hue range if provided
+    /// 
+    /// # Errors
+    /// Returns error if range parsing fails
     pub fn get_hue_range(&self) -> Result<Option<Range>> {
         if let Some(ref range_str) = self.hue_range {
             Ok(Some(Range::parse(range_str)?))
@@ -579,6 +615,9 @@ impl HueArgs {
     }
 
     /// Parse lightness range if provided
+    /// 
+    /// # Errors
+    /// Returns error if range parsing fails
     pub fn get_lightness_range(&self) -> Result<Option<Range>> {
         if let Some(ref range_str) = self.lightness_range {
             Ok(Some(Range::parse(range_str)?))
@@ -587,7 +626,10 @@ impl HueArgs {
         }
     }
 
-    /// Parse chroma range if provided  
+    /// Parse chroma range if provided
+    /// 
+    /// # Errors
+    /// Returns error if range parsing fails
     pub fn get_chroma_range(&self) -> Result<Option<Range>> {
         if let Some(ref range_str) = self.chroma_range {
             Ok(Some(Range::parse(range_str)?))
@@ -599,13 +641,13 @@ impl HueArgs {
     /// Check if horizontal gradient generation should be enabled
     #[must_use]
     pub const fn should_generate_gradient(&self) -> bool {
-        self.grad.is_some()
+        self.grad
     }
 
     /// Check if vertical palette generation should be enabled
     #[must_use]
     pub const fn should_generate_palette(&self) -> bool {
-        self.pal.is_some()
+        self.pal
     }
 
     /// Check if any visual output should be generated
@@ -614,26 +656,30 @@ impl HueArgs {
         self.should_generate_gradient() || self.should_generate_palette()
     }
 
+    /// Check if SVG generation should be enabled
+    #[must_use]
+    pub const fn should_generate_svg(&self) -> bool {
+        self.svg.is_some() && self.should_generate_visual()
+    }
+
     /// Check if PNG generation should be enabled
     #[must_use]
     pub const fn should_generate_png(&self) -> bool {
-        self.png.is_some()
+        self.png.is_some() && self.should_generate_visual()
     }
 
-    /// Get gradient SVG filename
+    /// Get SVG filename
     #[must_use]
-    pub fn gradient_name(&self) -> String {
-        self.grad
+    pub fn svg_name(&self) -> String {
+        self.svg
             .clone()
-            .unwrap_or_else(|| "hue_gradient.svg".to_string())
-    }
-
-    /// Get palette SVG filename
-    #[must_use]
-    pub fn palette_name(&self) -> String {
-        self.pal
-            .clone()
-            .unwrap_or_else(|| "hue_palette.svg".to_string())
+            .unwrap_or_else(|| {
+                if self.should_generate_gradient() {
+                    "hue_gradient.svg".to_string()
+                } else {
+                    "hue_palette.svg".to_string()
+                }
+            })
     }
 
     /// Get PNG filename

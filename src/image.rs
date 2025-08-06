@@ -274,11 +274,11 @@ impl ImageGenerator {
     /// Generate horizontal gradient SVG from hue analysis results
     pub fn generate_hue_gradient(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
         let svg_content = self.create_hue_gradient_svg(args, colors)?;
-        fs::write(&args.gradient_name(), svg_content)?;
+        fs::write(&args.svg_name(), svg_content)?;
 
         // Generate PNG if requested
         if args.should_generate_png() {
-            self.svg_to_png(&args.gradient_name(), &args.png_name(), args.width)?;
+            self.svg_to_png(&args.svg_name(), &args.png_name(), args.width)?;
         }
 
         Ok(())
@@ -287,11 +287,11 @@ impl ImageGenerator {
     /// Generate vertical palette SVG from hue analysis results  
     pub fn generate_hue_palette(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
         let svg_content = self.create_hue_palette_svg(args, colors)?;
-        fs::write(&args.palette_name(), svg_content)?;
+        fs::write(&args.svg_name(), svg_content)?;
 
         // Generate PNG if requested
         if args.should_generate_png() {
-            self.svg_to_png(&args.palette_name(), &args.png_name(), args.width)?;
+            self.svg_to_png(&args.svg_name(), &args.png_name(), args.width)?;
         }
 
         Ok(())
@@ -313,6 +313,11 @@ impl ImageGenerator {
             r#"<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">"#
         ));
         svg.push('\n');
+
+        // Add white background
+        svg.push_str(&format!(
+            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{height}\" fill=\"white\" />\n"
+        ));
 
         // Add gradient definition
         svg.push_str("  <defs>\n");
@@ -369,8 +374,8 @@ impl ImageGenerator {
         }
 
         let width = args.width;
-        let swatch_height = 60u32;
-        let header_height = if args.no_labels { 0 } else { 50 };
+        let swatch_height = 80u32; // Increased height from 60 to 80
+        let header_height = if args.no_labels { 0 } else { 60 }; // Increased header from 50 to 60
         let total_height = header_height + (colors.len() as u32 * swatch_height);
         
         let mut svg = String::new();
@@ -379,16 +384,21 @@ impl ImageGenerator {
         ));
         svg.push('\n');
 
+        // Add white background
+        svg.push_str(&format!(
+            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{total_height}\" fill=\"white\" />\n"
+        ));
+
         // Add header if labels are enabled
         let mut y_offset = 0;
         if !args.no_labels {
-            let font_size = 24;
+            let font_size = 28; // Increased from 24
             let title = format!("{} Collection Color Palette ({} colors)", 
                 args.collection.to_uppercase(), colors.len());
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"middle\">\n",
                 width / 2,
-                font_size + 10,
+                font_size + 15, // Increased spacing
                 display_constants::FONT_FAMILY,
                 font_size
             ));
@@ -397,22 +407,19 @@ impl ImageGenerator {
             y_offset = header_height;
         }
 
-        // Create color swatches
-        let label_width = if args.no_labels { 0 } else { width * 2 / 3 };
-        let swatch_width = width - label_width;
-        
+        // Create color swatches - full width blocks with text inside
         for (i, color) in colors.iter().enumerate() {
             let y = y_offset + (i as u32 * swatch_height);
             let hex_color = lch_to_hex(color.color);
             
-            // Color swatch
+            // Full-width color block
             svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"{y}\" width=\"{swatch_width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"black\" stroke-width=\"1\" />\n"
+                "  <rect x=\"0\" y=\"{y}\" width=\"{width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"#333\" stroke-width=\"1\" />\n"
             ));
             
-            // Label if enabled
+            // Text inside the color block if labels are enabled
             if !args.no_labels {
-                let font_size = 14;
+                let font_size = 16; // Increased from 14
                 let text_y = y + swatch_height / 2 + font_size / 2;
                 let hue_str = format!("{:.1}°", color.color.hue.into_positive_degrees());
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
@@ -421,10 +428,13 @@ impl ImageGenerator {
                 } else {
                     format!("{} | {} | {}", hue_str, color.collection, name_str)
                 };
+
+                // Calculate contrast color for text (white or black)
+                let text_color = if is_dark_color(&hex_color) { "white" } else { "black" };
                 
                 svg.push_str(&format!(
-                    "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"black\">\n",
-                    swatch_width + 10,
+                    "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"middle\">\n",
+                    width / 2, // Center the text horizontally
                     display_constants::FONT_FAMILY
                 ));
                 svg.push_str(&format!("    {display_text}\n"));
@@ -432,7 +442,7 @@ impl ImageGenerator {
             }
         }
 
-        svg.push_str("</svg>");
+        svg.push_str("</svg>\n");
         Ok(svg)
     }
 
@@ -481,6 +491,29 @@ impl ImageGenerator {
 impl Default for ImageGenerator {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// Helper function to determine if a color is dark (for text contrast)
+fn is_dark_color(hex_color: &str) -> bool {
+    // Remove # if present
+    let hex = hex_color.trim_start_matches('#');
+    
+    if hex.len() != 6 {
+        return false; // Default to dark if can't parse
+    }
+    
+    // Parse RGB values
+    if let (Ok(r), Ok(g), Ok(b)) = (
+        u8::from_str_radix(&hex[0..2], 16),
+        u8::from_str_radix(&hex[2..4], 16),
+        u8::from_str_radix(&hex[4..6], 16),
+    ) {
+        // Calculate relative luminance using sRGB coefficients
+        let luminance = 0.299 * f64::from(r) + 0.587 * f64::from(g) + 0.114 * f64::from(b);
+        luminance < 128.0 // Dark if luminance < 50%
+    } else {
+        false // Default to light if parsing fails
     }
 }
 
