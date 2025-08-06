@@ -211,6 +211,9 @@ impl ColorRs {
     /// Returns error if hue analysis fails due to invalid input,
     /// collection loading issues, or analysis computation problems.
     pub fn analyze_hue(&self, args: &HueArgs) -> Result<()> {
+        // Validate arguments first
+        args.validate()?;
+        
         let result = command_execution::execute_hue_analysis(args, None)?;
         println!("{}", result.output);
         Ok(())
