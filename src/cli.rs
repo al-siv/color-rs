@@ -359,6 +359,7 @@ impl ColorArgs {
 
 /// Arguments for hue mode - display entire color collections sorted by hue
 #[derive(Debug, Clone, Args)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct HueArgs {
     /// Color collection to display (css, ralc, rald)
     #[arg(value_name = "COLLECTION")]
@@ -387,6 +388,26 @@ pub struct HueArgs {
         help = "Filter by chroma range [min...max], e.g., [30...70]"
     )]
     pub chroma_range: Option<String>,
+
+    /// Generate horizontal gradient SVG showing hue progression
+    #[arg(long, value_name = "FILENAME", conflicts_with = "pal", help = "Generate horizontal gradient SVG")]
+    pub grad: Option<String>,
+
+    /// Generate vertical palette SVG showing color swatches with labels
+    #[arg(long, value_name = "FILENAME", conflicts_with = "grad", help = "Generate vertical palette SVG")]
+    pub pal: Option<String>,
+
+    /// Generate PNG version of visual output (requires --grad or --pal)
+    #[arg(long, value_name = "FILENAME", help = "Generate PNG version")]
+    pub png: Option<String>,
+
+    /// Width of visual output in pixels (default: 1000)
+    #[arg(long, default_value = "1000", help = "Visual output width")]
+    pub width: u32,
+
+    /// Disable labels on visual output
+    #[arg(long, help = "Disable color labels on visual output")]
+    pub no_labels: bool,
 
     /// Output format for file export (toml/t or yaml/y, default: yaml)
     #[arg(
@@ -503,6 +524,48 @@ impl HueArgs {
             }
         }
 
+        // Validate visual output parameters
+        if self.should_generate_visual() {
+            // Validate width
+            if self.width == 0 {
+                return Err(ColorError::InvalidArguments(
+                    "Width must be greater than 0".to_string(),
+                ));
+            }
+
+            if self.width > 10000 {
+                return Err(ColorError::InvalidArguments(
+                    "Width should not exceed 10000 pixels for performance reasons".to_string(),
+                ));
+            }
+
+            // Validate filename extensions
+            if self.should_generate_gradient() && !self.gradient_name().ends_with(".svg") {
+                return Err(ColorError::InvalidArguments(
+                    "Gradient filename must end with .svg extension".to_string(),
+                ));
+            }
+
+            if self.should_generate_palette() && !self.palette_name().ends_with(".svg") {
+                return Err(ColorError::InvalidArguments(
+                    "Palette filename must end with .svg extension".to_string(),
+                ));
+            }
+
+            if self.should_generate_png() && !self.png_name().ends_with(".png") {
+                return Err(ColorError::InvalidArguments(
+                    "PNG filename must end with .png extension".to_string(),
+                ));
+            }
+        }
+
+        // Validate --no-labels usage
+        if self.no_labels && !self.should_generate_visual() {
+            return Err(ColorError::InvalidArguments(
+                "--no-labels can only be used with --grad or --pal".to_string(),
+            ));
+        }
+
         Ok(())
     }
 
@@ -531,5 +594,59 @@ impl HueArgs {
         } else {
             Ok(None)
         }
+    }
+
+    /// Check if horizontal gradient generation should be enabled
+    #[must_use]
+    pub const fn should_generate_gradient(&self) -> bool {
+        self.grad.is_some()
+    }
+
+    /// Check if vertical palette generation should be enabled
+    #[must_use]
+    pub const fn should_generate_palette(&self) -> bool {
+        self.pal.is_some()
+    }
+
+    /// Check if any visual output should be generated
+    #[must_use]
+    pub const fn should_generate_visual(&self) -> bool {
+        self.should_generate_gradient() || self.should_generate_palette()
+    }
+
+    /// Check if PNG generation should be enabled
+    #[must_use]
+    pub const fn should_generate_png(&self) -> bool {
+        self.png.is_some()
+    }
+
+    /// Get gradient SVG filename
+    #[must_use]
+    pub fn gradient_name(&self) -> String {
+        self.grad
+            .clone()
+            .unwrap_or_else(|| "hue_gradient.svg".to_string())
+    }
+
+    /// Get palette SVG filename
+    #[must_use]
+    pub fn palette_name(&self) -> String {
+        self.pal
+            .clone()
+            .unwrap_or_else(|| "hue_palette.svg".to_string())
+    }
+
+    /// Get PNG filename
+    #[must_use]
+    pub fn png_name(&self) -> String {
+        self.png
+            .clone()
+            .unwrap_or_else(|| {
+                if self.should_generate_gradient() {
+                    "hue_gradient.png".to_string()
+                } else {
+                    "hue_palette.png".to_string()
+                }
+            })
     }
 }
