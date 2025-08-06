@@ -247,7 +247,7 @@ fn get_wcag_info(_color: Srgb) -> WcagInfo {
 #[must_use]
 pub fn classify_hue(hue_degrees: f32) -> String {
     match hue_degrees {
-        h if h >= 345.0 || h < 15.0 => "Red".to_string(),
+        h if !(15.0..345.0).contains(&h) => "Red".to_string(),
         h if h >= 15.0 && h < 45.0 => "Red-Orange".to_string(),
         h if h >= 45.0 && h < 75.0 => "Orange".to_string(),
         h if h >= 75.0 && h < 105.0 => "Yellow".to_string(),

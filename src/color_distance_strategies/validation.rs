@@ -420,7 +420,6 @@ impl BatchValidator {
     /// # Errors
     /// Returns a `ValidationError` if any color fails validation against the provided constraints.
     /// This can occur when L*, a*, or b* values are outside the specified ranges.
-    #[must_use]
     pub fn validate_with_constraints(
         labs: &[(f32, f32, f32)],
         constraints: &ValidationConstraints,
