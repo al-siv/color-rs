@@ -117,6 +117,9 @@ pub struct PipelineState {
 ///
 /// This function composes the matching algorithm from pure functions instead
 /// of using trait inheritance and virtual method dispatch.
+/// 
+/// # Errors
+/// Returns an error if color validation fails or matching algorithm encounters errors
 pub fn match_color(
     target: &UniversalColor,
     config: &MatchingConfig,
@@ -168,7 +171,10 @@ pub fn match_color(
     Ok(matches)
 }
 
-/// Default LAB validation function  
+/// Default LAB validation function
+/// 
+/// # Errors
+/// Returns an error if LAB color components are outside valid ranges
 pub fn validate_lab_basic(target: &UniversalColor) -> Result<()> {
     let lab = target.lab;
     if !(0.0..=100.0).contains(&lab[0]) {
@@ -190,6 +196,9 @@ pub fn validate_lab_basic(target: &UniversalColor) -> Result<()> {
 }
 
 /// RAL Classic specific validation function
+/// 
+/// # Errors
+/// Returns an error if color fails basic LAB validation or RAL-specific constraints
 pub fn validate_ral_classic(target: &UniversalColor) -> Result<()> {
     // First apply basic validation
     validate_lab_basic(target)?;

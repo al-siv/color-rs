@@ -74,6 +74,7 @@ impl std::str::FromStr for ColorCollectionType {
 
 impl ColorCollectionType {
     /// Get all collection types for "all" selection
+    #[must_use]
     pub fn all_collections() -> Vec<Self> {
         vec![Self::Css, Self::RalClassic, Self::RalDesign]
     }
@@ -158,6 +159,7 @@ pub struct HueAnalysisResult {
 /// assert_eq!(calculate_hue_distance(180.0, 0.0), 180.0);
 /// assert_eq!(calculate_hue_distance(100.0, 120.0), 20.0);
 /// ```
+#[must_use]
 pub fn calculate_hue_distance(hue1: f64, hue2: f64) -> f64 {
     let diff = (hue1 - hue2).abs();
     diff.min(360.0 - diff)
@@ -181,6 +183,7 @@ pub fn calculate_hue_distance(hue1: f64, hue2: f64) -> f64 {
 /// assert_eq!(normalize_hue(400.0), 40.0);
 /// assert_eq!(normalize_hue(180.0), 180.0);
 /// ```
+#[must_use]
 pub fn normalize_hue(hue: f64) -> f64 {
     ((hue % 360.0) + 360.0) % 360.0
 }
