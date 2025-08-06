@@ -46,7 +46,7 @@ color-rs/
 │   └── ral-design.csv      # RAL Design System+ colors (1825+)
 ├── docs/                   # Documentation
 ├── examples/               # Usage examples
-├── phases/                 # Project management files
+├── sprints/                 # Project management files
 ├── target/                 # Build artifacts (gitignored)
 └── tests/                  # Integration tests
 ```

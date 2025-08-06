@@ -28,5 +28,5 @@ Thumbs.db
 # Plan file (not for version control)
 BRIEFING-*.md
 GUIDELINES.md
-**/phases/old/
+**/sprints/old/
 **/docs/statuses/

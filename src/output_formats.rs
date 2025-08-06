@@ -103,18 +103,11 @@ pub struct HueCollectionConfiguration {
     pub chroma_range: Option<String>,
 }
 
-/// Individual hue color entry
+/// Individual hue color entry formatted as single line: Hue | code | HEX | LCH | name | Hue shift
 #[derive(Debug, Clone, Serialize)]
 pub struct HueColorEntry {
-    pub code: String,
-    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
-    pub hue: f64,
-    pub hex: String,
-    pub rgb: [u8; 3],
-    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
-    pub lightness: f64,
-    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_f64_3")]
-    pub chroma: f64,
+    /// Single line display format: "Hue | code | HEX | LCH | name | Hue shift from previous color"
+    pub display: String,
 }
 
 /// Gradient configuration section
