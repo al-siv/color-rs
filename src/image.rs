@@ -1,13 +1,14 @@
 //! Image generation (SVG and PNG) for color-rs
 
 use image::{ImageBuffer, Rgba, RgbaImage};
-use palette::{IntoColor, Lab, Srgb};
+use palette::{IntoColor, Lab, Lch, Srgb};
 use resvg;
 use std::fs;
 use tiny_skia::{Pixmap, Transform};
 use usvg::{Options, Tree, fontdb};
 
-use crate::cli::GradientArgs;
+use crate::cli::{GradientArgs, HueArgs};
+use crate::color_ops::analysis::hue::HueAnalysisResult;
 use crate::config::{algorithm_constants, display_constants, math_constants};
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
@@ -29,6 +30,13 @@ pub fn lab_to_hex(lab: Lab) -> String {
             .round()
             .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8,
     )
+}
+
+/// Convert LCH color to hex string for image generation
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+pub fn lch_to_hex(lch: Lch) -> String {
+    let lab: Lab = lch.into_color();
+    lab_to_hex(lab)
 }
 
 /// Supported image formats
@@ -259,6 +267,212 @@ impl ImageGenerator {
                 "PNG filename must end with .png extension".to_string(),
             ));
         }
+
+        Ok(())
+    }
+
+    /// Generate horizontal gradient SVG from hue analysis results
+    pub fn generate_hue_gradient(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+        let svg_content = self.create_hue_gradient_svg(args, colors)?;
+        fs::write(&args.gradient_name(), svg_content)?;
+
+        // Generate PNG if requested
+        if args.should_generate_png() {
+            self.svg_to_png(&args.gradient_name(), &args.png_name(), args.width)?;
+        }
+
+        Ok(())
+    }
+
+    /// Generate vertical palette SVG from hue analysis results  
+    pub fn generate_hue_palette(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+        let svg_content = self.create_hue_palette_svg(args, colors)?;
+        fs::write(&args.palette_name(), svg_content)?;
+
+        // Generate PNG if requested
+        if args.should_generate_png() {
+            self.svg_to_png(&args.palette_name(), &args.png_name(), args.width)?;
+        }
+
+        Ok(())
+    }
+
+    /// Create horizontal gradient SVG from hue analysis results
+    fn create_hue_gradient_svg(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<String> {
+        if colors.is_empty() {
+            return Err(ColorError::InvalidArguments(
+                "Cannot create gradient from empty color collection".to_string(),
+            ));
+        }
+
+        let width = args.width;
+        let height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
+        
+        let mut svg = String::new();
+        svg.push_str(&format!(
+            r#"<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">"#
+        ));
+        svg.push('\n');
+
+        // Add gradient definition
+        svg.push_str("  <defs>\n");
+        svg.push_str("    <linearGradient id=\"huegrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
+
+        // Create gradient stops from colors
+        let step = 100.0 / (colors.len() - 1).max(1) as f64;
+        for (i, color) in colors.iter().enumerate() {
+            let offset = if i == colors.len() - 1 {
+                100.0 // Ensure last stop is exactly 100%
+            } else {
+                i as f64 * step
+            };
+            let hex_color = lch_to_hex(color.color);
+            svg.push_str(&format!(
+                "      <stop offset=\"{offset:.1}%\" stop-color=\"{hex_color}\" />\n"
+            ));
+        }
+
+        svg.push_str("    </linearGradient>\n");
+        svg.push_str("  </defs>\n");
+
+        // Create gradient rectangle
+        svg.push_str(&format!(
+            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{height}\" fill=\"url(#huegrad)\" />\n"
+        ));
+
+        // Add title if labels are enabled
+        if !args.no_labels {
+            let font_size = 24;
+            let title = format!("{} Collection Hue Gradient ({} colors)", 
+                args.collection.to_uppercase(), colors.len());
+            svg.push_str(&format!(
+                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1\">\n",
+                width / 2,
+                font_size + 10,
+                display_constants::FONT_FAMILY,
+                font_size
+            ));
+            svg.push_str(&format!("    {title}\n"));
+            svg.push_str("  </text>\n");
+        }
+
+        svg.push_str("</svg>");
+        Ok(svg)
+    }
+
+    /// Create vertical palette SVG from hue analysis results
+    fn create_hue_palette_svg(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<String> {
+        if colors.is_empty() {
+            return Err(ColorError::InvalidArguments(
+                "Cannot create palette from empty color collection".to_string(),
+            ));
+        }
+
+        let width = args.width;
+        let swatch_height = 60u32;
+        let header_height = if args.no_labels { 0 } else { 50 };
+        let total_height = header_height + (colors.len() as u32 * swatch_height);
+        
+        let mut svg = String::new();
+        svg.push_str(&format!(
+            r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
+        ));
+        svg.push('\n');
+
+        // Add header if labels are enabled
+        let mut y_offset = 0;
+        if !args.no_labels {
+            let font_size = 24;
+            let title = format!("{} Collection Color Palette ({} colors)", 
+                args.collection.to_uppercase(), colors.len());
+            svg.push_str(&format!(
+                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"middle\">\n",
+                width / 2,
+                font_size + 10,
+                display_constants::FONT_FAMILY,
+                font_size
+            ));
+            svg.push_str(&format!("    {title}\n"));
+            svg.push_str("  </text>\n");
+            y_offset = header_height;
+        }
+
+        // Create color swatches
+        let label_width = if args.no_labels { 0 } else { width * 2 / 3 };
+        let swatch_width = width - label_width;
+        
+        for (i, color) in colors.iter().enumerate() {
+            let y = y_offset + (i as u32 * swatch_height);
+            let hex_color = lch_to_hex(color.color);
+            
+            // Color swatch
+            svg.push_str(&format!(
+                "  <rect x=\"0\" y=\"{y}\" width=\"{swatch_width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"black\" stroke-width=\"1\" />\n"
+            ));
+            
+            // Label if enabled
+            if !args.no_labels {
+                let font_size = 14;
+                let text_y = y + swatch_height / 2 + font_size / 2;
+                let hue_str = format!("{:.1}°", color.color.hue.into_positive_degrees());
+                let name_str = color.name.as_deref().unwrap_or("Unknown");
+                let display_text = if name_str.len() > 25 {
+                    format!("{} | {} | {}", hue_str, color.collection, &name_str[..22].trim())
+                } else {
+                    format!("{} | {} | {}", hue_str, color.collection, name_str)
+                };
+                
+                svg.push_str(&format!(
+                    "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"black\">\n",
+                    swatch_width + 10,
+                    display_constants::FONT_FAMILY
+                ));
+                svg.push_str(&format!("    {display_text}\n"));
+                svg.push_str("  </text>\n");
+            }
+        }
+
+        svg.push_str("</svg>");
+        Ok(svg)
+    }
+
+    /// Convert SVG file to PNG
+    fn svg_to_png(&self, svg_path: &str, png_path: &str, _width: u32) -> Result<()> {
+        // Read SVG content
+        let svg_content = fs::read_to_string(svg_path)
+            .map_err(|e| ColorError::SvgError(format!("Failed to read SVG file: {e}")))?;
+
+        // Configure usvg options
+        let mut options = Options::default();
+        let mut fontdb = fontdb::Database::new();
+        fontdb.load_system_fonts();
+        options.fontdb = std::sync::Arc::new(fontdb);
+
+        // Parse SVG
+        let tree = Tree::from_str(&svg_content, &options)
+            .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG: {e}")))?;
+
+        // Get actual dimensions from the tree or use width with calculated height
+        let svg_size = tree.size();
+        let actual_width = svg_size.width() as u32;
+        let actual_height = svg_size.height() as u32;
+
+        // Create pixmap
+        let mut pixmap = Pixmap::new(actual_width, actual_height)
+            .ok_or_else(|| ColorError::ImageError("Failed to create pixmap".to_string()))?;
+
+        // Render SVG to pixmap
+        resvg::render(&tree, Transform::default(), &mut pixmap.as_mut());
+
+        // Convert to image crate format
+        let img: RgbaImage = ImageBuffer::from_fn(actual_width, actual_height, |x, y| {
+            let pixel = pixmap.pixel(x, y).unwrap();
+            Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
+        });
+
+        // Save PNG
+        img.save(png_path)
+            .map_err(|e| ColorError::ImageError(format!("Failed to save PNG: {e}")))?;
 
         Ok(())
     }
