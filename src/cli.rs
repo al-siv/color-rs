@@ -7,7 +7,6 @@ use crate::config::{
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::default::Default;
-use std::fmt;
 
 /// Output format for file export
 #[derive(Debug, Clone, ValueEnum, Default, PartialEq, Eq)]

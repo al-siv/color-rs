@@ -1,4 +1,5 @@
-use colors::{Color, ColorCollectionType, hue_analysis};
+use color_rs::color_ops::analysis::hue::{ColorCollectionType, calculate_hue_distance, normalize_hue};
+use palette::{Lch, Srgb};
 use std::time::{Duration, Instant};
 
 #[cfg(test)]

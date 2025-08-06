@@ -294,25 +294,62 @@ pub fn execute_hue_analysis(
         chroma_range: args.chroma_range.clone(),
     };
 
-    let hue_colors: Vec<HueColorEntry> = filtered_colors
-        .iter()
-        .map(|(color_entry, lch)| HueColorEntry {
-            code: color_entry
-                .metadata
-                .code
-                .as_ref()
-                .unwrap_or(&"Unknown".to_string())
-                .clone(),
-            hue: lch.hue.into_degrees() as f64,
-            hex: format!(
-                "#{:02X}{:02X}{:02X}",
-                color_entry.color.rgb[0], color_entry.color.rgb[1], color_entry.color.rgb[2]
-            ),
-            rgb: color_entry.color.rgb,
-            lightness: lch.l as f64,
-            chroma: lch.chroma as f64,
-        })
-        .collect();
+    let hue_colors: Vec<HueColorEntry> = {
+        let mut previous_hue = None;
+        filtered_colors
+            .iter()
+            .map(|(color_entry, lch)| {
+                // Get color name
+                let name = color_entry.metadata.name.clone();
+
+                // Calculate hue and hue shift
+                let hue = lch.hue.into_degrees() as f64;
+                let hue_shift = previous_hue.map(|prev| {
+                    let diff = hue - prev;
+                    if diff > 180.0 {
+                        diff - 360.0
+                    } else if diff < -180.0 {
+                        diff + 360.0
+                    } else {
+                        diff
+                    }
+                });
+
+                // Create hex representation
+                let hex = format!(
+                    "#{:02X}{:02X}{:02X}",
+                    color_entry.color.rgb[0], color_entry.color.rgb[1], color_entry.color.rgb[2]
+                );
+
+                // Create LCH representation
+                let lch_str = format!("lch({:>4.1}, {:>4.1}, {:>6.1})", lch.l, lch.chroma, hue);
+
+                // Create code
+                let code = color_entry
+                    .metadata
+                    .code
+                    .as_ref()
+                    .unwrap_or(&"Unknown".to_string())
+                    .clone();
+
+                // Create hue shift string
+                let hue_shift_str = match hue_shift {
+                    Some(shift) => format!("{:>6}", format!("+{:.2}", shift)),
+                    None => format!("{:>6}", "—"),
+                };
+
+                // Create single line format: "Hue | code | HEX | LCH | name | Hue shift from previous color"
+                let display = format!(
+                    "{:>6.1} | {} | {} | {} | {} | {}",
+                    hue, code, hex, lch_str, hue_shift_str, name
+                );
+
+                previous_hue = Some(hue);
+
+                HueColorEntry { display }
+            })
+            .collect()
+    };
 
     let hue_output = HueCollectionOutput::new()
         .with_configuration(configuration)
