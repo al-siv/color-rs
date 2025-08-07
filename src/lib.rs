@@ -258,6 +258,9 @@ pub use utils::Utils;
 ///     output_format: None,
 ///     output_file: None,
 ///     color_height: None,
+///     font_size: 12,
+///     border_width: 5,
+///     border_color: "white".to_string(),
 /// };
 /// 
 /// color_rs.analyze_hue(&args)?;
@@ -411,6 +414,9 @@ impl ColorRs {
     ///     output_format: None,
     ///     output_file: Some("hue_analysis.yaml".to_string()),
     ///     color_height: None,
+    ///     font_size: 12,
+    ///     border_width: 5,
+    ///     border_color: "white".to_string(),
     /// };
     /// 
     /// color_rs.analyze_hue(&args)?;
