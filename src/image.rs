@@ -441,7 +441,7 @@ impl ImageGenerator {
 
         let width = args.width;
         let swatch_height = args.color_height.unwrap_or(80u32); // Use color_height parameter or default to 80
-        let header_height = if args.no_labels { 0 } else { 60 }; // Increased header from 50 to 60
+        let header_height = if args.no_labels { 0 } else { args.font_size * 4 }; // Increased header from 50 to 60
         let total_height = header_height + (colors.len() as u32 * swatch_height);
 
         let mut svg = String::new();
@@ -458,7 +458,7 @@ impl ImageGenerator {
         // Add header if labels are enabled
         let mut y_offset = 0;
         if !args.no_labels {
-            let font_size = 28; // Increased from 24
+            let font_size = args.font_size * 15 / 10; // Increased from 24
             let title = format!(
                 "{} Collection Color Palette ({} colors)",
                 args.collection.to_uppercase(),
@@ -466,17 +466,17 @@ impl ImageGenerator {
             );
 
             // Calculate left padding as 1/2 of (color-height + border-width)
-            let header_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2;
+            let header_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
 
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"start\">\n",
                 header_padding,
-                font_size + 15, // Increased spacing
+                header_height / 2 + font_size / 2,
                 display_constants::HEADER_FONT_FAMILY,
                 font_size
             ));
-            svg.push_str(&format!("    {title}\n"));
-            svg.push_str("  </text>\n");
+            svg.push_str(&format!("{title}\n"));
+            svg.push_str("</text>\n");
             y_offset = header_height;
         }
 
