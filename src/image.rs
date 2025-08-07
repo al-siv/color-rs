@@ -532,15 +532,15 @@ impl ImageGenerator {
                     "black"
                 };
 
-                // Calculate left padding as 1/2 of (color-height + border-width)
-                let text_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2;
+                // Calculate left padding as 1/2 of (color-height + border-width) minus half the text height
+                let text_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
 
                 svg.push_str(&format!(
                     "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"start\">\n",
                     text_padding,
                     display_constants::FONT_FAMILY
                 ));
-                svg.push_str(&format!("    {display_text}\n"));
+                svg.push_str(&format!("{display_text}\n"));
                 svg.push_str("  </text>\n");
             }
         }
