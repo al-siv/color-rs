@@ -1,0 +1,22 @@
+metadata:
+  program_name: color-rs
+  version: '0.19.0'
+  author: al-siv <https://github.com/al-siv>
+  description: CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations
+  generated_at: '2025-01-21T10:00:00Z'
+  distance_strategy: LAB Delta E
+configuration:
+  collection: css
+  total_colors: 8
+  hue_range: '[0...60]'
+  lightness_range: '[50...80]'
+  chroma_range: '[30...70]'
+colors:
+- display: '   0.5 | palevioletred | #DB7093 | lch(60.6, 45.5,    0.5) |      — | Pale Violet Red'
+- display: '  24.6 | lightcoral | #F08080 | lch(66.2, 47.1,   24.6) | +24.05 | Light Coral'
+- display: '  26.3 | indianred | #CD5C5C | lch(53.4, 50.0,   26.3) |  +1.71 | Indian Red'
+- display: '  32.8 | salmon | #FA8072 | lch(67.3, 53.8,   32.8) |  +6.49 | Salmon'
+- display: '  44.5 | darksalmon | #E9967A | lch(69.9, 39.5,   44.5) | +11.77 | Dark Salmon'
+- display: '  46.3 | coral | #FF7F50 | lch(67.3, 65.7,   46.3) |  +1.79 | Coral'
+- display: '  47.7 | lightsalmon | #FFA07A | lch(74.7, 46.7,   47.7) |  +1.34 | Light Salmon'
+- display: '  56.9 | chocolate | #D2691E | lch(56.0, 67.8,   56.9) |  +9.19 | Chocolate'

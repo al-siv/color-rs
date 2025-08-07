@@ -1,0 +1,14 @@
+colors = []
+
+[metadata]
+program_name = "color-rs"
+version = "0.19.0"
+author = "al-siv <https://github.com/al-siv>"
+description = "CLI tool and library for color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations"
+generated_at = "2025-01-21T10:00:00Z"
+distance_strategy = "LAB Delta E"
+
+[configuration]
+collection = "ralc"
+total_colors = 0
+hue_range = "[180...270]"

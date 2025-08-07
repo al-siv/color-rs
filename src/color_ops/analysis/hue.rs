@@ -347,6 +347,51 @@ pub fn create_analysis_result(
 ///
 /// # Errors
 /// Returns `ColorError` if any processing step fails
+/// Analyze hue relationships between an input color and a collection of colors
+///
+/// This is the core function for hue analysis, providing comprehensive color relationship
+/// analysis based on hue distance, saturation, and lightness criteria. Used for color
+/// harmony analysis, palette generation, and color scheme discovery.
+///
+/// # Arguments
+/// * `input_color` - Reference color in LCH color space for comparison
+/// * `color_collection` - Collection of colors to analyze against the input color
+/// * `options` - Analysis options including target hue, tolerance, and filtering criteria
+/// * `sort_criteria` - How to sort the results (hue distance, saturation, lightness, name)
+/// * `limit` - Maximum number of results to return
+///
+/// # Returns
+/// `Ok(Vec<HueAnalysisResult>)` containing filtered and sorted color analysis results,
+/// or an error if analysis fails
+///
+/// # Errors
+/// Returns error if color space conversions fail or mathematical calculations encounter errors
+///
+/// # Examples
+/// ```rust
+/// use color_rs::color_ops::analysis::hue::{
+///     analyze_hue_relationships, HueAnalysisOptions, SortCriteria, HueAnalysisResult
+/// };
+/// use palette::Lch;
+///
+/// let input_color = Lch::new(50.0, 40.0, 0.0); // Red reference color
+/// let color_collection = vec![]; // In practice, load from color collections
+/// let options = HueAnalysisOptions {
+///     target_hue: Some(0.0),     // Red hue
+///     tolerance: 30.0,           // ±30 degrees
+///     min_saturation: Some(20.0),
+///     min_lightness: Some(30.0),
+/// };
+///
+/// let results = analyze_hue_relationships(
+///     &input_color,
+///     &color_collection,
+///     &options,
+///     SortCriteria::HueDistance,
+///     10
+/// )?;
+/// # Ok::<(), color_rs::error::ColorError>(())
+/// ```
 pub fn analyze_hue_relationships(
     input_color: &Lch,
     color_collection: &[HueAnalysisResult],

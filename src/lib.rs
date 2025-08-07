@@ -169,7 +169,100 @@ pub use gradient_config::{
 pub use image::{ImageFormat, ImageGenerator};
 pub use utils::Utils;
 
-/// Main library interface for generating gradients
+/// Main library interface for color analysis, gradient generation, and color space conversions
+///
+/// `ColorRs` provides a comprehensive API for working with colors, including:
+/// - Color matching across multiple color collections (CSS, RAL Classic, RAL Design)
+/// - Gradient generation with various color space interpolations
+/// - Hue analysis and color harmony pattern discovery
+/// - Perceptually accurate color distance calculations using LAB Delta E
+/// - Color space conversions between RGB, HSL, HSV, LAB, LCH, and more
+///
+/// The library emphasizes functional programming patterns, immutability, and robust error handling.
+/// All color operations use scientifically accurate algorithms for professional-grade results.
+///
+/// # Examples
+/// 
+/// ## Basic Usage
+/// ```rust
+/// use color_rs::ColorRs;
+/// 
+/// let color_rs = ColorRs::new();
+/// // Now you can use color_rs for various color operations
+/// ```
+///
+/// ## Color Matching
+/// ```rust
+/// use color_rs::{ColorRs, cli::ColorArgs};
+/// 
+/// let color_rs = ColorRs::new();
+/// let args = ColorArgs {
+///     color: "#FF6B35".to_string(),
+///     distance_method: "lab".to_string(),
+///     scheme_strategy: "lab".to_string(),
+///     relative_luminance: None,
+///     luminance: None,
+///     output_format: None,
+///     output_file: None,
+///     func_filter: None,
+/// };
+/// 
+/// let matches = color_rs.color_match(&args)?;
+/// # Ok::<(), color_rs::error::ColorError>(())
+/// ```
+///
+/// ## Gradient Generation
+/// ```rust
+/// use color_rs::{ColorRs, cli::GradientArgs};
+/// 
+/// let color_rs = ColorRs::new();
+/// let args = GradientArgs {
+///     start_color: "#FF0000".to_string(),
+///     end_color: "#0000FF".to_string(),
+///     start_position: 0,
+///     end_position: 100,
+///     ease_in: 0.4,
+///     ease_out: 0.6,
+///     svg: None,
+///     png: None,
+///     no_legend: false,
+///     width: 1000,
+///     step: None,
+///     stops: 5,
+///     stops_simple: false,
+///     output_format: None,
+///     output_file: Some("gradient.svg".to_string()),
+///     func_filter: None,
+/// };
+/// 
+/// color_rs.generate_gradient(args)?;
+/// # Ok::<(), color_rs::error::ColorError>(())
+/// ```
+///
+/// ## Hue Analysis
+/// ```rust
+/// use color_rs::{ColorRs, cli::HueArgs};
+/// 
+/// let color_rs = ColorRs::new();
+/// let args = HueArgs {
+///     collection: "css".to_string(),
+///     hue_range: Some("[0...60]".to_string()), // Warm colors
+///     lightness_range: None,
+///     chroma_range: None,
+///     grad: false,
+///     pal: false, // Changed to false to avoid requiring SVG filename
+///     svg: None,
+///     png: None,
+///     width: 1000,
+///     no_labels: false,
+///     output_format: None,
+///     output_file: None,
+///     color_height: None,
+/// };
+/// 
+/// color_rs.analyze_hue(&args)?;
+/// # Ok::<(), color_rs::error::ColorError>(())
+/// ```
 pub struct ColorRs;
 
 impl ColorRs {
@@ -179,23 +272,97 @@ impl ColorRs {
         Self
     }
 
-    /// Generate a gradient based on the provided arguments
-    /// Generate gradient with specified arguments
+    /// Generate a gradient image from specified color arguments
+    ///
+    /// Creates a color gradient by interpolating between multiple colors in the specified
+    /// color space (sRGB, LAB, or LCH). The gradient can be rendered in various formats
+    /// including SVG, PNG, and text-based representations.
+    ///
+    /// # Arguments
+    /// * `args` - Gradient generation arguments including colors, output format, and visual options
+    ///
+    /// # Returns
+    /// `Ok(())` on successful gradient generation, or an error if generation fails
     ///
     /// # Errors
-    /// Returns error if gradient generation fails due to invalid parameters,
-    /// file system errors, or color processing issues.
+    /// Returns error if:
+    /// - Input colors are invalid or cannot be parsed
+    /// - Insufficient colors provided for gradient (minimum 2 required)
+    /// - Color space conversion fails
+    /// - File I/O operations fail during output generation
+    /// - Image rendering fails
+    ///
+    /// # Examples
+    /// ```rust
+    /// use color_rs::{ColorRs, cli::GradientArgs};
+    ///
+    /// let color_rs = ColorRs::new();
+    /// let args = GradientArgs {
+    ///     start_color: "#FF0000".to_string(),
+    ///     end_color: "#0000FF".to_string(),
+    ///     start_position: 0,
+    ///     end_position: 100,
+    ///     ease_in: 0.4,
+    ///     ease_out: 0.6,
+    ///     svg: None,
+    ///     png: None,
+    ///     no_legend: false,
+    ///     width: 800,
+    ///     step: None,
+    ///     stops: 5,
+    ///     stops_simple: false,
+    ///     output_format: None,
+    ///     output_file: Some("gradient.svg".to_string()),
+    ///     func_filter: None,
+    /// };
+    /// 
+    /// color_rs.generate_gradient(args)?;
+    /// # Ok::<(), color_rs::error::ColorError>(())
+    /// ```
     pub fn generate_gradient(&self, args: GradientArgs) -> Result<()> {
         // Use gradient configuration system (Milestone 2.1b)
         gradient_config::generate_gradient(args)
     }
 
-    /// Match and convert color between different color spaces  
-    /// Match and analyze colors with specified arguments
+    /// Find the closest matching colors from color collections
+    ///
+    /// Searches through specified color collections (CSS colors, RAL Classic, RAL Design)
+    /// to find colors that most closely match the input color. Uses perceptually accurate
+    /// LAB Delta E color distance calculations for precise matching.
+    ///
+    /// # Arguments
+    /// * `args` - Color matching arguments including target color, collections, and output options
+    ///
+    /// # Returns
+    /// A formatted string containing the matching results, or an error if matching fails
     ///
     /// # Errors
-    /// Returns error if color matching fails due to invalid input,
-    /// color parsing issues, or analysis computation problems.
+    /// Returns error if:
+    /// - Input color cannot be parsed or is invalid
+    /// - Color collection files cannot be loaded
+    /// - Color space conversions fail
+    /// - Distance calculations encounter mathematical errors
+    ///
+    /// # Examples
+    /// ```rust
+    /// use color_rs::{ColorRs, cli::ColorArgs};
+    ///
+    /// let color_rs = ColorRs::new();
+    /// let args = ColorArgs {
+    ///     color: "#FF5733".to_string(),
+    ///     distance_method: "lab".to_string(),
+    ///     scheme_strategy: "lab".to_string(),
+    ///     relative_luminance: None,
+    ///     luminance: None,
+    ///     output_format: None,
+    ///     output_file: None,
+    ///     func_filter: None,
+    /// };
+    /// 
+    /// let matches = color_rs.color_match(&args)?;
+    /// println!("{}", matches);
+    /// # Ok::<(), color_rs::error::ColorError>(())
+    /// ```
     pub fn color_match(&self, args: &ColorArgs) -> Result<String> {
         let algorithm = crate::color_distance_strategies::DistanceAlgorithm::from_str_or_default(
             &args.distance_method,
@@ -205,11 +372,50 @@ impl ColorRs {
         color::color_match_with_schemes(args, algorithm)
     }
 
-    /// Analyze hue relationships and patterns for colors with specified arguments
+    /// Analyze hue relationships and color harmony patterns
+    ///
+    /// Performs comprehensive hue analysis on color collections, finding colors within
+    /// specified hue ranges and applying various filtering criteria. Supports color harmony
+    /// theory analysis, hue distribution studies, and visual palette generation.
+    ///
+    /// # Arguments
+    /// * `args` - Hue analysis arguments including target hue, tolerance, filtering criteria, and output options
+    ///
+    /// # Returns
+    /// `Ok(())` on successful analysis completion, or an error if analysis fails
     ///
     /// # Errors
-    /// Returns error if hue analysis fails due to invalid input,
-    /// collection loading issues, or analysis computation problems.
+    /// Returns error if:
+    /// - Invalid hue range specifications (must be 0-360 degrees)
+    /// - Color collection loading fails
+    /// - Filter criteria are invalid or contradictory
+    /// - Mathematical calculations encounter errors
+    /// - File output operations fail
+    ///
+    /// # Examples
+    /// ```rust
+    /// use color_rs::{ColorRs, cli::HueArgs};
+    ///
+    /// let color_rs = ColorRs::new();
+    /// let args = HueArgs {
+    ///     collection: "css".to_string(),
+    ///     hue_range: Some("[120...180]".to_string()), // Green to cyan spectrum
+    ///     lightness_range: Some("[50...80]".to_string()),
+    ///     chroma_range: Some("[30...70]".to_string()),
+    ///     grad: false,
+    ///     pal: false, // Changed to false to avoid requiring SVG filename
+    ///     svg: None,
+    ///     png: None,
+    ///     width: 1000,
+    ///     no_labels: false,
+    ///     output_format: None,
+    ///     output_file: Some("hue_analysis.yaml".to_string()),
+    ///     color_height: None,
+    /// };
+    /// 
+    /// color_rs.analyze_hue(&args)?;
+    /// # Ok::<(), color_rs::error::ColorError>(())
+    /// ```
     pub fn analyze_hue(&self, args: &HueArgs) -> Result<()> {
         // Validate arguments first
         args.validate()?;
