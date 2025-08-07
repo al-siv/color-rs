@@ -20,6 +20,34 @@ pub enum OutputFormat {
     Yaml,
 }
 
+/// Text format for palette labels
+#[derive(Debug, Clone, ValueEnum, Default, PartialEq, Eq)]
+pub enum TextFormat {
+    /// Show HEX codes only
+    Hex,
+    /// Show color names only
+    Name, 
+    /// Show both HEX and names
+    #[default]
+    Both,
+    /// Show no text labels
+    None,
+}
+
+/// Sorting method for color collections
+#[derive(Debug, Clone, ValueEnum, Default, PartialEq, Eq)]
+pub enum SortBy {
+    /// Sort by hue value (default)
+    #[default]
+    Hue,
+    /// Sort by lightness value
+    Lightness,
+    /// Sort by chroma value
+    Chroma,
+    /// Sort by color name alphabetically
+    Name,
+}
+
 /// Parse percentage values for CLI arguments
 fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
@@ -440,6 +468,26 @@ pub struct HueArgs {
         help = "Output filename (extension added automatically based on format)"
     )]
     pub output_file: Option<String>,
+
+    /// Control color grouping/banding in palette layout (requires --pal)
+    #[arg(long, value_name = "BANDS", help = "Number of color bands/groups for palette organization")]
+    pub banding: Option<u32>,
+
+    /// Label formatting for color text (hex, name, both, none)
+    #[arg(long, value_enum, help = "Text format for color labels: hex, name, both, none")]
+    pub text_format: Option<TextFormat>,
+
+    /// Sorting method for color display (hue, lightness, chroma, name)
+    #[arg(long, value_enum, help = "Sort colors by: hue, lightness, chroma, name (default: hue)")]
+    pub sort_by: Option<SortBy>,
+
+    /// Maximum number of colors to display per collection
+    #[arg(long, value_name = "COUNT", help = "Limit the number of colors shown")]
+    pub max_colors: Option<u32>,
+
+    /// Spacing between palette elements in pixels
+    #[arg(long, value_name = "PIXELS", help = "Spacing between color elements in palette layout")]
+    pub spacing: Option<u32>,
 }
 /// Range specification for filtering
 #[derive(Debug, Clone, PartialEq)]
