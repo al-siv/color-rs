@@ -3,6 +3,7 @@
 use crate::config::{
     APP_AUTHOR, APP_DESCRIPTION, APP_NAME, APP_VERSION, BEZIER_MAX, BEZIER_MIN, DEFAULT_EASE_IN,
     DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_START_POSITION, DEFAULT_WIDTH, MAX_PERCENTAGE,
+    DEFAULT_FONT_SIZE, DEFAULT_BORDER_WIDTH, DEFAULT_BORDER_COLOR,
 };
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -452,6 +453,35 @@ pub struct HueArgs {
         help = "Height of each color block in pixels for palette layout"
     )]
     pub color_height: Option<u32>,
+
+    /// Font size for palette text in points
+    #[arg(
+        short = 's',
+        long = "font-size",
+        value_name = "SIZE",
+        default_value = DEFAULT_FONT_SIZE,
+        help = "Font size for palette text in points"
+    )]
+    pub font_size: u32,
+
+    /// Border width for palette elements in pixels
+    #[arg(
+        short = 'b',
+        long = "border-width",
+        value_name = "PIXELS",
+        default_value = DEFAULT_BORDER_WIDTH,
+        help = "Border width for palette elements in pixels"
+    )]
+    pub border_width: u32,
+
+    /// Border color for palette elements
+    #[arg(
+        long = "border-color",
+        value_name = "COLOR",
+        default_value = DEFAULT_BORDER_COLOR,
+        help = "Border color for palette elements (color name or hex)"
+    )]
+    pub border_color: String,
 }
 /// Range specification for filtering
 #[derive(Debug, Clone, PartialEq)]
@@ -640,6 +670,25 @@ impl HueArgs {
                     "Color height should not exceed 500 pixels for reasonable layout".to_string(),
                 ));
             }
+        }
+
+        // Validate font-size parameter
+        if self.font_size == 0 {
+            return Err(ColorError::InvalidArguments(
+                "Font size must be greater than 0".to_string(),
+            ));
+        }
+        if self.font_size > 72 {
+            return Err(ColorError::InvalidArguments(
+                "Font size should not exceed 72 points for reasonable layout".to_string(),
+            ));
+        }
+
+        // Validate border-width parameter
+        if self.border_width > 50 {
+            return Err(ColorError::InvalidArguments(
+                "Border width should not exceed 50 pixels for reasonable layout".to_string(),
+            ));
         }
 
         Ok(())
