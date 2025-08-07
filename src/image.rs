@@ -404,7 +404,7 @@ impl ImageGenerator {
         }
 
         let width = args.width;
-        let swatch_height = 80u32; // Increased height from 60 to 80
+        let swatch_height = args.color_height.unwrap_or(80u32); // Use color_height parameter or default to 80
         let header_height = if args.no_labels { 0 } else { 60 }; // Increased header from 50 to 60
         let total_height = header_height + (colors.len() as u32 * swatch_height);
 
@@ -445,27 +445,30 @@ impl ImageGenerator {
             let y = y_offset + (i as u32 * swatch_height);
             let hex_color = lch_to_hex(color.color);
 
-            // Full-width color block
+            // Full-width color block with borders from args
             svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"{y}\" width=\"{width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"#333\" stroke-width=\"1\" />\n"
+                "  <rect x=\"0\" y=\"{y}\" width=\"{width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"{}\" stroke-width=\"{}\" />\n",
+                args.border_color, args.border_width
             ));
 
             // Text inside the color block if labels are enabled
             if !args.no_labels {
-                let font_size = 16; // Increased from 14
+                let font_size = args.font_size; // Use font size from args
                 let text_y = y + swatch_height / 2 + font_size / 2;
-                let hue_str = format!("{:.1}°", color.color.hue.into_positive_degrees());
+                
+                // Extract LCH components from the color
+                let lch = color.color;
+                let hue_str = format!("{:.0}", lch.hue.into_positive_degrees());
+                let hex_str = hex_color.to_uppercase();
+                let lch_str = format!("lch({:.1}, {:.1}, {:.1})", lch.l, lch.chroma, lch.hue.into_positive_degrees());
+                let code_str = &color.collection;
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
-                let display_text = if name_str.len() > 25 {
-                    format!(
-                        "{} | {} | {}",
-                        hue_str,
-                        color.collection,
-                        &name_str[..22].trim()
-                    )
-                } else {
-                    format!("{} | {} | {}", hue_str, color.collection, name_str)
-                };
+                
+                // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}
+                let display_text = format!(
+                    "{} | {} | {} | {} | {}",
+                    hue_str, hex_str, lch_str, code_str, name_str
+                );
 
                 // Calculate contrast color for text (white or black)
                 let text_color = if is_dark_color(&hex_color) {
@@ -475,8 +478,8 @@ impl ImageGenerator {
                 };
 
                 svg.push_str(&format!(
-                    "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"middle\">\n",
-                    width / 2, // Center the text horizontally
+                    "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"start\">\n",
+                    10, // Left align with 10px margin
                     display_constants::FONT_FAMILY
                 ));
                 svg.push_str(&format!("    {display_text}\n"));
