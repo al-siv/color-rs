@@ -346,18 +346,54 @@ impl ImageGenerator {
             "    <linearGradient id=\"huegrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n",
         );
 
-        // Create gradient stops from colors
+        // Create gradient stops from colors with banding behavior (+1% offset for hard transitions)
         let step = 100.0 / (colors.len() - 1).max(1) as f64;
         for (i, color) in colors.iter().enumerate() {
-            let offset = if i == colors.len() - 1 {
-                100.0 // Ensure last stop is exactly 100%
-            } else {
-                i as f64 * step
-            };
             let hex_color = lch_to_hex(color.color);
-            svg.push_str(&format!(
-                "      <stop offset=\"{offset:.1}%\" stop-color=\"{hex_color}\" />\n"
-            ));
+            
+            if i == 0 {
+                // First color starts at 0%
+                svg.push_str(&format!(
+                    "      <stop offset=\"0%\" stop-color=\"{hex_color}\" />\n"
+                ));
+            } else if i == colors.len() - 1 {
+                // Last color: create a hard edge 1% before the end, then extend to 100%
+                let end_position = (i as f64 * step) - 1.0;
+                let prev_hex = lch_to_hex(colors[i-1].color);
+                
+                // End the previous color 1% before the transition
+                svg.push_str(&format!(
+                    "      <stop offset=\"{end_position:.1}%\" stop-color=\"{prev_hex}\" />\n"
+                ));
+                // Start the final color immediately after
+                svg.push_str(&format!(
+                    "      <stop offset=\"{:.1}%\" stop-color=\"{hex_color}\" />\n",
+                    end_position + 0.1
+                ));
+                // Extend final color to 100%
+                svg.push_str(&format!(
+                    "      <stop offset=\"100%\" stop-color=\"{hex_color}\" />\n"
+                ));
+            } else {
+                // Middle colors: create hard transitions with +1% offset behavior
+                let start_position = (i as f64 * step) - 1.0;
+                let end_position = (i as f64 * step) + 1.0;
+                let prev_hex = lch_to_hex(colors[i-1].color);
+                
+                // End previous color just before this one
+                svg.push_str(&format!(
+                    "      <stop offset=\"{start_position:.1}%\" stop-color=\"{prev_hex}\" />\n"
+                ));
+                // Start current color immediately after
+                svg.push_str(&format!(
+                    "      <stop offset=\"{:.1}%\" stop-color=\"{hex_color}\" />\n",
+                    start_position + 0.1
+                ));
+                // Extend current color until next transition
+                svg.push_str(&format!(
+                    "      <stop offset=\"{end_position:.1}%\" stop-color=\"{hex_color}\" />\n"
+                ));
+            }
         }
 
         svg.push_str("    </linearGradient>\n");
