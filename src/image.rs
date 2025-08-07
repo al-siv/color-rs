@@ -358,7 +358,7 @@ impl ImageGenerator {
                 ));
             } else if i == colors.len() - 1 {
                 // Last color: create a hard edge 1% before the end, then extend to 100%
-                let end_position = (i as f64 * step) - 1.0;
+                let end_position = (i as f64 * step) - 0.5;
                 let prev_hex = lch_to_hex(colors[i - 1].color);
 
                 // End the previous color 1% before the transition
@@ -376,8 +376,8 @@ impl ImageGenerator {
                 ));
             } else {
                 // Middle colors: create hard transitions with +1% offset behavior
-                let start_position = (i as f64 * step) - 1.0;
-                let end_position = (i as f64 * step) + 1.0;
+                let start_position = (i as f64 * step) - 0.5;
+                let end_position = (i as f64 * step) + 0.5;
                 let prev_hex = lch_to_hex(colors[i - 1].color);
 
                 // End previous color just before this one
@@ -509,10 +509,20 @@ impl ImageGenerator {
                 let code_str = color.code.as_deref().unwrap_or("Unknown");
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
 
-                // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}
+                // Calculate hue delta from previous color (for palette mode)
+                let hue_delta_str = if i == 0 {
+                    "—".to_string() // First color has no previous hue
+                } else {
+                    let prev_hue = colors[i - 1].color.hue.into_positive_degrees();
+                    let current_hue = lch.hue.into_positive_degrees();
+                    let delta = current_hue - prev_hue;
+                    format!("{:+.2}", delta)
+                };
+
+                // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name} | {hue_delta}
                 let display_text = format!(
-                    "{} | {} | {} | {} | {}",
-                    hue_str, hex_str, lch_str, code_str, name_str
+                    "{} | {} | {} | {} | {} | {}",
+                    hue_str, hex_str, lch_str, code_str, name_str, hue_delta_str
                 );
 
                 // Calculate contrast color for text (white or black)
