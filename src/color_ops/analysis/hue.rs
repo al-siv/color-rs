@@ -112,6 +112,8 @@ pub struct HueAnalysisResult {
     pub color: Lch,
     /// Color name if available
     pub name: Option<String>,
+    /// Color code if available (e.g., "RAL 2005", "css", etc.)
+    pub code: Option<String>,
     /// Hue distance from target or reference color
     pub hue_distance: f64,
     /// Saturation level (chroma value)
@@ -312,6 +314,7 @@ pub fn sort_by_criteria(
 pub fn create_analysis_result(
     rgb: Srgb,
     name: Option<String>,
+    code: Option<String>,
     collection: String,
     reference_hue: Option<f64>,
 ) -> HueAnalysisResult {
@@ -323,6 +326,7 @@ pub fn create_analysis_result(
     HueAnalysisResult {
         color: lch,
         name,
+        code,
         hue_distance,
         saturation: f64::from(lch.chroma),
         lightness: f64::from(lch.l),
@@ -497,6 +501,7 @@ fn convert_collection_to_results(
             create_analysis_result(
                 rgb,
                 Some(entry.metadata.name.clone()),
+                entry.metadata.code.clone(),
                 collection_name.to_string(),
                 None, // No reference hue initially
             )
@@ -1017,6 +1022,7 @@ mod tests {
         let results = vec![HueAnalysisResult {
             color: Lch::new(70.0, 30.0, 180.0),
             name: Some("Cyan".to_string()),
+            code: Some("CSS".to_string()),
             hue_distance: 0.0,
             saturation: 30.0,
             lightness: 70.0,

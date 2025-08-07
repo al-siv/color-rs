@@ -379,6 +379,7 @@ pub fn execute_hue_analysis(
                         saturation: lch.chroma as f64,
                         lightness: lch.l as f64,
                         collection: args.collection.clone(),
+                        code: color_entry.metadata.code.clone(),
                     }
                 })
                 .collect();

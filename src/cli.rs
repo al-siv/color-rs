@@ -684,6 +684,19 @@ impl HueArgs {
             ));
         }
 
+        // Validate border parameters (only valid with --pal)
+        if self.border_width > 0 && !self.should_generate_palette() {
+            return Err(ColorError::InvalidArguments(
+                "--border-width can only be used with --pal (gradients don't have borders)".to_string(),
+            ));
+        }
+        
+        if self.border_color != "white" && !self.should_generate_palette() {
+            return Err(ColorError::InvalidArguments(
+                "--border-color can only be used with --pal (gradients don't have borders)".to_string(),
+            ));
+        }
+
         // Validate border-width parameter
         if self.border_width > 50 {
             return Err(ColorError::InvalidArguments(

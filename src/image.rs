@@ -464,11 +464,15 @@ impl ImageGenerator {
                 args.collection.to_uppercase(),
                 colors.len()
             );
+            
+            // Calculate left padding as 1/2 of (color-height + border-width)
+            let header_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2;
+            
             svg.push_str(&format!(
-                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"middle\">\n",
-                width / 2,
+                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"start\">\n",
+                header_padding,
                 font_size + 15, // Increased spacing
-                display_constants::FONT_FAMILY,
+                display_constants::HEADER_FONT_FAMILY,
                 font_size
             ));
             svg.push_str(&format!("    {title}\n"));
@@ -497,7 +501,7 @@ impl ImageGenerator {
                 let hue_str = format!("{:.0}", lch.hue.into_positive_degrees());
                 let hex_str = hex_color.to_uppercase();
                 let lch_str = format!("lch({:.1}, {:.1}, {:.1})", lch.l, lch.chroma, lch.hue.into_positive_degrees());
-                let code_str = &color.collection;
+                let code_str = color.code.as_deref().unwrap_or("Unknown");
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
                 
                 // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}
@@ -513,9 +517,12 @@ impl ImageGenerator {
                     "black"
                 };
 
+                // Calculate left padding as 1/2 of (color-height + border-width)
+                let text_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2;
+
                 svg.push_str(&format!(
                     "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"start\">\n",
-                    10, // Left align with 10px margin
+                    text_padding,
                     display_constants::FONT_FAMILY
                 ));
                 svg.push_str(&format!("    {display_text}\n"));

@@ -97,6 +97,9 @@ pub mod display_constants {
 
     /// Font configuration for image generation
     pub const FONT_FAMILY: &str = "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+    
+    /// Header font configuration (bold/black weight)
+    pub const HEADER_FONT_FAMILY: &str = "'Montserrat Black', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Roboto Black', 'Arial Black', 'Roboto', 'Arial', 'Helvetica Neue', 'Segoe UI', sans-serif";
 }
 
 /// Algorithm-specific constants
