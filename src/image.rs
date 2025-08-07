@@ -14,10 +14,10 @@ use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
 
 /// Convert a color component from 0.0-1.0 range to 0-255 u8
-/// 
+///
 /// # Arguments
 /// * `component` - Color component value in 0.0-1.0 range
-/// 
+///
 /// # Returns
 /// u8 value in 0-255 range
 #[must_use]
@@ -285,7 +285,11 @@ impl ImageGenerator {
     }
 
     /// Generate horizontal gradient SVG from hue analysis results
-    pub fn generate_hue_gradient(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+    pub fn generate_hue_gradient(
+        &self,
+        args: &HueArgs,
+        colors: &[HueAnalysisResult],
+    ) -> Result<()> {
         let svg_content = self.create_hue_gradient_svg(args, colors)?;
         fs::write(&args.svg_name(), svg_content)?;
 
@@ -311,7 +315,11 @@ impl ImageGenerator {
     }
 
     /// Create horizontal gradient SVG from hue analysis results
-    fn create_hue_gradient_svg(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<String> {
+    fn create_hue_gradient_svg(
+        &self,
+        args: &HueArgs,
+        colors: &[HueAnalysisResult],
+    ) -> Result<String> {
         if colors.is_empty() {
             return Err(ColorError::InvalidArguments(
                 "Cannot create gradient from empty color collection".to_string(),
@@ -320,7 +328,7 @@ impl ImageGenerator {
 
         let width = args.width;
         let height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
-        
+
         let mut svg = String::new();
         svg.push_str(&format!(
             r#"<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">"#
@@ -334,7 +342,9 @@ impl ImageGenerator {
 
         // Add gradient definition
         svg.push_str("  <defs>\n");
-        svg.push_str("    <linearGradient id=\"huegrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n");
+        svg.push_str(
+            "    <linearGradient id=\"huegrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n",
+        );
 
         // Create gradient stops from colors
         let step = 100.0 / (colors.len() - 1).max(1) as f64;
@@ -361,8 +371,11 @@ impl ImageGenerator {
         // Add title if labels are enabled
         if !args.no_labels {
             let font_size = 24;
-            let title = format!("{} Collection Hue Gradient ({} colors)", 
-                args.collection.to_uppercase(), colors.len());
+            let title = format!(
+                "{} Collection Hue Gradient ({} colors)",
+                args.collection.to_uppercase(),
+                colors.len()
+            );
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1\">\n",
                 width / 2,
@@ -379,7 +392,11 @@ impl ImageGenerator {
     }
 
     /// Create vertical palette SVG from hue analysis results
-    fn create_hue_palette_svg(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<String> {
+    fn create_hue_palette_svg(
+        &self,
+        args: &HueArgs,
+        colors: &[HueAnalysisResult],
+    ) -> Result<String> {
         if colors.is_empty() {
             return Err(ColorError::InvalidArguments(
                 "Cannot create palette from empty color collection".to_string(),
@@ -390,7 +407,7 @@ impl ImageGenerator {
         let swatch_height = 80u32; // Increased height from 60 to 80
         let header_height = if args.no_labels { 0 } else { 60 }; // Increased header from 50 to 60
         let total_height = header_height + (colors.len() as u32 * swatch_height);
-        
+
         let mut svg = String::new();
         svg.push_str(&format!(
             r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
@@ -406,8 +423,11 @@ impl ImageGenerator {
         let mut y_offset = 0;
         if !args.no_labels {
             let font_size = 28; // Increased from 24
-            let title = format!("{} Collection Color Palette ({} colors)", 
-                args.collection.to_uppercase(), colors.len());
+            let title = format!(
+                "{} Collection Color Palette ({} colors)",
+                args.collection.to_uppercase(),
+                colors.len()
+            );
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"middle\">\n",
                 width / 2,
@@ -424,12 +444,12 @@ impl ImageGenerator {
         for (i, color) in colors.iter().enumerate() {
             let y = y_offset + (i as u32 * swatch_height);
             let hex_color = lch_to_hex(color.color);
-            
+
             // Full-width color block
             svg.push_str(&format!(
                 "  <rect x=\"0\" y=\"{y}\" width=\"{width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"#333\" stroke-width=\"1\" />\n"
             ));
-            
+
             // Text inside the color block if labels are enabled
             if !args.no_labels {
                 let font_size = 16; // Increased from 14
@@ -437,14 +457,23 @@ impl ImageGenerator {
                 let hue_str = format!("{:.1}°", color.color.hue.into_positive_degrees());
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
                 let display_text = if name_str.len() > 25 {
-                    format!("{} | {} | {}", hue_str, color.collection, &name_str[..22].trim())
+                    format!(
+                        "{} | {} | {}",
+                        hue_str,
+                        color.collection,
+                        &name_str[..22].trim()
+                    )
                 } else {
                     format!("{} | {} | {}", hue_str, color.collection, name_str)
                 };
 
                 // Calculate contrast color for text (white or black)
-                let text_color = if is_dark_color(&hex_color) { "white" } else { "black" };
-                
+                let text_color = if is_dark_color(&hex_color) {
+                    "white"
+                } else {
+                    "black"
+                };
+
                 svg.push_str(&format!(
                     "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"middle\">\n",
                     width / 2, // Center the text horizontally
@@ -511,11 +540,11 @@ impl Default for ImageGenerator {
 fn is_dark_color(hex_color: &str) -> bool {
     // Remove # if present
     let hex = hex_color.trim_start_matches('#');
-    
+
     if hex.len() != 6 {
         return false; // Default to dark if can't parse
     }
-    
+
     // Parse RGB values
     if let (Ok(r), Ok(g), Ok(b)) = (
         u8::from_str_radix(&hex[0..2], 16),

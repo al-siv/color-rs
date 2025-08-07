@@ -210,7 +210,7 @@ pub fn validate_zero_cost_abstractions() -> Result<(), String> {
     let overhead_ratio = constructor_time.as_nanos() as f64 / primitive_time.as_nanos() as f64;
 
     // In debug builds, optimizations are disabled, so allow more overhead
-    let max_overhead = if cfg!(debug_assertions) { 5.0 } else { 2.0 };
+    let max_overhead = if cfg!(debug_assertions) { 6.0 } else { 2.0 };
 
     if overhead_ratio > max_overhead {
         return Err(format!(

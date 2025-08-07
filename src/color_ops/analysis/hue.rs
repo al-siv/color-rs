@@ -16,7 +16,7 @@
 //! - Functional composition and pipeline patterns
 //!
 //! ## Example Usage
-//! 
+//!
 //! This module provides comprehensive hue analysis capabilities for color collections.
 //! See individual function documentation for specific usage examples.
 

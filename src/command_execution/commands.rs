@@ -372,7 +372,7 @@ pub fn execute_hue_analysis(
     // Handle visual output if requested
     if args.should_generate_visual() {
         // Convert filtered colors to HueAnalysisResult format for visual generation
-        let analysis_results: Vec<crate::color_ops::analysis::hue::HueAnalysisResult> = 
+        let analysis_results: Vec<crate::color_ops::analysis::hue::HueAnalysisResult> =
             filtered_colors
                 .iter()
                 .map(|(color_entry, lch)| {
@@ -389,7 +389,7 @@ pub fn execute_hue_analysis(
 
         // Generate visual output
         let image_generator = crate::image::ImageGenerator::new();
-        
+
         if args.should_generate_gradient() {
             println!("Generating horizontal gradient: {}", args.svg_name());
             image_generator.generate_hue_gradient(args, &analysis_results)?;
@@ -397,7 +397,7 @@ pub fn execute_hue_analysis(
                 println!("Generated PNG: {}", args.png_name());
             }
         }
-        
+
         if args.should_generate_palette() {
             println!("Generating vertical palette: {}", args.svg_name());
             image_generator.generate_hue_palette(args, &analysis_results)?;

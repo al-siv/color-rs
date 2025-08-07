@@ -10,7 +10,7 @@ use std::fs::File;
 use std::io::Write;
 
 /// Write analysis data to file in the specified format
-/// 
+///
 /// # Errors
 /// Returns an error if file writing fails or serialization errors occur
 pub fn write_output_file(

@@ -390,11 +390,19 @@ pub struct HueArgs {
     pub chroma_range: Option<String>,
 
     /// Generate horizontal gradient layout
-    #[arg(long, conflicts_with = "pal", help = "Generate horizontal gradient layout")]
+    #[arg(
+        long,
+        conflicts_with = "pal",
+        help = "Generate horizontal gradient layout"
+    )]
     pub grad: bool,
 
     /// Generate vertical palette layout  
-    #[arg(long, conflicts_with = "grad", help = "Generate vertical palette layout")]
+    #[arg(
+        long,
+        conflicts_with = "grad",
+        help = "Generate vertical palette layout"
+    )]
     pub pal: bool,
 
     /// SVG output filename (requires --grad or --pal)
@@ -440,7 +448,7 @@ pub struct Range {
 
 impl Range {
     /// Parse range from bracket syntax: [min...max]
-    /// 
+    ///
     /// # Errors
     /// Returns error if range format is invalid or values cannot be parsed
     pub fn parse(input: &str) -> crate::error::Result<Self> {
@@ -490,7 +498,7 @@ impl Range {
 
 impl HueArgs {
     /// Validate the hue arguments
-    /// 
+    ///
     /// # Errors
     /// Returns error if visual output parameters are inconsistent or invalid
     pub fn validate(&self) -> Result<()> {
@@ -559,18 +567,20 @@ impl HueArgs {
             }
 
             // Validate filename extensions
-            if self.should_generate_svg() && !std::path::Path::new(&self.svg_name())
-                .extension()
-                .is_some_and(|ext| ext.eq_ignore_ascii_case("svg"))
+            if self.should_generate_svg()
+                && !std::path::Path::new(&self.svg_name())
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("svg"))
             {
                 return Err(ColorError::InvalidArguments(
                     "SVG filename must end with .svg extension".to_string(),
                 ));
             }
 
-            if self.should_generate_png() && !std::path::Path::new(&self.png_name())
-                .extension()
-                .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+            if self.should_generate_png()
+                && !std::path::Path::new(&self.png_name())
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
             {
                 return Err(ColorError::InvalidArguments(
                     "PNG filename must end with .png extension".to_string(),
@@ -585,7 +595,7 @@ impl HueArgs {
             ));
         }
 
-        // Validate SVG without visual output  
+        // Validate SVG without visual output
         if self.svg.is_some() && !self.should_generate_visual() {
             return Err(ColorError::InvalidArguments(
                 "SVG output (--svg) requires --grad or --pal".to_string(),
@@ -603,7 +613,7 @@ impl HueArgs {
     }
 
     /// Parse hue range if provided
-    /// 
+    ///
     /// # Errors
     /// Returns error if range parsing fails
     pub fn get_hue_range(&self) -> Result<Option<Range>> {
@@ -615,7 +625,7 @@ impl HueArgs {
     }
 
     /// Parse lightness range if provided
-    /// 
+    ///
     /// # Errors
     /// Returns error if range parsing fails
     pub fn get_lightness_range(&self) -> Result<Option<Range>> {
@@ -627,7 +637,7 @@ impl HueArgs {
     }
 
     /// Parse chroma range if provided
-    /// 
+    ///
     /// # Errors
     /// Returns error if range parsing fails
     pub fn get_chroma_range(&self) -> Result<Option<Range>> {
@@ -671,28 +681,24 @@ impl HueArgs {
     /// Get SVG filename
     #[must_use]
     pub fn svg_name(&self) -> String {
-        self.svg
-            .clone()
-            .unwrap_or_else(|| {
-                if self.should_generate_gradient() {
-                    "hue_gradient.svg".to_string()
-                } else {
-                    "hue_palette.svg".to_string()
-                }
-            })
+        self.svg.clone().unwrap_or_else(|| {
+            if self.should_generate_gradient() {
+                "hue_gradient.svg".to_string()
+            } else {
+                "hue_palette.svg".to_string()
+            }
+        })
     }
 
     /// Get PNG filename
     #[must_use]
     pub fn png_name(&self) -> String {
-        self.png
-            .clone()
-            .unwrap_or_else(|| {
-                if self.should_generate_gradient() {
-                    "hue_gradient.png".to_string()
-                } else {
-                    "hue_palette.png".to_string()
-                }
-            })
+        self.png.clone().unwrap_or_else(|| {
+            if self.should_generate_gradient() {
+                "hue_gradient.png".to_string()
+            } else {
+                "hue_palette.png".to_string()
+            }
+        })
     }
 }

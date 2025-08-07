@@ -66,7 +66,7 @@ pub fn rgb_to_lab(rgb: (u8, u8, u8)) -> Lab {
 }
 
 /// Collect and structure analysis data for output
-/// 
+///
 /// # Errors
 /// Returns an error if color scheme analysis or data collection fails
 pub fn collect_analysis_data(
@@ -96,7 +96,7 @@ pub fn collect_analysis_data(
 }
 
 /// Generate formatted output based on the selected format
-/// 
+///
 /// # Errors
 /// Returns an error if output serialization fails for the selected format
 pub fn generate_formatted_output(

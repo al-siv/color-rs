@@ -213,7 +213,7 @@ impl ColorRs {
     pub fn analyze_hue(&self, args: &HueArgs) -> Result<()> {
         // Validate arguments first
         args.validate()?;
-        
+
         let result = command_execution::execute_hue_analysis(args, None)?;
         println!("{}", result.output);
         Ok(())

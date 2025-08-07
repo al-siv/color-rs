@@ -117,7 +117,7 @@ pub struct PipelineState {
 ///
 /// This function composes the matching algorithm from pure functions instead
 /// of using trait inheritance and virtual method dispatch.
-/// 
+///
 /// # Errors
 /// Returns an error if color validation fails or matching algorithm encounters errors
 pub fn match_color(
@@ -172,7 +172,7 @@ pub fn match_color(
 }
 
 /// Default LAB validation function
-/// 
+///
 /// # Errors
 /// Returns an error if LAB color components are outside valid ranges
 pub fn validate_lab_basic(target: &UniversalColor) -> Result<()> {
@@ -196,7 +196,7 @@ pub fn validate_lab_basic(target: &UniversalColor) -> Result<()> {
 }
 
 /// RAL Classic specific validation function
-/// 
+///
 /// # Errors
 /// Returns an error if color fails basic LAB validation or RAL-specific constraints
 pub fn validate_ral_classic(target: &UniversalColor) -> Result<()> {

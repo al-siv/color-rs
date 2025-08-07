@@ -461,7 +461,7 @@ pub mod combinators {
     }
 
     /// Validation that always succeeds (identity)
-    /// 
+    ///
     /// # Errors
     /// This function never returns an error - it always succeeds with `Ok(value)`
     #[allow(clippy::unnecessary_wraps)]
