@@ -11,10 +11,13 @@ pub const DEFAULT_START_POSITION: &str = "0";
 pub const DEFAULT_END_POSITION: &str = "100";
 pub const DEFAULT_EASE_IN: &str = "0.65";
 pub const DEFAULT_EASE_OUT: &str = "0.35";
-pub const DEFAULT_WIDTH: &str = "1000";
+pub const DEFAULT_WIDTH: &str = "2000";
 pub const DEFAULT_SVG_NAME: &str = "gradient.svg";
 pub const DEFAULT_PNG_NAME: &str = "gradient.png";
 pub const DEFAULT_GRAD_STEP: &str = "5";
+pub const DEFAULT_FONT_SIZE: &str = "12";
+pub const DEFAULT_BORDER_WIDTH: &str = "5";
+pub const DEFAULT_BORDER_COLOR: &str = "white";
 
 /// Gradient calculation parameters
 /// Number of sample points for intelligent stop calculation
