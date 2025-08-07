@@ -261,6 +261,7 @@ pub use utils::Utils;
 ///     font_size: 12,
 ///     border_width: 0, // No borders for analysis-only mode
 ///     border_color: "white".to_string(),
+///     header_text: None,
 /// };
 ///
 /// color_rs.analyze_hue(&args)?;
@@ -417,6 +418,7 @@ impl ColorRs {
     ///     font_size: 12,
     ///     border_width: 0, // No borders for analysis-only mode
     ///     border_color: "white".to_string(),
+    ///     header_text: None,
     /// };
     ///
     /// color_rs.analyze_hue(&args)?;

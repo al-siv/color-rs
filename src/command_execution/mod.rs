@@ -106,6 +106,7 @@ mod tests {
             output_format: None,
             output_file: None,
             func_filter: None,
+            vectorized_text: false,
         };
 
         let cmd = CommandType::GenerateGradient {

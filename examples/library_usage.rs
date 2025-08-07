@@ -77,6 +77,7 @@ fn main() -> Result<()> {
         output_format: None,
         output_file: None,
         func_filter: None,
+        vectorized_text: false,
     };
 
     // This will generate the gradient and save SVG file

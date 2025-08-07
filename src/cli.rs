@@ -87,6 +87,10 @@ pub struct GradientArgs {
     #[arg(long, value_name = "FILENAME")]
     pub png: Option<String>,
 
+    /// Convert text elements to vector paths in SVG output (creates .vector.svg file)
+    #[arg(long, help = "Convert text to vector paths for better design tool compatibility")]
+    pub vectorized_text: bool,
+
     /// Disable legend/caption on gradient images (only valid with --svg or --png)
     #[arg(long)]
     pub no_legend: bool,
@@ -429,6 +433,10 @@ pub struct HueArgs {
     )]
     pub png: Option<String>,
 
+    /// Convert text elements to vector paths in SVG output (creates .vector.svg file)
+    #[arg(long, help = "Convert text to vector paths for better design tool compatibility")]
+    pub vectorized_text: bool,
+
     /// Width of visual output in pixels (default: 1000)
     #[arg(short = 'w', long, default_value = DEFAULT_WIDTH, help = "Visual output width")]
     pub width: u32,
@@ -492,6 +500,14 @@ pub struct HueArgs {
         help = "Border color for palette elements (color name or hex)"
     )]
     pub border_color: String,
+
+    /// Custom header text for palette layout (requires --pal)
+    #[arg(
+        long = "header-text",
+        value_name = "TEXT",
+        help = "Custom header text for palette layout (replaces default collection title)"
+    )]
+    pub header_text: Option<String>,
 }
 /// Range specification for filtering
 #[derive(Debug, Clone, PartialEq)]

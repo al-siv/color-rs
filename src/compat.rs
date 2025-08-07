@@ -135,6 +135,7 @@ mod tests {
             output_format: Some(crate::cli::OutputFormat::Yaml),
             output_file: None,
             func_filter: None,
+            vectorized_text: false,
         };
 
         let cmd = CommandType::GenerateGradient {

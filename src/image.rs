@@ -73,6 +73,12 @@ impl ImageGenerator {
     pub fn generate_svg(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
         let svg_content = self.create_svg_content(args, start_lab, end_lab)?;
         fs::write(args.svg_name(), svg_content)?;
+        
+        // Generate vectorized SVG if requested
+        if args.vectorized_text {
+            self.generate_vectorized_svg_gradient(args, start_lab, end_lab)?;
+        }
+        
         Ok(())
     }
 
@@ -293,6 +299,11 @@ impl ImageGenerator {
         let svg_content = self.create_hue_gradient_svg(args, colors)?;
         fs::write(args.svg_name(), svg_content)?;
 
+        // Generate vectorized SVG if requested
+        if args.vectorized_text {
+            self.generate_vectorized_svg_hue_gradient(args, colors)?;
+        }
+
         // Generate PNG if requested
         if args.should_generate_png() {
             self.svg_to_png(&args.svg_name(), &args.png_name(), args.width)?;
@@ -305,6 +316,11 @@ impl ImageGenerator {
     pub fn generate_hue_palette(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
         let svg_content = self.create_hue_palette_svg(args, colors)?;
         fs::write(args.svg_name(), svg_content)?;
+
+        // Generate vectorized SVG if requested
+        if args.vectorized_text {
+            self.generate_vectorized_svg_hue_palette(args, colors)?;
+        }
 
         // Generate PNG if requested
         if args.should_generate_png() {
@@ -459,11 +475,15 @@ impl ImageGenerator {
         let mut y_offset = 0;
         if !args.no_labels {
             let font_size = args.font_size * 15 / 10; // Increased from 24
-            let title = format!(
-                "{} Collection Color Palette ({} colors)",
-                args.collection.to_uppercase(),
-                colors.len()
-            );
+            let title = if let Some(ref custom_header) = args.header_text {
+                custom_header.clone()
+            } else {
+                format!(
+                    "{} Collection Color Palette ({} colors)",
+                    args.collection.to_uppercase(),
+                    colors.len()
+                )
+            };
 
             // Calculate left padding as 1/2 of (color-height + border-width)
             let header_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
@@ -498,13 +518,13 @@ impl ImageGenerator {
 
                 // Extract LCH components from the color
                 let lch = color.color;
-                let hue_str = format!("{:.0}", lch.hue.into_positive_degrees());
+                let hue_str = format!("{:.0}", lch.hue.into_degrees());
                 let hex_str = hex_color.to_uppercase();
                 let lch_str = format!(
                     "lch({:.1}, {:.1}, {:.1})",
                     lch.l,
                     lch.chroma,
-                    lch.hue.into_positive_degrees()
+                    lch.hue.into_degrees()
                 );
                 let code_str = color.code.as_deref().unwrap_or("Unknown");
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
@@ -513,8 +533,8 @@ impl ImageGenerator {
                 let hue_delta_str = if i == 0 {
                     "—".to_string() // First color has no previous hue
                 } else {
-                    let prev_hue = colors[i - 1].color.hue.into_positive_degrees();
-                    let current_hue = lch.hue.into_positive_degrees();
+                    let prev_hue = colors[i - 1].color.hue.into_degrees();
+                    let current_hue = lch.hue.into_degrees();
                     let delta = current_hue - prev_hue;
                     format!("{:+.2}", delta)
                 };
@@ -589,6 +609,70 @@ impl ImageGenerator {
 
         Ok(())
     }
+
+    /// Generate vectorized SVG for gradient (text as paths for designers)
+    fn generate_vectorized_svg_gradient(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
+        // Create regular SVG content first
+        let svg_content = self.create_svg_content(args, start_lab, end_lab)?;
+        
+        // Convert text to paths using usvg
+        let vectorized_svg = self.convert_text_to_paths(&svg_content)?;
+        
+        // Save with _vectorized suffix
+        let vectorized_filename = args.svg_name().replace(".svg", "_vectorized.svg");
+        fs::write(&vectorized_filename, vectorized_svg)?;
+        
+        Ok(())
+    }
+
+    /// Generate vectorized SVG for hue gradient (text as paths for designers)
+    fn generate_vectorized_svg_hue_gradient(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+        // Create regular SVG content first
+        let svg_content = self.create_hue_gradient_svg(args, colors)?;
+        
+        // Convert text to paths using usvg
+        let vectorized_svg = self.convert_text_to_paths(&svg_content)?;
+        
+        // Save with _vectorized suffix
+        let vectorized_filename = args.svg_name().replace(".svg", "_vectorized.svg");
+        fs::write(vectorized_filename, vectorized_svg)?;
+        
+        Ok(())
+    }
+
+    /// Generate vectorized SVG for hue palette (text as paths for designers)
+    fn generate_vectorized_svg_hue_palette(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+        // Create regular SVG content first
+        let svg_content = self.create_hue_palette_svg(args, colors)?;
+        
+        // Convert text to paths using usvg
+        let vectorized_svg = self.convert_text_to_paths(&svg_content)?;
+        
+        // Save with _vectorized suffix
+        let vectorized_filename = args.svg_name().replace(".svg", "_vectorized.svg");
+        fs::write(vectorized_filename, vectorized_svg)?;
+        
+        Ok(())
+    }
+
+    /// Convert text elements in SVG to vector paths using usvg
+    fn convert_text_to_paths(&self, svg_content: &str) -> Result<String> {
+        // Configure usvg options with font loading
+        let mut options = Options::default();
+        let mut fontdb = fontdb::Database::new();
+        fontdb.load_system_fonts();
+        options.fontdb = std::sync::Arc::new(fontdb);
+
+        // Parse SVG with text-to-path conversion (this automatically converts text to paths)
+        let tree = Tree::from_str(svg_content, &options)
+            .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG for vectorization: {e}")))?;
+
+        // Convert tree back to SVG string with WriteOptions for proper formatting
+        let write_options = usvg::WriteOptions::default();
+        let vectorized_svg = tree.to_string(&write_options);
+        
+        Ok(vectorized_svg)
+    }
 }
 
 impl Default for ImageGenerator {
@@ -643,6 +727,7 @@ mod tests {
             output_format: None,
             output_file: None,
             func_filter: None,
+            vectorized_text: false,
         }
     }
 

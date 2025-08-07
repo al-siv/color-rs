@@ -173,6 +173,7 @@ impl ImageOutput {
             png_filename: None,
             width,
             show_legend,
+            vectorized_text: false, // Default to false
         })
     }
 
@@ -197,6 +198,7 @@ impl ImageOutput {
             png_filename: Some(filename.to_string()),
             width,
             show_legend,
+            vectorized_text: false, // Default to false
         })
     }
 
@@ -222,6 +224,7 @@ impl ImageOutput {
             png_filename: Some(png_filename.to_string()),
             width,
             show_legend,
+            vectorized_text: false, // Default to false
         })
     }
 
@@ -232,6 +235,7 @@ impl ImageOutput {
             png_filename: None,
             width: 800, // Default width
             show_legend: true,
+            vectorized_text: false, // Default to false
         }
     }
 

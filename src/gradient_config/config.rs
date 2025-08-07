@@ -200,6 +200,7 @@ impl GradientConfig {
             output_format: self.file_output.as_ref().map(|f| f.format.clone()),
             output_file: self.file_output.map(|f| f.filename),
             func_filter: None,
+            vectorized_text: self.image_output.vectorized_text,
         }
     }
 
@@ -297,12 +298,19 @@ impl GradientConfig {
 
     /// Apply image output configuration based on CLI arguments
     fn apply_image_output(config: Self, args: &GradientArgs) -> Result<Self> {
-        match (&args.svg, &args.png) {
-            (Some(svg_name), Some(png_name)) => config.with_both_outputs(svg_name, png_name),
-            (Some(svg_name), None) => config.with_svg_output(svg_name),
-            (None, Some(png_name)) => config.with_png_output(png_name),
-            (None, None) => Ok(config),
-        }
+        // First apply the image output based on SVG/PNG settings
+        let configured = match (&args.svg, &args.png) {
+            (Some(svg_name), Some(png_name)) => config.with_both_outputs(svg_name, png_name)?,
+            (Some(svg_name), None) => config.with_svg_output(svg_name)?,
+            (None, Some(png_name)) => config.with_png_output(png_name)?,
+            (None, None) => config,
+        };
+        
+        // Now update the vectorized_text flag
+        let mut final_config = configured;
+        final_config.image_output.vectorized_text = args.vectorized_text;
+        
+        Ok(final_config)
     }
 
     /// Get color pair

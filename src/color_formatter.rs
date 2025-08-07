@@ -209,25 +209,25 @@ impl ColorFormatter {
             lch0: format!(
                 "lch({:.2}, 0.000, {:.1})",
                 lch.l,
-                lch.hue.into_positive_degrees()
+                lch.hue.into_degrees()
             ),
             lch2_hex,
             lch2: format!(
                 "lch({:.2}, 2.000, {:.1})",
                 lch.l,
-                lch.hue.into_positive_degrees()
+                lch.hue.into_degrees()
             ),
             lch4_hex,
             lch4: format!(
                 "lch({:.2}, 4.000, {:.1})",
                 lch.l,
-                lch.hue.into_positive_degrees()
+                lch.hue.into_degrees()
             ),
             lch6_hex,
             lch6: format!(
                 "lch({:.2}, 6.000, {:.1})",
                 lch.l,
-                lch.hue.into_positive_degrees()
+                lch.hue.into_degrees()
             ),
         }
     }

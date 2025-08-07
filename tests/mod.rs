@@ -52,6 +52,8 @@ mod test_suite_runner {
             font_size: 12,
             border_width: 5,
             border_color: "white".to_string(),
+            header_text: None,
+            vectorized_text: false,
         };
 
         assert_eq!(args.collection, "css");

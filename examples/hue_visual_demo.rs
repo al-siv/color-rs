@@ -45,6 +45,8 @@ fn main() -> Result<()> {
         font_size: 12,
         border_width: 5,
         border_color: "white".to_string(),
+        header_text: None,
+        vectorized_text: false,
     };
 
     match execute_hue_analysis(&warm_args, None) {
@@ -71,6 +73,8 @@ fn main() -> Result<()> {
         font_size: 12,
         border_width: 5,
         border_color: "white".to_string(),
+        header_text: None,
+        vectorized_text: false,
     };
 
     match execute_hue_analysis(&cool_args, None) {
@@ -100,6 +104,8 @@ fn main() -> Result<()> {
         font_size: 12,
         border_width: 5,
         border_color: "white".to_string(),
+        header_text: None,
+        vectorized_text: false,
     };
 
     match execute_hue_analysis(&wraparound_args, None) {
@@ -126,6 +132,8 @@ fn main() -> Result<()> {
         font_size: 12,
         border_width: 5,
         border_color: "white".to_string(),
+        header_text: None,
+        vectorized_text: false,
     };
 
     match execute_hue_analysis(&complex_args, None) {
@@ -176,6 +184,8 @@ mod tests {
             font_size: 12,
             border_width: 5,
             border_color: "white".to_string(),
+            header_text: None,
+            vectorized_text: false,
         };
 
         // Validate that our demo arguments are valid

@@ -48,6 +48,7 @@ pub struct ImageOutput {
     pub(crate) png_filename: Option<String>,
     pub(crate) width: u32,
     pub(crate) show_legend: bool,
+    pub(crate) vectorized_text: bool,
 }
 
 /// Stop configuration for gradient calculation

@@ -38,6 +38,7 @@ pub const fn create_gradient_command(
         output_format: None,
         output_file: None,
         func_filter: None,
+        vectorized_text: false,
     };
 
     CommandType::GenerateGradient {
