@@ -20,34 +20,6 @@ pub enum OutputFormat {
     Yaml,
 }
 
-/// Text format for palette labels
-#[derive(Debug, Clone, ValueEnum, Default, PartialEq, Eq)]
-pub enum TextFormat {
-    /// Show HEX codes only
-    Hex,
-    /// Show color names only
-    Name, 
-    /// Show both HEX and names
-    #[default]
-    Both,
-    /// Show no text labels
-    None,
-}
-
-/// Sorting method for color collections
-#[derive(Debug, Clone, ValueEnum, Default, PartialEq, Eq)]
-pub enum SortBy {
-    /// Sort by hue value (default)
-    #[default]
-    Hue,
-    /// Sort by lightness value
-    Lightness,
-    /// Sort by chroma value
-    Chroma,
-    /// Sort by color name alphabetically
-    Name,
-}
-
 /// Parse percentage values for CLI arguments
 fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
     let trimmed = s.trim_end_matches('%');
@@ -395,6 +367,7 @@ pub struct HueArgs {
 
     /// Hue range filter [min...max] (degrees, can be negative for wraparound)
     #[arg(
+        short = 'H',
         long = "h-range",
         value_name = "[MIN...MAX]",
         help = "Filter by hue range [min...max] degrees, e.g., [300...360] or [-25...25]"
@@ -403,6 +376,7 @@ pub struct HueArgs {
 
     /// Lightness range filter [min...max] (0-100%)
     #[arg(
+        short = 'L',
         long = "l-range",
         value_name = "[MIN...MAX]",
         help = "Filter by lightness range [min...max] percent, e.g., [50...80]"
@@ -411,6 +385,7 @@ pub struct HueArgs {
 
     /// Chroma range filter [min...max]
     #[arg(
+        short = 'C',
         long = "c-range",
         value_name = "[MIN...MAX]",
         help = "Filter by chroma range [min...max], e.g., [30...70]"
@@ -436,11 +411,11 @@ pub struct HueArgs {
     pub pal: bool,
 
     /// SVG output filename (requires --grad or --pal)
-    #[arg(long, value_name = "FILENAME", help = "SVG output filename")]
+    #[arg(short = 'G', long, value_name = "FILENAME", help = "SVG output filename")]
     pub svg: Option<String>,
 
     /// Generate PNG version of visual output (requires --grad or --pal and --svg)
-    #[arg(long, value_name = "FILENAME", help = "Generate PNG version")]
+    #[arg(short = 'P', long, value_name = "FILENAME", help = "Generate PNG version")]
     pub png: Option<String>,
 
     /// Width of visual output in pixels (default: 1000)
@@ -469,25 +444,14 @@ pub struct HueArgs {
     )]
     pub output_file: Option<String>,
 
-    /// Control color grouping/banding in palette layout (requires --pal)
-    #[arg(long, value_name = "BANDS", help = "Number of color bands/groups for palette organization")]
-    pub banding: Option<u32>,
-
-    /// Label formatting for color text (hex, name, both, none)
-    #[arg(long, value_enum, help = "Text format for color labels: hex, name, both, none")]
-    pub text_format: Option<TextFormat>,
-
-    /// Sorting method for color display (hue, lightness, chroma, name)
-    #[arg(long, value_enum, help = "Sort colors by: hue, lightness, chroma, name (default: hue)")]
-    pub sort_by: Option<SortBy>,
-
-    /// Maximum number of colors to display per collection
-    #[arg(long, value_name = "COUNT", help = "Limit the number of colors shown")]
-    pub max_colors: Option<u32>,
-
-    /// Spacing between palette elements in pixels
-    #[arg(long, value_name = "PIXELS", help = "Spacing between color elements in palette layout")]
-    pub spacing: Option<u32>,
+    /// Height of each color block in palette layout (requires --pal)
+    #[arg(
+        short = 'z',
+        long = "color-height",
+        value_name = "PIXELS",
+        help = "Height of each color block in pixels for palette layout"
+    )]
+    pub color_height: Option<u32>,
 }
 /// Range specification for filtering
 #[derive(Debug, Clone, PartialEq)]
@@ -657,6 +621,25 @@ impl HueArgs {
             return Err(ColorError::InvalidArguments(
                 "--no-labels can only be used with --grad or --pal".to_string(),
             ));
+        }
+
+        // Validate color-height parameter
+        if let Some(color_height) = self.color_height {
+            if !self.should_generate_palette() {
+                return Err(ColorError::InvalidArguments(
+                    "--color-height can only be used with --pal".to_string(),
+                ));
+            }
+            if color_height == 0 {
+                return Err(ColorError::InvalidArguments(
+                    "Color height must be greater than 0".to_string(),
+                ));
+            }
+            if color_height > 500 {
+                return Err(ColorError::InvalidArguments(
+                    "Color height should not exceed 500 pixels for reasonable layout".to_string(),
+                ));
+            }
         }
 
         Ok(())
