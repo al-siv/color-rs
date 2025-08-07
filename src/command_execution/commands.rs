@@ -338,7 +338,7 @@ pub fn execute_hue_analysis(
 
                 // Create single line format: "Hue | code | HEX | LCH | name | Hue shift from previous color"
                 let display =
-                    format!("{hue:>6.1} | {code} | {hex} | {lch_str} | {hue_shift_str} | {name}");
+                    format!("{hue:>6.1} | {hex} | {lch_str} | {hue_shift_str} | {code} | {name}");
 
                 previous_hue = Some(hue);
 
