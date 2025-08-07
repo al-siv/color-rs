@@ -350,7 +350,7 @@ impl ImageGenerator {
         let step = 100.0 / (colors.len() - 1).max(1) as f64;
         for (i, color) in colors.iter().enumerate() {
             let hex_color = lch_to_hex(color.color);
-            
+
             if i == 0 {
                 // First color starts at 0%
                 svg.push_str(&format!(
@@ -359,8 +359,8 @@ impl ImageGenerator {
             } else if i == colors.len() - 1 {
                 // Last color: create a hard edge 1% before the end, then extend to 100%
                 let end_position = (i as f64 * step) - 1.0;
-                let prev_hex = lch_to_hex(colors[i-1].color);
-                
+                let prev_hex = lch_to_hex(colors[i - 1].color);
+
                 // End the previous color 1% before the transition
                 svg.push_str(&format!(
                     "      <stop offset=\"{end_position:.1}%\" stop-color=\"{prev_hex}\" />\n"
@@ -378,8 +378,8 @@ impl ImageGenerator {
                 // Middle colors: create hard transitions with +1% offset behavior
                 let start_position = (i as f64 * step) - 1.0;
                 let end_position = (i as f64 * step) + 1.0;
-                let prev_hex = lch_to_hex(colors[i-1].color);
-                
+                let prev_hex = lch_to_hex(colors[i - 1].color);
+
                 // End previous color just before this one
                 svg.push_str(&format!(
                     "      <stop offset=\"{start_position:.1}%\" stop-color=\"{prev_hex}\" />\n"
@@ -464,10 +464,10 @@ impl ImageGenerator {
                 args.collection.to_uppercase(),
                 colors.len()
             );
-            
+
             // Calculate left padding as 1/2 of (color-height + border-width)
             let header_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2;
-            
+
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"start\">\n",
                 header_padding,
@@ -495,15 +495,20 @@ impl ImageGenerator {
             if !args.no_labels {
                 let font_size = args.font_size; // Use font size from args
                 let text_y = y + swatch_height / 2 + font_size / 2;
-                
+
                 // Extract LCH components from the color
                 let lch = color.color;
                 let hue_str = format!("{:.0}", lch.hue.into_positive_degrees());
                 let hex_str = hex_color.to_uppercase();
-                let lch_str = format!("lch({:.1}, {:.1}, {:.1})", lch.l, lch.chroma, lch.hue.into_positive_degrees());
+                let lch_str = format!(
+                    "lch({:.1}, {:.1}, {:.1})",
+                    lch.l,
+                    lch.chroma,
+                    lch.hue.into_positive_degrees()
+                );
                 let code_str = color.code.as_deref().unwrap_or("Unknown");
                 let name_str = color.name.as_deref().unwrap_or("Unknown");
-                
+
                 // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}
                 let display_text = format!(
                     "{} | {} | {} | {} | {}",

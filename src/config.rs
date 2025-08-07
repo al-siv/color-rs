@@ -16,7 +16,7 @@ pub const DEFAULT_SVG_NAME: &str = "gradient.svg";
 pub const DEFAULT_PNG_NAME: &str = "gradient.png";
 pub const DEFAULT_GRAD_STEP: &str = "5";
 pub const DEFAULT_FONT_SIZE: &str = "12";
-pub const DEFAULT_BORDER_WIDTH: &str = "5";
+pub const DEFAULT_BORDER_WIDTH: &str = "0";
 pub const DEFAULT_BORDER_COLOR: &str = "white";
 
 /// Gradient calculation parameters
@@ -97,7 +97,7 @@ pub mod display_constants {
 
     /// Font configuration for image generation
     pub const FONT_FAMILY: &str = "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
-    
+
     /// Header font configuration (bold/black weight)
     pub const HEADER_FONT_FAMILY: &str = "'Montserrat Black', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Roboto Black', 'Arial Black', 'Roboto', 'Arial', 'Helvetica Neue', 'Segoe UI', sans-serif";
 }

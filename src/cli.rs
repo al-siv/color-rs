@@ -1,9 +1,9 @@
 //! Command-line interface for color-rs
 
 use crate::config::{
-    APP_AUTHOR, APP_DESCRIPTION, APP_NAME, APP_VERSION, BEZIER_MAX, BEZIER_MIN, DEFAULT_EASE_IN,
-    DEFAULT_EASE_OUT, DEFAULT_END_POSITION, DEFAULT_START_POSITION, DEFAULT_WIDTH, MAX_PERCENTAGE,
-    DEFAULT_FONT_SIZE, DEFAULT_BORDER_WIDTH, DEFAULT_BORDER_COLOR,
+    APP_AUTHOR, APP_DESCRIPTION, APP_NAME, APP_VERSION, BEZIER_MAX, BEZIER_MIN,
+    DEFAULT_BORDER_COLOR, DEFAULT_BORDER_WIDTH, DEFAULT_EASE_IN, DEFAULT_EASE_OUT,
+    DEFAULT_END_POSITION, DEFAULT_FONT_SIZE, DEFAULT_START_POSITION, DEFAULT_WIDTH, MAX_PERCENTAGE,
 };
 use crate::error::{ColorError, Result};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -412,11 +412,21 @@ pub struct HueArgs {
     pub pal: bool,
 
     /// SVG output filename (requires --grad or --pal)
-    #[arg(short = 'G', long, value_name = "FILENAME", help = "SVG output filename")]
+    #[arg(
+        short = 'G',
+        long,
+        value_name = "FILENAME",
+        help = "SVG output filename"
+    )]
     pub svg: Option<String>,
 
     /// Generate PNG version of visual output (requires --grad or --pal and --svg)
-    #[arg(short = 'P', long, value_name = "FILENAME", help = "Generate PNG version")]
+    #[arg(
+        short = 'P',
+        long,
+        value_name = "FILENAME",
+        help = "Generate PNG version"
+    )]
     pub png: Option<String>,
 
     /// Width of visual output in pixels (default: 1000)
@@ -687,13 +697,15 @@ impl HueArgs {
         // Validate border parameters (only valid with --pal)
         if self.border_width > 0 && !self.should_generate_palette() {
             return Err(ColorError::InvalidArguments(
-                "--border-width can only be used with --pal (gradients don't have borders)".to_string(),
+                "--border-width can only be used with --pal (gradients don't have borders)"
+                    .to_string(),
             ));
         }
-        
+
         if self.border_color != "white" && !self.should_generate_palette() {
             return Err(ColorError::InvalidArguments(
-                "--border-color can only be used with --pal (gradients don't have borders)".to_string(),
+                "--border-color can only be used with --pal (gradients don't have borders)"
+                    .to_string(),
             ));
         }
 

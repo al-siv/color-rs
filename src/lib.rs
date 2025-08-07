@@ -182,11 +182,11 @@ pub use utils::Utils;
 /// All color operations use scientifically accurate algorithms for professional-grade results.
 ///
 /// # Examples
-/// 
+///
 /// ## Basic Usage
 /// ```rust
 /// use color_rs::ColorRs;
-/// 
+///
 /// let color_rs = ColorRs::new();
 /// // Now you can use color_rs for various color operations
 /// ```
@@ -194,7 +194,7 @@ pub use utils::Utils;
 /// ## Color Matching
 /// ```rust
 /// use color_rs::{ColorRs, cli::ColorArgs};
-/// 
+///
 /// let color_rs = ColorRs::new();
 /// let args = ColorArgs {
 ///     color: "#FF6B35".to_string(),
@@ -206,7 +206,7 @@ pub use utils::Utils;
 ///     output_file: None,
 ///     func_filter: None,
 /// };
-/// 
+///
 /// let matches = color_rs.color_match(&args)?;
 /// # Ok::<(), color_rs::error::ColorError>(())
 /// ```
@@ -214,7 +214,7 @@ pub use utils::Utils;
 /// ## Gradient Generation
 /// ```rust
 /// use color_rs::{ColorRs, cli::GradientArgs};
-/// 
+///
 /// let color_rs = ColorRs::new();
 /// let args = GradientArgs {
 ///     start_color: "#FF0000".to_string(),
@@ -234,7 +234,7 @@ pub use utils::Utils;
 ///     output_file: Some("gradient.svg".to_string()),
 ///     func_filter: None,
 /// };
-/// 
+///
 /// color_rs.generate_gradient(args)?;
 /// # Ok::<(), color_rs::error::ColorError>(())
 /// ```
@@ -242,7 +242,7 @@ pub use utils::Utils;
 /// ## Hue Analysis
 /// ```rust
 /// use color_rs::{ColorRs, cli::HueArgs};
-/// 
+///
 /// let color_rs = ColorRs::new();
 /// let args = HueArgs {
 ///     collection: "css".to_string(),
@@ -259,10 +259,10 @@ pub use utils::Utils;
 ///     output_file: None,
 ///     color_height: None,
 ///     font_size: 12,
-///     border_width: 5,
+///     border_width: 0, // No borders for analysis-only mode
 ///     border_color: "white".to_string(),
 /// };
-/// 
+///
 /// color_rs.analyze_hue(&args)?;
 /// # Ok::<(), color_rs::error::ColorError>(())
 /// ```
@@ -318,7 +318,7 @@ impl ColorRs {
     ///     output_file: Some("gradient.svg".to_string()),
     ///     func_filter: None,
     /// };
-    /// 
+    ///
     /// color_rs.generate_gradient(args)?;
     /// # Ok::<(), color_rs::error::ColorError>(())
     /// ```
@@ -361,7 +361,7 @@ impl ColorRs {
     ///     output_file: None,
     ///     func_filter: None,
     /// };
-    /// 
+    ///
     /// let matches = color_rs.color_match(&args)?;
     /// println!("{}", matches);
     /// # Ok::<(), color_rs::error::ColorError>(())
@@ -415,10 +415,10 @@ impl ColorRs {
     ///     output_file: Some("hue_analysis.yaml".to_string()),
     ///     color_height: None,
     ///     font_size: 12,
-    ///     border_width: 5,
+    ///     border_width: 0, // No borders for analysis-only mode
     ///     border_color: "white".to_string(),
     /// };
-    /// 
+    ///
     /// color_rs.analyze_hue(&args)?;
     /// # Ok::<(), color_rs::error::ColorError>(())
     /// ```

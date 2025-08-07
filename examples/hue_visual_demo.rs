@@ -1,25 +1,25 @@
 #!/usr/bin/env cargo
 //! # Hue Visual Output Demonstration
-//! 
+//!
 //! This example demonstrates the library usage for generating visual output
 //! from color collections with hue analysis functionality.
-//! 
+//!
 //! ## Features Demonstrated
 //! - Color collection loading and filtering
 //! - Hue range filtering with wraparound support
 //! - Lightness and chroma filtering
 //! - Visual output generation (SVG/PNG)
 //! - Both gradient and palette modes
-//! 
+//!
 //! ## Usage
 //! ```bash
 //! cargo run --example hue_visual_demo
 //! ```
 
 use color_rs::{
+    Result,
     cli::{HueArgs, OutputFormat},
     command_execution::execute_hue_analysis,
-    Result,
 };
 
 fn main() -> Result<()> {
@@ -111,9 +111,9 @@ fn main() -> Result<()> {
     println!("\n📊 Example 4: RAL Design - Complex Filtering");
     let complex_args = HueArgs {
         collection: "rald".to_string(),
-        hue_range: Some("[120...180]".to_string()),  // Green range
+        hue_range: Some("[120...180]".to_string()), // Green range
         lightness_range: Some("[50...70]".to_string()), // Medium brightness
-        chroma_range: Some("[30...60]".to_string()),     // Moderate saturation
+        chroma_range: Some("[30...60]".to_string()), // Moderate saturation
         grad: true,
         pal: false,
         svg: Some("examples/green-complex-gradient.svg".to_string()),
@@ -143,7 +143,7 @@ fn main() -> Result<()> {
     println!("  - examples/purple-red-palette.svg");
     println!("  - examples/green-complex-gradient.svg");
     println!("  - examples/green-complex.yaml");
-    
+
     println!("\n💡 Tips:");
     println!("  - Use palette mode (-p) for color picking and precise values");
     println!("  - Use gradient mode (-g) for smooth transitions and color relationships");
@@ -185,14 +185,14 @@ mod tests {
     #[test]
     fn test_wraparound_range_parsing() {
         use color_rs::cli::Range;
-        
+
         let range = Range::parse("[300...30]").unwrap();
         assert_eq!(range.min, 300.0);
         assert_eq!(range.max, 30.0);
-        
+
         // Test wraparound logic
         assert!(range.contains_with_wrap(350.0, 360.0)); // Should be true
-        assert!(range.contains_with_wrap(10.0, 360.0));  // Should be true
+        assert!(range.contains_with_wrap(10.0, 360.0)); // Should be true
         assert!(!range.contains_with_wrap(180.0, 360.0)); // Should be false
     }
 }
