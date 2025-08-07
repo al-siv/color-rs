@@ -5,6 +5,19 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.1] - 2025-01-21
+
+### Fixed
+- **Visual Output Enhancement**: Improved default border configuration for gradient mode
+  - Changed `DEFAULT_BORDER_WIDTH` from "5" to "0" for cleaner gradient presentation
+  - Resolves validation conflicts when using gradient mode with default settings
+  - Borders are now disabled by default for better visual aesthetics
+
+### Improved
+- **Documentation**: Updated doctest examples for hue analysis with correct border parameters
+- **Error Handling**: Enhanced validation messaging for border configuration conflicts
+- **Quality Assurance**: Comprehensive testing and validation for production readiness
+
 ## [0.19.0] - 2025-01-21
 
 ### Added
