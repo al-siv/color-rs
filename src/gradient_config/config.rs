@@ -305,11 +305,11 @@ impl GradientConfig {
             (None, Some(png_name)) => config.with_png_output(png_name)?,
             (None, None) => config,
         };
-        
+
         // Now update the vectorized_text flag
         let mut final_config = configured;
         final_config.image_output.vectorized_text = args.vectorized_text;
-        
+
         Ok(final_config)
     }
 

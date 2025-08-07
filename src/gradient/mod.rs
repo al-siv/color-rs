@@ -29,8 +29,8 @@ pub use unified_calculator::calculate_unified_gradient;
 pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result<()> {
     use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
     use crate::color_parser::ColorParser;
-    use crate::color_report_formatting::lab_to_rgb;
     use crate::color_parser::unified_manager::UnifiedColorManager;
+    use crate::color_report_formatting::lab_to_rgb;
     use crate::image::ImageGenerator;
     use crate::output_formats::{
         ColorCollectionMatches, ColorInfo, ContrastAnalysis, EnhancedGradientAnalysisOutput,

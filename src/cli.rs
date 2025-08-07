@@ -88,7 +88,10 @@ pub struct GradientArgs {
     pub png: Option<String>,
 
     /// Convert text elements to vector paths in SVG output (creates .vector.svg file)
-    #[arg(long, help = "Convert text to vector paths for better design tool compatibility")]
+    #[arg(
+        long,
+        help = "Convert text to vector paths for better design tool compatibility"
+    )]
     pub vectorized_text: bool,
 
     /// Disable legend/caption on gradient images (only valid with --svg or --png)
@@ -434,7 +437,10 @@ pub struct HueArgs {
     pub png: Option<String>,
 
     /// Convert text elements to vector paths in SVG output (creates .vector.svg file)
-    #[arg(long, help = "Convert text to vector paths for better design tool compatibility")]
+    #[arg(
+        long,
+        help = "Convert text to vector paths for better design tool compatibility"
+    )]
     pub vectorized_text: bool,
 
     /// Width of visual output in pixels (default: 1000)

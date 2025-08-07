@@ -73,12 +73,12 @@ impl ImageGenerator {
     pub fn generate_svg(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
         let svg_content = self.create_svg_content(args, start_lab, end_lab)?;
         fs::write(args.svg_name(), svg_content)?;
-        
+
         // Generate vectorized SVG if requested
         if args.vectorized_text {
             self.generate_vectorized_svg_gradient(args, start_lab, end_lab)?;
         }
-        
+
         Ok(())
     }
 
@@ -457,7 +457,11 @@ impl ImageGenerator {
 
         let width = args.width;
         let swatch_height = args.color_height.unwrap_or(80u32); // Use color_height parameter or default to 80
-        let header_height = if args.no_labels { 0 } else { args.font_size * 4 }; // Increased header from 50 to 60
+        let header_height = if args.no_labels {
+            0
+        } else {
+            args.font_size * 4
+        }; // Increased header from 50 to 60
         let total_height = header_height + (colors.len() as u32 * swatch_height);
 
         let mut svg = String::new();
@@ -486,7 +490,8 @@ impl ImageGenerator {
             };
 
             // Calculate left padding as 1/2 of (color-height + border-width)
-            let header_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
+            let header_padding =
+                (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
 
             svg.push_str(&format!(
                 "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"start\">\n",
@@ -553,7 +558,8 @@ impl ImageGenerator {
                 };
 
                 // Calculate left padding as 1/2 of (color-height + border-width) minus half the text height
-                let text_padding = (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
+                let text_padding =
+                    (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
 
                 svg.push_str(&format!(
                     "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"start\">\n",
@@ -611,47 +617,60 @@ impl ImageGenerator {
     }
 
     /// Generate vectorized SVG for gradient (text as paths for designers)
-    fn generate_vectorized_svg_gradient(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
+    fn generate_vectorized_svg_gradient(
+        &self,
+        args: &GradientArgs,
+        start_lab: Lab,
+        end_lab: Lab,
+    ) -> Result<()> {
         // Create regular SVG content first
         let svg_content = self.create_svg_content(args, start_lab, end_lab)?;
-        
+
         // Convert text to paths using usvg
         let vectorized_svg = self.convert_text_to_paths(&svg_content)?;
-        
+
         // Save with _vectorized suffix
         let vectorized_filename = args.svg_name().replace(".svg", "_vectorized.svg");
         fs::write(&vectorized_filename, vectorized_svg)?;
-        
+
         Ok(())
     }
 
     /// Generate vectorized SVG for hue gradient (text as paths for designers)
-    fn generate_vectorized_svg_hue_gradient(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+    fn generate_vectorized_svg_hue_gradient(
+        &self,
+        args: &HueArgs,
+        colors: &[HueAnalysisResult],
+    ) -> Result<()> {
         // Create regular SVG content first
         let svg_content = self.create_hue_gradient_svg(args, colors)?;
-        
+
         // Convert text to paths using usvg
         let vectorized_svg = self.convert_text_to_paths(&svg_content)?;
-        
+
         // Save with _vectorized suffix
         let vectorized_filename = args.svg_name().replace(".svg", "_vectorized.svg");
         fs::write(vectorized_filename, vectorized_svg)?;
-        
+
         Ok(())
     }
 
     /// Generate vectorized SVG for hue palette (text as paths for designers)
-    fn generate_vectorized_svg_hue_palette(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
+    fn generate_vectorized_svg_hue_palette(
+        &self,
+        args: &HueArgs,
+        colors: &[HueAnalysisResult],
+    ) -> Result<()> {
         // Create regular SVG content first
         let svg_content = self.create_hue_palette_svg(args, colors)?;
-        
+
         // Convert text to paths using usvg
         let vectorized_svg = self.convert_text_to_paths(&svg_content)?;
-        
+
         // Save with _vectorized suffix
         let vectorized_filename = args.svg_name().replace(".svg", "_vectorized.svg");
         fs::write(vectorized_filename, vectorized_svg)?;
-        
+
         Ok(())
     }
 
@@ -664,13 +683,14 @@ impl ImageGenerator {
         options.fontdb = std::sync::Arc::new(fontdb);
 
         // Parse SVG with text-to-path conversion (this automatically converts text to paths)
-        let tree = Tree::from_str(svg_content, &options)
-            .map_err(|e| ColorError::SvgError(format!("Failed to parse SVG for vectorization: {e}")))?;
+        let tree = Tree::from_str(svg_content, &options).map_err(|e| {
+            ColorError::SvgError(format!("Failed to parse SVG for vectorization: {e}"))
+        })?;
 
         // Convert tree back to SVG string with WriteOptions for proper formatting
         let write_options = usvg::WriteOptions::default();
         let vectorized_svg = tree.to_string(&write_options);
-        
+
         Ok(vectorized_svg)
     }
 }
