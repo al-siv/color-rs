@@ -48,6 +48,7 @@ mod test_suite_runner {
             no_labels: false,
             output_format: Some(OutputFormat::Yaml),
             output_file: None,
+            color_height: None,
         };
 
         assert_eq!(args.collection, "css");
