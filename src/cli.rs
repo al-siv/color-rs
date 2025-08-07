@@ -414,7 +414,7 @@ pub struct HueArgs {
     pub png: Option<String>,
 
     /// Width of visual output in pixels (default: 1000)
-    #[arg(long, default_value = "1000", help = "Visual output width")]
+    #[arg(long, default_value = DEFAULT_WIDTH, help = "Visual output width")]
     pub width: u32,
 
     /// Disable labels on visual output
