@@ -1,4 +1,4 @@
-# Color-rs CLI Reference v0.15.4
+# Color-rs CLI Reference v0.19.0
 
 Command-line reference for color-rs: color analysis, gradient generation, and color space conversions with LAB/LCH color distance calculations.
 
@@ -10,7 +10,8 @@ color-rs <COMMAND> [OPTIONS]
 
 **Commands:**
 - `gradient` - Generate color gradients using LAB color space with cubic-bezier timing
-- `color` - Analyze and convert colors between different color spaces
+- `color` - Analyze and convert colors between different color spaces  
+- `hue` - Analyze hue relationships and color harmony patterns from color collections
 - `help` - Print help information
 
 **Global Options:**
@@ -104,6 +105,102 @@ color-rs color "blue" --func "[contrast.wcag21_relative_luminance]"
 color-rs color "green" --output toml --func "[conversion,grayscale]" --file filtered
 ```
 
+## Hue Command
+
+Analyze hue relationships and color harmony patterns from comprehensive color collections. Displays entire color collections sorted by hue with optional filtering and visual output generation.
+
+### Syntax
+```bash
+color-rs hue [OPTIONS] <COLLECTION>
+```
+
+### Arguments
+- `<COLLECTION>` - Color collection to display
+  - `css` - CSS color names (148 colors)
+  - `ralc` - RAL Classic colors (~210 colors)
+  - `rald` - RAL Design System+ colors (~1600 colors)
+
+### Filtering Options
+- `-H, --h-range <[MIN...MAX]>` - Filter by hue range in degrees (e.g., `[300...360]` or `[-25...25]` for wraparound)
+- `-L, --l-range <[MIN...MAX]>` - Filter by lightness range in percent (e.g., `[50...80]`)
+- `-C, --c-range <[MIN...MAX]>` - Filter by chroma range (e.g., `[30...70]`)
+
+### Visual Output Options
+- `-g, --grad` - Generate horizontal gradient layout (requires `-G`)
+- `-p, --pal` - Generate vertical palette layout (requires `-G`)
+- `-G, --svg <FILENAME>` - SVG output filename (required for visual output)
+- `-P, --png <FILENAME>` - Generate PNG version (requires SVG)
+- `-w, --width <WIDTH>` - Visual output width in pixels [default: 1000]
+- `-z, --color-height <PIXELS>` - Height of each color block in palette layout
+- `--no-labels` - Disable color labels on visual output
+
+### Output Options
+- `-o, --output <OUTPUT_FORMAT>` - Output format [default: yaml]
+  - `yaml` - YAML format output
+  - `toml` - TOML format output
+- `-f, --file <FILENAME>` - Output filename (extension added automatically based on format)
+
+### Output Structure
+The hue command outputs structured data containing:
+- **metadata** - Program version, timestamp, collection info
+- **configuration** - Collection name, filters applied, total colors
+- **colors** - Array of colors with hue display format: `{H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}`
+
+### Examples
+```bash
+# Display entire CSS color collection
+color-rs hue css
+
+# Filter by hue range (warm colors)
+color-rs hue css -H"[0...60]"
+
+# Multiple filters (warm, bright, saturated)
+color-rs hue css -H"[0...60]" -L"[50...80]" -C"[30...70]"
+
+# RAL collections
+color-rs hue ralc
+color-rs hue rald -H"[200...260]"  # Blue range from RAL Design
+
+# Visual outputs
+color-rs hue css -g -G gradient.svg                    # Horizontal gradient
+color-rs hue css -p -G palette.svg                     # Vertical palette
+color-rs hue css -p -G palette.svg -P palette.png      # Both SVG and PNG
+
+# Custom visual parameters
+color-rs hue css -p -G palette.svg -w 1200 -z 40       # Custom width and height
+color-rs hue css -g -G gradient.svg --no-labels        # No text labels
+
+# Wraparound hue ranges (e.g., purple-red spectrum)
+color-rs hue css -H"[300...30]"
+
+# Output to file
+color-rs hue css -H"[0...120]" --output toml --file green-spectrum
+# Creates: green-spectrum.toml
+
+# Complex filtering with visual output
+color-rs hue rald -H"[180...240]" -L"[40...70]" -C"[20...60]" -p -G blue-palette.svg
+```
+
+### Visual Output Details
+
+**Gradient Mode (`-g, --grad`)**:
+- Creates horizontal color gradient with automatic banding
+- Colors transition smoothly across the width
+- Useful for seeing color relationships and transitions
+
+**Palette Mode (`-p, --pal`)**:
+- Creates vertical palette with individual color blocks
+- Each color gets equal height (customizable with `-z`)
+- Shows precise color values and names
+- Ideal for color picking and detailed analysis
+
+**Label Format**:
+- Fixed format: `{H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}`
+- Example: `45.5 | #FF4500 | lch(57.6, 96.7, 45.5) | — | Orange Red`
+- Use `--no-labels` to disable all text labels
+
+---
+
 ### Important Note: Filtering Differences
 The `--func` filtering option works differently between the `color` and `gradient` commands:
 
@@ -149,12 +246,10 @@ color-rs gradient [OPTIONS] <START_COLOR> <END_COLOR>
 - `--stops-simple` - Use equally spaced gradient stops instead of intelligent placement
 
 ### Image Generation
-- `--svg` - Generate SVG image of the gradient
-- `--png` - Generate PNG image of the gradient
+- `--svg <FILENAME>` - Generate SVG image of the gradient with specified filename
+- `--png <FILENAME>` - Generate PNG image of the gradient with specified filename  
 - `--no-legend` - Disable legend/caption on gradient images (only valid with --svg or --png)
-- `--width <WIDTH>` - Width of the image in pixels [default: 1000]
-- `-v, --svg-name <SVG_NAME>` - Output filename for SVG image [default: gradient.svg]
-- `-p, --png-name <PNG_NAME>` - Output filename for PNG image [default: gradient.png]
+- `-w, --width <WIDTH>` - Width of the image in pixels [default: 1000]
 
 ### Output Options
 - `-o, --output <OUTPUT_FORMAT>` - Output format [default: yaml]
@@ -189,12 +284,12 @@ color-rs gradient red blue --stops 8          # 8 intelligent stops
 color-rs gradient red blue --stops 6 --stops-simple  # 6 equal stops
 
 # Image generation
-color-rs gradient red blue --svg
-color-rs gradient red blue --png --width 1600
-color-rs gradient red blue --svg --png --no-legend
+color-rs gradient red blue --svg gradient.svg
+color-rs gradient red blue --png gradient.png --width 1600
+color-rs gradient red blue --svg gradient.svg --png gradient.png --no-legend
 
 # Custom filenames
-color-rs gradient red blue --svg --svg-name custom-gradient.svg
+color-rs gradient red blue --svg custom-gradient.svg
 color-rs gradient red blue --output toml --file my-gradient
 # Creates: my-gradient.toml
 

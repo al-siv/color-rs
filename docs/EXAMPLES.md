@@ -1,14 +1,15 @@
-# Color-rs Usage Examples v0.15.4
+# Color-rs Usage Examples v0.19.0
 
-Practical examples demonstrating color analysis, gradient generation, and YAML/TOML output formats with improved distance calculation consistency and **functional programming patterns**.
+Practical examples demonstrating color analysis, gradient generation, hue analysis, visual output generation, and YAML/TOML output formats with comprehensive CLI enhancements.
 
 ## Functional Programming Approach
 
-Color-rs v0.15.4+ follows **functional programming principles**:
+Color-rs v0.19.0 follows **functional programming principles**:
 - **Pure Functions**: All color operations are deterministic with immutable inputs
 - **Function Composition**: Complex operations built from composing simple functions  
 - **Type Safety**: Leveraging Rust's type system for compile-time guarantees
 - **Immutable Data**: Preference for immutable transformations over mutable state
+- **Railway-Oriented Programming**: Consistent error handling with Result composition
 
 ## Basic Color Analysis
 
@@ -433,6 +434,141 @@ color-rs color "#FF5733" --distance-method euclidean-lab
 color-rs color "#00FF00" --distance-method lch --func "[color_collections.css_colors]"
 color-rs color "#00FF00" --distance-method delta-e-2000 --func "[color_collections.css_colors]"
 ```
+
+## Hue Analysis and Color Collections
+
+**NEW in v0.19.0**: Comprehensive color collection analysis with visual output generation.
+
+### Basic Collection Display
+```bash
+# Display entire CSS color collection (148 colors)
+color-rs hue css
+
+# RAL Classic collection (~210 colors)
+color-rs hue ralc
+
+# RAL Design System+ collection (~1600 colors)
+color-rs hue rald
+```
+
+### Hue Range Filtering
+```bash
+# Warm colors (0-60 degrees)
+color-rs hue css -H"[0...60]"
+
+# Cool colors (180-270 degrees)  
+color-rs hue css -H"[180...270]"
+
+# Wraparound range: purple to red spectrum
+color-rs hue css -H"[300...30]"
+
+# Specific hue ranges for different collections
+color-rs hue ralc -H"[200...260]"  # Blue range from RAL Classic
+color-rs hue rald -H"[90...150]"   # Green range from RAL Design
+```
+
+### Multi-Dimensional Filtering
+```bash
+# Combine hue, lightness, and chroma filters
+color-rs hue css -H"[0...60]" -L"[50...80]" -C"[30...70]"
+
+# Bright, saturated colors across full spectrum
+color-rs hue css -L"[60...90]" -C"[40...80]"
+
+# Muted colors in blue-green range
+color-rs hue css -H"[150...210]" -L"[30...60]" -C"[10...40]"
+
+# RAL Design with complex filtering
+color-rs hue rald -H"[180...240]" -L"[40...70]" -C"[20...60]"
+```
+
+### Visual Output Generation
+
+#### Horizontal Gradient Mode
+```bash
+# Basic gradient generation
+color-rs hue css -g -G gradient.svg
+
+# Filtered gradient with custom width
+color-rs hue css -H"[0...120]" -g -G warm-gradient.svg -w 1600
+
+# RAL collection gradient
+color-rs hue ralc -H"[200...300]" -g -G ral-blue-purple.svg
+```
+
+#### Vertical Palette Mode
+```bash
+# Basic palette generation
+color-rs hue css -p -G palette.svg
+
+# Custom dimensions and PNG export
+color-rs hue css -p -G palette.svg -P palette.png -w 1200 -z 50
+
+# Filtered palette with no labels
+color-rs hue css -H"[45...90]" -p -G orange-yellow.svg --no-labels
+
+# Large RAL Design palette
+color-rs hue rald -L"[50...80]" -p -G bright-colors.svg -z 30
+```
+
+### Output Format Examples
+
+#### YAML Output (Default)
+```yaml
+metadata:
+  program_name: color-rs
+  version: '0.19.0'
+  generated_at: '2025-01-21T12:00:00Z'
+  distance_strategy: LAB Delta E
+
+configuration:
+  collection: css
+  total_colors: 8
+  hue_range: '[0...60]'
+  lightness_range: '[50...80]'
+  chroma_range: '[30...70]'
+
+colors:
+- display: '   0.5 | palevioletred | #DB7093 | lch(60.6, 45.5,    0.5) |      — | Pale Violet Red'
+- display: '  24.6 | lightcoral | #F08080 | lch(66.2, 47.1,   24.6) | +24.05 | Light Coral'
+- display: '  26.3 | indianred | #CD5C5C | lch(53.4, 50.0,   26.3) |  +1.71 | Indian Red'
+- display: '  32.8 | salmon | #FA8072 | lch(67.3, 53.8,   32.8) |  +6.49 | Salmon'
+```
+
+#### TOML Export
+```bash
+# Export filtered collection to TOML
+color-rs hue css -H"[90...150]" --output toml --file green-spectrum
+# Creates: green-spectrum.toml
+```
+
+### Complex Examples
+```bash
+# Comprehensive analysis with visual output
+color-rs hue rald -H"[180...240]" -L"[40...70]" -C"[20...60]" \\
+  -p -G blue-analysis.svg -P blue-analysis.png \\
+  -w 1400 -z 40 \\
+  --output toml --file blue-analysis
+
+# Gradient across multiple collections comparison
+color-rs hue css -H"[0...30]" -g -G css-reds.svg
+color-rs hue ralc -H"[0...30]" -g -G ral-reds.svg
+
+# Palette matrix for color selection
+color-rs hue css -L"[70...90]" -C"[50...80]" -p -G bright-palette.svg -z 60
+```
+
+### Visual Output Details
+
+**Label Format**: `{H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name}`
+- **H**: Hue angle in degrees  
+- **HEX**: Hexadecimal color code
+- **LCH**: Lightness, Chroma, Hue in LCH color space
+- **code**: Color code (RAL numbers, CSS names, etc.)
+- **color_name**: Human-readable color name
+
+**Gradient Mode**: Creates smooth horizontal transitions with automatic banding
+**Palette Mode**: Individual color blocks with precise labeling, ideal for color picking
 
 ## Color Scheme Strategies
 

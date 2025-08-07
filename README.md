@@ -84,6 +84,30 @@ The primary command for analyzing colors and generating color schemes:
 color-rs color <COLOR> [OPTIONS]
 ```
 
+### Gradient Generation Command
+
+Generate color gradients with mathematical easing functions:
+
+```bash
+color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
+```
+
+### Hue Analysis Command
+
+Analyze and visualize entire color collections sorted by hue relationships:
+
+```bash
+color-rs hue <COLLECTION> [OPTIONS]
+```
+
+**Key Features:**
+- **Selective Output Control**: Use `--func` to show only specific output blocks or fields
+- **Multiple Output Formats**: YAML, TOML, SVG, PNG
+- **Comprehensive Color Analysis**: WCAG compliance, color distance calculations, color scheme generation
+- **RAL Color System Support**: Both Classic and Design System+ databases
+- **Advanced Gradient Generation**: LAB color space with cubic-bezier easing
+- **Color Collection Visualization**: Horizontal gradients and vertical palettes with filtering
+
 **Input formats supported:**
 - Named colors: `red`, `blue`, `forestgreen`
 - Hex codes: `#FF0000`, `FF0000`
@@ -92,26 +116,12 @@ color-rs color <COLOR> [OPTIONS]
 - LAB values: `lab(53.24, 80.092, 67.203)`
 - RAL codes: `RAL 3020`, `RAL 050 50 78`
 
-**Output format:**
+**Output formats:**
 - YAML format (default)
 - TOML format (with `--output toml`)
 - File export (with `--file filename.yaml`)
 - Selective output control (with `--func [filter_expression]`)
-
-**Key Features:**
-- **Selective Output Control**: Use `--func` to show only specific output blocks or fields
-- **Multiple Output Formats**: YAML, TOML, SVG, PNG
-- **Comprehensive Color Analysis**: WCAG compliance, color distance calculations, color scheme generation
-- **RAL Color System Support**: Both Classic and Design System+ databases
-- **Advanced Gradient Generation**: LAB color space with cubic-bezier easing
-
-### Gradient Generation Command
-
-Generate color gradients with mathematical easing functions:
-
-```bash
-color-rs gradient <START_COLOR> <END_COLOR> [OPTIONS]
-```
+- Visual output (SVG/PNG for hue and gradient commands)
 
 ## Selective Output Control
 
@@ -319,6 +329,40 @@ color-rs gradient forestgreen skyblue --png gradient.png --width 1200
 
 # TOML output with custom stops
 color-rs gradient "#FF5733" "#00AFF0" --stops 8 --output toml
+```
+
+### Hue Analysis Examples
+
+```bash
+# Display entire CSS color collection
+color-rs hue css
+
+# Filter by hue range (warm colors: 0-60 degrees)
+color-rs hue css -H"[0...60]"
+
+# Multiple filters: warm, bright, saturated colors
+color-rs hue css -H"[0...60]" -L"[50...80]" -C"[30...70]"
+
+# RAL Classic collection filtered by blue hues
+color-rs hue ralc -H"[200...260]"
+
+# Large RAL Design collection with complex filtering
+color-rs hue rald -H"[180...240]" -L"[40...70]" -C"[20...60]"
+
+# Visual output: horizontal gradient
+color-rs hue css -g -G gradient.svg
+
+# Visual output: vertical palette with custom dimensions
+color-rs hue css -p -G palette.svg -w 1200 -z 40
+
+# Export both SVG and PNG
+color-rs hue css -p -G palette.svg -P palette.png
+
+# TOML export with filtering
+color-rs hue css -H"[90...150]" --output toml --file green-spectrum
+
+# Wraparound hue range (purple to red spectrum)
+color-rs hue css -H"[300...30]" -p -G purple-red.svg
 ```
 
 ## Technical Specifications
