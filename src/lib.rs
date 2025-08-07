@@ -202,7 +202,7 @@ impl ColorRs {
         );
 
         // Always use enhanced color matching with schemes (new default behavior)
-        color::color_match_with_schemes(&args, algorithm)
+        color::color_match_with_schemes(args, algorithm)
     }
 
     /// Analyze hue relationships and patterns for colors with specified arguments

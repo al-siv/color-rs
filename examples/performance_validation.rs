@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("\n🎯 Milestone 7.2 validation complete - ready for production!");
         }
         Err(error) => {
-            eprintln!("❌ Performance validation failed: {}", error);
+            eprintln!("❌ Performance validation failed: {error}");
             std::process::exit(1);
         }
     }

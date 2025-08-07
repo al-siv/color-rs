@@ -50,10 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let total_ops = 1000 * test_colors.len();
         let ops_per_sec = total_ops as f64 / duration.as_secs_f64();
 
-        println!(
-            "  {:?}: {:.2} ops/sec ({} ops in {:?})",
-            algorithm, ops_per_sec, total_ops, duration
-        );
+        println!("  {algorithm:?}: {ops_per_sec:.2} ops/sec ({total_ops} ops in {duration:?})");
     }
 
     // Benchmark 2: Multi-collection matching (with error handling)
@@ -64,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         for _ in 0..1000 {
             for color in &test_colors {
-                if let Ok(_) = match_across_all_collections(color, *algorithm, 3) {
+                if match_across_all_collections(color, *algorithm, 3).is_ok() {
                     successful_ops += 1;
                 }
             }
@@ -73,8 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let ops_per_sec = successful_ops as f64 / duration.as_secs_f64();
 
         println!(
-            "  {:?}: {:.2} ops/sec ({} successful ops in {:?})",
-            algorithm, ops_per_sec, successful_ops, duration
+            "  {algorithm:?}: {ops_per_sec:.2} ops/sec ({successful_ops} successful ops in {duration:?})"
         );
     }
 
@@ -97,10 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let total_ops = 1000 * test_colors.len();
         let ops_per_sec = total_ops as f64 / duration.as_secs_f64();
 
-        println!(
-            "  {}: {:.2} ops/sec ({} ops in {:?})",
-            name, ops_per_sec, total_ops, duration
-        );
+        println!("  {name}: {ops_per_sec:.2} ops/sec ({total_ops} ops in {duration:?})");
     }
 
     // Benchmark 4: Memory allocation test
@@ -120,8 +113,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let total_ops = 10000 * test_colors.len();
     let ops_per_sec = total_ops as f64 / duration.as_secs_f64();
 
-    println!("  High-frequency test: {:.2} ops/sec", ops_per_sec);
-    println!("  Total matches processed: {}", total_matches);
+    println!("  High-frequency test: {ops_per_sec:.2} ops/sec");
+    println!("  Total matches processed: {total_matches}");
     println!(
         "  Average matches per operation: {:.2}",
         total_matches as f64 / total_ops as f64

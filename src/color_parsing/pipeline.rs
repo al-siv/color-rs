@@ -59,9 +59,7 @@ pub fn apply_preprocessing_step(input: &str, step: &PreprocessingStep) -> String
 
 /// Apply postprocessing pipeline using function composition
 pub fn apply_postprocessing_pipeline(input: String, steps: &[PostprocessingStep]) -> String {
-    steps
-        .iter()
-        .fold(input, |acc, step| apply_postprocessing_step(acc, step))
+    steps.iter().fold(input, apply_postprocessing_step)
 }
 
 /// Apply a single postprocessing step
@@ -69,8 +67,8 @@ pub fn apply_postprocessing_step(input: String, step: &PostprocessingStep) -> St
     match step {
         PostprocessingStep::Capitalize => capitalize_first(&input),
         PostprocessingStep::TitleCase => to_title_case(&input),
-        PostprocessingStep::AddPrefix(prefix) => format!("{}{}", prefix, input),
-        PostprocessingStep::AddSuffix(suffix) => format!("{}{}", input, suffix),
+        PostprocessingStep::AddPrefix(prefix) => format!("{prefix}{input}"),
+        PostprocessingStep::AddSuffix(suffix) => format!("{input}{suffix}"),
         PostprocessingStep::Custom(func) => func(input),
     }
 }

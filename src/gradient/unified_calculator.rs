@@ -109,9 +109,9 @@ fn interpolate_rgb(start_rgb: RgbTuple, end_rgb: RgbTuple, factor: f64) -> RgbTu
 /// Convert RGB tuple back to Lab color space
 fn rgb_tuple_to_lab(rgb: RgbTuple) -> Lab {
     let srgb = Srgb::new(
-        f32::from(rgb.0) / math_constants::RGB_MAX_VALUE as f32,
-        f32::from(rgb.1) / math_constants::RGB_MAX_VALUE as f32,
-        f32::from(rgb.2) / math_constants::RGB_MAX_VALUE as f32,
+        f32::from(rgb.0) / math_constants::RGB_MAX_VALUE,
+        f32::from(rgb.1) / math_constants::RGB_MAX_VALUE,
+        f32::from(rgb.2) / math_constants::RGB_MAX_VALUE,
     );
     srgb.into_color()
 }

@@ -125,7 +125,7 @@ impl GradientCalculator {
             let g = (srgb.green * 255.0).round() as u8;
             let b = (srgb.blue * 255.0).round() as u8;
 
-            let hex_color = format!("#{:02X}{:02X}{:02X}", r, g, b);
+            let hex_color = format!("#{r:02X}{g:02X}{b:02X}");
             let wcag_luminance = crate::color_ops::luminance::wcag_relative(srgb);
 
             // Calculate position

@@ -49,8 +49,7 @@ impl std::str::FromStr for ColorCollectionType {
             "ral-design" | "rald" => Ok(Self::RalDesign),
             "all" => Ok(Self::All),
             _ => Err(ColorError::InvalidArguments(format!(
-                "Invalid collection '{}'. Valid options: css, ral-classic, ral-design, all",
-                s
+                "Invalid collection '{s}'. Valid options: css, ral-classic, ral-design, all"
             ))),
         }
     }
@@ -100,8 +99,7 @@ impl std::str::FromStr for SortCriteria {
             "lightness" => Ok(Self::Lightness),
             "name" => Ok(Self::Name),
             _ => Err(ColorError::InvalidArguments(format!(
-                "Invalid sort criteria: {}. Valid options: hue-distance, saturation, lightness, name",
-                s
+                "Invalid sort criteria: {s}. Valid options: hue-distance, saturation, lightness, name"
             ))),
         }
     }
@@ -398,22 +396,19 @@ pub fn load_collection_colors(
     match collection_type {
         ColorCollectionType::Css => {
             let collection = CssColorCollection::new().map_err(|e| {
-                ColorError::InvalidArguments(format!("Failed to load CSS collection: {}", e))
+                ColorError::InvalidArguments(format!("Failed to load CSS collection: {e}"))
             })?;
             Ok(convert_collection_to_results(&collection, "css"))
         }
         ColorCollectionType::RalClassic => {
             let collection = RalClassicCollection::new().map_err(|e| {
-                ColorError::InvalidArguments(format!(
-                    "Failed to load RAL Classic collection: {}",
-                    e
-                ))
+                ColorError::InvalidArguments(format!("Failed to load RAL Classic collection: {e}"))
             })?;
             Ok(convert_collection_to_results(&collection, "ral-classic"))
         }
         ColorCollectionType::RalDesign => {
             let collection = RalDesignCollection::new().map_err(|e| {
-                ColorError::InvalidArguments(format!("Failed to load RAL Design collection: {}", e))
+                ColorError::InvalidArguments(format!("Failed to load RAL Design collection: {e}"))
             })?;
             Ok(convert_collection_to_results(&collection, "ral-design"))
         }
@@ -599,7 +594,7 @@ pub fn format_hue_analysis_terminal(results: &[HueAnalysisResult]) -> String {
         let display_item = HueDisplayItem::from_analysis_result(result, previous_hue);
 
         let hue_shift_str = match display_item.hue_shift {
-            Some(shift) => format!("{:+6.1}°", shift),
+            Some(shift) => format!("{shift:+6.1}°"),
             None => "    —   ".to_string(),
         };
 
@@ -771,8 +766,8 @@ pub fn export_hue_analysis(
             ),
             target_hue: options.target_hue,
             tolerance: options.tolerance,
-            collection: format!("{:?}", collection_type).to_lowercase(),
-            sort_criteria: format!("{:?}", sort_criteria).to_lowercase(),
+            collection: format!("{collection_type:?}").to_lowercase(),
+            sort_criteria: format!("{sort_criteria:?}").to_lowercase(),
         },
         results: serialized_results,
     };
@@ -781,34 +776,28 @@ pub fn export_hue_analysis(
     match format {
         crate::cli::OutputFormat::Yaml => {
             let content = serde_yml::to_string(&output).map_err(|e| {
-                ColorError::InvalidArguments(format!("YAML serialization failed: {}", e))
+                ColorError::InvalidArguments(format!("YAML serialization failed: {e}"))
             })?;
             let full_filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
                 filename.to_string()
             } else {
-                format!("{}.yaml", filename)
+                format!("{filename}.yaml")
             };
             std::fs::write(&full_filename, content).map_err(|e| {
-                ColorError::InvalidArguments(format!(
-                    "Failed to write file {}: {}",
-                    full_filename, e
-                ))
+                ColorError::InvalidArguments(format!("Failed to write file {full_filename}: {e}"))
             })?;
         }
         crate::cli::OutputFormat::Toml => {
             let content = toml::to_string_pretty(&output).map_err(|e| {
-                ColorError::InvalidArguments(format!("TOML serialization failed: {}", e))
+                ColorError::InvalidArguments(format!("TOML serialization failed: {e}"))
             })?;
             let full_filename = if filename.ends_with(".toml") {
                 filename.to_string()
             } else {
-                format!("{}.toml", filename)
+                format!("{filename}.toml")
             };
             std::fs::write(&full_filename, content).map_err(|e| {
-                ColorError::InvalidArguments(format!(
-                    "Failed to write file {}: {}",
-                    full_filename, e
-                ))
+                ColorError::InvalidArguments(format!("Failed to write file {full_filename}: {e}"))
             })?;
         }
     }

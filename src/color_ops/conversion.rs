@@ -359,7 +359,7 @@ pub fn hex_to_srgb(hex: &str) -> Result<Srgb, String> {
 /// ```
 pub fn srgb_to_hex(srgb: Srgb) -> String {
     let (r, g, b) = srgb_to_rgb_tuple(srgb);
-    format!("#{:02X}{:02X}{:02X}", r, g, b)
+    format!("#{r:02X}{g:02X}{b:02X}")
 }
 
 #[cfg(test)]

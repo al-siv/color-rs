@@ -94,7 +94,7 @@ pub struct HueCollectionOutput {
 }
 
 /// Hue collection configuration information
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct HueCollectionConfiguration {
     pub collection: String,
     pub total_colors: usize,
@@ -458,6 +458,12 @@ impl EnhancedGradientAnalysisOutput {
     }
 }
 
+impl Default for HueCollectionOutput {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HueCollectionOutput {
     /// Create a new hue collection output
     #[must_use]
@@ -499,18 +505,6 @@ impl HueCollectionOutput {
     /// or unsupported data types.
     pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
         serde_yml::to_string(self)
-    }
-}
-
-impl Default for HueCollectionConfiguration {
-    fn default() -> Self {
-        Self {
-            collection: String::new(),
-            total_colors: 0,
-            hue_range: None,
-            lightness_range: None,
-            chroma_range: None,
-        }
     }
 }
 

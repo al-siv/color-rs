@@ -248,17 +248,17 @@ fn get_wcag_info(_color: Srgb) -> WcagInfo {
 pub fn classify_hue(hue_degrees: f32) -> String {
     match hue_degrees {
         h if !(15.0..345.0).contains(&h) => "Red".to_string(),
-        h if h >= 15.0 && h < 45.0 => "Red-Orange".to_string(),
-        h if h >= 45.0 && h < 75.0 => "Orange".to_string(),
-        h if h >= 75.0 && h < 105.0 => "Yellow".to_string(),
-        h if h >= 105.0 && h < 135.0 => "Yellow-Green".to_string(),
-        h if h >= 135.0 && h < 165.0 => "Green".to_string(),
-        h if h >= 165.0 && h < 195.0 => "Blue-Green".to_string(),
-        h if h >= 195.0 && h < 225.0 => "Cyan".to_string(),
-        h if h >= 225.0 && h < 255.0 => "Blue".to_string(),
-        h if h >= 255.0 && h < 285.0 => "Blue-Violet".to_string(),
-        h if h >= 285.0 && h < 315.0 => "Violet".to_string(),
-        h if h >= 315.0 && h < 345.0 => "Red-Violet".to_string(),
+        h if (15.0..45.0).contains(&h) => "Red-Orange".to_string(),
+        h if (45.0..75.0).contains(&h) => "Orange".to_string(),
+        h if (75.0..105.0).contains(&h) => "Yellow".to_string(),
+        h if (105.0..135.0).contains(&h) => "Yellow-Green".to_string(),
+        h if (135.0..165.0).contains(&h) => "Green".to_string(),
+        h if (165.0..195.0).contains(&h) => "Blue-Green".to_string(),
+        h if (195.0..225.0).contains(&h) => "Cyan".to_string(),
+        h if (225.0..255.0).contains(&h) => "Blue".to_string(),
+        h if (255.0..285.0).contains(&h) => "Blue-Violet".to_string(),
+        h if (285.0..315.0).contains(&h) => "Violet".to_string(),
+        h if (315.0..345.0).contains(&h) => "Red-Violet".to_string(),
         _ => "Unknown".to_string(),
     }
 }
@@ -267,9 +267,9 @@ pub fn classify_hue(hue_degrees: f32) -> String {
 #[must_use]
 pub fn classify_temperature(hue_degrees: f32) -> String {
     match hue_degrees {
-        h if h >= 315.0 || h < 135.0 => "Warm".to_string(),
-        h if h >= 135.0 && h < 225.0 => "Cool".to_string(),
-        h if h >= 225.0 && h < 315.0 => "Cool".to_string(),
+        h if !(135.0..315.0).contains(&h) => "Warm".to_string(),
+        h if (135.0..225.0).contains(&h) => "Cool".to_string(),
+        h if (225.0..315.0).contains(&h) => "Cool".to_string(),
         _ => "Neutral".to_string(),
     }
 }
@@ -307,5 +307,5 @@ pub fn classify_mood(hue_category: &str, _temperature: &str, value: f32) -> Stri
         "Medium"
     };
 
-    format!("{} {}", intensity, base_mood)
+    format!("{intensity} {base_mood}")
 }

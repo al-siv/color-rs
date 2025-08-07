@@ -72,7 +72,7 @@ impl ImageGenerator {
     /// Generate SVG gradient
     pub fn generate_svg(&self, args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<()> {
         let svg_content = self.create_svg_content(args, start_lab, end_lab)?;
-        fs::write(&args.svg_name(), svg_content)?;
+        fs::write(args.svg_name(), svg_content)?;
         Ok(())
     }
 
@@ -291,7 +291,7 @@ impl ImageGenerator {
         colors: &[HueAnalysisResult],
     ) -> Result<()> {
         let svg_content = self.create_hue_gradient_svg(args, colors)?;
-        fs::write(&args.svg_name(), svg_content)?;
+        fs::write(args.svg_name(), svg_content)?;
 
         // Generate PNG if requested
         if args.should_generate_png() {
@@ -304,7 +304,7 @@ impl ImageGenerator {
     /// Generate vertical palette SVG from hue analysis results  
     pub fn generate_hue_palette(&self, args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<()> {
         let svg_content = self.create_hue_palette_svg(args, colors)?;
-        fs::write(&args.svg_name(), svg_content)?;
+        fs::write(args.svg_name(), svg_content)?;
 
         // Generate PNG if requested
         if args.should_generate_png() {

@@ -203,7 +203,7 @@ pub fn cubic_bezier_ease(t: f64, x1: f64, x2: f64) -> f64 {
             break;
         } // Avoid division by zero
 
-        u = u - (x - t) / dx;
+        u -= (x - t) / dx;
         u = u.clamp(0.0, 1.0);
 
         if (x - t).abs() < 1e-12 {

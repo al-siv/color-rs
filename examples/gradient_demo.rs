@@ -79,9 +79,9 @@ fn main() -> Result<()> {
     );
 
     match complex_gradient.stop_config() {
-        StopConfig::Steps(s) => println!("   - Steps: every {}%", s),
-        StopConfig::IntelligentStops(count) => println!("   - Intelligent stops: {}", count),
-        StopConfig::EqualStops(count) => println!("   - Equal stops: {}", count),
+        StopConfig::Steps(s) => println!("   - Steps: every {s}%"),
+        StopConfig::IntelligentStops(count) => println!("   - Intelligent stops: {count}"),
+        StopConfig::EqualStops(count) => println!("   - Equal stops: {count}"),
     }
 
     // 4. Demonstrating type safety and validation
@@ -90,12 +90,12 @@ fn main() -> Result<()> {
     // This would fail at compile time or runtime with clear error messages
     match GradientConfig::basic("", "#0000FF") {
         Ok(_) => println!("   ❌ Empty color validation failed"),
-        Err(e) => println!("   ✅ Empty color caught: {}", e),
+        Err(e) => println!("   ✅ Empty color caught: {e}"),
     }
 
     match positioned_gradient("red", "blue", 80, 20) {
         Ok(_) => println!("   ❌ Invalid position validation failed"),
-        Err(e) => println!("   ✅ Invalid position caught: {}", e),
+        Err(e) => println!("   ✅ Invalid position caught: {e}"),
     }
 
     // 5. Advanced configuration with all features

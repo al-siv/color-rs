@@ -83,23 +83,21 @@ impl std::fmt::Display for GradientValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             GradientValidationError::InvalidColorFormat(msg) => {
-                write!(f, "Invalid color format: {}", msg)
+                write!(f, "Invalid color format: {msg}")
             }
             GradientValidationError::InvalidEasingValue(val) => write!(
                 f,
-                "Invalid easing value: {}. Must be between 0.0 and 1.0",
-                val
+                "Invalid easing value: {val}. Must be between 0.0 and 1.0"
             ),
             GradientValidationError::InvalidPositionRange(start, end) => write!(
                 f,
-                "Invalid position range: start={}, end={}. Start must be less than end and both must be 0-100",
-                start, end
+                "Invalid position range: start={start}, end={end}. Start must be less than end and both must be 0-100"
             ),
             GradientValidationError::InvalidStepValue(step) => {
-                write!(f, "Invalid step value: {}. Must be greater than 0", step)
+                write!(f, "Invalid step value: {step}. Must be greater than 0")
             }
             GradientValidationError::InvalidWidth(width) => {
-                write!(f, "Invalid width: {}. Must be greater than 0", width)
+                write!(f, "Invalid width: {width}. Must be greater than 0")
             }
             GradientValidationError::EmptyFilename => write!(f, "Filename cannot be empty"),
         }

@@ -190,18 +190,16 @@ pub fn execute_hue_analysis(
     // Load the specified collection
     let collection: Box<dyn ColorCollection> = match args.collection.as_str() {
         "css" => Box::new(CssColorCollection::new().map_err(|e| {
-            crate::error::ColorError::ParseError(format!("Failed to load CSS collection: {}", e))
+            crate::error::ColorError::ParseError(format!("Failed to load CSS collection: {e}"))
         })?),
         "ralc" => Box::new(RalClassicCollection::new().map_err(|e| {
             crate::error::ColorError::ParseError(format!(
-                "Failed to load RAL Classic collection: {}",
-                e
+                "Failed to load RAL Classic collection: {e}"
             ))
         })?),
         "rald" => Box::new(RalDesignCollection::new().map_err(|e| {
             crate::error::ColorError::ParseError(format!(
-                "Failed to load RAL Design collection: {}",
-                e
+                "Failed to load RAL Design collection: {e}"
             ))
         })?),
         _ => {
@@ -339,10 +337,8 @@ pub fn execute_hue_analysis(
                 };
 
                 // Create single line format: "Hue | code | HEX | LCH | name | Hue shift from previous color"
-                let display = format!(
-                    "{:>6.1} | {} | {} | {} | {} | {}",
-                    hue, code, hex, lch_str, hue_shift_str, name
-                );
+                let display =
+                    format!("{hue:>6.1} | {code} | {hex} | {lch_str} | {hue_shift_str} | {name}");
 
                 previous_hue = Some(hue);
 
@@ -357,7 +353,7 @@ pub fn execute_hue_analysis(
 
     // Generate YAML output for colored terminal display
     let yaml_output = hue_output.to_yaml().map_err(|e| {
-        crate::error::ColorError::ParseError(format!("Failed to serialize to YAML: {}", e))
+        crate::error::ColorError::ParseError(format!("Failed to serialize to YAML: {e}"))
     })?;
 
     // Display with colored terminal output
@@ -441,14 +437,14 @@ fn export_hue_collection_display(
 
     let content = match format {
         crate::cli::OutputFormat::Yaml => hue_output.to_yaml().map_err(|e| {
-            crate::error::ColorError::ParseError(format!("YAML serialization failed: {}", e))
+            crate::error::ColorError::ParseError(format!("YAML serialization failed: {e}"))
         })?,
         crate::cli::OutputFormat::Toml => hue_output.to_toml().map_err(|e| {
-            crate::error::ColorError::ParseError(format!("TOML serialization failed: {}", e))
+            crate::error::ColorError::ParseError(format!("TOML serialization failed: {e}"))
         })?,
     };
 
-    fs::write(file_path, content).map_err(|e| crate::error::ColorError::from(e))?;
+    fs::write(file_path, content).map_err(crate::error::ColorError::from)?;
 
     Ok(())
 }

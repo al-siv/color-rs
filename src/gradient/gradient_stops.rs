@@ -219,7 +219,7 @@ fn create_gradient_value(lab: Lab, position: f64) -> Result<GradientValue> {
         position: format!("{}%", position.round() as u8),
         hex: format!("#{:02X}{:02X}{:02X}", rgb[0], rgb[1], rgb[2]),
         rgb: format!("rgb({}, {}, {})", rgb[0], rgb[1], rgb[2]),
-        wcag_luminance: format!("{:.3}", luminance),
+        wcag_luminance: format!("{luminance:.3}"),
     })
 }
 

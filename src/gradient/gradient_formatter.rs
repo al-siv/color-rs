@@ -90,8 +90,7 @@ fn format_as_json(values: &[GradientValue]) -> Result<String> {
 fn format_as_custom(values: &[GradientValue], format_name: &str) -> Result<String> {
     // For now, fall back to table format for unknown custom formats
     // In a real implementation, this could dispatch to registered formatters
-    format_as_table(values)
-        .map(|output| format!("Custom format '{}' output:\n{}", format_name, output))
+    format_as_table(values).map(|output| format!("Custom format '{format_name}' output:\n{output}"))
 }
 
 /// Functional event callback system to replace Observer pattern
@@ -212,7 +211,7 @@ impl GradientFormatter {
             }
             Err(error) => {
                 // Notify error
-                let error_msg = format!("Formatting error: {}", error);
+                let error_msg = format!("Formatting error: {error}");
                 self.callbacks.notify_error(&error_msg);
                 Err(error)
             }
@@ -246,7 +245,7 @@ pub mod callbacks {
     /// Console logging callback for errors
     pub fn console_error_logger() -> impl Fn(&str) + Send + Sync {
         |error: &str| {
-            eprintln!("Output error: {}", error);
+            eprintln!("Output error: {error}");
         }
     }
 
@@ -254,7 +253,7 @@ pub mod callbacks {
     pub fn file_writer(path: String) -> impl Fn(&str) + Send + Sync {
         move |output: &str| {
             if let Err(e) = std::fs::write(&path, output) {
-                eprintln!("Failed to write to {}: {}", path, e);
+                eprintln!("Failed to write to {path}: {e}");
             }
         }
     }

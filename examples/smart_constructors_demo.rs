@@ -16,16 +16,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(validated_lab) => {
             println!("✅ Valid LAB color created: {:?}", validated_lab.into_lab());
         }
-        Err(e) => println!("❌ Validation failed: {:?}", e),
+        Err(e) => println!("❌ Validation failed: {e:?}"),
     }
 
     // Invalid LAB color (L component out of range)
     match ValidatedLab::new(150.0, 20.0, -30.0) {
         Ok(_) => println!("❌ Should have failed validation!"),
         Err(ValidationError::LabLightnessOutOfRange(l)) => {
-            println!("✅ Correctly caught invalid lightness: L={}", l);
+            println!("✅ Correctly caught invalid lightness: L={l}");
         }
-        Err(e) => println!("❌ Unexpected error: {:?}", e),
+        Err(e) => println!("❌ Unexpected error: {e:?}"),
     }
 
     // 2. Field Access Methods
@@ -57,8 +57,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let delta_e76 = DistanceAlgorithm::DeltaE76.calculate_distance(lab1, lab2);
     let delta_e2000 = DistanceAlgorithm::DeltaE2000.calculate_distance(lab1, lab2);
 
-    println!("Distance (Delta E 1976): {:.6}", delta_e76);
-    println!("Distance (Delta E 2000): {:.6}", delta_e2000);
+    println!("Distance (Delta E 1976): {delta_e76:.6}");
+    println!("Distance (Delta E 2000): {delta_e2000:.6}");
 
     // 5. Validation Error Handling
     println!("\n5. Comprehensive Validation Error Handling:");
@@ -74,8 +74,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (l, a, b, description) in validation_cases {
         match ValidatedLab::new(l, a, b) {
-            Ok(_) => println!("❌ {} should have failed", description),
-            Err(err) => println!("✅ {} → {:?}", description, err),
+            Ok(_) => println!("❌ {description} should have failed"),
+            Err(err) => println!("✅ {description} → {err:?}"),
         }
     }
 
@@ -89,10 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let _ = DistanceAlgorithm::Lch.calculate_distance(lab1, lab2);
     }
     let duration = start.elapsed();
-    println!(
-        "✅ 100,000 validated distance calculations in {:?}",
-        duration
-    );
+    println!("✅ 100,000 validated distance calculations in {duration:?}");
     println!(
         "   Rate: {:.2} million calculations/second",
         100.0 / duration.as_secs_f64()
