@@ -449,6 +449,72 @@ The implementation will reuse existing SVG/PNG generation logic while maintainin
 - [x] Check railway-oriented programming for error propagation
 - [x] Update branch: `git add . && git commit -m "Phase 6.3: Function composition validation complete"`
 
+## Milestone 6.1: CLI Enhancement Features ⏳ **HIGH PRIORITY**
+**Objective**: Implement requested CLI parameter enhancements and user experience improvements
+
+**Git Workflow**:
+- **Branch**: `sprint_special_0.19.1_ms6.1`
+- **Branch Creation**: `git checkout -b sprint_special_0.19.1_ms6.1`
+
+### Phase 6.1.1: Width Default Implementation
+**Checklist**:
+- [ ] Create milestone branch: `git checkout -b sprint_special_0.19.1_ms6.1`
+- [ ] Update `HueArgs.width` default from 1000 to use `DEFAULT_WIDTH` constant
+- [ ] Ensure consistency across `GradientArgs.width` and `HueArgs.width` defaults
+- [ ] Validate all width-related CLI help text mentions correct default
+- [ ] Test width parameter inheritance and validation
+- [ ] Update branch: `git add . && git commit -m "Phase 6.1.1: Width default implementation complete"`
+
+### Phase 6.1.2: Short Flag Implementation  
+**Checklist**:
+- [ ] Add `-g` short flag for `--grad` parameter in `HueArgs`
+- [ ] Add `-p` short flag for `--pal` parameter in `HueArgs`
+- [ ] Add `-w` short flag for `--width` parameter in both `GradientArgs` and `HueArgs`
+- [ ] Add `-s` short flag for `--svg` parameter in `HueArgs` (ensure no conflicts with existing)
+- [ ] Update CLI help documentation to reflect all new short flags
+- [ ] Test all short flags work correctly and don't conflict
+- [ ] Update branch: `git add . && git commit -m "Phase 6.1.2: Short flag implementation complete"`
+
+### Phase 6.1.3: Palette Enhancement Parameters
+**Checklist**:
+- [ ] Add `--banding` parameter to control color grouping/banding in palette layout
+- [ ] Add `--text-format` parameter for label formatting (hex, name, both, none)
+- [ ] Add `--sort-by` parameter for alternative sorting methods (hue, lightness, chroma, name)
+- [ ] Add `--max-colors` parameter to limit displayed colors per collection
+- [ ] Add `--spacing` parameter to control spacing between palette elements
+- [ ] Validate all new parameters work with existing visual output generation
+- [ ] Update branch: `git add . && git commit -m "Phase 6.1.3: Palette enhancement parameters complete"`
+
+### Phase 6.1.4: Parameter Validation and Integration
+**Checklist**:
+- [ ] Update `HueArgs::validate()` method to handle all new parameters
+- [ ] Ensure parameter conflicts are properly managed (e.g., `--banding` requires `--pal`)
+- [ ] Add comprehensive parameter validation for ranges and compatibility
+- [ ] Update CLI help text and documentation for all new features
+- [ ] Test parameter combinations and edge cases
+- [ ] Update branch: `git add . && git commit -m "Phase 6.1.4: Parameter validation and integration complete"`
+
+### Phase 6.1.5: Documentation and Testing
+**Checklist**:
+- [ ] Update `docs/CLI_REFERENCE.md` with all new parameters and examples
+- [ ] Add unit tests for new parameter parsing and validation
+- [ ] Create integration tests for new CLI functionality
+- [ ] Update `README.md` examples to showcase new features
+- [ ] Add comprehensive CLI help documentation
+- [ ] Update branch: `git add . && git commit -m "Phase 6.1.5: Documentation and testing complete"`
+
+### Phase 6.1.6: Milestone Closure
+**Checklist**:
+- [ ] Execute full test suite: `cargo test`
+- [ ] Validate CLI functionality: `cargo run -- --help` and `cargo run -- hue --help`
+- [ ] Test all new short flags and parameters with real examples
+- [ ] Code formatting: `cargo fmt`
+- [ ] Final validation: `cargo build && cargo clippy`
+- [ ] Merge branch into current milestone branch: `git checkout sprint_special_0.19.1_ms6.0 && git merge sprint_special_0.19.1_ms6.1`
+- [ ] Update branch: `git add . && git commit -m "Milestone 6.1: CLI Enhancement Features Complete"`
+
+---
+
 ### Phase 6.4: Anti-Pattern Elimination
 **Checklist**:
 - [ ] Verify no OOP Gang of Four patterns introduced
