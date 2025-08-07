@@ -91,7 +91,7 @@ pub struct GradientArgs {
     pub no_legend: bool,
 
     /// Width of the image in pixels (default: 1000)
-    #[arg(long, default_value = DEFAULT_WIDTH)]
+    #[arg(short = 'w', long, default_value = DEFAULT_WIDTH)]
     pub width: u32,
 
     /// Output gradient values every X percent
@@ -391,6 +391,7 @@ pub struct HueArgs {
 
     /// Generate horizontal gradient layout
     #[arg(
+        short = 'g',
         long,
         conflicts_with = "pal",
         help = "Generate horizontal gradient layout"
@@ -399,6 +400,7 @@ pub struct HueArgs {
 
     /// Generate vertical palette layout  
     #[arg(
+        short = 'p',
         long,
         conflicts_with = "grad",
         help = "Generate vertical palette layout"
@@ -414,7 +416,7 @@ pub struct HueArgs {
     pub png: Option<String>,
 
     /// Width of visual output in pixels (default: 1000)
-    #[arg(long, default_value = DEFAULT_WIDTH, help = "Visual output width")]
+    #[arg(short = 'w', long, default_value = DEFAULT_WIDTH, help = "Visual output width")]
     pub width: u32,
 
     /// Disable labels on visual output
