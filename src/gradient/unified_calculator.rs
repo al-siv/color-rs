@@ -245,39 +245,6 @@ fn calculate_distance_at_position(geometric_t: f64, config: GradientCalculationC
     calculate_distance(config.algorithm, config.start_lab, test_color)
 }
 
-/// Main refactored function with functional composition
-#[deprecated(note = "Use calculate_unified_gradient_cfg(GradientCalculationConfig) instead")]
-#[allow(clippy::too_many_arguments)] // TODO: Public API: consolidate args into GradientCalculationConfig
-pub fn calculate_unified_gradient(
-    start_lab: Lab,
-    end_lab: Lab,
-    start_position: u8,
-    end_position: u8,
-    ease_in: f64,
-    ease_out: f64,
-    steps: usize,
-    use_simple_mode: bool,
-    algorithm: DistanceAlgorithm,
-) -> Vec<UnifiedGradientStop> {
-    let config = GradientCalculationConfig {
-        start_lab,
-        end_lab,
-        start_position,
-        end_position,
-        ease_in,
-        ease_out,
-        steps,
-        use_simple_mode,
-        algorithm,
-    };
-
-    if use_simple_mode {
-        calculate_simple_mode_stops(config)
-    } else {
-        calculate_smart_mode_stops(config)
-    }
-}
-
 /// Preferred config-struct-based API to avoid too many arguments in public signatures
 pub fn calculate_unified_gradient_cfg(config: GradientCalculationConfig) -> Vec<UnifiedGradientStop> {
     if config.use_simple_mode {
@@ -392,17 +359,7 @@ mod tests {
         };
         let functional_stops = calculate_unified_gradient_cfg(cfg);
 
-        let original_stops = GradientCalculator::calculate_unified_gradient_with_algorithm(
-            start_lab,
-            end_lab,
-            0,
-            100,
-            0.42,
-            1.0,
-            5,
-            true,
-            DistanceAlgorithm::DeltaE2000,
-        );
+    let original_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg);
 
         assert_eq!(functional_stops.len(), original_stops.len());
 
