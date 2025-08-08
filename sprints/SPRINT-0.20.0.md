@@ -52,15 +52,12 @@ Artifacts:
 Status: [ ] PENDING | Target: Replace highest-impact OOP remnants with FP architecture.
 
 Progress (2025-08-08):
-- Phase 2.2 initial batch completed: removed several unwrap/expect/panic in core paths
   - parsing_chain: safe hex triplet expansion (no nth().unwrap())
   - image: handle pixmap.pixel Option with transparent fallback (no panics)
   - gradient/output: eliminate unwrap on fmt, propagate errors
   - command_execution/commands: avoid unwrap on writeln while assembling outputs
-- Phase 2.1 config-struct adoption started: migrated primary callers to cfg-based API
   - image.rs (SVG/PNG unified stops) now uses GradientCalculationConfig via GradientCalculator::calculate_unified_gradient_cfg
   - gradient/mod.rs (CLI path) now uses cfg-based unified calculation
-  - hue.rs: introduced HueExportParams + export_hue_analysis_with_clock_cfg; default export delegates; removed arg-heavy allow
   - tests: migrated gradient integration test to cfg-based API
   - unified_calculator.rs: added calculate_unified_gradient_cfg; preparing to drop legacy arg-heavy path
   - gradient/mod.rs: public re-export now exposes calculate_unified_gradient_cfg and GradientCalculationConfig; deprecated arg-heavy export removed
