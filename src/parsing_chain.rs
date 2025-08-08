@@ -84,15 +84,13 @@ impl ColorParser {
 
         // Convert 3-character hex to 6-character hex
         let expanded_hex = if hex_pattern.len() == 3 {
-            format!(
-                "#{}{}{}{}{}{}",
-                hex_pattern.chars().nth(0).unwrap(),
-                hex_pattern.chars().nth(0).unwrap(),
-                hex_pattern.chars().nth(1).unwrap(),
-                hex_pattern.chars().nth(1).unwrap(),
-                hex_pattern.chars().nth(2).unwrap(),
-                hex_pattern.chars().nth(2).unwrap()
-            )
+            let mut it = hex_pattern.chars();
+            if let (Some(c0), Some(c1), Some(c2)) = (it.next(), it.next(), it.next()) {
+                format!("#{c0}{c0}{c1}{c1}{c2}{c2}")
+            } else {
+                // Length already validated; unreachable safeguard
+                return Ok(None);
+            }
         } else {
             format!("#{hex_pattern}")
         };

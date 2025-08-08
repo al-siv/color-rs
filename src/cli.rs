@@ -80,7 +80,7 @@ pub struct GradientArgs {
     pub ease_out: f64,
 
     /// Generate SVG image of the gradient with specified filename
-    #[arg(short = 'S',long, value_name = "FILENAME")]
+    #[arg(short = 'S', long, value_name = "FILENAME")]
     pub svg: Option<String>,
 
     /// Generate PNG image of the gradient with specified filename

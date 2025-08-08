@@ -135,7 +135,7 @@ fn generate_gradient_steps(start_lab: Lab, end_lab: Lab, steps: usize) -> String
         #[allow(clippy::cast_possible_truncation)] // Intentional f64->f32 for Mix trait
         let interpolated = start_lab.mix(end_lab, t as f32);
         let hex = crate::color_ops::conversion::srgb_to_hex(interpolated.into_color());
-        writeln!(output, "Step {i}: {hex}").unwrap();
+    let _ = writeln!(output, "Step {i}: {hex}"); // Writing to String cannot fail
     }
 
     output
@@ -150,7 +150,7 @@ fn append_format_outputs(args: &GradientArgs, output_path: Option<&str>) -> Stri
     if args.should_generate_svg() {
         output.push_str("\nSVG generated successfully\n");
         if let Some(path) = output_path {
-            writeln!(output, "SVG saved to: {path}").unwrap();
+            let _ = writeln!(output, "SVG saved to: {path}"); // Writing to String cannot fail
         }
     }
 

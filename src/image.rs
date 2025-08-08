@@ -116,8 +116,11 @@ impl ImageGenerator {
 
         // Convert to image crate format
         let img: RgbaImage = ImageBuffer::from_fn(width, total_height, |x, y| {
-            let pixel = pixmap.pixel(x, y).unwrap();
-            Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
+            if let Some(pixel) = pixmap.pixel(x, y) {
+                Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
+            } else {
+                Rgba([0, 0, 0, 0]) // Fallback to transparent if out of bounds
+            }
         });
 
         // Save PNG
@@ -604,8 +607,11 @@ impl ImageGenerator {
 
         // Convert to image crate format
         let img: RgbaImage = ImageBuffer::from_fn(actual_width, actual_height, |x, y| {
-            let pixel = pixmap.pixel(x, y).unwrap();
-            Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
+            if let Some(pixel) = pixmap.pixel(x, y) {
+                Rgba([pixel.red(), pixel.green(), pixel.blue(), pixel.alpha()])
+            } else {
+                Rgba([0, 0, 0, 0])
+            }
         });
 
         // Save PNG

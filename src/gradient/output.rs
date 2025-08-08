@@ -34,7 +34,7 @@ pub fn format_as_text(values: &[GradientValue]) -> Result<String> {
             "{:8} | {:7} | {:12} | {}",
             value.position, value.hex, value.rgb, value.wcag_luminance
         )
-        .unwrap(); // Writing to String never fails
+        .map_err(|e| crate::error::ColorError::General(format!("Formatting error: {e}")))?;
     }
 
     Ok(output)
@@ -46,10 +46,13 @@ pub fn format_as_csv(values: &[GradientValue]) -> Result<String> {
     output.push_str("position,hex,rgb,wcag_luminance\n");
 
     for value in values {
-        output.push_str(&format!(
-            "{},{},{},{}\n",
+        use std::fmt::Write as _;
+        writeln!(
+            &mut output,
+            "{},{},{},{}",
             value.position, value.hex, value.rgb, value.wcag_luminance
-        ));
+        )
+        .map_err(|e| crate::error::ColorError::General(format!("Formatting error: {e}")))?;
     }
 
     Ok(output)
