@@ -61,6 +61,7 @@ Progress (2025-08-08):
   - image.rs (SVG/PNG unified stops) now uses GradientCalculationConfig via GradientCalculator::calculate_unified_gradient_cfg
   - gradient/mod.rs (CLI path) now uses cfg-based unified calculation
   - hue.rs: introduced HueExportParams + export_hue_analysis_with_clock_cfg; default export delegates; removed arg-heavy allow
+  - tests: migrated gradient integration test to cfg-based API
 - Quality gates: clippy -D warnings clean; tests green across all suites.
 
 Phases:

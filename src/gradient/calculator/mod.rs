@@ -53,13 +53,24 @@ mod integration_tests {
         let start_lab = Lab::new(30.0, 10.0, -20.0);
         let end_lab = Lab::new(80.0, -30.0, 40.0);
 
-        let simple_stops = GradientCalculator::calculate_unified_gradient(
-            start_lab, end_lab, 0, 100, 0.25, 0.75, 4, true,
-        );
+        use crate::color_distance_strategies::DistanceAlgorithm;
+        use crate::gradient::unified_calculator::GradientCalculationConfig;
 
-        let smart_stops = GradientCalculator::calculate_unified_gradient(
-            start_lab, end_lab, 0, 100, 0.25, 0.75, 4, false,
-        );
+        let cfg_simple = GradientCalculationConfig {
+            start_lab,
+            end_lab,
+            start_position: 0,
+            end_position: 100,
+            ease_in: 0.25,
+            ease_out: 0.75,
+            steps: 4,
+            use_simple_mode: true,
+            algorithm: DistanceAlgorithm::DeltaE2000,
+        };
+        let simple_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg_simple);
+
+        let cfg_smart = GradientCalculationConfig { use_simple_mode: false, ..cfg_simple };
+        let smart_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg_smart);
 
         assert_eq!(simple_stops.len(), 4);
         assert_eq!(smart_stops.len(), 4);
