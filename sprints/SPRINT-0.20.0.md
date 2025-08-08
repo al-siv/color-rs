@@ -64,6 +64,7 @@ Phases:
   - [ ] Extract pure computational functions from mixed modules
   - [ ] Replace inheritance/strategy with enums + HOFs where applicable
   - [ ] Introduce iterator/stream pipelines for data transforms
+  - [~] Add config-struct API for unified gradient calculation (reduces arg-heavy usage)
 
 - Phase 2.2: Effect Isolation
   - [ ] Introduce capability traits (Clock, Logger, IO ports) at boundaries

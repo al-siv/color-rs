@@ -171,9 +171,24 @@ impl GradientCalculator {
         )
     }
 
+    /// Config-struct-based API to avoid too many arguments
+    pub fn calculate_unified_gradient_cfg(cfg: crate::gradient::unified_calculator::GradientCalculationConfig) -> Vec<UnifiedGradientStop> {
+        Self::calculate_unified_gradient_with_algorithm(
+            cfg.start_lab,
+            cfg.end_lab,
+            cfg.start_position,
+            cfg.end_position,
+            cfg.ease_in,
+            cfg.ease_out,
+            cfg.steps,
+            cfg.use_simple_mode,
+            cfg.algorithm,
+        )
+    }
+
     /// Unified gradient calculation function with custom distance strategy
     /// This allows testing different color distance algorithms
-    #[allow(clippy::too_many_arguments)] // TODO: Refactor to a parameter struct per FP planning
+    #[allow(clippy::too_many_arguments)] // Legacy signature retained; prefer calculate_unified_gradient_cfg
     pub fn calculate_unified_gradient_with_algorithm(
         start_lab: Lab,
         end_lab: Lab,
