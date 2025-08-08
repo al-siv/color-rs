@@ -21,7 +21,6 @@ pub mod color_schemes;
 // Scheme Configuration - Functional builder patterns for color schemes
 pub mod scheme_config;
 // Backward Compatibility Layer (Milestone 3.1)
-pub mod compat;
 pub mod config;
 pub mod error;
 pub mod file_output;

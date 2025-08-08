@@ -31,6 +31,12 @@ impl CssColorCollection {
 
         Ok(Self { colors })
     }
+
+    /// Create an empty CSS collection (safe fallback)
+    #[must_use]
+    pub fn empty() -> Self {
+        Self { colors: Vec::new() }
+    }
 }
 
 impl ColorCollection for CssColorCollection {

@@ -36,6 +36,12 @@ impl RalClassicCollection {
         Ok(Self { colors })
     }
 
+    /// Create an empty RAL Classic collection (safe fallback)
+    #[must_use]
+    pub fn empty() -> Self {
+        Self { colors: Vec::new() }
+    }
+
     /// Extract RAL group from code (e.g., "RAL 1000" -> "1000")
     fn extract_ral_group(code: &str) -> String {
         if let Some(space_pos) = code.find(' ') {
@@ -98,11 +104,7 @@ impl ColorCollection for RalClassicCollection {
             })
             .collect();
 
-        distances.sort_by(|a, b| {
-            a.distance
-                .partial_cmp(&b.distance)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+    distances.sort_by(|a, b| a.distance.total_cmp(&b.distance));
         distances.truncate(limit);
         distances
     }

@@ -4,15 +4,11 @@
 //! color collection system. It maintains backward compatibility with the existing API
 //! while leveraging the improved architecture underneath.
 
-use super::compat::{
-    find_closest_ral_classic_compat, find_closest_ral_colors_compat,
-    find_closest_ral_design_compat, find_ral_by_code_compat, find_ral_by_name_pattern_compat,
-};
+use super::collections::ColorMatch as UnifiedColorMatch;
+use super::unified_manager::UnifiedColorManager;
 #[cfg(test)]
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use palette::{IntoColor, Lab, Srgb};
-use regex::Regex;
-use std::sync::OnceLock;
 
 /// RAL color match result with distance information
 #[derive(Debug, Clone)]
@@ -57,61 +53,162 @@ impl RgbColor {
     }
 }
 
+/// Get a unified color manager with safe fallback (non-panicking)
+fn get_manager() -> UnifiedColorManager {
+    UnifiedColorManager::new().unwrap_or_default()
+}
+
+/// Convert unified ColorMatch to RalMatch with classification
+fn to_ral_match(color_match: &UnifiedColorMatch, classification: RalClassification) -> RalMatch {
+    let hex = color_match
+        .entry
+        .metadata
+        .extra_data
+        .get("hex")
+        .cloned()
+        .unwrap_or_else(|| {
+            format!(
+                "#{:02X}{:02X}{:02X}",
+                color_match.entry.color.rgb[0],
+                color_match.entry.color.rgb[1],
+                color_match.entry.color.rgb[2]
+            )
+        });
+
+    RalMatch {
+        code: color_match.entry.metadata.code.clone().unwrap_or_default(),
+        name: color_match.entry.metadata.name.clone(),
+        hex,
+        distance: color_match.distance,
+        classification,
+    }
+}
+
 /// Find closest RAL Classic colors
 #[must_use]
 pub fn find_closest_ral_classic(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
-    find_closest_ral_classic_compat(rgb, max_results)
+    let manager = get_manager();
+    let matches = manager.find_closest_ral_classic([rgb.r, rgb.g, rgb.b], max_results);
+    matches
+        .iter()
+        .map(|m| to_ral_match(m, RalClassification::Classic))
+        .collect()
 }
 
 /// Find the two closest RAL Design System+ colors to the given RGB color
 #[must_use]
 pub fn find_closest_ral_design(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
-    find_closest_ral_design_compat(rgb, max_results)
+    let manager = get_manager();
+    let matches = manager.find_closest_ral_design([rgb.r, rgb.g, rgb.b], max_results);
+    matches
+        .iter()
+        .map(|m| to_ral_match(m, RalClassification::DesignSystem))
+        .collect()
 }
 
 /// Find closest colors from both RAL classifications
 #[must_use]
 pub fn find_closest_ral_colors(rgb: &RgbColor, max_results: usize) -> Vec<RalMatch> {
-    find_closest_ral_colors_compat(rgb, max_results)
+    let manager = get_manager();
+    let mut all: Vec<RalMatch> = Vec::new();
+    let classic = manager.find_closest_ral_classic([rgb.r, rgb.g, rgb.b], max_results);
+    let design = manager.find_closest_ral_design([rgb.r, rgb.g, rgb.b], max_results);
+    all.extend(
+        classic
+            .iter()
+            .map(|m| to_ral_match(m, RalClassification::Classic)),
+    );
+    all.extend(
+        design
+            .iter()
+            .map(|m| to_ral_match(m, RalClassification::DesignSystem)),
+    );
+    all.sort_by(|a, b| a.distance.total_cmp(&b.distance));
+    all.truncate(max_results);
+    all
 }
 
-/// Parse RAL Classic code (e.g., "RAL2013", "RAL 2013")
+/// Parse RAL Classic code (e.g., "RAL2013", "RAL 2013") without regex
 #[must_use]
 pub fn parse_ral_classic_code(input: &str) -> Option<RalMatch> {
-    static RAL_CLASSIC_REGEX: OnceLock<Regex> = OnceLock::new();
-    let regex = RAL_CLASSIC_REGEX.get_or_init(|| Regex::new(r"(?i)^RAL\s*(\d{4})$").unwrap());
-
-    if let Some(caps) = regex.captures(input.trim()) {
-        let number = caps.get(1)?.as_str();
-        let code = format!("RAL {number}");
-        find_ral_by_code_compat(&code)
-    } else {
-        None
+    let s = input.trim();
+    // Case-insensitive check for prefix "RAL"
+    let (prefix, _rest) = s.split_at(s.len().min(3));
+    if !prefix.eq_ignore_ascii_case("RAL") {
+        return None;
     }
+    // Remaining may start with spaces then exactly 4 digits, and nothing else
+    let mut rest = &s[3..];
+    rest = rest.trim_start();
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.len() != 4 {
+        return None;
+    }
+    // Ensure no trailing non-whitespace after digits
+    let consumed = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+    let tail = &rest[consumed..].trim();
+    if !tail.is_empty() {
+        return None;
+    }
+    let code = format!("RAL {digits}");
+    find_ral_by_code(&code)
 }
 
-/// Parse RAL Design System+ code (e.g., "RAL 010 20 10")
+/// Parse RAL Design System+ code (e.g., "RAL 010 20 10") without regex
 #[must_use]
 pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
-    static RAL_DESIGN_REGEX: OnceLock<Regex> = OnceLock::new();
-    let regex = RAL_DESIGN_REGEX
-        .get_or_init(|| Regex::new(r"(?i)^RAL\s*(\d{3})\s*(\d{2})\s*(\d{2})$").unwrap());
-
-    if let Some(caps) = regex.captures(input.trim()) {
-        let hue = caps.get(1)?.as_str();
-        let lightness = caps.get(2)?.as_str();
-        let chroma = caps.get(3)?.as_str();
-        let search_code = format!("RAL {hue} {lightness} {chroma}");
-        find_ral_by_code_compat(&search_code)
-    } else {
-        None
+    let s = input.trim();
+    let (prefix, _rest) = s.split_at(s.len().min(3));
+    if !prefix.eq_ignore_ascii_case("RAL") {
+        return None;
     }
+    let rest = s[3..].trim();
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() != 3 {
+        return None;
+    }
+    let ok = parts[0].len() == 3
+        && parts[1].len() == 2
+        && parts[2].len() == 2
+        && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit()));
+    if !ok {
+        return None;
+    }
+    let search_code = format!("RAL {} {} {}", parts[0], parts[1], parts[2]);
+    find_ral_by_code(&search_code)
 }
 
 /// Find RAL color by name (case-insensitive partial match)
 #[must_use]
 pub fn find_ral_by_name(name: &str) -> Vec<RalMatch> {
-    find_ral_by_name_pattern_compat(name)
+    let manager = get_manager();
+    let mut matches = Vec::new();
+    for (collection_name, entry) in manager.find_by_name(name) {
+        let classification = if collection_name == "RAL Classic" {
+            RalClassification::Classic
+        } else {
+            RalClassification::DesignSystem
+        };
+        let hex = entry
+            .metadata
+            .extra_data
+            .get("hex")
+            .cloned()
+            .unwrap_or_else(|| {
+                format!(
+                    "#{:02X}{:02X}{:02X}",
+                    entry.color.rgb[0], entry.color.rgb[1], entry.color.rgb[2]
+                )
+            });
+        matches.push(RalMatch {
+            code: entry.metadata.code.unwrap_or_default(),
+            name: entry.metadata.name,
+            hex,
+            distance: 0.0,
+            classification,
+        });
+    }
+    matches
 }
 
 /// Main RAL color parsing function - tries all formats
@@ -134,6 +231,37 @@ pub fn parse_ral_color(input: &str) -> Option<RalMatch> {
     }
 
     None
+}
+
+/// Find RAL color by exact code
+#[must_use]
+pub fn find_ral_by_code(code: &str) -> Option<RalMatch> {
+    let manager = get_manager();
+    manager.find_by_code(code).map(|(collection_name, entry)| {
+        let classification = if collection_name == "RAL Classic" {
+            RalClassification::Classic
+        } else {
+            RalClassification::DesignSystem
+        };
+        let hex = entry
+            .metadata
+            .extra_data
+            .get("hex")
+            .cloned()
+            .unwrap_or_else(|| {
+                format!(
+                    "#{:02X}{:02X}{:02X}",
+                    entry.color.rgb[0], entry.color.rgb[1], entry.color.rgb[2]
+                )
+            });
+        RalMatch {
+            code: entry.metadata.code.unwrap_or_default(),
+            name: entry.metadata.name,
+            hex,
+            distance: 0.0,
+            classification,
+        }
+    })
 }
 
 #[cfg(test)]

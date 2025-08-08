@@ -15,7 +15,6 @@ pub mod types;
 
 // New unified collection system
 pub mod collections;
-pub mod compat;
 pub mod css_collection;
 pub mod ral_classic_collection;
 pub mod ral_design_collection;
@@ -75,7 +74,7 @@ impl ColorParser {
             css_parser: CssColorParser::new(),
             css_collection: CssColorCollection::new().unwrap_or_else(|_| {
                 // Fallback: create empty collection if CSV loading fails
-                CssColorCollection::new().unwrap()
+                CssColorCollection::empty()
             }),
             unified_manager,
         }

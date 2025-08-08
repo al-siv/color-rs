@@ -173,7 +173,17 @@ impl UnifiedColorManager {
 
 impl Default for UnifiedColorManager {
     fn default() -> Self {
-        Self::new().expect("Failed to create UnifiedColorManager")
+        // Construct a manager with empty collections as a safe fallback
+        let mut manager = super::collections::ColorCollectionManager::new();
+        manager.add_collection(Box::new(super::css_collection::CssColorCollection::empty()));
+        manager.add_collection(Box::new(super::ral_classic_collection::RalClassicCollection::empty()));
+        manager.add_collection(Box::new(super::ral_design_collection::RalDesignCollection::empty()));
+        Self {
+            manager,
+            css_collection: super::css_collection::CssColorCollection::empty(),
+            ral_classic_collection: super::ral_classic_collection::RalClassicCollection::empty(),
+            ral_design_collection: super::ral_design_collection::RalDesignCollection::empty(),
+        }
     }
 }
 

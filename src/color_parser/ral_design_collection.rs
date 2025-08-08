@@ -37,6 +37,12 @@ impl RalDesignCollection {
         Ok(Self { colors })
     }
 
+    /// Create an empty RAL Design collection (safe fallback)
+    #[must_use]
+    pub fn empty() -> Self {
+        Self { colors: Vec::new() }
+    }
+
     /// Extract design group from code (e.g., "RAL 000 15 00" -> "RAL 000")
     fn extract_design_group(code: &str) -> String {
         let parts: Vec<&str> = code.split_whitespace().collect();
@@ -114,11 +120,7 @@ impl ColorCollection for RalDesignCollection {
             })
             .collect();
 
-        distances.sort_by(|a, b| {
-            a.distance
-                .partial_cmp(&b.distance)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+    distances.sort_by(|a, b| a.distance.total_cmp(&b.distance));
         distances.truncate(limit);
         distances
     }
