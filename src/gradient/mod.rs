@@ -219,17 +219,19 @@ pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result
     let start_collections = find_color_collections([start_color.0, start_color.1, start_color.2]);
     let end_collections = find_color_collections([end_color.0, end_color.1, end_color.2]);
 
-    // Generate gradient stops using unified calculation
-    let unified_stops = GradientCalculator::calculate_unified_gradient(
+    // Generate gradient stops using new config-based unified calculation
+    let cfg = crate::gradient::unified_calculator::GradientCalculationConfig {
         start_lab,
         end_lab,
-        args.start_position,
-        args.end_position,
-        args.ease_in,
-        args.ease_out,
+        start_position: args.start_position,
+        end_position: args.end_position,
+        ease_in: args.ease_in,
+        ease_out: args.ease_out,
         steps,
-        args.stops_simple,
-    );
+        use_simple_mode: args.stops_simple,
+        algorithm: DistanceAlgorithm::DeltaE2000,
+    };
+    let unified_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg);
 
     // Convert unified stops to old format for YAML output
     let mut gradient_stops = Vec::new();

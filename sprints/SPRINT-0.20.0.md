@@ -57,7 +57,10 @@ Progress (2025-08-08):
   - image: handle pixmap.pixel Option with transparent fallback (no panics)
   - gradient/output: eliminate unwrap on fmt, propagate errors
   - command_execution/commands: avoid unwrap on writeln while assembling outputs
-- All targets clippy clean; tests passing.
+- Phase 2.1 config-struct adoption started: migrated primary callers to cfg-based API
+  - image.rs (SVG/PNG unified stops) now uses GradientCalculationConfig via GradientCalculator::calculate_unified_gradient_cfg
+  - gradient/mod.rs (CLI path) now uses cfg-based unified calculation
+- Quality gates: clippy -D warnings clean; tests green across all suites.
 
 Phases:
 - Phase 2.1: Pure Core extraction
@@ -65,6 +68,7 @@ Phases:
   - [ ] Replace inheritance/strategy with enums + HOFs where applicable
   - [ ] Introduce iterator/stream pipelines for data transforms
   - [~] Add config-struct API for unified gradient calculation (reduces arg-heavy usage)
+    - Callers migrated in image.rs and gradient/mod.rs; continue rolling adoption
 
 - Phase 2.2: Effect Isolation
   - [ ] Introduce capability traits (Clock, Logger, IO ports) at boundaries

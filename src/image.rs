@@ -170,16 +170,18 @@ impl ImageGenerator {
         // Use unified gradient calculation for consistent results with YAML output
         // Generate many stops (400) for smooth bezier rendering in SVG
         let svg_steps = 400; // High resolution for smooth gradients
-        let unified_stops = GradientCalculator::calculate_unified_gradient(
+        let cfg = crate::gradient::unified_calculator::GradientCalculationConfig {
             start_lab,
             end_lab,
-            args.start_position,
-            args.end_position,
-            args.ease_in,
-            args.ease_out,
-            svg_steps,
-            args.stops_simple, // Use same mode as YAML output
-        );
+            start_position: args.start_position,
+            end_position: args.end_position,
+            ease_in: args.ease_in,
+            ease_out: args.ease_out,
+            steps: svg_steps,
+            use_simple_mode: args.stops_simple, // Use same mode as YAML output
+            algorithm: crate::color_distance_strategies::DistanceAlgorithm::DeltaE2000,
+        };
+        let unified_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg);
 
         // Convert unified stops to SVG stops with proper offset mapping
         // Map stop positions from [start_position, end_position] to [0%, 100%]
