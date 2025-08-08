@@ -69,6 +69,7 @@ Phases:
   - [ ] Introduce capability traits (Clock, Logger, IO ports) at boundaries
   - [ ] Remove hidden time/random/env access in business logic
   - [~] Standardize Result/Option usage; eliminate unwrap/expect in core (Batch 1 done)
+  - [~] Inject Clock into hue analysis export path (export_hue_analysis_with_clock); legacy SystemTime direct call removed
 
 - Phase 2.3: Domain Modeling Upgrades
   - [ ] Add smart constructors and newtypes for key invariants

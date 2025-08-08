@@ -782,6 +782,31 @@ pub fn export_hue_analysis(
     format: crate::cli::OutputFormat,
     filename: &str,
 ) -> Result<()> {
+    // Delegate to clock-aware variant with the system clock by default
+    export_hue_analysis_with_clock(
+        results,
+        input_color,
+        options,
+        collection_type,
+        sort_criteria,
+        format,
+        filename,
+        &crate::clock::SystemClock,
+    )
+}
+
+/// Clock-aware variant for testability and effect isolation
+#[allow(clippy::too_many_arguments)] // TODO: refactor to a params struct to reduce arg count
+pub fn export_hue_analysis_with_clock(
+    results: &[HueAnalysisResult],
+    input_color: &Lch,
+    options: &HueAnalysisOptions,
+    collection_type: &ColorCollectionType,
+    sort_criteria: &SortCriteria,
+    format: crate::cli::OutputFormat,
+    filename: &str,
+    clock: &dyn crate::clock::Clock,
+) -> Result<()> {
     // Convert results to serializable format
     let mut previous_hue = None;
     let serialized_results: Vec<HueDisplayItemSerialized> = results
@@ -800,11 +825,7 @@ pub fn export_hue_analysis(
             version: "0.19.0".to_string(),
             author: "al-siv <https://github.com/al-siv>".to_string(),
             description: "Hue analysis and color harmony patterns".to_string(),
-            generated_at: std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_secs()
-                .to_string(),
+            generated_at: clock.timestamp_secs().to_string(),
             analysis_mode: "hue".to_string(),
         },
         input: HueInputInfo {
