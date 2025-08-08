@@ -246,6 +246,7 @@ fn calculate_distance_at_position(geometric_t: f64, config: GradientCalculationC
 }
 
 /// Main refactored function with functional composition
+#[deprecated(note = "Use calculate_unified_gradient_cfg(GradientCalculationConfig) instead")]
 #[allow(clippy::too_many_arguments)] // TODO: Public API: consolidate args into GradientCalculationConfig
 pub fn calculate_unified_gradient(
     start_lab: Lab,
@@ -378,17 +379,18 @@ mod tests {
         let end_lab = Lab::new(80.0, -10.0, 15.0);
 
         // Test that functional version produces same structure as original
-        let functional_stops = calculate_unified_gradient(
+        let cfg = GradientCalculationConfig {
             start_lab,
             end_lab,
-            0,
-            100,
-            0.42,
-            1.0,
-            5,
-            true,
-            DistanceAlgorithm::DeltaE2000,
-        );
+            start_position: 0,
+            end_position: 100,
+            ease_in: 0.42,
+            ease_out: 1.0,
+            steps: 5,
+            use_simple_mode: true,
+            algorithm: DistanceAlgorithm::DeltaE2000,
+        };
+        let functional_stops = calculate_unified_gradient_cfg(cfg);
 
         let original_stops = GradientCalculator::calculate_unified_gradient_with_algorithm(
             start_lab,

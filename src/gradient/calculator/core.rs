@@ -147,6 +147,7 @@ impl GradientCalculator {
 
     /// Unified gradient calculation function for both YAML and SVG generation
     /// This ensures consistent gradient calculation across all output formats
+    #[deprecated(note = "Use calculate_unified_gradient_cfg with GradientCalculationConfig")]
     #[allow(clippy::too_many_arguments)] // TODO: Refactor to a parameter struct per FP planning
     pub fn calculate_unified_gradient(
         start_lab: Lab,
@@ -158,7 +159,7 @@ impl GradientCalculator {
         steps: usize,
         use_simple_mode: bool,
     ) -> Vec<UnifiedGradientStop> {
-        Self::calculate_unified_gradient_with_algorithm(
+        let cfg = crate::gradient::unified_calculator::GradientCalculationConfig {
             start_lab,
             end_lab,
             start_position,
@@ -167,8 +168,9 @@ impl GradientCalculator {
             ease_out,
             steps,
             use_simple_mode,
-            DistanceAlgorithm::DeltaE2000,
-        )
+            algorithm: DistanceAlgorithm::DeltaE2000,
+        };
+        Self::calculate_unified_gradient_cfg(cfg)
     }
 
     /// Config-struct-based API to avoid too many arguments

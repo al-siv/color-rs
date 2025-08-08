@@ -23,7 +23,7 @@ pub use easing::{EasingFactory, EasingFunction, EasingType};
 // Functional re-exports
 pub use gradient_formatter::{EventCallbacks, GradientFormat, GradientFormatter};
 pub use gradient_stops::{GradientStopCalculator, StopCalculationStrategy};
-pub use unified_calculator::calculate_unified_gradient;
+pub use unified_calculator::{calculate_unified_gradient_cfg, GradientCalculationConfig};
 
 /// Simplified gradient generation function for CLI interface
 pub fn generate_gradient(args: crate::cli::GradientArgs) -> crate::error::Result<()> {
