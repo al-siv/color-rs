@@ -1,10 +1,12 @@
+//!
+//! Gradient Configuration Demo
+//!
+//! This example demonstrates the gradient configuration approach
+//! introduced in Milestone 2.1, replacing the traditional Builder pattern with
+//! immutable, composable configuration structures.
+
 use color_rs::cli::OutputFormat;
 use color_rs::error::Result;
-///! Gradient Configuration Demo
-///!
-///! This example demonstrates the gradient configuration approach
-///! introduced in Milestone 2.1, replacing the traditional Builder pattern with
-///! immutable, composable configuration structures.
 use color_rs::gradient_config::{
     ColorPair, EasingConfig, FileOutput, GradientConfig, PositionRange, StopConfig,
     linear_gradient, positioned_gradient, smooth_gradient,
@@ -127,8 +129,8 @@ fn main() -> Result<()> {
     );
     if let Some(file_output) = advanced.file_output() {
         println!(
-            "   - File output: {} format to {}",
-            format!("{:?}", file_output.format()),
+            "   - File output: {:?} format to {}",
+            file_output.format(),
             file_output.filename()
         );
     }

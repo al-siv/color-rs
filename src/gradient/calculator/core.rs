@@ -147,6 +147,7 @@ impl GradientCalculator {
 
     /// Unified gradient calculation function for both YAML and SVG generation
     /// This ensures consistent gradient calculation across all output formats
+    #[allow(clippy::too_many_arguments)] // TODO: Refactor to a parameter struct per FP planning
     pub fn calculate_unified_gradient(
         start_lab: Lab,
         end_lab: Lab,
@@ -172,6 +173,7 @@ impl GradientCalculator {
 
     /// Unified gradient calculation function with custom distance strategy
     /// This allows testing different color distance algorithms
+    #[allow(clippy::too_many_arguments)] // TODO: Refactor to a parameter struct per FP planning
     pub fn calculate_unified_gradient_with_algorithm(
         start_lab: Lab,
         end_lab: Lab,

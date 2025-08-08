@@ -19,22 +19,22 @@ Status: [ ] PENDING | Target: Establish comprehensive analysis and actionable FP
 
 Phases:
 - Phase 1.1: Repository-wide OOP/OOP-like pattern discovery
-  - [ ] Inventory inheritance, trait-object OOP stand-ins, and class-like modules
-  - [ ] Map side-effect boundaries and hidden state access points
-  - [ ] Identify global/singleton-like constructs; plan capability injection
-  - [ ] Record risks, invariants, and acceptance criteria per module
+  - [x] Initial scan complete: dynamic dispatch sites in color_parser collections, callbacks in gradient_formatter, capability trait Clock used (keep), compat layer present (evaluate decommission)
+  - [ ] Evaluate replacing Box<dyn ColorCollection> with enums/sealed trait where practical
+  - [ ] Plan capability injection coverage for time usages
 
 - Phase 1.2: Legacy/Dead Code Detection & Catalog
-  - [ ] Run cargo clippy (all targets) and categorize warnings (correctness, perf, style)
-  - [ ] Detect dead/unused code and dependencies (udeps, machete)
-  - [ ] Catalog deprecated/compatibility layers and removal paths
-  - [ ] Create module-level elimination candidates with rollback notes
+  - [x] Baseline clippy executed; key actionables captured
+    - manual-clamp: src/color_ops/contrast.rs:212
+    - too-many-arguments: gradient calculator functions (3 occurrences)
+    - uninlined-format-args: src/image.rs lines 544, 548-551
+  - [ ] Detect dead/unused deps (udeps/machete)
+  - [ ] Catalog compat layers for removal (compat.rs)
 
 - Phase 1.3: FP Refactoring Blueprint
-  - [ ] Plan pure function extraction for complex modules
-  - [ ] Design effect isolation (Result/Option/Future) boundaries
-  - [ ] Define ADT/domain modeling upgrades and smart constructors
-  - [ ] Approve sequencing: one milestone per workflow cycle
+  - [ ] Replace panic/unwrap in business logic with Result/Option and ?
+  - [ ] Inject Clock where SystemTime/Instant used outside tests/bench
+  - [ ] Plan ADT upgrades for command/parse results
 
 Quality Gates:
 - [ ] QG-001 Compilation check (cargo check)
@@ -43,8 +43,8 @@ Quality Gates:
 - [ ] QG-004 Documentation integrity baseline
 
 Artifacts:
-- analysis/FP-Migration-Plan-0.20.0.md (outline)
-- Updated sprint checklist with discovered tasks
+- analysis/FP-Migration-Plan-0.20.0.md (created)
+- Updated sprint checklist with discovered tasks (this section)
 
 ---
 

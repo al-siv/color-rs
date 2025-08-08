@@ -209,7 +209,7 @@ pub fn max_background_luminance(text_luminance: f64, min_ratio: f64) -> f64 {
     let max_dark_bg = ((text_luminance + 0.05) / min_ratio - 0.05).max(0.0);
 
     // Return the maximum background luminance
-    max_dark_bg.max(0.0).min(1.0)
+    max_dark_bg.clamp(0.0, 1.0)
 }
 
 /// Alias for `wcag_ratio` - more concise name

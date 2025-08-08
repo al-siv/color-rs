@@ -541,13 +541,12 @@ impl ImageGenerator {
                     let prev_hue = colors[i - 1].color.hue.into_degrees();
                     let current_hue = lch.hue.into_degrees();
                     let delta = current_hue - prev_hue;
-                    format!("{:+.2}", delta)
+                    format!("{delta:+.2}")
                 };
 
                 // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name} | {hue_delta}
                 let display_text = format!(
-                    "{} | {} | {} | {} | {} | {}",
-                    hue_str, hex_str, lch_str, code_str, name_str, hue_delta_str
+                    "{hue_str} | {hex_str} | {lch_str} | {code_str} | {name_str} | {hue_delta_str}"
                 );
 
                 // Calculate contrast color for text (white or black)

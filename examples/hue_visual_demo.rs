@@ -51,7 +51,7 @@ fn main() -> Result<()> {
 
     match execute_hue_analysis(&warm_args, None) {
         Ok(_) => println!("✅ Generated: examples/warm-colors-palette.svg"),
-        Err(e) => println!("❌ Error: {}", e),
+        Err(e) => println!("❌ Error: {e}"),
     }
 
     // Example 2: RAL Classic with Cool Hue Range
@@ -82,7 +82,7 @@ fn main() -> Result<()> {
             println!("✅ Generated: examples/cool-colors-gradient.svg");
             println!("✅ Generated: examples/cool-colors-gradient.png");
         }
-        Err(e) => println!("❌ Error: {}", e),
+        Err(e) => println!("❌ Error: {e}"),
     }
 
     // Example 3: Purple-Red Wraparound Range
@@ -110,7 +110,7 @@ fn main() -> Result<()> {
 
     match execute_hue_analysis(&wraparound_args, None) {
         Ok(_) => println!("✅ Generated: examples/purple-red-palette.svg (no labels)"),
-        Err(e) => println!("❌ Error: {}", e),
+        Err(e) => println!("❌ Error: {e}"),
     }
 
     // Example 4: Comprehensive Filtering Demo
@@ -138,7 +138,7 @@ fn main() -> Result<()> {
 
     match execute_hue_analysis(&complex_args, None) {
         Ok(_) => println!("✅ Generated: examples/green-complex-gradient.svg"),
-        Err(e) => println!("❌ Error: {}", e),
+        Err(e) => println!("❌ Error: {e}"),
     }
 
     println!("\n🎯 Demo Complete!");

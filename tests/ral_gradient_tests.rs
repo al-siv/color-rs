@@ -37,8 +37,7 @@ mod ral_gradient_tests {
         let result = color_rs.generate_gradient(args);
         assert!(
             result.is_ok(),
-            "RAL Classic gradient should work: {:?}",
-            result
+            "RAL Classic gradient should work: {result:?}"
         );
     }
 
@@ -78,10 +77,7 @@ mod ral_gradient_tests {
             let result = color_rs.generate_gradient(args);
             assert!(
                 result.is_ok(),
-                "Mixed gradient {}->{} should work: {:?}",
-                start,
-                end,
-                result
+                "Mixed gradient {start}->{end} should work: {result:?}"
             );
         }
     }
@@ -114,8 +110,7 @@ mod ral_gradient_tests {
         let result = color_rs.generate_gradient(args);
         assert!(
             result.is_ok(),
-            "RAL Design gradient should work: {:?}",
-            result
+            "RAL Design gradient should work: {result:?}"
         );
     }
 
@@ -152,8 +147,7 @@ mod ral_gradient_tests {
         let error_msg = result.unwrap_err().to_string();
         assert!(
             error_msg.contains("RAL 9999") || error_msg.contains("color"),
-            "Error message should mention the problematic input: {}",
-            error_msg
+            "Error message should mention the problematic input: {error_msg}"
         );
     }
 
@@ -191,13 +185,12 @@ mod ral_gradient_tests {
         }
 
         let duration = start_time.elapsed();
-        println!("10 RAL gradients generated in: {:?}", duration);
+        println!("10 RAL gradients generated in: {duration:?}");
 
         // Should complete reasonably quickly (adjust threshold as needed)
         assert!(
             duration.as_millis() < 5000,
-            "Performance regression detected: {:?}",
-            duration
+            "Performance regression detected: {duration:?}"
         );
     }
 
@@ -244,9 +237,7 @@ mod ral_gradient_tests {
             let result = color_rs.generate_gradient(args);
             assert!(
                 result.is_ok(),
-                "RAL color {} should work in gradient: {:?}",
-                ral_color,
-                result
+                "RAL color {ral_color} should work in gradient: {result:?}"
             );
         }
     }

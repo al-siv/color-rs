@@ -246,6 +246,7 @@ fn calculate_distance_at_position(geometric_t: f64, config: GradientCalculationC
 }
 
 /// Main refactored function with functional composition
+#[allow(clippy::too_many_arguments)] // TODO: Public API: consolidate args into GradientCalculationConfig
 pub fn calculate_unified_gradient(
     start_lab: Lab,
     end_lab: Lab,
