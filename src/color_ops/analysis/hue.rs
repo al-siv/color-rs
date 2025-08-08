@@ -782,8 +782,8 @@ pub fn export_hue_analysis(
     format: crate::cli::OutputFormat,
     filename: &str,
 ) -> Result<()> {
-    // Delegate to clock-aware variant with the system clock by default
-    export_hue_analysis_with_clock(
+    // Delegate to clock-aware variant with params and the system clock by default
+    let params = HueExportParams {
         results,
         input_color,
         options,
@@ -791,25 +791,30 @@ pub fn export_hue_analysis(
         sort_criteria,
         format,
         filename,
-        &crate::clock::SystemClock,
-    )
+    };
+    export_hue_analysis_with_clock_cfg(params, &crate::clock::SystemClock)
 }
 
-/// Clock-aware variant for testability and effect isolation
-#[allow(clippy::too_many_arguments)] // TODO: refactor to a params struct to reduce arg count
-pub fn export_hue_analysis_with_clock(
-    results: &[HueAnalysisResult],
-    input_color: &Lch,
-    options: &HueAnalysisOptions,
-    collection_type: &ColorCollectionType,
-    sort_criteria: &SortCriteria,
-    format: crate::cli::OutputFormat,
-    filename: &str,
+/// Parameters for hue analysis export
+pub struct HueExportParams<'a> {
+    pub results: &'a [HueAnalysisResult],
+    pub input_color: &'a Lch,
+    pub options: &'a HueAnalysisOptions,
+    pub collection_type: &'a ColorCollectionType,
+    pub sort_criteria: &'a SortCriteria,
+    pub format: crate::cli::OutputFormat,
+    pub filename: &'a str,
+}
+
+/// Clock-aware variant using a params struct for testability and effect isolation
+pub fn export_hue_analysis_with_clock_cfg(
+    params: HueExportParams,
     clock: &dyn crate::clock::Clock,
 ) -> Result<()> {
     // Convert results to serializable format
     let mut previous_hue = None;
-    let serialized_results: Vec<HueDisplayItemSerialized> = results
+    let serialized_results: Vec<HueDisplayItemSerialized> = params
+        .results
         .iter()
         .map(|result| {
             let display_item = HueDisplayItem::from_analysis_result(result, previous_hue);
@@ -831,28 +836,28 @@ pub fn export_hue_analysis_with_clock(
         input: HueInputInfo {
             color: format!(
                 "L:{:.1} C:{:.1} H:{:.1}",
-                input_color.l,
-                input_color.chroma,
-                f64::from(input_color.hue.into_degrees())
+                params.input_color.l,
+                params.input_color.chroma,
+                f64::from(params.input_color.hue.into_degrees())
             ),
-            target_hue: options.target_hue,
-            tolerance: options.tolerance,
-            collection: format!("{collection_type:?}").to_lowercase(),
-            sort_criteria: format!("{sort_criteria:?}").to_lowercase(),
+            target_hue: params.options.target_hue,
+            tolerance: params.options.tolerance,
+            collection: format!("{:?}", params.collection_type).to_lowercase(),
+            sort_criteria: format!("{:?}", params.sort_criteria).to_lowercase(),
         },
         results: serialized_results,
     };
 
     // Serialize and write to file
-    match format {
+    match params.format {
         crate::cli::OutputFormat::Yaml => {
             let content = serde_yml::to_string(&output).map_err(|e| {
                 ColorError::InvalidArguments(format!("YAML serialization failed: {e}"))
             })?;
-            let full_filename = if filename.ends_with(".yaml") || filename.ends_with(".yml") {
-                filename.to_string()
+            let full_filename = if params.filename.ends_with(".yaml") || params.filename.ends_with(".yml") {
+                params.filename.to_string()
             } else {
-                format!("{filename}.yaml")
+                format!("{}.yaml", params.filename)
             };
             std::fs::write(&full_filename, content).map_err(|e| {
                 ColorError::InvalidArguments(format!("Failed to write file {full_filename}: {e}"))
@@ -862,10 +867,10 @@ pub fn export_hue_analysis_with_clock(
             let content = toml::to_string_pretty(&output).map_err(|e| {
                 ColorError::InvalidArguments(format!("TOML serialization failed: {e}"))
             })?;
-            let full_filename = if filename.ends_with(".toml") {
-                filename.to_string()
+            let full_filename = if params.filename.ends_with(".toml") {
+                params.filename.to_string()
             } else {
-                format!("{filename}.toml")
+                format!("{}.toml", params.filename)
             };
             std::fs::write(&full_filename, content).map_err(|e| {
                 ColorError::InvalidArguments(format!("Failed to write file {full_filename}: {e}"))
