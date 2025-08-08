@@ -80,17 +80,19 @@ pub struct GradientArgs {
     pub ease_out: f64,
 
     /// Generate SVG image of the gradient with specified filename
-    #[arg(long, value_name = "FILENAME")]
+    #[arg(short = 'S',long, value_name = "FILENAME")]
     pub svg: Option<String>,
 
     /// Generate PNG image of the gradient with specified filename
-    #[arg(long, value_name = "FILENAME")]
+    #[arg(short = 'P', long, value_name = "FILENAME")]
     pub png: Option<String>,
 
-    /// Convert text elements to vector paths in SVG output (creates .vector.svg file)
+    /// Convert text elements to vector paths in SVG output (default: enabled)
     #[arg(
         long,
-        help = "Convert text to vector paths for better design tool compatibility"
+        default_value_t = true,
+        action = clap::ArgAction::Set,
+        help = "Convert text to vector paths for better design tool compatibility (default: enabled)"
     )]
     pub vectorized_text: bool,
 
@@ -107,7 +109,7 @@ pub struct GradientArgs {
     pub step: Option<u8>,
 
     /// Number of gradient stops to output (default: 5)
-    #[arg(short = 'g', long = "stops", default_value = "5", conflicts_with_all = ["step"], help = "Number of gradient stops using curve derivatives (default: 5)")]
+    #[arg(short = 'T', long = "stops", default_value = "5", conflicts_with_all = ["step"], help = "Number of gradient stops using curve derivatives (default: 5)")]
     pub stops: usize,
 
     /// Use equally spaced gradient stops instead of intelligent placement
@@ -436,10 +438,12 @@ pub struct HueArgs {
     )]
     pub png: Option<String>,
 
-    /// Convert text elements to vector paths in SVG output (creates .vector.svg file)
+    /// Convert text elements to vector paths in SVG output (default: enabled)
     #[arg(
         long,
-        help = "Convert text to vector paths for better design tool compatibility"
+        default_value_t = true,
+        action = clap::ArgAction::Set,
+        help = "Convert text to vector paths for better design tool compatibility (default: enabled)"
     )]
     pub vectorized_text: bool,
 

@@ -225,6 +225,7 @@ pub use utils::Utils;
 ///     ease_out: 0.6,
 ///     svg: None,
 ///     png: None,
+///     vectorized_text: true,
 ///     no_legend: false,
 ///     width: 1000,
 ///     step: None,
@@ -253,6 +254,7 @@ pub use utils::Utils;
 ///     pal: false, // Changed to false to avoid requiring SVG filename
 ///     svg: None,
 ///     png: None,
+///     vectorized_text: true,
 ///     width: 1000,
 ///     no_labels: false,
 ///     output_format: None,
@@ -310,6 +312,7 @@ impl ColorRs {
     ///     ease_out: 0.6,
     ///     svg: None,
     ///     png: None,
+    ///     vectorized_text: true,
     ///     no_legend: false,
     ///     width: 800,
     ///     step: None,
@@ -410,6 +413,7 @@ impl ColorRs {
     ///     pal: false, // Changed to false to avoid requiring SVG filename
     ///     svg: None,
     ///     png: None,
+    ///     vectorized_text: true,
     ///     width: 1000,
     ///     no_labels: false,
     ///     output_format: None,
