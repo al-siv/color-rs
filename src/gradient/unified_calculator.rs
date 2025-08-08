@@ -277,6 +277,15 @@ pub fn calculate_unified_gradient(
     }
 }
 
+/// Preferred config-struct-based API to avoid too many arguments in public signatures
+pub fn calculate_unified_gradient_cfg(config: GradientCalculationConfig) -> Vec<UnifiedGradientStop> {
+    if config.use_simple_mode {
+        calculate_simple_mode_stops(config)
+    } else {
+        calculate_smart_mode_stops(config)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

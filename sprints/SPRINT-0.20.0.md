@@ -62,6 +62,7 @@ Progress (2025-08-08):
   - gradient/mod.rs (CLI path) now uses cfg-based unified calculation
   - hue.rs: introduced HueExportParams + export_hue_analysis_with_clock_cfg; default export delegates; removed arg-heavy allow
   - tests: migrated gradient integration test to cfg-based API
+  - unified_calculator.rs: added calculate_unified_gradient_cfg; preparing to drop legacy arg-heavy path
 - Quality gates: clippy -D warnings clean; tests green across all suites.
 
 Phases:

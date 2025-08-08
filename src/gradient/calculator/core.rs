@@ -409,9 +409,19 @@ mod tests {
         let start_lab = Lab::new(50.0, 0.0, 0.0);
         let end_lab = Lab::new(70.0, 0.0, 0.0);
 
-        let stops = GradientCalculator::calculate_unified_gradient(
-            start_lab, end_lab, 0, 100, 0.42, 0.58, 3, true, // simple mode
-        );
+        use crate::color_distance_strategies::DistanceAlgorithm;
+        let cfg = crate::gradient::unified_calculator::GradientCalculationConfig {
+            start_lab,
+            end_lab,
+            start_position: 0,
+            end_position: 100,
+            ease_in: 0.42,
+            ease_out: 0.58,
+            steps: 3,
+            use_simple_mode: true, // simple mode
+            algorithm: DistanceAlgorithm::DeltaE2000,
+        };
+        let stops = GradientCalculator::calculate_unified_gradient_cfg(cfg);
 
         assert_eq!(stops.len(), 3);
         assert_eq!(stops[0].position, 0);
