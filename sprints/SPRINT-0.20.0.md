@@ -66,6 +66,7 @@ Progress (2025-08-08):
 Additional progress:
 - Removed legacy arg-heavy unified gradient functions; `GradientCalculator` delegates to `calculate_unified_gradient_cfg`. Eliminated all `clippy::too_many_arguments` allows in gradient calculators; tests updated. Gates remain green.
 - Safety: replaced float comparison unwraps with `total_cmp` in `color_parser/compat.rs`, `color_parser/collections.rs`, and `color_ops/distance.rs`. Made unified manager lazy init non-panicking with graceful fallback. All tests/lints remain green.
+- Safety: removed unwrap in `UniversalColor::luminance()` (collections) and eliminated capture-group unwraps in `ral_matcher.rs` using `?` for graceful early return. Gates remain green.
 
 Phases:
 - Phase 2.1: Pure Core extraction

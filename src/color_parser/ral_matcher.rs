@@ -82,7 +82,7 @@ pub fn parse_ral_classic_code(input: &str) -> Option<RalMatch> {
     let regex = RAL_CLASSIC_REGEX.get_or_init(|| Regex::new(r"(?i)^RAL\s*(\d{4})$").unwrap());
 
     if let Some(caps) = regex.captures(input.trim()) {
-        let number = caps.get(1).unwrap().as_str();
+        let number = caps.get(1)?.as_str();
         let code = format!("RAL {number}");
         find_ral_by_code_compat(&code)
     } else {
@@ -98,9 +98,9 @@ pub fn parse_ral_design_code(input: &str) -> Option<RalMatch> {
         .get_or_init(|| Regex::new(r"(?i)^RAL\s*(\d{3})\s*(\d{2})\s*(\d{2})$").unwrap());
 
     if let Some(caps) = regex.captures(input.trim()) {
-        let hue = caps.get(1).unwrap().as_str();
-        let lightness = caps.get(2).unwrap().as_str();
-        let chroma = caps.get(3).unwrap().as_str();
+        let hue = caps.get(1)?.as_str();
+        let lightness = caps.get(2)?.as_str();
+        let chroma = caps.get(3)?.as_str();
         let search_code = format!("RAL {hue} {lightness} {chroma}");
         find_ral_by_code_compat(&search_code)
     } else {

@@ -84,15 +84,17 @@ impl UniversalColor {
     /// Get WCAG relative luminance (cached)
     #[must_use]
     pub fn luminance(&mut self) -> f64 {
-        if self.luminance.is_none() {
-            let srgb = Srgb::new(
-                f32::from(self.rgb[0]) / 255.0,
-                f32::from(self.rgb[1]) / 255.0,
-                f32::from(self.rgb[2]) / 255.0,
-            );
-            self.luminance = Some(crate::color_ops::luminance::wcag_relative(srgb));
+        if let Some(value) = self.luminance {
+            return value;
         }
-        self.luminance.unwrap()
+        let srgb = Srgb::new(
+            f32::from(self.rgb[0]) / 255.0,
+            f32::from(self.rgb[1]) / 255.0,
+            f32::from(self.rgb[2]) / 255.0,
+        );
+        let value = crate::color_ops::luminance::wcag_relative(srgb);
+        self.luminance = Some(value);
+        value
     }
 
     /// Calculate LAB distance to another color using the specified strategy
