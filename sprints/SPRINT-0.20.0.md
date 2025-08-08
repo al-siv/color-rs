@@ -51,6 +51,14 @@ Artifacts:
 ### Milestone 2.0: OOP Remnant Replacement – Core Modules
 Status: [ ] PENDING | Target: Replace highest-impact OOP remnants with FP architecture.
 
+Progress (2025-08-08):
+- Phase 2.2 initial batch completed: removed several unwrap/expect/panic in core paths
+  - parsing_chain: safe hex triplet expansion (no nth().unwrap())
+  - image: handle pixmap.pixel Option with transparent fallback (no panics)
+  - gradient/output: eliminate unwrap on fmt, propagate errors
+  - command_execution/commands: avoid unwrap on writeln while assembling outputs
+- All targets clippy clean; tests passing.
+
 Phases:
 - Phase 2.1: Pure Core extraction
   - [ ] Extract pure computational functions from mixed modules
@@ -60,7 +68,7 @@ Phases:
 - Phase 2.2: Effect Isolation
   - [ ] Introduce capability traits (Clock, Logger, IO ports) at boundaries
   - [ ] Remove hidden time/random/env access in business logic
-  - [ ] Standardize Result/Option usage; eliminate unwrap/expect in core
+  - [~] Standardize Result/Option usage; eliminate unwrap/expect in core (Batch 1 done)
 
 - Phase 2.3: Domain Modeling Upgrades
   - [ ] Add smart constructors and newtypes for key invariants
