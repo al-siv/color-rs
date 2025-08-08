@@ -267,7 +267,7 @@ pub trait ColorCollection: Send + Sync {
             .collect();
 
         // Sort by distance and limit results
-        matches.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
+    matches.sort_by(|a, b| a.distance.total_cmp(&b.distance));
         matches.truncate(max_results);
         matches
     }

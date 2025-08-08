@@ -63,6 +63,10 @@ Progress (2025-08-08):
   - gradient/mod.rs: public re-export now exposes calculate_unified_gradient_cfg and GradientCalculationConfig; deprecated arg-heavy export removed
 - Quality gates: clippy -D warnings clean; tests green across all suites.
 
+Additional progress:
+- Removed legacy arg-heavy unified gradient functions; `GradientCalculator` delegates to `calculate_unified_gradient_cfg`. Eliminated all `clippy::too_many_arguments` allows in gradient calculators; tests updated. Gates remain green.
+- Safety: replaced float comparison unwraps with `total_cmp` in `color_parser/compat.rs`, `color_parser/collections.rs`, and `color_ops/distance.rs`. Made unified manager lazy init non-panicking with graceful fallback. All tests/lints remain green.
+
 Phases:
 - Phase 2.1: Pure Core extraction
   - [ ] Extract pure computational functions from mixed modules

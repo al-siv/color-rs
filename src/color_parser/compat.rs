@@ -6,11 +6,14 @@
 use super::collections::ColorMatch as NewColorMatch;
 use super::ral_matcher::{RalClassification, RalMatch};
 use super::unified_manager::UnifiedColorManager;
+use crate::error::ColorError;
 
 /// Lazy static unified manager for backward compatibility
-static UNIFIED_MANAGER: std::sync::LazyLock<UnifiedColorManager> = std::sync::LazyLock::new(|| {
-    UnifiedColorManager::new().expect("Failed to create UnifiedColorManager")
-});
+static UNIFIED_MANAGER: std::sync::LazyLock<Result<UnifiedColorManager, ColorError>> =
+    std::sync::LazyLock::new(|| {
+        UnifiedColorManager::new()
+            .map_err(|e| ColorError::General(format!("UnifiedColorManager init failed: {e}")))
+    });
 
 /// Convert new `ColorMatch` to old `RalMatch` for backward compatibility
 fn color_match_to_ral_match(
@@ -45,7 +48,11 @@ pub fn find_closest_ral_classic_compat(
     max_results: usize,
 ) -> Vec<RalMatch> {
     let rgb_array = [rgb.r, rgb.g, rgb.b];
-    let matches = UNIFIED_MANAGER.find_closest_ral_classic(rgb_array, max_results);
+    let manager = match &*UNIFIED_MANAGER {
+        Ok(m) => m,
+        Err(_) => return Vec::new(),
+    };
+    let matches = manager.find_closest_ral_classic(rgb_array, max_results);
 
     matches
         .iter()
@@ -59,7 +66,11 @@ pub fn find_closest_ral_design_compat(
     max_results: usize,
 ) -> Vec<RalMatch> {
     let rgb_array = [rgb.r, rgb.g, rgb.b];
-    let matches = UNIFIED_MANAGER.find_closest_ral_design(rgb_array, max_results);
+    let manager = match &*UNIFIED_MANAGER {
+        Ok(m) => m,
+        Err(_) => return Vec::new(),
+    };
+    let matches = manager.find_closest_ral_design(rgb_array, max_results);
 
     matches
         .iter()
@@ -73,10 +84,14 @@ pub fn find_closest_ral_colors_compat(
     max_results: usize,
 ) -> Vec<RalMatch> {
     let rgb_array = [rgb.r, rgb.g, rgb.b];
+    let manager = match &*UNIFIED_MANAGER {
+        Ok(m) => m,
+        Err(_) => return Vec::new(),
+    };
 
     // Get results from both collections
-    let classic_matches = UNIFIED_MANAGER.find_closest_ral_classic(rgb_array, max_results);
-    let design_matches = UNIFIED_MANAGER.find_closest_ral_design(rgb_array, max_results);
+    let classic_matches = manager.find_closest_ral_classic(rgb_array, max_results);
+    let design_matches = manager.find_closest_ral_design(rgb_array, max_results);
 
     // Convert and combine
     let mut all_matches: Vec<RalMatch> = Vec::new();
@@ -94,7 +109,7 @@ pub fn find_closest_ral_colors_compat(
     );
 
     // Sort by distance and limit results
-    all_matches.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap());
+    all_matches.sort_by(|a, b| a.distance.total_cmp(&b.distance));
     all_matches.truncate(max_results);
 
     all_matches
@@ -103,7 +118,11 @@ pub fn find_closest_ral_colors_compat(
 /// Find RAL color by exact code (backward compatibility)
 #[must_use]
 pub fn find_ral_by_code_compat(code: &str) -> Option<RalMatch> {
-    if let Some((collection_name, entry)) = UNIFIED_MANAGER.find_by_code(code) {
+    let manager = match &*UNIFIED_MANAGER {
+        Ok(m) => m,
+        Err(_) => return None,
+    };
+    if let Some((collection_name, entry)) = manager.find_by_code(code) {
         let classification = if collection_name == "RAL Classic" {
             RalClassification::Classic
         } else {
@@ -135,7 +154,11 @@ pub fn find_ral_by_code_compat(code: &str) -> Option<RalMatch> {
 /// Find RAL colors by name pattern (backward compatibility)  
 pub fn find_ral_by_name_pattern_compat(name_pattern: &str) -> Vec<RalMatch> {
     // CSV migration is complete - using the unified manager's name search
-    let results = UNIFIED_MANAGER.find_by_name(name_pattern);
+    let manager = match &*UNIFIED_MANAGER {
+        Ok(m) => m,
+        Err(_) => return Vec::new(),
+    };
+    let results = manager.find_by_name(name_pattern);
     let mut matches = Vec::new();
 
     for (collection_name, entry) in results {

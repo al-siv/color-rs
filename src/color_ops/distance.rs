@@ -197,7 +197,7 @@ pub fn find_closest(target: Srgb, candidates: &[Srgb]) -> (usize, f64) {
         .iter()
         .enumerate()
         .map(|(i, &color)| (i, delta_e_2000(target, color)))
-        .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+        .min_by(|a, b| a.1.total_cmp(&b.1))
         .unwrap_or((0, f64::INFINITY))
 }
 
