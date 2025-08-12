@@ -54,20 +54,6 @@ impl DistanceAlgorithm {
         }
     }
 
-    /// Validate algorithm is suitable for performance requirements
-    /// Validate that the algorithm meets performance requirements
-    ///
-    /// # Errors
-    /// Returns `ValidationError::AlgorithmTooSlow` if `require_fast` is true
-    /// and the algorithm doesn't meet fast performance criteria.
-    pub const fn validate_performance(self, require_fast: bool) -> Result<Self, ValidationError> {
-        if require_fast && !self.is_fast() {
-            Err(ValidationError::AlgorithmTooSlow(self))
-        } else {
-            Ok(self)
-        }
-    }
-
     /// Calculate distance between two validated LAB colors
     ///
     /// This is the main dispatch function that calls the appropriate algorithm.

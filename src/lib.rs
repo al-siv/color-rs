@@ -32,8 +32,6 @@ pub mod image;
 pub mod image_core; // Pure image/SVG construction utilities (functional core)
 pub mod logger;
 pub mod output_formats;
-// Performance validation for Milestone 7.2
-pub mod performance_validation;
 pub mod precision_utils;
 pub mod utils;
 

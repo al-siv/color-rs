@@ -13,6 +13,7 @@
 //! - Avoid pulling external deps until justified
 
 /// Log level enumeration (expandable if needed)
+#[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
     Trace,
@@ -53,6 +54,34 @@ impl Logger for StdoutLogger {
         println!("[{level:?}] {message}");
     }
 }
+
+/// Filtering logger that only emits messages at or above a minimum level
+#[derive(Debug, Clone, Copy)]
+pub struct FilteringLogger {
+    pub min: LogLevel,
+}
+
+impl FilteringLogger {
+    #[must_use]
+    pub const fn new(min: LogLevel) -> Self { Self { min } }
+    #[inline]
+    const fn enabled(&self, level: LogLevel) -> bool { (level as u8) >= (self.min as u8) }
+}
+
+impl Logger for FilteringLogger {
+    fn log(&self, level: LogLevel, message: &str) {
+        if self.enabled(level) {
+            println!("[{level:?}] {message}");
+        }
+    }
+}
+
+// Predefined filtering logger singletons
+pub static LOGGER_TRACE: FilteringLogger = FilteringLogger { min: LogLevel::Trace };
+pub static LOGGER_DEBUG: FilteringLogger = FilteringLogger { min: LogLevel::Debug };
+pub static LOGGER_INFO: FilteringLogger = FilteringLogger { min: LogLevel::Info };
+pub static LOGGER_WARN: FilteringLogger = FilteringLogger { min: LogLevel::Warn };
+pub static LOGGER_ERROR: FilteringLogger = FilteringLogger { min: LogLevel::Error };
 
 /// Logger handle type alias for ergonomic passing (cheap clone expected via &dyn usage)
 pub type DynLogger = &'static dyn Logger;

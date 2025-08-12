@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn test_ral_classic_collection_creation() {
         let collection =
-            RalClassicCollection::new().expect("Failed to create RAL Classic collection");
+            RalClassicCollection::new().unwrap_or_else(|e| panic!("RAL Classic collection creation failed: {e}"));
         assert!(!collection.colors().is_empty());
         assert_eq!(collection.name(), "RAL Classic");
     }
@@ -137,7 +137,7 @@ mod tests {
     #[test]
     fn test_ral_find_by_code() {
         let collection =
-            RalClassicCollection::new().expect("Failed to create RAL Classic collection");
+            RalClassicCollection::new().unwrap_or_else(|e| panic!("RAL Classic collection creation failed: {e}"));
         let color = collection.find_by_code("RAL 1000");
         assert!(color.is_some());
 
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn test_ral_group_filtering() {
         let collection =
-            RalClassicCollection::new().expect("Failed to create RAL Classic collection");
+            RalClassicCollection::new().unwrap_or_else(|e| panic!("RAL Classic collection creation failed: {e}"));
         let target = UniversalColor::from_rgb([255, 0, 0]); // Red
 
         let filter = SearchFilter {

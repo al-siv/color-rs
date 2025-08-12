@@ -56,14 +56,14 @@ mod tests {
 
     #[test]
     fn test_css_collection_creation() {
-        let collection = CssColorCollection::new().expect("Failed to create CSS collection");
+        let collection = CssColorCollection::new().unwrap_or_else(|e| panic!("CSS collection creation failed: {e}"));
         assert!(!collection.colors().is_empty());
         assert_eq!(collection.name(), "CSS Named Colors");
     }
 
     #[test]
     fn test_css_find_by_name() {
-        let collection = CssColorCollection::new().expect("Failed to create CSS collection");
+        let collection = CssColorCollection::new().unwrap_or_else(|e| panic!("CSS collection creation failed: {e}"));
         let red = collection.find_by_name("red");
         assert!(red.is_some());
 
@@ -74,7 +74,7 @@ mod tests {
 
     #[test]
     fn test_css_closest_match() {
-        let collection = CssColorCollection::new().expect("Failed to create CSS collection");
+        let collection = CssColorCollection::new().unwrap_or_else(|e| panic!("CSS collection creation failed: {e}"));
         let target = UniversalColor::from_rgb([254, 1, 1]); // Almost red
         let matches = collection.find_closest(&target, 1, None);
 

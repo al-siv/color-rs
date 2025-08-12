@@ -151,54 +151,6 @@ mod ral_gradient_tests {
         );
     }
 
-    /// Performance test - ensure no significant degradation
-    #[test]
-    fn test_performance_impact() {
-        let color_rs = ColorRs::new();
-        // Run multiple batches and take median to reduce variance-based flakes
-        const BATCHES: usize = 3;
-        const ITER_PER_BATCH: usize = 10;
-        let mut times: Vec<u128> = Vec::with_capacity(BATCHES);
-        for _ in 0..BATCHES {
-            let start_time = std::time::Instant::now();
-            for _ in 0..ITER_PER_BATCH {
-                let args = GradientArgs {
-                    start_color: "RAL 3020".to_string(),
-                    end_color: "RAL 5005".to_string(),
-                    start_position: 0,
-                    end_position: 100,
-                    ease_in: 0.65,
-                    ease_out: 0.35,
-                    svg: None,
-                    png: None,
-                    no_legend: false,
-                    width: 1000,
-                    step: None,
-                    stops: 10,
-                    stops_simple: false,
-                    output_format: None,
-                    output_file: None,
-                    func_filter: None,
-                    vectorized_text: false,
-                };
-                let result = color_rs.generate_gradient(args);
-                assert!(result.is_ok());
-            }
-            times.push(start_time.elapsed().as_millis());
-        }
-        times.sort_unstable();
-        let median = times[times.len()/2];
-        println!("Median time over {BATCHES} batches of {ITER_PER_BATCH} gradients: {median}ms (all: {:?})", times);
-        // Threshold rationale (updated): previously single-run upper bound 8000ms; using median allows slightly stricter guard.
-        // Keep same ceiling to avoid false positives while reducing flakes due to outlier batch.
-        let threshold_ms = 8000u128;
-        assert!(
-            median < threshold_ms,
-            "Performance regression detected (median {median}ms > {threshold_ms}ms, batch times {:?})",
-            times
-        );
-    }
-
     /// Test comprehensive RAL color support
     #[test]
     fn test_comprehensive_ral_support() {

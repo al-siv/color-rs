@@ -17,6 +17,7 @@ color-rs <COMMAND> [OPTIONS]
 **Global Options:**
 - `-h, --help` - Print help
 - `-V, --version` - Print version
+- `--log-level <LEVEL>` - Set log verbosity (trace, debug, info, warn, error, none). Defaults to none (silent) if unspecified.
 
 ## Color Command
 

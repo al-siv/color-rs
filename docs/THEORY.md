@@ -4,6 +4,8 @@
 
 This document provides comprehensive mathematical foundations, theoretical considerations, pure algorithms, and logical mathematical concepts underlying the color-rs library.
 
+> Integration Note (Unreleased): Former standalone `MATH_FORMULAS.md` merged into this file to centralize mathematics and eliminate duplication (original formulas were versioned at v0.19.0).
+
 ## Table of Contents
 
 1. [Color Space Mathematics](#color-space-mathematics)
@@ -14,6 +16,7 @@ This document provides comprehensive mathematical foundations, theoretical consi
 6. [Accessibility Mathematics](#accessibility-mathematics)
 7. [Numerical Analysis and Precision](#numerical-analysis-and-precision)
 8. [Functional Programming Mathematical Foundations](#functional-programming-mathematical-foundations)
+9. [Detailed Algorithms & Formulas](#detailed-algorithms--formulas)
 
 ---
 
@@ -659,3 +662,74 @@ LAB: ∀c ∈ LAB, c.l ∈ [0, 100], c.a, c.b ∈ ℝ
 6. **Numerical Analysis**: Numerical Recipes, IEEE 754 Standard
 
 This document serves as the theoretical foundation for understanding the mathematical principles underlying all color operations in the color-rs library.
+
+---
+
+## Detailed Algorithms & Formulas
+
+Consolidated procedural algorithms and stepwise formula listings formerly residing in `MATH_FORMULAS.md`. Overlapping derivations already covered above are omitted to avoid redundancy.
+
+### Color Space Conversions (Procedural)
+
+#### RGB → HSL
+1. Normalize R,G,B ∈ [0,255] to R',G',B' ∈ [0,1].
+2. Cmax = max(R',G',B'); Cmin = min(R',G',B'); Δ = Cmax - Cmin.
+3. Lightness: L = (Cmax + Cmin)/2.
+4. Saturation:
+    - If Δ = 0 ⇒ S = 0
+    - Else if L > 0.5 ⇒ S = Δ / (2 - Cmax - Cmin)
+    - Else ⇒ S = Δ / (Cmax + Cmin)
+5. Hue (if Δ = 0 undefined):
+    - Cmax = R' ⇒ H = 60° * ((G' - B')/Δ mod 6)
+    - Cmax = G' ⇒ H = 60° * ((B' - R')/Δ + 2)
+    - Cmax = B' ⇒ H = 60° * ((R' - G')/Δ + 4)
+6. Normalize H into [0,360).
+
+#### RGB → XYZ (sRGB D65)
+Per component gamma linearization (u in [0,1]): u_lin = u/12.92 (u ≤ 0.04045) else ((u+0.055)/1.055)^{2.4}. Multiply by the standard 3×3 matrix (see Color Space Mathematics) to obtain X,Y,Z.
+
+#### XYZ → LAB (D65)
+Normalize X/Xn, Y/Yn, Z/Zn; apply f(t) piecewise (earlier definition); compute L*, a*, b*.
+
+#### LAB ↔ LCH
+Forward: C = √(a*² + b*²); H = atan2(b*,a*) * 180/π (add 360 if negative). Inverse: a* = C cos(H π/180); b* = C sin(H π/180).
+
+### Color Distance (Operational Summary)
+
+| Metric | Formula (summary) | Note |
+|--------|-------------------|------|
+| CIE76 | √((ΔL*)² + (Δa*)² + (Δb*)²) | Euclidean LAB baseline |
+| CIE94 | √((ΔL*/kL SL)² + (ΔC*/kC SC)² + (ΔH*/kH SH)²) | Graphic arts k=1 |
+| CIEDE2000 | Weighted terms + rotation Rₜ | Most perceptual accuracy |
+| LCH Approx | √((ΔL)² + (ΔC)² + 2 C1 C2 (1 - cos ΔH)) | Cylindrical approximation |
+
+ΔH* (CIE94) = √(Δa*² + Δb*² - ΔC*²).
+
+### Hue Operations
+
+Shortest hue distance d(h1,h2) = min(|Δ|, 360 - |Δ|) with Δ = h1 - h2. Range with wrap (min > max) ⇒ h ≥ min OR h ≤ max. Normalize: ((h mod 360)+360) mod 360.
+
+### Interpolation Recipes
+
+LAB: per-component linear interpolation. LCH hue: select shortest angular path (adjust ΔH by ±360). Linear RGB interpolation is non‑perceptual but may be used for speed-critical paths; prefer LAB for perceptual uniformity.
+
+### Contrast & Accessibility Quick Reference
+
+Relative luminance (linear): Y = 0.2126 R + 0.7152 G + 0.0722 B. Contrast ratio: (L1 + 0.05)/(L2 + 0.05). WCAG: 4.5:1 (AA normal), 3:1 (AA large), 7:1 (AAA normal), 4.5:1 (AAA large).
+
+### Gradient Generation (Cubic Bézier)
+
+Bezier easing B(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3 with P0=(0,0), P3=(1,1), P1=(ease_in,0), P2=(1-ease_out,1). Position(i) = start + span * B(i/steps). Color(t) via perceptual interpolation (LAB preferred).
+
+### Numerical & Performance Implementation Notes (Additions)
+
+1. Suggested hue epsilon ε_h = 1e-6 for equality checks.
+2. Precompute 256-entry gamma table for bulk sRGB→linear conversions.
+3. Early terminate ΔE accumulation loops when partial sum > threshold ΔE_max.
+
+### Error Handling Summary
+
+Use Result for fallible conversions; propagate domain errors; clamp output gamut for display.
+
+---
+End of merged content from former `MATH_FORMULAS.md` (file removed).

@@ -127,35 +127,30 @@ mod tests {
         let convert_cmd = create_convert_command("#ffffff".to_string(), "HSL".to_string());
 
         // Test that commands are created correctly
-        match gradient_cmd {
-            CommandType::GenerateGradient { args, .. } => {
-                assert_eq!(args.stops, 10);
-                assert_eq!(args.start_color, "red");
-            }
-            _ => panic!("Wrong command type"),
+        // Use pattern assertions instead of default arm panic! to keep tests explicit
+        if let CommandType::GenerateGradient { args, .. } = gradient_cmd {
+            assert_eq!(args.stops, 10);
+            assert_eq!(args.start_color, "red");
+        } else {
+            assert!(matches!(gradient_cmd, CommandType::GenerateGradient { .. }), "Unexpected command variant for gradient_cmd");
         }
 
-        match analyze_cmd {
-            CommandType::AnalyzeColor {
-                include_schemes, ..
-            } => {
-                assert!(include_schemes);
-            }
-            _ => panic!("Wrong command type"),
+        if let CommandType::AnalyzeColor { include_schemes, .. } = analyze_cmd {
+            assert!(include_schemes);
+        } else {
+            assert!(matches!(analyze_cmd, CommandType::AnalyzeColor { .. }), "Unexpected command variant for analyze_cmd");
         }
 
-        match find_cmd {
-            CommandType::FindClosestColor { count, .. } => {
-                assert_eq!(count, 5);
-            }
-            _ => panic!("Wrong command type"),
+        if let CommandType::FindClosestColor { count, .. } = find_cmd {
+            assert_eq!(count, 5);
+        } else {
+            assert!(matches!(find_cmd, CommandType::FindClosestColor { .. }), "Unexpected command variant for find_cmd");
         }
 
-        match convert_cmd {
-            CommandType::ConvertColor { target_format, .. } => {
-                assert_eq!(target_format, "HSL");
-            }
-            _ => panic!("Wrong command type"),
+        if let CommandType::ConvertColor { target_format, .. } = convert_cmd {
+            assert_eq!(target_format, "HSL");
+        } else {
+            assert!(matches!(convert_cmd, CommandType::ConvertColor { .. }), "Unexpected command variant for convert_cmd");
         }
     }
 

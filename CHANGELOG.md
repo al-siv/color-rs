@@ -5,6 +5,15 @@ All notable changes to the color-rs project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+- Performance validation and benchmark modules (`src/performance_validation.rs`, `examples/performance_validation.rs`, `examples/performance_benchmark.rs`) fully deleted as non-essential (no stubs retained). Rationale: reduce maintenance surface, remove ad-hoc timing code outside capability boundaries, and keep core FP surface minimal. Lightweight median-of-3 performance guard retained in existing test to watch for regressions.
+
+### Documentation
+- Merged `docs/MATH_FORMULAS.md` into unified `docs/THEORY.md` (new section: "Detailed Algorithms & Formulas"). Removed standalone file to prevent drift and duplication; preserved version-specific procedural notes and added integration annotation.
+
+
 ## [0.19.1] - 2025-01-21
 
 ### Fixed

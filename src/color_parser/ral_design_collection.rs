@@ -134,7 +134,7 @@ mod tests {
     #[test]
     fn test_ral_design_collection_creation() {
         let collection =
-            RalDesignCollection::new().expect("Failed to create RAL Design collection");
+            RalDesignCollection::new().unwrap_or_else(|e| panic!("RAL Design collection creation failed: {e}"));
         assert!(!collection.colors().is_empty());
         assert_eq!(collection.name(), "RAL Design System+");
     }
@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn test_ral_design_find_by_code() {
         let collection =
-            RalDesignCollection::new().expect("Failed to create RAL Design collection");
+            RalDesignCollection::new().unwrap_or_else(|e| panic!("RAL Design collection creation failed: {e}"));
         // Use a code that should exist in the CSV
         if let Some(first_color) = collection.colors().first() {
             if let Some(code) = &first_color.metadata.code {

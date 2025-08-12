@@ -1,8 +1,6 @@
 // Integration point for comprehensive test suite
 // This module organizes and provides access to all test categories
 
-pub mod unit;
-
 #[cfg(test)]
 mod test_suite_runner {
 

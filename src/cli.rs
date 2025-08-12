@@ -36,8 +36,22 @@ fn parse_percentage(s: &str) -> std::result::Result<u8, String> {
 #[command(author = APP_AUTHOR)]
 #[command(version = APP_VERSION)]
 pub struct Cli {
+    /// Global log level (trace, debug, info, warn, error, none)
+    #[arg(long = "log-level", value_enum, global = true, value_name = "LEVEL")]
+    pub log_level: Option<LogLevelCli>,
     #[command(subcommand)]
     pub command: Commands,
+}
+
+/// CLI-facing log level (includes 'none') mapped to internal logger capability
+#[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum)]
+pub enum LogLevelCli {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+    None,
 }
 
 /// Available commands
