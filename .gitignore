@@ -26,8 +26,7 @@ Thumbs.db
 *.yaml
 
 # Plan file (not for version control)
-BRIEFING-*.md
 GUIDELINES.md
 **/sprints/old/
-**/docs/statuses/
-**/methodology/
+**/docs/archives/
+**/analysis/
