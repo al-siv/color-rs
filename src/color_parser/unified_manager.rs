@@ -4,7 +4,7 @@
 //! Provides backward compatibility while enabling the new unified architecture.
 
 use super::collections::{
-    ColorCollection, ColorCollectionManager, ColorMatch, SearchFilter, UniversalColor,
+    ColorCollection, ColorCollectionKind, ColorCollections, ColorMatch, SearchFilter, UniversalColor,
 };
 use super::css_collection::CssColorCollection;
 use super::ral_classic_collection::RalClassicCollection;
@@ -14,7 +14,7 @@ use anyhow::Result;
 
 /// Unified manager for all color collections with backward compatibility
 pub struct UnifiedColorManager {
-    manager: ColorCollectionManager,
+    manager: ColorCollections,
     css_collection: CssColorCollection,
     ral_classic_collection: RalClassicCollection,
     ral_design_collection: RalDesignCollection,
@@ -23,23 +23,18 @@ pub struct UnifiedColorManager {
 impl UnifiedColorManager {
     /// Create a new unified color manager with all built-in collections
     pub fn new() -> Result<Self> {
-        let mut manager = ColorCollectionManager::new();
+    let mut manager = ColorCollections::new();
 
-        let css_collection = CssColorCollection::new()?;
-        let ral_classic_collection = RalClassicCollection::new()?;
-        let ral_design_collection = RalDesignCollection::new()?;
+    let css_collection = CssColorCollection::new()?;
+    let ral_classic_collection = RalClassicCollection::new()?;
+    let ral_design_collection = RalDesignCollection::new()?;
 
-        // Add collections to manager
-        manager.add_collection(Box::new(CssColorCollection::new()?));
-        manager.add_collection(Box::new(RalClassicCollection::new()?));
-        manager.add_collection(Box::new(RalDesignCollection::new()?));
+    // Add collections to manager (move ownership clones not required)
+    manager.add(ColorCollectionKind::Css(CssColorCollection::new()?));
+    manager.add(ColorCollectionKind::RalClassic(RalClassicCollection::new()?));
+    manager.add(ColorCollectionKind::RalDesign(RalDesignCollection::new()?));
 
-        Ok(Self {
-            manager,
-            css_collection,
-            ral_classic_collection,
-            ral_design_collection,
-        })
+    Ok(Self { manager, css_collection, ral_classic_collection, ral_design_collection })
     }
 
     /// Find closest colors across all collections (new unified API)
@@ -51,7 +46,7 @@ impl UnifiedColorManager {
     ) -> Vec<(String, Vec<ColorMatch>)> {
         let target = UniversalColor::from_rgb(rgb);
         self.manager
-            .find_closest_across_all(&target, max_results_per_collection, None)
+            .find_closest_all(&target, max_results_per_collection, None)
     }
 
     /// Find closest CSS named colors (backward compatibility)
@@ -80,7 +75,7 @@ impl UnifiedColorManager {
     /// Search by exact name across all collections
     #[must_use]
     pub fn find_by_name(&self, name: &str) -> Vec<(String, super::collections::ColorEntry)> {
-        self.manager.search_by_name(name)
+    self.manager.search_by_name(name)
     }
 
     /// Find color by exact code (RAL codes, etc.)
@@ -105,7 +100,7 @@ impl UnifiedColorManager {
     ) -> Vec<(String, Vec<ColorMatch>)> {
         let target = UniversalColor::from_rgb(rgb);
         self.manager
-            .find_closest_across_all(&target, max_results, Some(filter))
+            .find_closest_all(&target, max_results, Some(filter))
     }
 
     // Functional API methods
@@ -118,7 +113,7 @@ impl UnifiedColorManager {
         algorithm: DistanceAlgorithm,
     ) -> Vec<(String, Vec<ColorMatch>)> {
         let target = UniversalColor::from_rgb(rgb);
-        self.manager.find_closest_across_all_with_algorithm(
+    self.manager.find_closest_all_with_algorithm(
             &target,
             max_results_per_collection,
             None,
@@ -174,10 +169,10 @@ impl UnifiedColorManager {
 impl Default for UnifiedColorManager {
     fn default() -> Self {
         // Construct a manager with empty collections as a safe fallback
-        let mut manager = super::collections::ColorCollectionManager::new();
-        manager.add_collection(Box::new(super::css_collection::CssColorCollection::empty()));
-        manager.add_collection(Box::new(super::ral_classic_collection::RalClassicCollection::empty()));
-        manager.add_collection(Box::new(super::ral_design_collection::RalDesignCollection::empty()));
+    let mut manager = super::collections::ColorCollections::new();
+    manager.add(super::collections::ColorCollectionKind::Css(super::css_collection::CssColorCollection::empty()));
+    manager.add(super::collections::ColorCollectionKind::RalClassic(super::ral_classic_collection::RalClassicCollection::empty()));
+    manager.add(super::collections::ColorCollectionKind::RalDesign(super::ral_design_collection::RalDesignCollection::empty()));
         Self {
             manager,
             css_collection: super::css_collection::CssColorCollection::empty(),
@@ -194,7 +189,7 @@ mod tests {
     #[test]
     fn test_unified_manager_creation() {
         let manager = UnifiedColorManager::new().expect("Failed to create UnifiedColorManager");
-        let collections = manager.manager.collection_names();
+    let collections = manager.manager.names();
         assert_eq!(collections.len(), 3);
         assert!(collections.contains(&"CSS Named Colors"));
         assert!(collections.contains(&"RAL Classic"));

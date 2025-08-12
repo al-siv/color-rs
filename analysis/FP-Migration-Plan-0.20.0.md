@@ -12,7 +12,7 @@ Date: 2025-08-08
 ### Dynamic Dispatch / OOP-like Constructs
 - output_formats.rs: with_clock(clock: &dyn crate::clock::Clock, …)
 - command_execution/*: multiple &dyn Clock usages (capability-based OK)
-- color_parser/*: ColorCollection as Box<dyn ColorCollection> (consider enum/tagged strategies where feasible)
+- color_parser/*: ColorCollection as Box<dyn ColorCollection> (REPLACED in 0.20.0 by `ColorCollectionKind` enum + `ColorCollections` manager – legacy trait object manager removed)
 - gradient/gradient_formatter.rs: callbacks as Box<dyn Fn… + Send + Sync> (functional callbacks OK)
 - compat.rs: create_parser returns Box<dyn ColorParserCompatTrait> (compat layer candidate for decommission)
 
@@ -54,18 +54,36 @@ Action:
 
 ### Domain Modeling
 - Introduce/extend ADTs for parser results and command variants; exhaustive matches
+  * Color collections enum migration COMPLETE (0.20.0) – Box<dyn ColorCollection> eliminated.
 
-## Proposed Task Seeds
+## Proposed Task Seeds (Updated)
 - T1: Replace SystemTime::now() in hue analysis with Clock
 - T2: Remove unwrap in file_output and gradient/output; error propagation
 - T3: Replace panic! in command_execution with typed error
-- T4: Evaluate decommission of compat.rs; migrate to unified parser
-- T5: Audit Box<dyn ColorCollection> – consider enum + impl or sealed trait if feasible
+- T4: Decommission compat.rs (currently still present) OR clearly mark with #[deprecated(since = "0.20.0", note = "Will be removed in 0.21")] and update CHANGELOG
+- T5: (DONE) Replace Box<dyn ColorCollection> – implemented via enum `ColorCollectionKind` & manager `ColorCollections`
+- T6: Introduce Command enum to remove any residual dynamic dispatch in execution layer (planned)
 
 ## Risks
 - Behavior changes from unwrap removal – covered by tests
 - API adjustments when replacing dyn patterns – communicate in CHANGELOG
 
 ## Next
-- Run cargo check/clippy baseline
-- Translate seeds into Milestone 2.0/3.0 checklist items
+- Run cargo check/clippy baseline (DONE initial pass; keep nightly runs)
+- Translate updated seeds into Milestone 2.0/3.0 checklist items
+- Author ADR for ColorCollection enum decision (document rationale & alternatives)
+- Decide compat.rs fate before closing Sprint 0.20.0 (remove vs deprecate)
+
+---
+
+## Completion Log (Addendum 2025-08-12)
+### Color Collection Dynamic Dispatch Removal
+- Implemented `ColorCollectionKind` enum encapsulating Css / RalClassic / RalDesign collections.
+- Added `ColorCollections` manager providing aggregate search APIs.
+- Removed legacy `ColorCollectionManager` and associated Box<dyn> usage.
+- Updated CLI hue analysis and unified manager to construct and operate on enum variants.
+- Added enum-level tests ensuring parity.
+- Verified `grep -R "Box<dyn ColorCollection>"` now returns zero results.
+- Performance test threshold (8000ms for 10 gradients) currently passes; monitor for regressions.
+
+Pending clean-up: Remove or deprecate compatibility layer (compat.rs) and introduce Command enum refactor.

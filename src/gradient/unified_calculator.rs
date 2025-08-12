@@ -8,6 +8,7 @@ use super::calculator::GradientCalculator;
 use super::calculator::{UnifiedGradientStop, cubic_bezier_ease};
 use crate::color_distance_strategies::{DistanceAlgorithm, calculate_distance};
 use crate::config::{algorithm_constants, math_constants};
+use crate::error::ColorError;
 use palette::{IntoColor, Lab, Mix, Srgb};
 
 /// Configuration for gradient calculation
@@ -22,6 +23,83 @@ pub struct GradientCalculationConfig {
     pub steps: usize,
     pub use_simple_mode: bool,
     pub algorithm: DistanceAlgorithm,
+}
+
+/// Smart-constructor backed newtypes & builder (non-breaking: existing struct unchanged)
+/// These enforce invariants without altering the public API of `GradientCalculationConfig`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EasingFactor(f64);
+impl EasingFactor {
+    pub fn new(v: f64) -> Result<Self, ColorError> {
+        if (0.0..=1.0).contains(&v) { Ok(Self(v)) } else { Err(ColorError::InvalidArguments(format!("Easing factor must be in [0,1], got {v}"))) }
+    }
+    #[must_use] pub fn get(self) -> f64 { self.0 }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Position(u8);
+impl Position {
+    pub fn new(p: u8) -> Result<Self, ColorError> { if p <= 100 { Ok(Self(p)) } else { Err(ColorError::InvalidArguments(format!("Position must be <=100, got {p}"))) } }
+    #[must_use] pub fn get(self) -> u8 { self.0 }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Steps(usize);
+impl Steps {
+    pub fn new(s: usize) -> Result<Self, ColorError> { if s >= 2 { Ok(Self(s)) } else { Err(ColorError::InvalidArguments(format!("Steps must be >=2, got {s}"))) } }
+    #[must_use] pub fn get(self) -> usize { self.0 }
+}
+
+/// Builder enforcing invariant: start_position < end_position, easing in/out in [0,1], steps>=2
+#[derive(Debug)]
+pub struct GradientConfigBuilder {
+    start_lab: Option<Lab>,
+    end_lab: Option<Lab>,
+    start_position: Option<Position>,
+    end_position: Option<Position>,
+    ease_in: Option<EasingFactor>,
+    ease_out: Option<EasingFactor>,
+    steps: Option<Steps>,
+    use_simple_mode: bool,
+    algorithm: DistanceAlgorithm,
+}
+
+impl GradientConfigBuilder {
+    pub fn new() -> Self { Self { start_lab: None, end_lab: None, start_position: None, end_position: None, ease_in: None, ease_out: None, steps: None, use_simple_mode: false, algorithm: DistanceAlgorithm::DeltaE2000 } }
+    pub fn start_lab(mut self, v: Lab) -> Self { self.start_lab = Some(v); self }
+    pub fn end_lab(mut self, v: Lab) -> Self { self.end_lab = Some(v); self }
+    pub fn start_position(mut self, v: u8) -> Result<Self, ColorError> { self.start_position = Some(Position::new(v)?); Ok(self) }
+    pub fn end_position(mut self, v: u8) -> Result<Self, ColorError> { self.end_position = Some(Position::new(v)?); Ok(self) }
+    pub fn ease_in(mut self, v: f64) -> Result<Self, ColorError> { self.ease_in = Some(EasingFactor::new(v)?); Ok(self) }
+    pub fn ease_out(mut self, v: f64) -> Result<Self, ColorError> { self.ease_out = Some(EasingFactor::new(v)?); Ok(self) }
+    pub fn steps(mut self, v: usize) -> Result<Self, ColorError> { self.steps = Some(Steps::new(v)?); Ok(self) }
+    pub fn simple_mode(mut self, flag: bool) -> Self { self.use_simple_mode = flag; self }
+    pub fn algorithm(mut self, alg: DistanceAlgorithm) -> Self { self.algorithm = alg; self }
+    pub fn build(self) -> Result<GradientCalculationConfig, ColorError> {
+        let start_lab = self.start_lab.ok_or_else(|| ColorError::InvalidArguments("start_lab missing".into()))?;
+        let end_lab = self.end_lab.ok_or_else(|| ColorError::InvalidArguments("end_lab missing".into()))?;
+        let start_position = self.start_position.ok_or_else(|| ColorError::InvalidArguments("start_position missing".into()))?;
+        let end_position = self.end_position.ok_or_else(|| ColorError::InvalidArguments("end_position missing".into()))?;
+        if start_position.get() >= end_position.get() { return Err(ColorError::InvalidArguments(format!("start_position {} must be < end_position {}", start_position.get(), end_position.get()))); }
+        let ease_in = self.ease_in.ok_or_else(|| ColorError::InvalidArguments("ease_in missing".into()))?;
+        let ease_out = self.ease_out.ok_or_else(|| ColorError::InvalidArguments("ease_out missing".into()))?;
+        let steps = self.steps.ok_or_else(|| ColorError::InvalidArguments("steps missing".into()))?;
+        Ok(GradientCalculationConfig {
+            start_lab,
+            end_lab,
+            start_position: start_position.get(),
+            end_position: end_position.get(),
+            ease_in: ease_in.get(),
+            ease_out: ease_out.get(),
+            steps: steps.get(),
+            use_simple_mode: self.use_simple_mode,
+            algorithm: self.algorithm,
+        })
+    }
+}
+
+impl Default for GradientConfigBuilder {
+    fn default() -> Self { Self::new() }
 }
 
 /// RGB color representation as a tuple
@@ -251,6 +329,67 @@ pub fn calculate_unified_gradient_cfg(config: GradientCalculationConfig) -> Vec<
         calculate_simple_mode_stops(config)
     } else {
         calculate_smart_mode_stops(config)
+    }
+}
+
+#[cfg(test)]
+mod builder_tests {
+    use super::*;
+    use palette::Srgb;
+
+    fn lab(r: u8, g: u8, b: u8) -> Lab {
+        let srgb = Srgb::new(
+            r as f32 / math_constants::RGB_MAX_VALUE,
+            g as f32 / math_constants::RGB_MAX_VALUE,
+            b as f32 / math_constants::RGB_MAX_VALUE,
+        );
+        srgb.into_color()
+    }
+
+    #[test]
+    fn builder_success() {
+        let cfg = GradientConfigBuilder::new()
+            .start_lab(lab(255, 0, 0))
+            .end_lab(lab(0, 0, 255))
+            .start_position(0).unwrap()
+            .end_position(100).unwrap()
+            .ease_in(0.2).unwrap()
+            .ease_out(0.8).unwrap()
+            .steps(16).unwrap()
+            .build()
+            .unwrap();
+        assert_eq!(cfg.start_position, 0);
+        assert_eq!(cfg.end_position, 100);
+        assert!(cfg.steps >= 2);
+    }
+
+    #[test]
+    fn builder_rejects_equal_positions() {
+        let err = GradientConfigBuilder::new()
+            .start_lab(lab(255, 0, 0))
+            .end_lab(lab(0, 0, 255))
+            .start_position(50).unwrap()
+            .end_position(50).unwrap()
+            .ease_in(0.3).unwrap()
+            .ease_out(0.7).unwrap()
+            .steps(10).unwrap()
+            .build()
+            .unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("start_position"));
+    }
+
+    #[test]
+    fn builder_rejects_out_of_range_easing() {
+        let err = GradientConfigBuilder::new()
+            .start_lab(lab(255, 255, 255))
+            .end_lab(lab(0, 0, 0))
+            .start_position(0).unwrap()
+            .end_position(100).unwrap()
+            .ease_in(1.2) // invalid
+            .unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("Easing factor"));
     }
 }
 

@@ -5,7 +5,7 @@
 
 use super::calculator::GradientValue;
 use crate::error::Result;
-use tabled::{Table, settings::Style};
+use tabled::{settings::Style, Table};
 
 /// Gradient output format using enum dispatch for zero-cost abstractions
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -161,66 +161,23 @@ impl EventCallbacks {
     }
 }
 
-/// Gradient output formatter
-pub struct GradientFormatter {
-    format: GradientFormat,
-    callbacks: EventCallbacks,
-}
-
-impl GradientFormatter {
-    /// Create output manager with specified format
-    pub fn with_format(format: GradientFormat) -> Self {
-        Self {
-            format,
-            callbacks: EventCallbacks::new(),
+/// Pure functional formatting entrypoint (replaces removed GradientFormatter struct)
+pub fn format_gradient_with_callbacks(
+    format: &GradientFormat,
+    values: &[GradientValue],
+    callbacks: &EventCallbacks,
+) -> Result<String> {
+    callbacks.notify_gradient_generated(values);
+    match format.format_gradient(values) {
+        Ok(output) => {
+            callbacks.notify_output_formatted(&output);
+            Ok(output)
         }
-    }
-
-    /// Create output manager with table format
-    pub fn with_table_format() -> Self {
-        Self::with_format(GradientFormat::Table)
-    }
-
-    /// Create output manager with CSS format
-    pub fn with_css_format() -> Self {
-        Self::with_format(GradientFormat::Css)
-    }
-
-    /// Create output manager with JSON format
-    pub fn with_json_format() -> Self {
-        Self::with_format(GradientFormat::Json)
-    }
-
-    /// Add event callbacks using builder pattern
-    pub fn with_callbacks(mut self, callbacks: EventCallbacks) -> Self {
-        self.callbacks = callbacks;
-        self
-    }
-
-    /// Format and output gradient values with event notifications
-    pub fn format_gradient(&self, values: &[GradientValue]) -> Result<String> {
-        // Notify gradient generated
-        self.callbacks.notify_gradient_generated(values);
-
-        // Format output
-        match self.format.format_gradient(values) {
-            Ok(output) => {
-                // Notify output formatted
-                self.callbacks.notify_output_formatted(&output);
-                Ok(output)
-            }
-            Err(error) => {
-                // Notify error
-                let error_msg = format!("Formatting error: {error}");
-                self.callbacks.notify_error(&error_msg);
-                Err(error)
-            }
+        Err(e) => {
+            let msg = format!("Formatting error: {e}");
+            callbacks.notify_error(&msg);
+            Err(e)
         }
-    }
-
-    /// Get current format name
-    pub fn format_name(&self) -> &str {
-        self.format.name()
     }
 }
 
@@ -326,10 +283,9 @@ mod tests {
 
     #[test]
     fn test_gradient_formatter() {
-        let manager = GradientFormatter::with_table_format();
         let values = create_test_values();
-
-        let result = manager.format_gradient(&values).unwrap();
+        let callbacks = EventCallbacks::new();
+        let result = format_gradient_with_callbacks(&GradientFormat::Table, &values, &callbacks).unwrap();
         assert!(result.contains("FF0000"));
     }
 
@@ -351,10 +307,8 @@ mod tests {
                 *output_flag.lock().unwrap() = true;
             });
 
-        let manager = GradientFormatter::with_table_format().with_callbacks(callbacks);
-
-        let values = create_test_values();
-        let _result = manager.format_gradient(&values).unwrap();
+    let values = create_test_values();
+    let _result = format_gradient_with_callbacks(&GradientFormat::Table, &values, &callbacks).unwrap();
 
         assert!(*gradient_called.lock().unwrap());
         assert!(*output_called.lock().unwrap());
@@ -365,12 +319,14 @@ mod tests {
         assert_eq!(GradientFormat::Table.name(), "Table");
         assert_eq!(GradientFormat::Css.name(), "CSS");
         assert_eq!(GradientFormat::Json.name(), "JSON");
-        assert_eq!(
-            GradientFormat::Custom {
-                name: "test".to_string()
-            }
-            .name(),
-            "test"
-        );
+        assert_eq!(GradientFormat::Custom { name: "test".to_string() }.name(), "test");
+    }
+
+    #[test]
+    fn test_functional_formatting_api() {
+        let values = create_test_values();
+        let callbacks = EventCallbacks::new();
+        let out = format_gradient_with_callbacks(&GradientFormat::Json, &values, &callbacks).unwrap();
+        assert!(out.contains("FF0000"));
     }
 }

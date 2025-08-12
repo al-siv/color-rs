@@ -29,7 +29,7 @@ pub fn execute_command_with_clock(
 
     // Apply pre-execution hooks
     for hook in &context.pre_hooks {
-        if let Err(e) = apply_pre_hook(hook, &context.command_type) {
+        if let Err(e) = apply_pre_hook(hook, &context.command_type, context.logger) {
             return Ok(ExecutionResult::failure(format!("Pre-hook failed: {e}")));
         }
     }
@@ -62,7 +62,7 @@ pub fn execute_command_with_clock(
 
     // Apply post-execution hooks
     for hook in &context.post_hooks {
-        result = apply_post_hook(hook, result);
+        result = apply_post_hook(hook, result, context.logger);
     }
 
     // Update execution time using explicit clock
@@ -144,11 +144,15 @@ pub fn execute_command_enhanced(command_type: CommandType) -> Result<ExecutionRe
 
 // Hook execution functions using function composition
 
-fn apply_pre_hook(hook: &PreHookStep, command_type: &CommandType) -> Result<()> {
+fn apply_pre_hook(
+    hook: &PreHookStep,
+    command_type: &CommandType,
+    logger: &dyn crate::logger::Logger,
+) -> Result<()> {
     match hook {
         PreHookStep::ValidateParameters => validate_command_parameters(command_type),
         PreHookStep::LogStart => {
-            eprintln!("Starting command: {}", get_command_name(command_type));
+            logger.debug(&format!("Starting command: {}", get_command_name(command_type)));
             Ok(())
         }
         PreHookStep::CheckPrerequisites => {
@@ -159,11 +163,18 @@ fn apply_pre_hook(hook: &PreHookStep, command_type: &CommandType) -> Result<()> 
     }
 }
 
-fn apply_post_hook(hook: &PostHookStep, result: ExecutionResult) -> ExecutionResult {
+fn apply_post_hook(
+    hook: &PostHookStep,
+    result: ExecutionResult,
+    logger: &dyn crate::logger::Logger,
+) -> ExecutionResult {
     match hook {
         PostHookStep::FormatOutput => format_command_output(result),
         PostHookStep::LogCompletion => {
-            eprintln!("Command completed in {}ms", result.execution_time_ms);
+            logger.debug(&format!(
+                "Command completed in {}ms",
+                result.execution_time_ms
+            ));
             result
         }
         PostHookStep::SaveOutput => save_command_output(result),

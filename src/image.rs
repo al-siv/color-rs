@@ -1,7 +1,7 @@
 //! Image generation (SVG and PNG) for color-rs
 
 use image::{ImageBuffer, Rgba, RgbaImage};
-use palette::{IntoColor, Lab, Lch, Srgb};
+use palette::Lab;
 use resvg;
 use std::fs;
 use tiny_skia::{Pixmap, Transform};
@@ -9,48 +9,16 @@ use usvg::{Options, Tree, fontdb};
 
 use crate::cli::{GradientArgs, HueArgs};
 use crate::color_ops::analysis::hue::HueAnalysisResult;
-use crate::config::{algorithm_constants, display_constants, math_constants};
+use crate::config::display_constants;
 use crate::error::{ColorError, Result};
-use crate::gradient::GradientCalculator;
+use crate::image_core::{create_hue_gradient_svg, create_hue_palette_svg, create_svg_content};
 
-/// Convert a color component from 0.0-1.0 range to 0-255 u8
-///
-/// # Arguments
-/// * `component` - Color component value in 0.0-1.0 range
-///
-/// # Returns
-/// u8 value in 0-255 range
-#[must_use]
-fn component_to_u8(component: f32) -> u8 {
-    // Since RGB_MAX_VALUE is 255.0 and we clamp to this range,
-    // the cast to u8 is safe and will never wrap
-    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-    {
-        (component * math_constants::RGB_MAX_VALUE)
-            .round()
-            .clamp(0.0, math_constants::RGB_MAX_VALUE) as u8
-    }
-}
+// Extraction marker to force rebuild and document pure core delegation
+const _IMAGE_CORE_EXTRACTED: bool = true;
 
-/// Convert LAB color to hex string for image generation
-/// RGB values are clamped to [0,255] range before casting to u8 for safety
-#[must_use]
-pub fn lab_to_hex(lab: Lab) -> String {
-    let srgb: Srgb = lab.into_color();
-    format!(
-        "#{:02X}{:02X}{:02X}",
-        component_to_u8(srgb.red),
-        component_to_u8(srgb.green),
-        component_to_u8(srgb.blue),
-    )
-}
+// component_to_u8 moved to image_core (pure helper)
 
-/// Convert LCH color to hex string for image generation
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-pub fn lch_to_hex(lch: Lch) -> String {
-    let lab: Lab = lch.into_color();
-    lab_to_hex(lab)
-}
+// lab_to_hex, lch_to_hex now provided by image_core (pure core)
 
 /// Supported image formats
 #[derive(Debug, Clone, Copy)]
@@ -141,123 +109,7 @@ impl ImageGenerator {
         start_lab: Lab,
         end_lab: Lab,
     ) -> Result<String> {
-        let width = args.width;
-        let gradient_height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
-        let legend_height = if args.no_legend {
-            0
-        } else {
-            (f64::from(gradient_height) * display_constants::DEFAULT_LEGEND_HEIGHT_RATIO)
-                .max(display_constants::MIN_LEGEND_HEIGHT) as u32
-        };
-        let total_height = gradient_height + legend_height;
-
-        let start_hex = lab_to_hex(start_lab);
-        let end_hex = lab_to_hex(end_lab);
-
-        let mut svg = String::new();
-        svg.push_str(&format!(
-            r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
-        ));
-        svg.push('\n');
-
-        // Add gradient definition that maps start_position to end_position
-        svg.push_str("  <defs>\n");
-        svg.push_str(&format!(
-            "    <linearGradient id=\"grad\" x1=\"{}%\" y1=\"0%\" x2=\"{}%\" y2=\"0%\">\n",
-            args.start_position, args.end_position
-        ));
-
-        // Use unified gradient calculation for consistent results with YAML output
-        // Generate many stops (400) for smooth bezier rendering in SVG
-        let svg_steps = 400; // High resolution for smooth gradients
-        let cfg = crate::gradient::unified_calculator::GradientCalculationConfig {
-            start_lab,
-            end_lab,
-            start_position: args.start_position,
-            end_position: args.end_position,
-            ease_in: args.ease_in,
-            ease_out: args.ease_out,
-            steps: svg_steps,
-            use_simple_mode: args.stops_simple, // Use same mode as YAML output
-            algorithm: crate::color_distance_strategies::DistanceAlgorithm::DeltaE2000,
-        };
-        let unified_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg);
-
-        // Convert unified stops to SVG stops with proper offset mapping
-        // Map stop positions from [start_position, end_position] to [0%, 100%]
-        let position_range = args.end_position - args.start_position;
-        let mut last_offset: Option<f64> = None;
-
-        for stop in unified_stops {
-            let hex_color = lab_to_hex(stop.lab_color);
-            // Convert absolute position to relative position within the gradient with 0.5% precision
-            let relative_offset_precise =
-                (stop.position - args.start_position) as f64 / position_range as f64 * 100.0;
-            let relative_offset =
-                (relative_offset_precise * algorithm_constants::GRADIENT_OFFSET_PRECISION).round()
-                    / algorithm_constants::GRADIENT_OFFSET_PRECISION; // Round to nearest 0.5%
-
-            // Skip duplicates - only add if offset changed by at least 0.5%
-            if let Some(last) = last_offset {
-                if (relative_offset - last).abs() < 0.5 {
-                    continue;
-                }
-            }
-
-            last_offset = Some(relative_offset);
-
-            // Format offset with proper precision (show .5 when needed, hide .0)
-            let offset_str = if relative_offset.fract() == 0.0 {
-                format!("{}%", relative_offset.round() as u8)
-            } else {
-                format!("{relative_offset:.1}%")
-            };
-
-            svg.push_str(&format!(
-                "      <stop offset=\"{offset_str}\" stop-color=\"{hex_color}\" />\n"
-            ));
-        }
-
-        svg.push_str("    </linearGradient>\n");
-        svg.push_str("  </defs>\n");
-
-        // Create full-width gradient rectangle
-        svg.push_str(&format!(
-            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{gradient_height}\" fill=\"url(#grad)\" />\n"
-        ));
-
-        // Add legend if not disabled
-        if !args.no_legend {
-            let font_size = (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO)
-                .max(display_constants::MIN_FONT_SIZE) as u32;
-            let text_y = gradient_height
-                + (f64::from(legend_height) * display_constants::DEFAULT_TEXT_Y_RATIO) as u32;
-
-            svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
-            ));
-            svg.push_str(&format!(
-                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\">\n",
-                width / 100,
-                text_y,
-                display_constants::FONT_FAMILY,
-                font_size
-            ));
-            svg.push_str(&format!(
-                "    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n",
-                args.ease_in,
-                args.ease_out,
-                args.start_position,
-                args.end_position,
-                start_hex,
-                end_hex
-            ));
-            svg.push_str("  </text>\n");
-        }
-
-        svg.push_str("</svg>");
-
-        Ok(svg)
+        create_svg_content(args, start_lab, end_lab)
     }
 
     /// Validate image generation parameters
@@ -341,111 +193,7 @@ impl ImageGenerator {
         args: &HueArgs,
         colors: &[HueAnalysisResult],
     ) -> Result<String> {
-        if colors.is_empty() {
-            return Err(ColorError::InvalidArguments(
-                "Cannot create gradient from empty color collection".to_string(),
-            ));
-        }
-
-        let width = args.width;
-        let height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
-
-        let mut svg = String::new();
-        svg.push_str(&format!(
-            r#"<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">"#
-        ));
-        svg.push('\n');
-
-        // Add white background
-        svg.push_str(&format!(
-            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{height}\" fill=\"white\" />\n"
-        ));
-
-        // Add gradient definition
-        svg.push_str("  <defs>\n");
-        svg.push_str(
-            "    <linearGradient id=\"huegrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n",
-        );
-
-        // Create gradient stops from colors with banding behavior (+1% offset for hard transitions)
-        let step = 100.0 / (colors.len() - 1).max(1) as f64;
-        for (i, color) in colors.iter().enumerate() {
-            let hex_color = lch_to_hex(color.color);
-
-            if i == 0 {
-                // First color starts at 0%
-                svg.push_str(&format!(
-                    "      <stop offset=\"0%\" stop-color=\"{hex_color}\" />\n"
-                ));
-            } else if i == colors.len() - 1 {
-                // Last color: create a hard edge 1% before the end, then extend to 100%
-                let end_position = (i as f64 * step) - 0.5;
-                let prev_hex = lch_to_hex(colors[i - 1].color);
-
-                // End the previous color 1% before the transition
-                svg.push_str(&format!(
-                    "      <stop offset=\"{end_position:.1}%\" stop-color=\"{prev_hex}\" />\n"
-                ));
-                // Start the final color immediately after
-                svg.push_str(&format!(
-                    "      <stop offset=\"{:.1}%\" stop-color=\"{hex_color}\" />\n",
-                    end_position + 0.1
-                ));
-                // Extend final color to 100%
-                svg.push_str(&format!(
-                    "      <stop offset=\"100%\" stop-color=\"{hex_color}\" />\n"
-                ));
-            } else {
-                // Middle colors: create hard transitions with +1% offset behavior
-                let start_position = (i as f64 * step) - 0.5;
-                let end_position = (i as f64 * step) + 0.5;
-                let prev_hex = lch_to_hex(colors[i - 1].color);
-
-                // End previous color just before this one
-                svg.push_str(&format!(
-                    "      <stop offset=\"{start_position:.1}%\" stop-color=\"{prev_hex}\" />\n"
-                ));
-                // Start current color immediately after
-                svg.push_str(&format!(
-                    "      <stop offset=\"{:.1}%\" stop-color=\"{hex_color}\" />\n",
-                    start_position + 0.1
-                ));
-                // Extend current color until next transition
-                svg.push_str(&format!(
-                    "      <stop offset=\"{end_position:.1}%\" stop-color=\"{hex_color}\" />\n"
-                ));
-            }
-        }
-
-        svg.push_str("    </linearGradient>\n");
-        svg.push_str("  </defs>\n");
-
-        // Create gradient rectangle
-        svg.push_str(&format!(
-            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{height}\" fill=\"url(#huegrad)\" />\n"
-        ));
-
-        // Add title if labels are enabled
-        if !args.no_labels {
-            let font_size = 24;
-            let title = format!(
-                "{} Collection Hue Gradient ({} colors)",
-                args.collection.to_uppercase(),
-                colors.len()
-            );
-            svg.push_str(&format!(
-                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\" text-anchor=\"middle\" stroke=\"black\" stroke-width=\"1\">\n",
-                width / 2,
-                font_size + 10,
-                display_constants::FONT_FAMILY,
-                font_size
-            ));
-            svg.push_str(&format!("    {title}\n"));
-            svg.push_str("  </text>\n");
-        }
-
-        svg.push_str("</svg>");
-        Ok(svg)
+        create_hue_gradient_svg(args, colors)
     }
 
     /// Create vertical palette SVG from hue analysis results
@@ -454,129 +202,7 @@ impl ImageGenerator {
         args: &HueArgs,
         colors: &[HueAnalysisResult],
     ) -> Result<String> {
-        if colors.is_empty() {
-            return Err(ColorError::InvalidArguments(
-                "Cannot create palette from empty color collection".to_string(),
-            ));
-        }
-
-        let width = args.width;
-        let swatch_height = args.color_height.unwrap_or(80u32); // Use color_height parameter or default to 80
-        let header_height = if args.no_labels {
-            0
-        } else {
-            args.font_size * 4
-        }; // Increased header from 50 to 60
-        let total_height = header_height + (colors.len() as u32 * swatch_height);
-
-        let mut svg = String::new();
-        svg.push_str(&format!(
-            r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
-        ));
-        svg.push('\n');
-
-        // Add white background
-        svg.push_str(&format!(
-            "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{total_height}\" fill=\"white\" />\n"
-        ));
-
-        // Add header if labels are enabled
-        let mut y_offset = 0;
-        if !args.no_labels {
-            let font_size = args.font_size * 15 / 10; // Increased from 24
-            let title = if let Some(ref custom_header) = args.header_text {
-                custom_header.clone()
-            } else {
-                format!(
-                    "{} Collection Color Palette ({} colors)",
-                    args.collection.to_uppercase(),
-                    colors.len()
-                )
-            };
-
-            // Calculate left padding as 1/2 of (color-height + border-width)
-            let header_padding =
-                (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
-
-            svg.push_str(&format!(
-                "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"black\" text-anchor=\"start\">\n",
-                header_padding,
-                header_height / 2 + font_size / 2,
-                display_constants::HEADER_FONT_FAMILY,
-                font_size
-            ));
-            svg.push_str(&format!("{title}\n"));
-            svg.push_str("</text>\n");
-            y_offset = header_height;
-        }
-
-        // Create color swatches - full width blocks with text inside
-        for (i, color) in colors.iter().enumerate() {
-            let y = y_offset + (i as u32 * swatch_height);
-            let hex_color = lch_to_hex(color.color);
-
-            // Full-width color block with borders from args
-            svg.push_str(&format!(
-                "  <rect x=\"0\" y=\"{y}\" width=\"{width}\" height=\"{swatch_height}\" fill=\"{hex_color}\" stroke=\"{}\" stroke-width=\"{}\" />\n",
-                args.border_color, args.border_width
-            ));
-
-            // Text inside the color block if labels are enabled
-            if !args.no_labels {
-                let font_size = args.font_size; // Use font size from args
-                let text_y = y + swatch_height / 2 + font_size / 2;
-
-                // Extract LCH components from the color
-                let lch = color.color;
-                let hue_str = format!("{:.0}", lch.hue.into_degrees());
-                let hex_str = hex_color.to_uppercase();
-                let lch_str = format!(
-                    "lch({:.1}, {:.1}, {:.1})",
-                    lch.l,
-                    lch.chroma,
-                    lch.hue.into_degrees()
-                );
-                let code_str = color.code.as_deref().unwrap_or("Unknown");
-                let name_str = color.name.as_deref().unwrap_or("Unknown");
-
-                // Calculate hue delta from previous color (for palette mode)
-                let hue_delta_str = if i == 0 {
-                    "—".to_string() // First color has no previous hue
-                } else {
-                    let prev_hue = colors[i - 1].color.hue.into_degrees();
-                    let current_hue = lch.hue.into_degrees();
-                    let delta = current_hue - prev_hue;
-                    format!("{delta:+.2}")
-                };
-
-                // Create LCH format: {H} | {HEX} | {lch(ll.l, cc.c, hhh.h)} | {code} | {color_name} | {hue_delta}
-                let display_text = format!(
-                    "{hue_str} | {hex_str} | {lch_str} | {code_str} | {name_str} | {hue_delta_str}"
-                );
-
-                // Calculate contrast color for text (white or black)
-                let text_color = if is_dark_color(&hex_color) {
-                    "white"
-                } else {
-                    "black"
-                };
-
-                // Calculate left padding as 1/2 of (color-height + border-width) minus half the text height
-                let text_padding =
-                    (args.color_height.unwrap_or(50) + args.border_width) / 2 - font_size / 2;
-
-                svg.push_str(&format!(
-                    "  <text x=\"{}\" y=\"{text_y}\" font-family=\"{}\" font-size=\"{font_size}\" fill=\"{text_color}\" text-anchor=\"start\">\n",
-                    text_padding,
-                    display_constants::FONT_FAMILY
-                ));
-                svg.push_str(&format!("{display_text}\n"));
-                svg.push_str("  </text>\n");
-            }
-        }
-
-        svg.push_str("</svg>\n");
-        Ok(svg)
+        create_hue_palette_svg(args, colors)
     }
 
     /// Convert SVG file to PNG
@@ -708,28 +334,7 @@ impl Default for ImageGenerator {
     }
 }
 
-/// Helper function to determine if a color is dark (for text contrast)
-fn is_dark_color(hex_color: &str) -> bool {
-    // Remove # if present
-    let hex = hex_color.trim_start_matches('#');
-
-    if hex.len() != 6 {
-        return false; // Default to dark if can't parse
-    }
-
-    // Parse RGB values
-    if let (Ok(r), Ok(g), Ok(b)) = (
-        u8::from_str_radix(&hex[0..2], 16),
-        u8::from_str_radix(&hex[2..4], 16),
-        u8::from_str_radix(&hex[4..6], 16),
-    ) {
-        // Calculate relative luminance using sRGB coefficients
-        let luminance = 0.299 * f64::from(r) + 0.587 * f64::from(g) + 0.114 * f64::from(b);
-        luminance < 128.0 // Dark if luminance < 50%
-    } else {
-        false // Default to light if parsing fails
-    }
-}
+// is_dark_color now provided by image_core
 
 #[cfg(test)]
 mod tests {

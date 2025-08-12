@@ -4,9 +4,16 @@
 //! replacing traditional command pattern with enum-based dispatch.
 
 use crate::cli::GradientArgs;
+use crate::logger::{Logger, DEFAULT_LOGGER};
 use std::collections::HashMap;
 
 /// Command type using enum dispatch (replaces trait objects)
+///
+/// NOTE: This enum already serves as the planned "Command" ADT described in the
+/// migration plan. No additional wrapping enum is required; sprint task for
+/// introducing a Command enum can be satisfied by enhancing/maintaining this
+/// existing `CommandType`. Future additions should extend variants here
+/// (preserving exhaustive matching) rather than layering new indirection.
 #[derive(Debug, Clone)]
 pub enum CommandType {
     /// Generate color gradient between two colors
@@ -62,7 +69,7 @@ pub enum PostHookStep {
 }
 
 /// Command execution context with functional composition
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ExecutionContext {
     /// Command type determines execution strategy
     pub command_type: CommandType,
@@ -72,6 +79,8 @@ pub struct ExecutionContext {
     pub post_hooks: Vec<PostHookStep>,
     /// Execution metadata
     pub metadata: HashMap<String, String>,
+    /// Logger capability (effect boundary) - defaults to no-op
+    pub logger: &'static dyn Logger,
 }
 
 /// Execution result with metadata and functional composition support
@@ -89,6 +98,17 @@ pub struct ExecutionResult {
     pub execution_time_ms: u128,
 }
 
+impl std::fmt::Debug for ExecutionContext {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ExecutionContext")
+            .field("command_type", &self.command_type)
+            .field("pre_hooks", &self.pre_hooks)
+            .field("post_hooks", &self.post_hooks)
+            .field("metadata", &self.metadata)
+            .finish()
+    }
+}
+
 impl ExecutionContext {
     /// Create new execution context
     #[must_use]
@@ -98,6 +118,7 @@ impl ExecutionContext {
             pre_hooks: Vec::new(),
             post_hooks: Vec::new(),
             metadata: HashMap::new(),
+            logger: &DEFAULT_LOGGER,
         }
     }
 
@@ -120,6 +141,13 @@ impl ExecutionContext {
     #[must_use]
     pub fn with_metadata(mut self, key: String, value: String) -> Self {
         self.metadata.insert(key, value);
+        self
+    }
+
+    /// Attach a logger (explicit effect injection)
+    #[must_use]
+    pub fn with_logger(mut self, logger: &'static dyn Logger) -> Self {
+        self.logger = logger;
         self
     }
 }

@@ -23,37 +23,49 @@ pub fn format_as_json(values: &[GradientValue]) -> Result<String> {
 
 /// Simple text output formatter  
 pub fn format_as_text(values: &[GradientValue]) -> Result<String> {
-    use std::fmt::Write;
-    let mut output = String::new();
-    output.push_str("Position | Hex     | RGB          | WCAG Luminance\n");
-    output.push_str("---------|---------|--------------|---------------\n");
+    // Iterator pipeline version (removes imperative loop & explicit mutable writes)
+    let header = [
+        "Position | Hex     | RGB          | WCAG Luminance",
+        "---------|---------|--------------|---------------",
+    ];
 
-    for value in values {
-        writeln!(
-            output,
-            "{:8} | {:7} | {:12} | {}",
-            value.position, value.hex, value.rgb, value.wcag_luminance
-        )
-        .map_err(|e| crate::error::ColorError::General(format!("Formatting error: {e}")))?;
+    let body = values
+        .iter()
+        .map(|v| {
+            // Allocation per line acceptable (output size small / CLI oriented)
+            format!(
+                "{:8} | {:7} | {:12} | {}",
+                v.position, v.hex, v.rgb, v.wcag_luminance
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let mut out = header.join("\n");
+    if !body.is_empty() {
+        out.push('\n');
+        out.push_str(&body);
+        out.push('\n');
+    } else {
+        out.push('\n');
     }
-
-    Ok(output)
+    Ok(out)
 }
 
 /// Simple CSV output formatter
 pub fn format_as_csv(values: &[GradientValue]) -> Result<String> {
-    let mut output = String::new();
-    output.push_str("position,hex,rgb,wcag_luminance\n");
-
-    for value in values {
-        use std::fmt::Write as _;
-        writeln!(
-            &mut output,
-            "{},{},{},{}",
-            value.position, value.hex, value.rgb, value.wcag_luminance
-        )
-        .map_err(|e| crate::error::ColorError::General(format!("Formatting error: {e}")))?;
+    let header = "position,hex,rgb,wcag_luminance";
+    let body = values
+        .iter()
+        .map(|v| format!("{},{},{},{}", v.position, v.hex, v.rgb, v.wcag_luminance))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut out = String::with_capacity(header.len() + 1 + body.len() + 1);
+    out.push_str(header);
+    out.push('\n');
+    if !body.is_empty() {
+        out.push_str(&body);
+        out.push('\n');
     }
-
-    Ok(output)
+    Ok(out)
 }

@@ -29,6 +29,8 @@ pub mod gradient;
 // Gradient Configuration - Functional gradient building patterns
 pub mod gradient_config;
 pub mod image;
+pub mod image_core; // Pure image/SVG construction utilities (functional core)
+pub mod logger;
 pub mod output_formats;
 // Performance validation for Milestone 7.2
 pub mod performance_validation;

@@ -29,49 +29,68 @@ pub fn format_as_json(values: &[GradientValue]) -> Result<String> {
 
 /// Simple text output formatter  
 pub fn format_as_text(values: &[GradientValue]) -> Result<String> {
-    let mut output = String::new();
-    output.push_str("Position | RGB                | Hex     | Lab\n");
-    output.push_str("---------|--------------------|---------|-----------\n");
-    
-    for value in values {
-        output.push_str(&format!(
-            "{:8.2} | rgb({:3.0}, {:3.0}, {:3.0}) | #{:02x}{:02x}{:02x} | L:{:5.1} a:{:5.1} b:{:5.1}\n",
-            value.position,
-            value.rgb.red * 255.0,
-            value.rgb.green * 255.0,
-            value.rgb.blue * 255.0,
-            (value.rgb.red * 255.0) as u8,
-            (value.rgb.green * 255.0) as u8,
-            (value.rgb.blue * 255.0) as u8,
-            value.lab.l,
-            value.lab.a,
-            value.lab.b
-        ));
+    let header = [
+        "Position | RGB                | Hex     | Lab",
+        "---------|--------------------|---------|-----------",
+    ];
+    let body = values
+        .iter()
+        .map(|v| {
+            format!(
+                "{:8.2} | rgb({:3.0}, {:3.0}, {:3.0}) | #{:02x}{:02x}{:02x} | L:{:5.1} a:{:5.1} b:{:5.1}",
+                v.position,
+                v.rgb.red * 255.0,
+                v.rgb.green * 255.0,
+                v.rgb.blue * 255.0,
+                (v.rgb.red * 255.0) as u8,
+                (v.rgb.green * 255.0) as u8,
+                (v.rgb.blue * 255.0) as u8,
+                v.lab.l,
+                v.lab.a,
+                v.lab.b
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut out = header.join("\n");
+    if !body.is_empty() {
+        out.push('\n');
+        out.push_str(&body);
+        out.push('\n');
+    } else {
+        out.push('\n');
     }
-    
-    Ok(output)
+    Ok(out)
 }
 
 /// Simple CSV output formatter
 pub fn format_as_csv(values: &[GradientValue]) -> Result<String> {
-    let mut output = String::new();
-    output.push_str("position,r,g,b,hex,l,a,b\n");
-    
-    for value in values {
-        output.push_str(&format!(
-            "{:.3},{},{},{},#{:02x}{:02x}{:02x},{:.3},{:.3},{:.3}\n",
-            value.position,
-            (value.rgb.red * 255.0) as u8,
-            (value.rgb.green * 255.0) as u8,
-            (value.rgb.blue * 255.0) as u8,
-            (value.rgb.red * 255.0) as u8,
-            (value.rgb.green * 255.0) as u8,
-            (value.rgb.blue * 255.0) as u8,
-            value.lab.l,
-            value.lab.a,
-            value.lab.b
-        ));
+    let header = "position,r,g,b,hex,l,a,b";
+    let body = values
+        .iter()
+        .map(|v| {
+            format!(
+                "{:.3},{},{},{},#{:02x}{:02x}{:02x},{:.3},{:.3},{:.3}",
+                v.position,
+                (v.rgb.red * 255.0) as u8,
+                (v.rgb.green * 255.0) as u8,
+                (v.rgb.blue * 255.0) as u8,
+                (v.rgb.red * 255.0) as u8,
+                (v.rgb.green * 255.0) as u8,
+                (v.rgb.blue * 255.0) as u8,
+                v.lab.l,
+                v.lab.a,
+                v.lab.b
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut out = String::with_capacity(header.len() + 1 + body.len() + 1);
+    out.push_str(header);
+    out.push('\n');
+    if !body.is_empty() {
+        out.push_str(&body);
+        out.push('\n');
     }
-    
-    Ok(output)
+    Ok(out)
 }

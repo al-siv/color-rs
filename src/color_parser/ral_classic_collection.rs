@@ -7,6 +7,7 @@ use super::csv_loader::CsvLoader;
 use anyhow::Result;
 
 /// RAL Classic Colors Collection
+#[derive(Debug)]
 pub struct RalClassicCollection {
     colors: Vec<ColorEntry>,
 }

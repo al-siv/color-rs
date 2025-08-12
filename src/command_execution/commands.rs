@@ -180,24 +180,24 @@ pub fn execute_hue_analysis(
 ) -> Result<ExecutionResult> {
     use crate::cli::OutputFormat;
     use crate::cli::Range;
-    use crate::color_parser::collections::ColorCollection;
     use crate::color_parser::{CssColorCollection, RalClassicCollection, RalDesignCollection};
+    use crate::color_parser::collections::ColorCollectionKind;
     use crate::color_report_formatting::display;
     use crate::output_formats::{HueCollectionConfiguration, HueCollectionOutput, HueColorEntry};
     use palette::Lch;
     use std::collections::HashMap;
 
-    // Load the specified collection
-    let collection: Box<dyn ColorCollection> = match args.collection.as_str() {
-        "css" => Box::new(CssColorCollection::new().map_err(|e| {
+    // Load the specified collection using enum-based ADT (migration from Box<dyn ColorCollection>)
+    let collection: ColorCollectionKind = match args.collection.as_str() {
+        "css" => ColorCollectionKind::Css(CssColorCollection::new().map_err(|e| {
             crate::error::ColorError::ParseError(format!("Failed to load CSS collection: {e}"))
         })?),
-        "ralc" => Box::new(RalClassicCollection::new().map_err(|e| {
+        "ralc" => ColorCollectionKind::RalClassic(RalClassicCollection::new().map_err(|e| {
             crate::error::ColorError::ParseError(format!(
                 "Failed to load RAL Classic collection: {e}"
             ))
         })?),
-        "rald" => Box::new(RalDesignCollection::new().map_err(|e| {
+        "rald" => ColorCollectionKind::RalDesign(RalDesignCollection::new().map_err(|e| {
             crate::error::ColorError::ParseError(format!(
                 "Failed to load RAL Design collection: {e}"
             ))

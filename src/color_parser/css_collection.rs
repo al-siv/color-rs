@@ -7,6 +7,7 @@ use super::csv_loader::CsvLoader;
 use anyhow::Result;
 
 /// CSS Named Colors Collection
+#[derive(Debug)]
 pub struct CssColorCollection {
     colors: Vec<ColorEntry>,
 }

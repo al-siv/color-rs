@@ -21,7 +21,7 @@ pub use calculator::{
 pub use easing::{EasingFactory, EasingFunction, EasingType};
 
 // Functional re-exports
-pub use gradient_formatter::{EventCallbacks, GradientFormat, GradientFormatter};
+pub use gradient_formatter::{EventCallbacks, GradientFormat, format_gradient_with_callbacks};
 pub use gradient_stops::{GradientStopCalculator, StopCalculationStrategy};
 pub use unified_calculator::{calculate_unified_gradient_cfg, GradientCalculationConfig};
 

@@ -361,104 +361,248 @@ pub trait ColorCollection: Send + Sync {
     }
 }
 
-/// Manager for multiple color collections
-pub struct ColorCollectionManager {
-    collections: Vec<Box<dyn ColorCollection>>,
+/// Enum-based replacement for dynamic ColorCollection trait objects (migration stage 1)
+#[derive(Debug)]
+pub enum ColorCollectionKind {
+    Css(super::css_collection::CssColorCollection),
+    RalClassic(super::ral_classic_collection::RalClassicCollection),
+    RalDesign(super::ral_design_collection::RalDesignCollection),
 }
 
-impl Default for ColorCollectionManager {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl ColorCollectionManager {
-    /// Create a new collection manager
-    #[must_use]
-    pub const fn new() -> Self {
-        Self {
-            collections: Vec::new(),
+impl ColorCollectionKind {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Self::Css(_) => "CSS Named Colors",
+            Self::RalClassic(_) => "RAL Classic",
+            Self::RalDesign(_) => "RAL Design System+",
         }
     }
 
-    /// Add a collection to the manager
-    pub fn add_collection(&mut self, collection: Box<dyn ColorCollection>) {
-        self.collections.push(collection);
+    pub fn colors(&self) -> &[ColorEntry] {
+        match self {
+            Self::Css(c) => c.colors(),
+            Self::RalClassic(c) => c.colors(),
+            Self::RalDesign(c) => c.colors(),
+        }
     }
 
-    /// Get all collection names
-    #[must_use]
-    pub fn collection_names(&self) -> Vec<&'static str> {
-        self.collections.iter().map(|c| c.name()).collect()
-    }
-
-    /// Find closest colors across all collections
-    #[must_use]
-    pub fn find_closest_across_all(
+    pub fn find_closest(
         &self,
-        target: &UniversalColor,
-        max_results_per_collection: usize,
-        filter: Option<&SearchFilter>,
-    ) -> Vec<(String, Vec<ColorMatch>)> {
-        self.collections
-            .iter()
-            .map(|collection| {
-                let matches = collection.find_closest(target, max_results_per_collection, filter);
-                (collection.name().to_string(), matches)
-            })
-            .collect()
-    }
-
-    /// Find closest colors across all collections with custom distance algorithm
-    pub fn find_closest_across_all_with_algorithm(
-        &self,
-        target: &UniversalColor,
-        max_results_per_collection: usize,
-        filter: Option<&SearchFilter>,
-        algorithm: DistanceAlgorithm,
-    ) -> Vec<(String, Vec<ColorMatch>)> {
-        self.collections
-            .iter()
-            .map(|collection| {
-                let matches = collection.find_closest_with_algorithm(
-                    target,
-                    max_results_per_collection,
-                    filter,
-                    algorithm,
-                );
-                (collection.name().to_string(), matches)
-            })
-            .collect()
-    }
-
-    /// Find closest colors from a specific collection
-    #[must_use]
-    pub fn find_closest_from_collection(
-        &self,
-        collection_name: &str,
         target: &UniversalColor,
         max_results: usize,
         filter: Option<&SearchFilter>,
-    ) -> Option<Vec<ColorMatch>> {
-        self.collections
-            .iter()
-            .find(|c| c.name() == collection_name)
-            .map(|collection| collection.find_closest(target, max_results, filter))
+    ) -> Vec<ColorMatch> {
+        // Delegate to algorithm-based path with default
+        self.find_closest_with_algorithm(
+            target,
+            max_results,
+            filter,
+            DistanceAlgorithm::DeltaE2000,
+        )
     }
 
-    /// Search by name across all collections
-    #[must_use]
-    pub fn search_by_name(&self, name: &str) -> Vec<(String, ColorEntry)> {
-        self.collections
+    pub fn find_closest_with_algorithm(
+        &self,
+        target: &UniversalColor,
+        max_results: usize,
+        filter: Option<&SearchFilter>,
+        algorithm: DistanceAlgorithm,
+    ) -> Vec<ColorMatch> {
+        // Variant-specific optimizations replicate existing specialized impls
+        match self {
+            Self::Css(c) => {
+                let mut matches: Vec<ColorMatch> = c
+                    .colors()
+                    .iter()
+                    .filter(|e| Self::matches_filter(e, filter))
+                    .map(|entry| {
+                        let distance = target.distance_to_with_algorithm(&entry.color, algorithm);
+                        ColorMatch::new(entry.clone(), distance)
+                    })
+                    .collect();
+                matches.sort_by(|a, b| a.distance.total_cmp(&b.distance));
+                matches.truncate(max_results);
+                matches
+            }
+            Self::RalClassic(c) => {
+                // Reuse existing RalClassic logic (which ignores algorithm currently)
+                let mut distances: Vec<_> = c
+                    .colors()
+                    .iter()
+                    .filter(|entry| {
+                        if let Some(filter) = filter {
+                            if let Some(groups_filter) = &filter.groups {
+                                if let Some(entry_group) = &entry.metadata.group {
+                                    if !groups_filter.contains(entry_group) {
+                                        return false;
+                                    }
+                                } else {
+                                    return false;
+                                }
+                            }
+                        }
+                        true
+                    })
+                    .map(|entry| {
+                        let distance = target.distance_to(&entry.color);
+                        ColorMatch::new(entry.clone(), distance)
+                    })
+                    .collect();
+                distances.sort_by(|a, b| a.distance.total_cmp(&b.distance));
+                distances.truncate(max_results);
+                distances
+            }
+            Self::RalDesign(c) => {
+                let mut distances: Vec<_> = c
+                    .colors()
+                    .iter()
+                    .filter(|entry| {
+                        if let Some(filter) = filter {
+                            if let Some(groups_filter) = &filter.groups {
+                                if let Some(entry_group) = &entry.metadata.group {
+                                    if !groups_filter.contains(entry_group) {
+                                        return false;
+                                    }
+                                } else {
+                                    return false;
+                                }
+                            }
+                        }
+                        true
+                    })
+                    .map(|entry| {
+                        let distance = target.distance_to(&entry.color);
+                        ColorMatch::new(entry.clone(), distance)
+                    })
+                    .collect();
+                distances.sort_by(|a, b| a.distance.total_cmp(&b.distance));
+                distances.truncate(max_results);
+                distances
+            }
+        }
+    }
+
+    pub fn find_by_name(&self, name: &str) -> Option<ColorEntry> {
+        self.colors()
             .iter()
-            .filter_map(|collection| {
-                collection
-                    .find_by_name(name)
-                    .map(|entry| (collection.name().to_string(), entry))
+            .find(|e| e.metadata.name.eq_ignore_ascii_case(name))
+            .cloned()
+    }
+
+    pub fn find_by_code(&self, code: &str) -> Option<ColorEntry> {
+        match self {
+            Self::Css(_) => self
+                .colors()
+                .iter()
+                .find(|e| e
+                    .metadata
+                    .code
+                    .as_ref()
+                    .is_some_and(|c| c.eq_ignore_ascii_case(code)))
+                .cloned(),
+            Self::RalClassic(c) => c
+                .colors()
+                .iter()
+                .find(|e| e.metadata.code.as_ref() == Some(&code.to_string()))
+                .cloned(),
+            Self::RalDesign(c) => c
+                .colors()
+                .iter()
+                .find(|e| e.metadata.code.as_ref() == Some(&code.to_string()))
+                .cloned(),
+        }
+    }
+
+    pub fn find_by_name_pattern(&self, pattern: &str) -> Vec<ColorEntry> {
+        let pattern_lower = pattern.to_lowercase();
+        self.colors()
+            .iter()
+            .filter(|e| e.metadata.name.to_lowercase().contains(&pattern_lower))
+            .cloned()
+            .collect()
+    }
+
+    pub fn find_by_luminance_range(&self, min_luminance: f64, max_luminance: f64) -> Vec<ColorEntry> {
+        self.colors()
+            .iter()
+            .filter(|entry| {
+                let mut color = entry.color.clone();
+                let luminance = color.luminance();
+                luminance >= min_luminance && luminance <= max_luminance
+            })
+            .cloned()
+            .collect()
+    }
+
+    fn matches_filter(entry: &ColorEntry, filter: Option<&SearchFilter>) -> bool {
+        let Some(filter) = filter else { return true; };
+        if let Some(ref allowed_groups) = filter.groups {
+            if let Some(ref entry_group) = entry.metadata.group {
+                if !allowed_groups.contains(entry_group) { return false; }
+            } else { return false; }
+        }
+        if let Some(range) = filter.luminance_range {
+            let mut color = entry.color.clone();
+            let luminance = color.luminance();
+            if luminance < range[0] || luminance > range[1] { return false; }
+        }
+        if let Some(ref pattern) = filter.name_pattern {
+            if !entry.metadata.name.to_lowercase().contains(&pattern.to_lowercase()) { return false; }
+        }
+        true
+    }
+}
+
+/// Enum-based manager (parallel to legacy ColorCollectionManager) (migration stage 1)
+#[derive(Default)]
+pub struct ColorCollections {
+    items: Vec<ColorCollectionKind>,
+}
+
+impl ColorCollections {
+    pub fn new() -> Self { Self { items: Vec::new() } }
+    pub fn add(&mut self, item: ColorCollectionKind) { self.items.push(item); }
+    pub fn names(&self) -> Vec<&'static str> { self.items.iter().map(|c| c.name()).collect() }
+    pub fn find_closest_all(
+        &self,
+        target: &UniversalColor,
+        per_collection: usize,
+        filter: Option<&SearchFilter>,
+    ) -> Vec<(String, Vec<ColorMatch>)> {
+        self.items
+            .iter()
+            .map(|c| (c.name().to_string(), c.find_closest(target, per_collection, filter)))
+            .collect()
+    }
+    pub fn search_name(&self, name: &str) -> Vec<(String, ColorEntry)> {
+        self.items
+            .iter()
+            .filter_map(|c| c.find_by_name(name).map(|e| (c.name().to_string(), e)))
+            .collect()
+    }
+
+    pub fn find_closest_all_with_algorithm(
+        &self,
+        target: &UniversalColor,
+        per_collection: usize,
+        filter: Option<&SearchFilter>,
+        algorithm: DistanceAlgorithm,
+    ) -> Vec<(String, Vec<ColorMatch>)> {
+        self.items
+            .iter()
+            .map(|c| {
+                (
+                    c.name().to_string(),
+                    c.find_closest_with_algorithm(target, per_collection, filter, algorithm),
+                )
             })
             .collect()
     }
+
+    pub fn search_by_name(&self, name: &str) -> Vec<(String, ColorEntry)> { self.search_name(name) }
 }
+
+// Legacy ColorCollectionManager removed (replaced by ColorCollections enum-based manager)
 
 #[cfg(test)]
 mod tests {
@@ -490,5 +634,21 @@ mod tests {
         assert_eq!(entry.metadata.name, "Red");
         assert_eq!(entry.metadata.code, Some("R001".to_string()));
         assert_eq!(entry.metadata.group, Some("Primary".to_string()));
+    }
+
+    #[test]
+    fn test_enum_manager_add_and_names() {
+        // Use empty fallbacks to avoid IO
+        let mut mgr = ColorCollections::new();
+        mgr.add(ColorCollectionKind::Css(crate::color_parser::css_collection::CssColorCollection::empty()));
+        mgr.add(ColorCollectionKind::RalClassic(crate::color_parser::ral_classic_collection::RalClassicCollection::empty()));
+        assert_eq!(mgr.names().len(), 2);
+    }
+
+    #[test]
+    fn test_enum_find_by_name_pattern_empty() {
+        let coll = ColorCollectionKind::Css(crate::color_parser::css_collection::CssColorCollection::empty());
+        let results = coll.find_by_name_pattern("red");
+        assert!(results.is_empty());
     }
 }
