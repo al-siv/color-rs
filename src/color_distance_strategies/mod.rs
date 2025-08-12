@@ -130,58 +130,6 @@ impl DistanceAlgorithm {
     }
 }
 
-/// Legacy function: Calculate distance using Delta E 76
-///
-/// Maintained for backward compatibility. New code should use the enum dispatch.
-#[deprecated(
-    since = "0.16.0",
-    note = "Use DistanceAlgorithm::DeltaE76.calculate_distance() instead"
-)]
-#[must_use]
-pub fn calculate_delta_e_76_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
-    calculate_distance(DistanceAlgorithm::DeltaE76, lab1, lab2)
-}
-
-/// Legacy function: Calculate distance using Delta E 2000
-///
-/// Maintained for backward compatibility. New code should use the enum dispatch.
-#[deprecated(
-    since = "0.16.0",
-    note = "Use DistanceAlgorithm::DeltaE2000.calculate_distance() instead"
-)]
-#[must_use]
-pub fn calculate_delta_e_2000_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
-    calculate_distance(DistanceAlgorithm::DeltaE2000, lab1, lab2)
-}
-
-/// Legacy function: Calculate Euclidean distance
-///
-/// Maintained for backward compatibility. New code should use the enum dispatch.
-#[deprecated(
-    since = "0.16.0",
-    note = "Use DistanceAlgorithm::EuclideanLab.calculate_distance() instead"
-)]
-#[must_use]
-pub fn calculate_euclidean_distance_legacy(lab1: [f32; 3], lab2: [f32; 3]) -> f64 {
-    calculate_distance(DistanceAlgorithm::EuclideanLab, lab1, lab2)
-}
-
-/// Legacy function: Parse algorithm from string
-///
-/// # Errors
-///
-/// Returns error string if the algorithm name is not recognized:
-/// - Invalid algorithm name (not one of: `delta_e_76`, `delta_e_2000`, `euclidean_lab`, `lch`)
-/// - Case-sensitive matching required
-///
-/// Maintained for backward compatibility. New code should use `FromStr` trait.
-#[deprecated(
-    since = "0.16.0",
-    note = "Use DistanceAlgorithm::from_str() or parse() instead"
-)]
-pub fn parse_algorithm_legacy(name: &str) -> Result<DistanceAlgorithm, String> {
-    name.parse().map_err(|e: ValidationError| e.to_string())
-}
 
 /// Migration helper: Convert old array format to `ValidatedLab`
 ///
@@ -330,22 +278,8 @@ mod integration_tests {
         assert_eq!(perceptual_algo, Some(DistanceAlgorithm::DeltaE2000));
     }
 
-    #[test]
-    fn test_legacy_compatibility() {
-        // Test that legacy functions still work
-        #[allow(deprecated)]
-        {
-            let distance = calculate_delta_e_76_legacy([50.0, 0.0, 0.0], [60.0, 0.0, 0.0]);
-            assert!(distance > 0.0);
-            assert!(distance.is_finite());
-        }
-
-        // Test migration helpers
-        let array = [50.0, 10.0, -5.0];
-        let lab = array_to_validated_lab(array).unwrap();
-        let back_to_array = validated_lab_to_array(lab);
-        assert_eq!(array, back_to_array);
-    }
+    // Legacy compatibility test removed along with deprecated helper functions (calculate_*_legacy, parse_algorithm_legacy).
+    // Migration helpers retained (array_to_validated_lab / validated_lab_to_array) and validated indirectly via other tests.
 
     #[test]
     fn test_error_handling() {

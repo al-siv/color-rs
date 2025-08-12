@@ -1,16 +1,17 @@
 //! Logger capability abstraction
 //!
-//! Provides a minimal logging capability trait to prepare for effect isolation.
-//! This keeps the core pure while allowing injection of structured logging at
-//! boundaries. Initial implementation offers a `NoOpLogger` (default) and a
-//! simple `StdoutLogger` for immediate use. Future work can extend this with
-//! structured/leveled logging without changing call sites.
+//! Minimal logging capability trait supporting pluggable implementations while
+//! keeping domain logic pure. Current lightweight approach avoids committing to
+//! a heavy external logging ecosystem prematurely (YAGNI). Structured / leveled
+//! logging can evolve behind the trait without churn at call sites.
 //!
 //! Design goals:
 //! - Zero-cost when using `NoOpLogger` (calls optimized away in release)
-//! - Simple trait object safe interface
-//! - Explicit levels; minimal set to start (Info, Warn, Error, Debug, Trace)
-//! - Avoid pulling external deps until justified
+//! - Simple, object-safe interface; easy to inject through orchestrators
+//! - Explicit minimal level set (Trace, Debug, Info, Warn, Error)
+//! - No external dependencies until concrete need emerges
+//!
+//! Alternatives documented in `analysis/ADR-logging-capability.md` (e.g., direct println!, global static logger, external crates) were rejected for clarity, testability, and incremental evolution flexibility.
 
 /// Log level enumeration (expandable if needed)
 #[repr(u8)]
@@ -24,6 +25,11 @@ pub enum LogLevel {
 }
 
 /// Logger capability trait. Implementors should be lightweight & thread-safe.
+///
+/// Guidance:
+/// * Keep formatting minimal at call sites; let implementations enrich if needed.
+/// * Avoid allocating when level is disabled (FilteringLogger handles this via level check).
+/// * Prefer dependency injection; avoid hidden globals in core pathways.
 pub trait Logger: Send + Sync {
     fn log(&self, level: LogLevel, message: &str);
 

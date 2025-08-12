@@ -1,12 +1,21 @@
 //! Clock abstraction for time-related functionality
 //!
-//! This module provides a Clock trait for dependency injection of time sources,
-//! following functional programming principles by making time access explicit
-//! rather than hidden through direct `SystemTime::now()` calls.
+//! Provides a `Clock` capability trait enabling deterministic tests and effect isolation.
+//! This replaces ad-hoc `SystemTime::now()` / `Instant::now()` usage inside core logic.
+//!
+//! Alternatives (minority reports) summarized in `analysis/ADT-alternatives.md` (capabilities section forthcoming):
+//! * Direct system calls (rejected: impure, hard to test)
+//! * Global static clock (rejected: hidden dependency, complicates concurrency)
 
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-/// Trait for clock functionality - enables dependency injection for testability
+/// Trait for clock functionality – enables dependency injection for
+/// deterministic testing and effect isolation.
+///
+/// Implementations should be cheap to clone/copy and free of global mutable
+/// state. Prefer passing a `&dyn Clock` (or concrete impl) explicitly through
+/// orchestration layers instead of calling `SystemTime::now()` / `Instant::now()`
+/// directly inside pure logic.
 pub trait Clock: Send + Sync {
     /// Get current system time
     fn system_time(&self) -> SystemTime;

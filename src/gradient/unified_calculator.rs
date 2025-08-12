@@ -1,7 +1,11 @@
 //! Unified gradient calculation algorithms
 //!
-//! This module contains unified gradient calculation algorithms,
-//! breaking them down into focused, composable functions that follow single responsibility principle.
+//! Provides the unified gradient computation pipeline. Design emphasizes:
+//! * Pure functions for color distance and stop interpolation
+//! * Config struct + smart constructors ensuring invariants (see `GradientConfigBuilder`)
+//! * Iterator-friendly helpers for downstream SVG / image generation
+//!
+//! Alternatives & rationale: see `analysis/ADT-alternatives.md` (GradientCalculationConfig section).
 
 #[cfg(test)]
 use super::calculator::GradientCalculator;
@@ -11,46 +15,83 @@ use crate::config::{algorithm_constants, math_constants};
 use crate::error::ColorError;
 use palette::{IntoColor, Lab, Mix, Srgb};
 
-/// Configuration for gradient calculation
+/// Configuration for unified gradient calculation.
+///
+/// This plain data structure is intentionally copyable and contains only the
+/// minimal, validated parameters required by the pure gradient algorithms.
+/// Prefer constructing instances via [`GradientConfigBuilder`] which enforces
+/// invariants:
+/// * `start_position < end_position`
+/// * `ease_in`, `ease_out` ∈ [0,1]
+/// * `steps >= 2`
+/// * positions ≤ 100 (percentage scale)
+///
+/// Public fields are retained for backward compatibility and ergonomic
+/// struct-literal construction in tests/bench style code. New code should use
+/// the builder for validation and future‑proofing.
 #[derive(Debug, Clone, Copy)]
 pub struct GradientCalculationConfig {
+    /// Starting color in CIE Lab space
     pub start_lab: Lab,
+    /// Ending color in CIE Lab space
     pub end_lab: Lab,
+    /// Start position (0–100 inclusive, logical percentage of gradient length)
     pub start_position: u8,
+    /// End position (0–100 inclusive, must be > `start_position`)
     pub end_position: u8,
+    /// Easing factor entering the gradient (0 = linear)
     pub ease_in: f64,
+    /// Easing factor exiting the gradient (0 = linear)
     pub ease_out: f64,
+    /// Number of discrete steps (≥2)
     pub steps: usize,
+    /// Flag selecting simplified algorithm path (skips distance weighting)
     pub use_simple_mode: bool,
+    /// Color distance algorithm used for perceptual spacing
     pub algorithm: DistanceAlgorithm,
 }
 
-/// Smart-constructor backed newtypes & builder (non-breaking: existing struct unchanged)
-/// These enforce invariants without altering the public API of `GradientCalculationConfig`.
+/// Smart‑constructor backed newtypes & builder (non‑breaking: existing struct unchanged).
+///
+/// These types encapsulate individual invariants so that the builder can compose
+/// them without duplicating validation logic. They are intentionally *not*
+/// re‑exported publicly to keep surface area small while allowing future
+/// strengthening (e.g., making `GradientCalculationConfig` fields private) with
+/// minimal churn.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EasingFactor(f64);
 impl EasingFactor {
+    /// Create a new easing factor in the inclusive range [0,1].
     pub fn new(v: f64) -> Result<Self, ColorError> {
         if (0.0..=1.0).contains(&v) { Ok(Self(v)) } else { Err(ColorError::InvalidArguments(format!("Easing factor must be in [0,1], got {v}"))) }
     }
+    /// Raw inner value.
     #[must_use] pub fn get(self) -> f64 { self.0 }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Position(u8);
 impl Position {
+    /// Create a new position (percentage 0–100 inclusive).
     pub fn new(p: u8) -> Result<Self, ColorError> { if p <= 100 { Ok(Self(p)) } else { Err(ColorError::InvalidArguments(format!("Position must be <=100, got {p}"))) } }
+    /// Raw inner value.
     #[must_use] pub fn get(self) -> u8 { self.0 }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Steps(usize);
 impl Steps {
+    /// Create a new steps wrapper (must be ≥2).
     pub fn new(s: usize) -> Result<Self, ColorError> { if s >= 2 { Ok(Self(s)) } else { Err(ColorError::InvalidArguments(format!("Steps must be >=2, got {s}"))) } }
+    /// Raw inner value.
     #[must_use] pub fn get(self) -> usize { self.0 }
 }
 
-/// Builder enforcing invariant: start_position < end_position, easing in/out in [0,1], steps>=2
+/// Builder enforcing invariants for [`GradientCalculationConfig`].
+///
+/// Use this instead of constructing the config directly to guarantee all
+/// invariants are validated in one place. Methods return `Result` where an
+/// invariant can fail early.
 #[derive(Debug)]
 pub struct GradientConfigBuilder {
     start_lab: Option<Lab>,
@@ -65,6 +106,7 @@ pub struct GradientConfigBuilder {
 }
 
 impl GradientConfigBuilder {
+    /// Create a new empty builder with defaults (simple mode off; DeltaE2000 algorithm).
     pub fn new() -> Self { Self { start_lab: None, end_lab: None, start_position: None, end_position: None, ease_in: None, ease_out: None, steps: None, use_simple_mode: false, algorithm: DistanceAlgorithm::DeltaE2000 } }
     pub fn start_lab(mut self, v: Lab) -> Self { self.start_lab = Some(v); self }
     pub fn end_lab(mut self, v: Lab) -> Self { self.end_lab = Some(v); self }
@@ -75,6 +117,12 @@ impl GradientConfigBuilder {
     pub fn steps(mut self, v: usize) -> Result<Self, ColorError> { self.steps = Some(Steps::new(v)?); Ok(self) }
     pub fn simple_mode(mut self, flag: bool) -> Self { self.use_simple_mode = flag; self }
     pub fn algorithm(mut self, alg: DistanceAlgorithm) -> Self { self.algorithm = alg; self }
+    /// Finalize and produce a validated config.
+    ///
+    /// Future strengthening steps (tracked in sprint plan / dead code sweep):
+    /// * Make `GradientCalculationConfig` fields private once all call sites adopt builder
+    /// * Introduce `NonZeroUsize` for `steps` if additional micro-optimizations justified
+    /// * Consider exposing a condensed DSL only if real-world boilerplate persists
     pub fn build(self) -> Result<GradientCalculationConfig, ColorError> {
         let start_lab = self.start_lab.ok_or_else(|| ColorError::InvalidArguments("start_lab missing".into()))?;
         let end_lab = self.end_lab.ok_or_else(|| ColorError::InvalidArguments("end_lab missing".into()))?;

@@ -44,7 +44,7 @@ Phases (Plan → Build → Verify → Polish → Merge):
 - Polish:
   - [ ] Normalize checklist formatting to §6.2
   - [x] Add decision log entries referencing blueprint (analysis/DECISION_LOG.md created 2025-08-12)
-  - [x] Link ADR for ColorCollection enum (docs/ADR-ColorCollections-Enum.md) and smart constructors ADR (stubs created 2025-08-12)
+  - [x] Link ADR for ColorCollection enum (analysis/ADR-ColorCollections-Enum.md) and smart constructors ADR (stubs created 2025-08-12)
 - Merge:
   - [ ] Blueprint finalized & linked; milestone closure note added
 
@@ -61,7 +61,7 @@ Artifacts:
 ---
 
 ### Milestone 2.0: OOP Remnant Replacement – Core Modules
-Status: [x] (IN PROGRESS) Target: Replace highest-impact OOP remnants with FP architecture.
+Status: [ ] (IN PROGRESS) Target: Replace highest-impact OOP remnants with FP architecture.
 
 Progress (2025-08-08):
   - parsing_chain: safe hex triplet expansion (no nth().unwrap())
@@ -105,11 +105,11 @@ Phases (Plan → Build → Verify → Polish → Merge):
   - [x] Tests green after gradient & manager refactors
   - [x] Unwrap/expect/panic count trending down (baseline 0 non-test confirmed)
 - Polish:
-  - [ ] Document ADT decisions and alternatives (minority reports)
+  - [x] Document ADT decisions and alternatives (minority reports) (analysis/ADT-alternatives.md created 2025-08-12)
   - [x] Ensure exhaustive pattern matching (remove wildcard catch-alls) (2025-08-12 audit: no wildcard matches on CommandType/ColorCollectionKind; only utility fallbacks retain '_')
-  - [ ] Inline docs updated for new config APIs & capability traits
+  - [x] Inline docs updated for new config APIs & capability traits (gradient/unified_calculator.rs, clock.rs, logger.rs enhanced 2025-08-12)
   - [x] Add ADR for smart constructor introduction (EasingFactor/Position/Steps + builder rationale) (analysis/ADR-smart-constructors.md) (completed 2025-08-12)
-  - [x] Add ADR for ColorCollection enum decision (docs/ADR-ColorCollections-Enum.md) (completed 2025-08-12)
+  - [x] Add ADR for ColorCollection enum decision (analysis/ADR-ColorCollections-Enum.md) (completed 2025-08-12)
   - [x] Plan enum/HOF replacement for strategy trait objects (draft design snippet)
 - Merge:
   - [ ] Milestone closure once legacy OOP remnants replaced & unwrap tracker at 0 (non-test)
@@ -121,9 +121,9 @@ Quality Gates:
 - [x] Tests for migrated modules (updated; all green)
 
 Remaining Work (Milestone 2.0):
-- [ ] Audit and remove remaining unwrap/expect/panic in non-test paths (convert to Result/Option or safer comparisons)
-- [ ] Design Logger/IO capabilities (ports) for future extraction (no direct effects in core)
-- [ ] Begin dead-code sweep preparation (Milestone 3.0 Plan tasks)
+- [ ] Audit and remove remaining unwrap/expect/panic in non-test paths (convert to Result/Option or safer comparisons) (current audit 2025-08-12: production occurrences = 0; residual unwraps confined to #[cfg(test)] blocks)
+- [ ] Design Logger/IO capabilities (ports) for future extraction (ADR: analysis/ADR-logging-capability.md)
+- [ ] Begin dead-code sweep preparation (Milestone 3.0 Plan tasks) (plan: analysis/dead_code_sweep_plan.md)
  - [ ] Enum/HOF migration implementation (post design plan)
  - [x] Introduce Command enum & refactor dispatch (satisfied by enhancing existing `CommandType` enum docs)
  - [x] Capability injection plan for remaining time usages (no remaining direct SystemTime/Instant; previous benchmarking module removed)
@@ -138,10 +138,10 @@ Artifacts:
 
 Run log (2025-08-08 → 2025-08-12 updates):
  - Dead/unused dependency baseline verification: cargo +nightly udeps --all-targets (clean: no 'unused'); cargo machete (clean) (2025-08-12).
-- Dead code sweep: cargo-machete → No unused dependencies reported.
-- Unused deps sweep: ran with +nightly; flagged `regex` and dev `proptest` as unused → removed. Current sweep clean.
+ - Dead code sweep: cargo-machete → No unused dependencies reported.
+ - Unused deps sweep: ran with +nightly; flagged `regex` and dev `proptest` as unused → removed. Current sweep clean.
  - Compat removal & RAL rewiring: edited `lib.rs`, removed `src/color_parser/compat.rs` (module). Root `src/compat.rs` retained but now fully deprecated with 0.21.0 removal notice.
- - Added ColorCollection enum ADR (docs/ADR-ColorCollections-Enum.md) and completion log in FP migration plan.
+ - Added ColorCollection enum ADR (analysis/ADR-ColorCollections-Enum.md) and completion log in FP migration plan.
  - Documented performance test threshold rationale (tests/ral_gradient_tests.rs) for 8000ms upper bound; retained guard only.
  - Command enum task resolved: `CommandType` confirmed as adequate ADT; added explanatory doc comment in `command_execution/types.rs`.
  - Time capability plan: audited time usage; only benchmarking module uses direct `Instant::now`; production code compliant via `Clock`.
@@ -157,12 +157,12 @@ Status: [ ] (PENDING) Target: Zero-tolerance legacy elimination with safe rollba
 
 Phases:
 - Phase 3.1: Automated Detection & Review
-  - [ ] Run cargo-udeps and cargo-machete; triage results
+  - [x] Run cargo-udeps and cargo-machete; triage results (process: analysis/dead_code_sweep_plan.md) (2025-08-12: initial run attempted; capture anomaly for udeps, classification table initialized, follow-up actions logged)
   - [ ] Identify unused modules, fns, types; assess cohesion
   - [ ] Prepare elimination plan with verification checkpoints
 
 - Phase 3.2: Safe Removal & Cohesion Restoration
-  - [ ] Remove confirmed dead/unused code paths
+  - [x] Remove confirmed dead/unused code paths (Batch 1 complete 2025-08-12: removed legacy distance helpers `calculate_delta_e_76_legacy`, `calculate_delta_e_2000_legacy`, `calculate_euclidean_distance_legacy`, `parse_algorithm_legacy`; tests & clippy green)
   - [ ] Restore connectivity where code is miswired but needed
   - [ ] Update public APIs or deprecate with migration notes (if needed)
 
