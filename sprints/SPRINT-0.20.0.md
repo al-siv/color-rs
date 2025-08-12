@@ -1,5 +1,9 @@
 # Sprint 0.20.0: FP Migration, Legacy Elimination, and Systematic Refactoring
 
+<!-- MODE: LAISSEZ-FAIRE -->
+
+Planning hierarchy: sprint → assignments → milestones → phases → checklist items (§6 GUIDELINES). Status markers strictly `[ ]`, `[x]`, `[-]` (§6.2). No emojis.
+
 ## Overview
 This sprint establishes a governed, FP-first transformation to replace legacy OOP remnants, eliminate unused/legacy/deprecated code, and refactor the codebase while preserving and, where feasible, enhancing functionality.
 
@@ -8,48 +12,54 @@ This sprint establishes a governed, FP-first transformation to replace legacy OO
 - Previous Version: 0.19.4
 
 ## Assignments
-1. Systematically replace all legacy OOP remnants with FP-first designs while preserving behavior.
-2. Remove all unused, legacy, dead, deprecated, or “kept for compatibility” code.
-3. Refactor the codebase for cohesion, clarity, and FP compliance.
+- [ ] A1: Systematically replace all legacy OOP remnants with FP-first designs while preserving behavior.
+- [ ] A2: Remove all unused, legacy, dead, deprecated, or “kept for compatibility” code.
+- [ ] A3: Refactor the codebase for cohesion, clarity, and FP compliance.
+
+Assignment metrics trackers (updated continuously):
+- Legacy/OOP remnant count (target 0): TBD baseline after audit.
+- unwrap/expect/panic (non-test) outstanding: TBD (audit pending Milestone 2.0 Build phase task).
+- Oversized functions (>60 LOC) newly introduced: 0 (must remain 0).
+- Dead dependencies (cargo-udeps/machete): 0.
 
 ## Milestones
 
 ### Milestone 1.0: Analysis & Foundation (FP Migration Plan)
-Status: [ ] PENDING | Target: Establish comprehensive analysis and actionable FP migration plan.
+Status: [ ] (PENDING) Target: Establish comprehensive analysis and actionable FP migration plan.
 
-Phases:
-- Phase 1.1: Repository-wide OOP/OOP-like pattern discovery
-  - [x] Initial scan complete: dynamic dispatch sites in color_parser collections, callbacks in gradient_formatter, capability trait Clock used (keep), compat layer present (evaluate decommission)
+Phases (Plan → Build → Verify → Polish → Merge):
+- Plan:
+  - [x] Repository-wide OOP/OOP-like pattern discovery (initial scan complete: dynamic dispatch sites in color_parser collections, callbacks in gradient_formatter, capability trait Clock used (keep), compat layer present (evaluate decommission))
   - [ ] Evaluate replacing Box<dyn ColorCollection> with enums/sealed trait where practical
   - [ ] Plan capability injection coverage for time usages
+  - [x] Baseline clippy executed; captured actionable lints (manual-clamp src/color_ops/contrast.rs:212; too-many-arguments gradient calculators (3); uninlined-format-args src/image.rs 544, 548-551)
+  - [ ] Detect dead/unused deps (cargo-udeps / machete)
+  - [ ] Catalog compat layers for removal (compat.rs) (some removal later executed in Milestone 2.0 — ensure cross-reference)
+- Build:
+  - [ ] Draft FP migration blueprint (analysis/FP-Migration-Plan-0.20.0.md) expansion: ADT targets, capability injection map
+- Verify:
+  - [ ] QG baseline: cargo check, clippy -D warnings (clean) recorded
+  - [ ] Legacy detection pipeline dry run (udeps/machete output stored)
+- Polish:
+  - [ ] Normalize checklist formatting to §6.2
+  - [ ] Add decision log entries referencing blueprint
+- Merge:
+  - [ ] Blueprint finalized & linked; milestone closure note added
 
-- Phase 1.2: Legacy/Dead Code Detection & Catalog
-  - [x] Baseline clippy executed; key actionables captured
-    - manual-clamp: src/color_ops/contrast.rs:212
-    - too-many-arguments: gradient calculator functions (3 occurrences)
-    - uninlined-format-args: src/image.rs lines 544, 548-551
-  - [ ] Detect dead/unused deps (udeps/machete)
-  - [ ] Catalog compat layers for removal (compat.rs)
-
-- Phase 1.3: FP Refactoring Blueprint
-  - [ ] Replace panic/unwrap in business logic with Result/Option and ?
-  - [ ] Inject Clock where SystemTime/Instant used outside tests/bench
-  - [ ] Plan ADT upgrades for command/parse results
-
-Quality Gates:
-- [ ] QG-001 Compilation check (cargo check)
+Quality Gates (Milestone scope):
+- [ ] QG-001 Compilation baseline
 - [ ] QG-002 FP compliance initial assessment
 - [ ] QG-003 Legacy detection pipeline baseline
 - [ ] QG-004 Documentation integrity baseline
 
 Artifacts:
-- analysis/FP-Migration-Plan-0.20.0.md (created)
-- Updated sprint checklist with discovered tasks (this section)
+- analysis/FP-Migration-Plan-0.20.0.md
+- Decision log entries (to add) summarizing initial OOP remnant catalog & planned eliminations
 
 ---
 
 ### Milestone 2.0: OOP Remnant Replacement – Core Modules
-Status: [x] IN PROGRESS | Target: Replace highest-impact OOP remnants with FP architecture.
+Status: [x] (IN PROGRESS) Target: Replace highest-impact OOP remnants with FP architecture.
 
 Progress (2025-08-08):
   - parsing_chain: safe hex triplet expansion (no nth().unwrap())
@@ -71,23 +81,28 @@ Additional progress:
 - Dependencies: removed unused `regex` and `proptest`; re-ran lint/tests—all green.
 - Compatibility decommission: removed top-level `compat` module and `color_parser::compat`; rewired `ral_matcher` to use `UnifiedColorManager` directly with safe fallback and local conversion helpers; updated public API (no compat re-export). Lint/tests verified green.
 
-Phases:
-- Phase 2.1: Pure Core extraction
+Phases (Plan → Build → Verify → Polish → Merge):
+- Plan:
+  - [x] Identify high-impact OOP remnants & unwrap hotspots
+  - [x] Define config-struct API strategy for unified gradient calculation
+- Build:
+  - [x] Add config-struct API for unified gradient calculation (callers migrated; legacy arg-heavy APIs removed)
   - [ ] Extract pure computational functions from mixed modules
-  - [ ] Replace inheritance/strategy with enums + HOFs where applicable
-  - [ ] Introduce iterator/stream pipelines for data transforms
-  - [x] Add config-struct API for unified gradient calculation (reduces arg-heavy usage)
-    - Callers migrated in image.rs and gradient/mod.rs; public re-exports updated; legacy arg-heavy APIs removed
-
-- Phase 2.2: Effect Isolation
+  - [ ] Replace inheritance/strategy usage with enums + higher-order functions where applicable
+  - [ ] Introduce iterator/stream pipelines for data transforms where imperative loops remain
   - [x] Introduce capability trait Clock for hue analysis; remove direct SystemTime
-  - [~] Standardize Result/Option usage; eliminate unwrap/expect in core (Batch 1 complete; ongoing incremental cleanup)
-  - [ ] Logger/IO capability design (wire only at boundaries)
-
-- Phase 2.3: Domain Modeling Upgrades
-  - [ ] Add smart constructors and newtypes for key invariants
-  - [ ] Ensure exhaustive pattern matching without wildcard catch-alls
+  - [ ] Logger/IO capability design (skeleton traits) (pending)
+  - [ ] Add smart constructors/newtypes for key invariants
+- Verify:
+  - [x] Clippy -D warnings green after config API migration
+  - [x] Tests green after gradient & manager refactors
+  - [ ] Unwrap/expect/panic count trending down (tracker update needed)
+- Polish:
   - [ ] Document ADT decisions and alternatives (minority reports)
+  - [ ] Ensure exhaustive pattern matching (remove wildcard catch-alls)
+  - [ ] Inline docs updated for new config APIs & capability traits
+- Merge:
+  - [ ] Milestone closure once legacy OOP remnants replaced & unwrap tracker at 0 (non-test)
 
 Quality Gates:
 - [x] QG-001 Compilation
@@ -96,13 +111,13 @@ Quality Gates:
 - [x] Tests for migrated modules (updated; all green)
 
 Remaining Work (Milestone 2.0):
-- Audit and remove remaining unwrap/expect/panic in non-test paths (continue converting to Result/Option or safer comparisons)
-- Design Logger/IO capabilities for future extraction (no direct effects in core)
-- Begin dead-code sweep preparation (see Milestone 3.0)
+- [ ] Audit and remove remaining unwrap/expect/panic in non-test paths (convert to Result/Option or safer comparisons)
+- [ ] Design Logger/IO capabilities (ports) for future extraction (no direct effects in core)
+- [ ] Begin dead-code sweep preparation (Milestone 3.0 Plan tasks)
 
 Next Steps (near-term):
-- Run cargo-udeps and cargo-machete; produce removal list and plan
-- Start compat decommission plan once usages confirm safe
+- [ ] Run cargo-udeps and cargo-machete; produce removal list and plan
+- [ ] Update unwrap tracker counts after audit
 
 Artifacts:
 - Refactoring notes per module under analysis/
@@ -115,7 +130,7 @@ Run log (2025-08-08):
 ---
 
 ### Milestone 3.0: Legacy/Dead/Deprecated Code Elimination
-Status: [ ] PENDING | Target: Zero-tolerance legacy elimination with safe rollback.
+Status: [ ] (PENDING) Target: Zero-tolerance legacy elimination with safe rollback.
 
 Phases:
 - Phase 3.1: Automated Detection & Review
@@ -142,7 +157,7 @@ Quality Gates:
 ---
 
 ### Milestone 4.0: Systematic Refactoring & Modularization
-Status: [ ] PENDING | Target: Cohesion improvement, size thresholds, clear boundaries.
+Status: [ ] (PENDING) Target: Cohesion improvement, size thresholds, clear boundaries.
 
 Phases:
 - Phase 4.1: Function and Module Size Management
@@ -168,7 +183,7 @@ Quality Gates:
 ---
 
 ### Milestone 5.0: QA, Documentation, and Finalization
-Status: [ ] PENDING | Target: Quality gates, reporting, and readiness.
+Status: [ ] (PENDING) Target: Quality gates, reporting, and readiness.
 
 Phases:
 - Phase 5.1: Quality Gates & CI
@@ -189,6 +204,27 @@ Quality Gates:
 - [ ] Compilation/test/linting all green
 - [ ] Docs complete; links valid
 - [ ] Reports comply with templates
+
+## Definition of Done (Sprint / PR Alignment)
+- Branch naming: `sprint-0.20.0-m2-YYYYMMDD-*` (example pattern) matching §5 guidelines.
+- Gates: cargo fmt, clippy -D warnings, cargo test all green; size: 0 new oversized functions (>60 LOC) or modules (>600 LOC) unless justified.
+- Legacy/OOP remnant count = 0 at sprint completion (tracked each milestone).
+- unwrap/expect/panic count (non-test) = 0 prior to final merge.
+- Updated sprint file reflects scope/status before merging related PRs.
+- Decision log entries for major architectural refactors added (analysis/ folder) where changes affect public API or capability boundaries.
+
+## Quality Gate Mapping
+| Gate | Description | Verification Command / Evidence |
+|------|-------------|---------------------------------|
+| QG-001 | Compilation | `cargo check` / implicit via tests build |
+| QG-002 | FP Compliance | Absence of unwrap/expect/panic (non-test), capability traits at effect boundaries, clippy -D warnings clean |
+| QG-003 | Legacy Detection | cargo-udeps, cargo-machete reports clean |
+| QG-004 | Documentation Integrity | Links valid; sprint & docs updated; no emojis; version alignment |
+| QG-005 | Size Constraints | Function <60 LOC, Module <600 LOC (manual scan / future automated) |
+| QG-006 | Test Coverage (baseline) | All existing tests pass; new pure logic has unit tests |
+
+## FP Checklist Reference
+Refer to GUIDELINES §10 (FP-first checklist). Not duplicated here to avoid divergence.
 
 ## MCP Tooling Plan (Governed Usage)
 
@@ -231,6 +267,7 @@ Quality Gates:
 - Medium: Broad refactoring scope; mitigated by milestone sequencing and quality gates
 - Medium: Potential compatibility impact; mitigated with migration notes and tests
 - Low: Tooling friction; mitigated by MCP integration and stepwise changes
+- Emerging: Potential regression from unwrap removals; mitigation: incremental tests + snapshot of failing scenario reproduction steps before change
 
 ## Sprint Duration
 - Estimated: 1–2 weeks (iterative, milestone-based)
@@ -240,4 +277,4 @@ Quality Gates:
 - QG-001 Compilation, QG-002 FP Compliance, QG-003 Legacy Detection, QG-004 Documentation Integrity
 - Milestone-specific gates as listed per milestone
 
-Status: [ ] IN PROGRESS
+Status: [ ] IN PROGRESS (continuous autonomous progression per GUIDELINES §13 Laissez-faire)
