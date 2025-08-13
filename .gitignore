@@ -31,5 +31,7 @@ GUIDELINES.md
 WAVELET.md
 **/sprints/old/
 **/archive/
-**/analysis/
-analysis/
+## Allow versioned analysis artifacts reinstated for traceability (size reports, ADRs, research plans)
+# (If large raw datasets emerge later, add specific patterns e.g. analysis/*_raw.csv)
+# Removed blanket analysis ignore to restore governance traceability.
+## (Removed flat 'analysis/' ignore to allow versioned analytical artifacts)
