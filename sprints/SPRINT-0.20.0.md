@@ -164,19 +164,20 @@ Phases:
 - Phase 3.2: Safe Removal & Cohesion Restoration
   - [x] Remove confirmed dead/unused code paths (Batch 1 complete 2025-08-12: removed legacy distance helpers `calculate_delta_e_76_legacy`, `calculate_delta_e_2000_legacy`, `calculate_euclidean_distance_legacy`, `parse_algorithm_legacy`; tests & clippy green)
   - [x] Remove deprecated no-op formatter function (Batch 2 complete 2025-08-13)
+  - [x] Execute early compatibility layer removal (Batch 3 complete 2025-08-13; `src/compat.rs` deleted)
   - [ ] Restore connectivity where code is miswired but needed
   - [ ] Update public APIs or deprecate with migration notes (if needed)
 
 - Phase 3.3: Compatibility Layer Decommission
-  - [ ] Remove deprecated `src/compat.rs` (scheduled Batch 3 early removal)
-  - [ ] Provide migration guidance in CHANGELOG/EXAMPLES
-  - [ ] Verify no regressions in CLI/Examples/Docs
+  - [x] Remove deprecated `src/compat.rs` (executed early in Phase 3.2 Batch 3)
+  - [x] Provide migration guidance in CHANGELOG/EXAMPLES (CHANGELOG updated 2025-08-13; examples unaffected)
+  - [x] Verify no regressions in CLI/Examples/Docs (tests pass; no compat references remain)
 
 Quality Gates:
-- [ ] Zero new warnings; clippy clean
-- [ ] All builds/tests pass
-- [ ] Documentation updated; links valid
-- [ ] Legacy count = 0
+- [x] Zero new warnings; clippy clean (post Batch 3)
+- [x] All builds/tests pass
+- [x] Documentation updated; links valid
+- [x] Legacy count = 0
 
 ---
 
@@ -364,5 +365,5 @@ Refer to GUIDELINES §10 (FP-first checklist). Not duplicated here to avoid dive
 
 Status: [ ] IN PROGRESS (continuous autonomous progression per GUIDELINES §13 Laissez-faire)
 
-## Governance Note (2025-08-12)
-Realigned active work to compliant branch `sprint-0.20.0-m2-20250812` per GUIDELINES §5 (branch naming) replacing prior intermediate branch `milestone-2.1-unwrap-removal-20250808`. Future milestone slices will branch from `main` or this sprint branch using the same naming convention with updated date stamps. Old branch retained temporarily until PR raised & merged.
+## Governance Note (2025-08-13)
+Milestone 3 work has moved to branch `sprint-0.20.0-m3-20250813` per §5 naming conventions. Previous branch `sprint-0.20.0-m2-20250812` retained for history; future Milestone 3 commits target the new branch.
