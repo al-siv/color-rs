@@ -33,6 +33,7 @@ pub mod image;
 pub mod image_core; // Pure image/SVG construction utilities (functional core)
 pub mod logger;
 pub mod output_formats;
+pub mod output_formats_gradient; // Extracted gradient output models (Milestone 4 size refactor)
 pub mod precision_utils;
 pub mod utils;
 

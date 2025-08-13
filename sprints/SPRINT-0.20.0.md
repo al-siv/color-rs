@@ -1,3 +1,11 @@
+### Milestone 4 Phase 4.1 (Size Management) – Slice: Gradient Output Extraction (2025-08-13)
+
+- [x] Extracted gradient-specific serialization structs & impls from `output_formats.rs` into new `output_formats_gradient.rs` (LOC reduction; improved modularity).
+- [x] Added module declaration in `lib.rs` and re-exported types in `output_formats.rs` to preserve public API stability.
+- [x] Build gates: clippy (no warnings) + tests (234 pass) remain green post-refactor.
+- Rationale: Reduce 565 LOC monolith by isolating cohesive gradient data models; prepares next slice focused on format-specific (TOML/YAML) serializers.
+- Next planned slice: Separate serialization helpers (to_toml/to_yaml) into format-focused adapter module or trait-based serializer layer if further LOC/complexity warrants.
+
 # Sprint 0.20.0: FP Migration, Legacy Elimination, and Systematic Refactoring
 
 <!-- MODE: LAISSEZ-FAIRE -->

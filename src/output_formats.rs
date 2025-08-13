@@ -5,6 +5,12 @@
 
 use serde::{Deserialize, Serialize};
 
+// Re-export gradient-specific types now housed in `output_formats_gradient.rs`
+pub use crate::output_formats_gradient::{
+    EnhancedGradientAnalysisOutput, EnhancedGradientStop, GradientAnalysisOutput, GradientColors,
+    GradientConfiguration, GradientStop,
+};
+
 /// Enhanced color name information with multi-collection support
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColorNameInfo {
@@ -56,31 +62,6 @@ pub struct ColorAnalysisOutput {
     pub color_schemes: ColorSchemes,
 }
 
-/// Complete gradient analysis result that can be serialized to TOML/YAML
-#[derive(Debug, Clone, Serialize)]
-pub struct GradientAnalysisOutput {
-    /// Program metadata
-    pub metadata: ProgramMetadata,
-    /// Gradient configuration
-    pub configuration: GradientConfiguration,
-    /// Start and end color information
-    pub colors: GradientColors,
-    /// Gradient steps/stops
-    pub gradient_stops: Vec<GradientStop>,
-}
-
-/// Enhanced gradient analysis output with nested color structure
-#[derive(Debug, Clone, Serialize)]
-pub struct EnhancedGradientAnalysisOutput {
-    /// Program metadata
-    pub metadata: ProgramMetadata,
-    /// Gradient configuration
-    pub configuration: GradientConfiguration,
-    /// Start and end color information
-    pub colors: GradientColors,
-    /// Enhanced gradient steps/stops with nested structure
-    pub gradient_stops: Vec<EnhancedGradientStop>,
-}
 
 /// Hue collection analysis output with structured color information
 #[derive(Debug, Clone, Serialize)]
@@ -110,24 +91,6 @@ pub struct HueColorEntry {
     pub display: String,
 }
 
-/// Gradient configuration section
-#[derive(Debug, Clone, Serialize)]
-pub struct GradientConfiguration {
-    pub start_color: String,
-    pub end_color: String,
-    pub start_position: u8,
-    pub end_position: u8,
-    pub ease_in: f64,
-    pub ease_out: f64,
-    pub gradient_steps: usize,
-}
-
-/// Start and end color information
-#[derive(Debug, Clone, Serialize)]
-pub struct GradientColors {
-    pub start: ColorInfo,
-    pub end: ColorInfo,
-}
 
 /// Individual color information
 #[derive(Debug, Clone, Serialize)]
@@ -170,13 +133,6 @@ pub struct ColorCollectionMatches {
     pub raldsp_distance: f64,
 }
 
-/// Enhanced gradient stop with nested color structure
-#[derive(Debug, Clone, Serialize)]
-pub struct EnhancedGradientStop {
-    pub position: u32,          // Integer position without decimals
-    pub color: NestedColorInfo, // Simplified color info for nesting
-    pub collections: ColorCollectionMatches,
-}
 
 /// Simplified color information for nested structures (no contrast/collections)
 #[derive(Debug, Clone, Serialize)]
@@ -194,23 +150,6 @@ pub struct NestedColorInfo {
     pub distance: f32, // Color distance from start_color using Delta E 2000
 }
 
-/// Individual gradient stop (legacy format)
-#[derive(Debug, Clone, Serialize)]
-pub struct GradientStop {
-    pub position: u32, // Changed to integer for cleaner display
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub hex: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub rgb: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub lab: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub lch: String,
-    #[serde(serialize_with = "crate::precision_utils::PrecisionUtils::serialize_wcag_luminance")]
-    pub wcag21_relative_luminance: f64,
-    pub distance: f32, // Color distance from start_color using Delta E 2000
-    pub color_name: Option<ColorNameInfo>,
-}
 
 /// Program metadata section
 #[derive(Debug, Clone, Serialize)]
@@ -418,45 +357,6 @@ impl ColorAnalysisOutput {
     }
 }
 
-impl GradientAnalysisOutput {
-    /// Serialize to TOML format
-    ///
-    /// # Errors
-    /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
-    /// or unsupported data types.
-    pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
-        toml::to_string_pretty(self)
-    }
-
-    /// Serialize to YAML format
-    ///
-    /// # Errors
-    /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
-    /// or unsupported data types.
-    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
-        serde_yml::to_string(self)
-    }
-}
-
-impl EnhancedGradientAnalysisOutput {
-    /// Serialize to TOML format
-    ///
-    /// # Errors
-    /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
-    /// or unsupported data types.
-    pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
-        toml::to_string_pretty(self)
-    }
-
-    /// Serialize to YAML format
-    ///
-    /// # Errors
-    /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
-    /// or unsupported data types.
-    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
-        serde_yml::to_string(self)
-    }
-}
 
 impl Default for HueCollectionOutput {
     fn default() -> Self {
