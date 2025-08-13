@@ -39,16 +39,7 @@ use palette::{Hsl, IntoColor, Lab, Lch, Srgb};
 pub struct ColorFormatter;
 
 impl ColorFormatter {
-    /// Format a color into a comprehensive analysis report (deprecated)
-    pub const fn format_comprehensive_report(
-        lab_color: Lab,
-        original_input: &str,
-        color_name: &str,
-    ) {
-        // This function is deprecated in favor of collect_color_analysis_data
-        // Keep for backward compatibility but doesn't actually format anything
-        let _ = (lab_color, original_input, color_name);
-    }
+    // Removed deprecated no-op function `format_comprehensive_report` (Phase 3.2 Batch 2).
 
     /// Format a simple color info for table display
     #[must_use]

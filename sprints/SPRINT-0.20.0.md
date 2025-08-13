@@ -121,9 +121,9 @@ Quality Gates:
 - [x] Tests for migrated modules (updated; all green)
 
 Remaining Work (Milestone 2.0):
-- [ ] Audit and remove remaining unwrap/expect/panic in non-test paths (convert to Result/Option or safer comparisons) (current audit 2025-08-12: production occurrences = 0; residual unwraps confined to #[cfg(test)] blocks)
-- [ ] Design Logger/IO capabilities (ports) for future extraction (ADR: analysis/ADR-logging-capability.md)
-- [ ] Begin dead-code sweep preparation (Milestone 3.0 Plan tasks) (plan: analysis/dead_code_sweep_plan.md)
+- [x] Audit and remove remaining unwrap/expect/panic in non-test paths (convert to Result/Option or safer comparisons) (current audit 2025-08-13: production occurrences = 0; residual unwraps confined to #[cfg(test)] blocks)
+- [x] Design Logger/IO capabilities (ports) for future extraction (ADR: analysis/ADR-logging-capability.md)
+- [x] Begin dead-code sweep preparation (Milestone 3.0 Plan tasks) (plan: analysis/dead_code_sweep_plan.md)
  - [ ] Enum/HOF migration implementation (post design plan)
  - [x] Introduce Command enum & refactor dispatch (satisfied by enhancing existing `CommandType` enum docs)
  - [x] Capability injection plan for remaining time usages (no remaining direct SystemTime/Instant; previous benchmarking module removed)
@@ -158,16 +158,17 @@ Status: [ ] (PENDING) Target: Zero-tolerance legacy elimination with safe rollba
 Phases:
 - Phase 3.1: Automated Detection & Review
   - [x] Run cargo-udeps and cargo-machete; triage results (process: analysis/dead_code_sweep_plan.md) (2025-08-12: initial run attempted; capture anomaly for udeps, classification table initialized, follow-up actions logged)
-  - [ ] Identify unused modules, fns, types; assess cohesion
-  - [ ] Prepare elimination plan with verification checkpoints
+  - [x] Identify unused modules, fns, types; assess cohesion (2025-08-13: legacy distance helpers removed Batch 1; deprecated no-op formatter function queued & removed Batch 2; compat.rs scheduled Phase 3.3)
+  - [x] Prepare elimination plan with verification checkpoints (dead_code_sweep_plan updated 2025-08-13 with Batch 3 plan)
 
 - Phase 3.2: Safe Removal & Cohesion Restoration
   - [x] Remove confirmed dead/unused code paths (Batch 1 complete 2025-08-12: removed legacy distance helpers `calculate_delta_e_76_legacy`, `calculate_delta_e_2000_legacy`, `calculate_euclidean_distance_legacy`, `parse_algorithm_legacy`; tests & clippy green)
+  - [x] Remove deprecated no-op formatter function (Batch 2 complete 2025-08-13)
   - [ ] Restore connectivity where code is miswired but needed
   - [ ] Update public APIs or deprecate with migration notes (if needed)
 
 - Phase 3.3: Compatibility Layer Decommission
-  - [ ] Remove deprecated `src/compat.rs` (deadline: 0.21.0)
+  - [ ] Remove deprecated `src/compat.rs` (scheduled Batch 3 early removal)
   - [ ] Provide migration guidance in CHANGELOG/EXAMPLES
   - [ ] Verify no regressions in CLI/Examples/Docs
 
@@ -227,6 +228,67 @@ Quality Gates:
 - [ ] Compilation/test/linting all green
 - [ ] Docs complete; links valid
 - [ ] Reports comply with templates
+
+---
+
+### Milestone 6.0: Research – NCS Index 2050 Color Collection Feasibility
+Status: [ ] (PENDING) Target: Determine legality, data sourcing, and technical approach for adding NCS Index 2050 (Natural Color System) colors (HEX approximations, code-as-name) as an optional collection without violating licensing.
+
+Context:
+- Request: Evaluate if we can add an NCS Index (~2050) color collection similar to CSS / RAL sets.
+- Constraints: NCS is a proprietary system; need to confirm redistribution rights for code lists and color approximations.
+- Goal: Produce a go/no-go decision with documented rationale and (if go) an implementation plan for next sprint.
+
+Phases (Plan → Build → Verify → Polish → Merge):
+- Plan:
+  - [ ] Identify authoritative sources for NCS codes and licensing terms (official site, published specs, existing open datasets if any)
+  - [ ] Classify data elements required: code (e.g., NCS S 1050-Y90R), canonical name (likely same as code), approximate sRGB/HEX mapping strategy
+  - [ ] Define acceptance criteria for perceptual fidelity vs legal compliance (tolerance thresholds ΔE2000?)
+  - [ ] Risk register: legal (licensing), accuracy (mapping deviations), maintenance (updates), performance (lookup size)
+- Build (Research Artifacts):
+  - [ ] Prototype mapping method: derive sRGB approximations from published NCS → CIEXYZ or L*a*b* references (if obtainable) or document inability
+  - [ ] Draft data schema: csv columns (code,name,hex,l,a,b,source,delta_from_reference)
+  - [ ] Evaluate storage size & load time impact; estimate memory footprint
+- Verify:
+  - [ ] Validate sample subset (≥25 colors across hue/lightness range) against reference ΔE2000 threshold (target ≤4.0 avg if reference LAB available)
+  - [ ] License compliance review (document terms with quotations & URLs)
+  - [ ] Performance probe: load + first 100 distance matches timing benchmark (compare to RAL Design baseline)
+- Polish:
+  - [ ] Draft ADR: "ADR-NCS-Collection-Feasibility" covering options (Add / Add via plugin / Defer / Reject)
+  - [ ] Add migration / usage note stub in FEATURE_CATALOG (conditional on go)
+  - [ ] Update sprint assignments (A1/A2/A3) impact analysis
+- Merge:
+  - [ ] Final decision recorded (GO or NO-GO) with rationale; follow-up tasks enumerated (implementation deferred to next sprint if GO)
+
+Quality Gates (Research Scope):
+- [ ] Legal evidence captured (links + quoted excerpts) in analysis/ADR-NCS-Collection-Feasibility.md
+- [ ] Sample color fidelity report (ΔE stats) present (if reference LAB found); else documented limitation
+- [ ] Performance probe numbers recorded (same machine assumptions as prior benchmarks)
+- [ ] No code collection added in this sprint (research only) – guard against premature inclusion
+
+Success Criteria:
+- Clear, actionable decision with risks/trade-offs
+- If GO: concrete data acquisition + normalization plan, schema, and estimation of integration complexity
+- If NO-GO: documented blockers & re-evaluation trigger (e.g., licensing change)
+
+Risks:
+- Legal: Proprietary licensing may forbid redistribution (High)
+- Data Quality: Unofficial HEX approximations vary widely (Medium)
+- Maintenance: Upstream changes to NCS definitions (Low-Med)
+
+Mitigations:
+- Use only data explicitly licensed for redistribution, or require user-provided dataset path
+- Provide plugin/feature flag approach to keep core unencumbered
+- Document approximation method & ΔE statistics transparently
+
+Follow-ups (if GO):
+- Implement NCS loader module (feature-gated)
+- Add distance matching integration & CLI selector (ncs)
+- Provide validation test set with sampled reference LAB values
+
+Artifacts (expected):
+- analysis/ADR-NCS-Collection-Feasibility.md (decision record)
+- analysis/ncs_prototype/ (optional) containing sample CSV + fidelity report
 
 ## Definition of Done (Sprint / PR Alignment)
 - Branch naming: `sprint-0.20.0-m2-YYYYMMDD-*` (example pattern) matching §5 guidelines.

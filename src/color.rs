@@ -92,22 +92,23 @@ impl ColorProcessor {
 
 /// Match and convert a color to all formats with comprehensive output
 pub fn color_match(color_input: &str) {
-    // First, try to parse as RAL code (RAL Classic or Design System+)
+    // Attempt RAL direct match path (previously triggered deprecated comprehensive report output).
     if let Some(ral_match) = try_parse_ral_color(color_input) {
-        // Convert RAL match to LAB color for comprehensive analysis
         let hex_without_hash = ral_match.hex.trim_start_matches('#');
-        let r = u8::from_str_radix(&hex_without_hash[0..2], 16).unwrap_or(0);
-        let g = u8::from_str_radix(&hex_without_hash[2..4], 16).unwrap_or(0);
-        let b = u8::from_str_radix(&hex_without_hash[4..6], 16).unwrap_or(0);
-
-        let srgb = rgb_to_srgb((r, g, b));
-        let lab_color: Lab = srgb.into_color();
-
-        // Use the RAL color name as the color name
-        let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
-
-        // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
-        ColorFormatter::format_comprehensive_report(lab_color, color_input, &ral_color_name);
+        if hex_without_hash.len() == 6 {
+            if let (Ok(r), Ok(g), Ok(b)) = (
+                u8::from_str_radix(&hex_without_hash[0..2], 16),
+                u8::from_str_radix(&hex_without_hash[2..4], 16),
+                u8::from_str_radix(&hex_without_hash[4..6], 16),
+            ) {
+                let srgb = rgb_to_srgb((r, g, b));
+                let lab_color: Lab = srgb.into_color();
+                let ral_color_name = format!("{} ({})", ral_match.name, ral_match.code);
+                // Minimal output: show converted info (placeholder for future structured output refactor)
+                let info = ColorFormatter::format_color_info(lab_color, &ral_color_name);
+                println!("{} | {} | {} | {} | {}", info.label, info.hex, info.rgb, info.hsl, info.lab);
+            }
+        }
     }
 
     // Parse the input color
@@ -122,8 +123,9 @@ pub fn color_match(color_input: &str) {
     // Get color name
     let color_name = get_color_name_for_lab(lab_color);
 
-    // DUPLICATION ELIMINATED: Direct call to ColorFormatter instead of wrapper
-    ColorFormatter::format_comprehensive_report(lab_color, color_input, &color_name);
+    // Produce a single-line informational summary replacing deprecated comprehensive output.
+    let info = ColorFormatter::format_color_info(lab_color, &color_name);
+    println!("{} | {} | {} | {} | {}", info.label, info.hex, info.rgb, info.hsl, info.lab);
 }
 
 /// Parse color input using the integrated parser

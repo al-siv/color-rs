@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance validation and benchmark modules (`src/performance_validation.rs`, `examples/performance_validation.rs`, `examples/performance_benchmark.rs`) fully deleted as non-essential (no stubs retained). Rationale: reduce maintenance surface, remove ad-hoc timing code outside capability boundaries, and keep core FP surface minimal. Lightweight median-of-3 performance guard retained in existing test to watch for regressions.
 - Deprecated legacy distance helper functions removed: `calculate_delta_e_76_legacy`, `calculate_delta_e_2000_legacy`, `calculate_euclidean_distance_legacy`, and `parse_algorithm_legacy` (previously deprecated since 0.16.0). Migration: use `DistanceAlgorithm::{DeltaE76,DeltaE2000,EuclideanLab}.calculate_distance(lab1, lab2)` and standard `str::parse()` / `FromStr` on `DistanceAlgorithm` (`"deltae2000"`, `"deltae76"`, `"euclidean_lab"`, `"lch"`). Rationale: eliminate redundant API surface and advance Phase 3.2 dead-code sweep.
 
+### Deprecated
+- `src/compat.rs` entire module (removal scheduled for 0.21.0): replace usages with direct parsing and command execution APIs (`parse_color`, `get_color_name`, `CommandType`, `execute_command`).
+- Removed deprecated no-op `ColorFormatter::format_comprehensive_report` (previous placeholder now fully deleted); use `ColorFormatter::collect_color_analysis_data` for data collection.
+
 ### Documentation
 - Merged `docs/MATH_FORMULAS.md` into unified `docs/THEORY.md` (new section: "Detailed Algorithms & Formulas"). Removed standalone file to prevent drift and duplication; preserved version-specific procedural notes and added integration annotation.
 
