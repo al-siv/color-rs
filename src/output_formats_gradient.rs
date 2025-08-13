@@ -82,13 +82,13 @@ impl GradientAnalysisOutput {
     ///
     /// # Errors
     /// Returns `toml::ser::Error` if TOML serialization fails
-    pub fn to_toml(&self) -> Result<String, toml::ser::Error> { toml::to_string_pretty(self) }
+    pub fn to_toml(&self) -> Result<String, toml::ser::Error> { crate::serialization::to_toml(self) }
 
     /// Serialize to YAML format
     ///
     /// # Errors
     /// Returns `serde_yml::Error` if YAML serialization fails
-    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> { serde_yml::to_string(self) }
+    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> { crate::serialization::to_yaml(self) }
 }
 
 impl EnhancedGradientAnalysisOutput {
@@ -96,11 +96,11 @@ impl EnhancedGradientAnalysisOutput {
     ///
     /// # Errors
     /// Returns `toml::ser::Error` if TOML serialization fails
-    pub fn to_toml(&self) -> Result<String, toml::ser::Error> { toml::to_string_pretty(self) }
+    pub fn to_toml(&self) -> Result<String, toml::ser::Error> { crate::serialization::to_toml(self) }
 
     /// Serialize to YAML format
     ///
     /// # Errors
     /// Returns `serde_yml::Error` if YAML serialization fails
-    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> { serde_yml::to_string(self) }
+    pub fn to_yaml(&self) -> Result<String, serde_yml::Error> { crate::serialization::to_yaml(self) }
 }

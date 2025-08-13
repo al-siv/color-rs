@@ -344,7 +344,7 @@ impl ColorAnalysisOutput {
     /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
     /// or unsupported data types.
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
-        toml::to_string_pretty(self)
+        crate::serialization::to_toml(self)
     }
 
     /// Serialize to YAML format
@@ -353,7 +353,7 @@ impl ColorAnalysisOutput {
     /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
     /// or unsupported data types.
     pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
-        serde_yml::to_string(self)
+        crate::serialization::to_yaml(self)
     }
 }
 
@@ -395,7 +395,7 @@ impl HueCollectionOutput {
     /// Returns `toml::ser::Error` if TOML serialization fails due to invalid data structure
     /// or unsupported data types.
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
-        toml::to_string_pretty(self)
+        crate::serialization::to_toml(self)
     }
 
     /// Serialize to YAML format
@@ -404,7 +404,7 @@ impl HueCollectionOutput {
     /// Returns `serde_yml::Error` if YAML serialization fails due to invalid data structure
     /// or unsupported data types.
     pub fn to_yaml(&self) -> Result<String, serde_yml::Error> {
-        serde_yml::to_string(self)
+        crate::serialization::to_yaml(self)
     }
 }
 
