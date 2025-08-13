@@ -28,9 +28,10 @@ Mapping of repository execution to governance playbook sections:
 - Documentation (§12): Analysis directory was removed per user request; ephemeral analysis artifacts (dead_code_sweep_plan, size_report) no longer present—need recreation strategy (see Action Items below) to keep governance evidence.
 
 Action Items (Governance):
-- [ ] Recreate lightweight size report under docs/ or regenerate on demand (restore visibility lost with analysis folder removal).
-- [ ] Add automated function length scan script (Phase 4.1 follow-up) to enforce F4 threshold.
-- [ ] Add ADR relocation note (analysis removal) or mark ADRs canceled if not restored, to maintain traceability (deny-list: traceability destruction).
+- [x] Recreate lightweight size report (analysis/size_report_0.20.0_20250813.md) restoring visibility lost with analysis folder removal.
+- [x] Add automated function length scan script (src/bin/func_length_gate.rs) to enforce F4 threshold (currently failing as expected; guides refactor targets).
+- [x] Restore ADRs for ColorCollections enum, smart constructors, logging capability (analysis/ADR-ColorCollections-Enum.md, ADR-smart-constructors.md, ADR-logging-capability.md).
+- [ ] Integrate function length gate into standard verification workflow (future: add to CI when reinstated).
 
 Risk Note: Removal of `analysis/` eliminated historical artifacts referenced in milestones (dead code plan, size report). Mitigation path: regenerate minimal summaries and embed into sprint or docs to prevent traceability gaps.
 
@@ -69,7 +70,7 @@ Phases (Plan → Build → Verify → Polish → Merge):
   - [x] Legacy detection pipeline dry run (udeps/machete output stored; both clean 2025-08-12)
   - Evidence: test suite & clippy executed via `cargo clippy --all-targets -- -D warnings && cargo test --all --quiet` (exit code 0, 2025-08-12) establishing compilation + lint + test baseline.
 - Polish:
-  - [ ] Normalize checklist formatting to §6.2
+  - [ ] Normalize checklist formatting to §6.2 (partial deviations remain in narrative blocks)
   - [x] Add decision log entries referencing blueprint (analysis/DECISION_LOG.md created 2025-08-12)
   - [x] Link ADR for ColorCollection enum (analysis/ADR-ColorCollections-Enum.md) and smart constructors ADR (stubs created 2025-08-12)
 - Merge:
@@ -213,10 +214,13 @@ Status: [ ] (PENDING) Target: Cohesion improvement, size thresholds, clear bound
 
 Phases:
 - Phase 4.1: Function and Module Size Management
-  - [x] Size scan baseline (analysis/size_report_m3_20250813.md created 2025-08-13; identified cli.rs (851 LOC), output_formats.rs (565 LOC), color_matching.rs (484 LOC))
-  - [x] First extraction slice: moved Range struct & helpers from cli.rs to cli_range.rs (reduces future extraction complexity; LOC reduction forthcoming in next scan)
-  - [ ] Reduce oversized functions (>50 lines) via further extraction (pending list after measuring remaining large functions)
-  - [ ] Split large modules (>400 lines) along functional boundaries (planned: output_formats split, cli further segmentation)
+  - [x] Size scan baseline (analysis/size_report_0.20.0_20250813.md recreated; cli.rs 797 LOC, output_formats.rs 465 LOC, color_matching.rs 484 LOC)
+  - [x] Range extraction slice: moved Range struct & helpers from cli.rs to cli_range.rs
+  - [x] Gradient output model extraction: output_formats_gradient.rs created; API preserved via re-export
+  - [x] Serialization helper centralization: serialization.rs added; to_toml/to_yaml delegation implemented (analysis/size_report_delta_0.20.0_20250813.md)
+  - [x] Function length gate binary (func_length_gate.rs) identifying 14 oversized functions
+  - [ ] Reduce oversized functions (>60 LOC) via focused extraction slices (scheduled next)
+  - [ ] Split additional large modules (cli.rs, gradient/mod.rs, command_execution/commands.rs)
   - [ ] Minimize cross-module dependencies; stabilize interfaces (ongoing)
 
 - Phase 4.2: Composition & Pipelines
@@ -258,6 +262,22 @@ Quality Gates:
 - [ ] Compilation/test/linting all green
 - [ ] Docs complete; links valid
 - [ ] Reports comply with templates
+
+## Newly Added Artifacts (2025-08-13)
+- analysis/size_report_0.20.0_20250813.md (baseline size report)
+- analysis/size_report_delta_0.20.0_20250813.md (serialization extraction delta)
+- src/bin/func_length_gate.rs (function size gate)
+- analysis/ADR-ColorCollections-Enum.md | ADR-smart-constructors.md | ADR-logging-capability.md (restored decision records)
+- analysis/NCS_RESEARCH_PLAN.md (research plan stub)
+
+## Gate Exceptions / Pending Integrations
+- Function length gate presently manual (CI workflows removed); integration deferred until CI reinstatement.
+
+## Upcoming Slice Candidates
+1. gradient/mod.rs decomposition (analysis, formatting, generation submodules)
+2. command_execution/commands.rs handlers extraction into per-command modules
+3. cli.rs segmentation (argument parsing vs orchestration vs output selection)
+4. Apply function gate refactors to top offenders prioritized by complexity metrics
 
 ---
 
