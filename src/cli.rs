@@ -533,62 +533,8 @@ pub struct HueArgs {
     )]
     pub header_text: Option<String>,
 }
-/// Range specification for filtering
-#[derive(Debug, Clone, PartialEq)]
-pub struct Range {
-    pub min: f64,
-    pub max: f64,
-}
-
-impl Range {
-    /// Parse range from bracket syntax: [min...max]
-    ///
-    /// # Errors
-    /// Returns error if range format is invalid or values cannot be parsed
-    pub fn parse(input: &str) -> crate::error::Result<Self> {
-        if !input.starts_with('[') || !input.ends_with(']') {
-            return Err(crate::error::ColorError::ParseError(
-                "Range must be in format [min...max]".to_string(),
-            ));
-        }
-
-        let inner = &input[1..input.len() - 1];
-        let parts: Vec<&str> = inner.split("...").collect();
-
-        if parts.len() != 2 {
-            return Err(crate::error::ColorError::ParseError(
-                "Range must contain exactly one '...' separator".to_string(),
-            ));
-        }
-
-        let min = parts[0].parse::<f64>().map_err(|_| {
-            crate::error::ColorError::ParseError(format!("Invalid minimum value: {}", parts[0]))
-        })?;
-        let max = parts[1].parse::<f64>().map_err(|_| {
-            crate::error::ColorError::ParseError(format!("Invalid maximum value: {}", parts[1]))
-        })?;
-
-        Ok(Self { min, max })
-    }
-
-    /// Check if value is within range, supporting wraparound for hue values
-    #[must_use]
-    pub fn contains_with_wrap(&self, value: f64, _wrap_limit: f64) -> bool {
-        if self.min <= self.max {
-            // Normal range
-            value >= self.min && value <= self.max
-        } else {
-            // Wraparound range (e.g., [350...30] for hue)
-            value >= self.min || value <= self.max
-        }
-    }
-
-    /// Check if value is within range for linear values (lightness, chroma)
-    #[must_use]
-    pub fn contains_linear(&self, value: f64) -> bool {
-        value >= self.min && value <= self.max
-    }
-}
+// Range utilities moved to `cli_range.rs` (Milestone 4 Phase 4.1 module size reduction)
+pub use crate::cli_range::Range; // Re-exported for external users/tests
 
 impl HueArgs {
     /// Validate the hue arguments

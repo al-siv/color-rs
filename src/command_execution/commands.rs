@@ -179,7 +179,7 @@ pub fn execute_hue_analysis(
     _output_path: Option<&str>,
 ) -> Result<ExecutionResult> {
     use crate::cli::OutputFormat;
-    use crate::cli::Range;
+    use crate::cli_range::Range;
     use crate::color_parser::{CssColorCollection, RalClassicCollection, RalDesignCollection};
     use crate::color_parser::collections::ColorCollectionKind;
     use crate::color_report_formatting::display;
@@ -244,7 +244,7 @@ pub fn execute_hue_analysis(
 
             // Apply range filters
             if let Some(ref hr) = hue_range {
-                if !hr.contains_with_wrap(lch.hue.into_degrees() as f64, 360.0) {
+                if !hr.contains_with_wrap(lch.hue.into_degrees() as f64) {
                     return None;
                 }
             }

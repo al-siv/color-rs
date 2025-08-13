@@ -5,6 +5,7 @@
 //! including console tables, SVG, and PNG.
 
 pub mod cli;
+pub use cli_range::Range; // Re-export Range for backward compatibility (tests import color_rs::cli::Range)
 pub mod clock;
 pub mod color;
 pub mod color_distance_strategies;
@@ -442,3 +443,5 @@ impl Default for ColorRs {
         Self::new()
     }
 }
+
+pub mod cli_range; // Extracted range utilities (Milestone 4 Phase 4.1)

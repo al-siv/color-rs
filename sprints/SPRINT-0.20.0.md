@@ -186,12 +186,14 @@ Status: [ ] (PENDING) Target: Cohesion improvement, size thresholds, clear bound
 
 Phases:
 - Phase 4.1: Function and Module Size Management
-  - [ ] Reduce oversized functions (>50 lines) via extraction
-  - [ ] Split large modules (>400 lines) along functional boundaries
-  - [ ] Minimize cross-module dependencies; stabilize interfaces
+  - [x] Size scan baseline (analysis/size_report_m3_20250813.md created 2025-08-13; identified cli.rs (851 LOC), output_formats.rs (565 LOC), color_matching.rs (484 LOC))
+  - [x] First extraction slice: moved Range struct & helpers from cli.rs to cli_range.rs (reduces future extraction complexity; LOC reduction forthcoming in next scan)
+  - [ ] Reduce oversized functions (>50 lines) via further extraction (pending list after measuring remaining large functions)
+  - [ ] Split large modules (>400 lines) along functional boundaries (planned: output_formats split, cli further segmentation)
+  - [ ] Minimize cross-module dependencies; stabilize interfaces (ongoing)
 
 - Phase 4.2: Composition & Pipelines
-  - [ ] Replace imperative loops with iterator chains
+  - [ ] Replace imperative loops with iterator chains (remaining targets enumerated post Phase 4.1 extractions)
   - [ ] Apply railway-oriented error composition
   - [ ] Ensure pipeline signatures are composition-friendly
 
