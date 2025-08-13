@@ -15,6 +15,25 @@ Planning hierarchy: sprint → assignments → milestones → phases → checkli
 ## Overview
 This sprint establishes a governed, FP-first transformation to replace legacy OOP remnants, eliminate unused/legacy/deprecated code, and refactor the codebase while preserving and, where feasible, enhancing functionality.
 
+## Governance Alignment (copilot-instructions.md Summary)
+Mapping of repository execution to governance playbook sections:
+- Foundations (F1–F11): Enforced via clippy -D warnings, zero non-test unwraps (F1/F2/F4), smart constructors & ADTs (F5/F4), pure data modules extracted (output_formats_gradient.rs) (F2), serialization kept effect-free (F2/F7), deterministic tests (F6/F11).
+- Planning Hierarchy (§4): Sprint file uses assignments → milestones → phases with status markers `[ ]`, `[x]`, no extra symbols; version-coupled filename `SPRINT-0.20.0.md` (§4.5).
+- Branch & History (§5): Current branch `sprint-0.20.0-m3-20250813` matches pattern `sprint-<SEMVER>-m<N>-<DATE>`.
+- PR Lifecycle (§6): Each slice kept ≤ single milestone concern (e.g., gradient output extraction). Pending: add size report artifact regeneration post-module split for future PR description.
+- Task Archetypes (§6.6): Recent work categorized as FP compliance refactor + size management (module extraction) archetype.
+- Quality Gates (§7/§8/§9): Gates satisfied: clippy clean, tests green, size reduction in progress (Phase 4.1). Future action: introduce automated function length detector to reinforce <60 LOC (F4).
+- Deny-list (§10): No new duplication; early removal of compat layer eliminated legacy residue. Guard: ensure future serializer split avoids premature abstraction—defer trait unification until second split justifies.
+- Operating Mode (§11): Continuous progression maintained; no idle gap between Batch 3 legacy removal and Phase 4 extraction slice.
+- Documentation (§12): Analysis directory was removed per user request; ephemeral analysis artifacts (dead_code_sweep_plan, size_report) no longer present—need recreation strategy (see Action Items below) to keep governance evidence.
+
+Action Items (Governance):
+- [ ] Recreate lightweight size report under docs/ or regenerate on demand (restore visibility lost with analysis folder removal).
+- [ ] Add automated function length scan script (Phase 4.1 follow-up) to enforce F4 threshold.
+- [ ] Add ADR relocation note (analysis removal) or mark ADRs canceled if not restored, to maintain traceability (deny-list: traceability destruction).
+
+Risk Note: Removal of `analysis/` eliminated historical artifacts referenced in milestones (dead code plan, size report). Mitigation path: regenerate minimal summaries and embed into sprint or docs to prevent traceability gaps.
+
 ## Version
 - Target Version: 0.20.0
 - Previous Version: 0.19.4
@@ -63,8 +82,8 @@ Quality Gates (Milestone scope):
  - [ ] QG-004 Documentation integrity baseline
 
 Artifacts:
-- analysis/FP-Migration-Plan-0.20.0.md
-- Decision log entries (to add) summarizing initial OOP remnant catalog & planned eliminations
+- (Removed) analysis/FP-Migration-Plan-0.20.0.md (analysis directory deleted 2025-08-13) — pending regeneration summary inline.
+- (Removed) decision log entries formerly under analysis/ — create consolidated inline Decision Summary section or restore ADRs.
 
 ---
 
@@ -142,7 +161,7 @@ Next Steps (near-term):
 - [x] Add decision log entries referencing blueprint (decision log created)
 
 Artifacts:
-- Refactoring notes per module under analysis/
+- (Removed) refactoring notes per module (analysis/ directory deleted) — will be summarized in Governance Alignment / future ADRs.
 
 Run log (2025-08-08 → 2025-08-12 updates):
  - Dead/unused dependency baseline verification: cargo +nightly udeps --all-targets (clean: no 'unused'); cargo machete (clean) (2025-08-12).
