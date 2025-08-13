@@ -1,36 +1,38 @@
-# NCS Collection Research Plan
+# NCS Research Plan
 
 Status: Draft
 Date: 2025-08-13
 
 ## Objective
-Assess feasibility of integrating (or approximating) NCS Index 2050 color set into the system while respecting licensing and ensuring accurate colorimetric mapping.
-
-## Key Questions
-1. Licensing: Are the canonical NCS sRGB/LAB values redistributable? What attribution required?
-2. Source Data: Identify authoritative dataset (CSV, JSON, PDF) with color codes and reference values.
-3. Color Space: Provided values in sRGB, LAB, or proprietary? Need conversion approach (D65 alignment, adaptation?).
-4. Granularity: Full 2050 set or curated subset for performance/usability?
-5. Storage: On-demand lazy load vs compiled static table (size impact)?
-6. Matching Strategy: Distance algorithm suitability; need weighting adjustments vs existing collections?
+Assess feasibility of integrating NCS Index 2050 colors into color-rs while respecting licensing and data accuracy constraints.
 
 ## Tasks
-- [ ] Inventory publicly available NCS datasets (record URLs, license notes)
-- [ ] Contact/license review summary (if needed)
-- [ ] Prototype parsing script (not committed if license unclear) to evaluate structure
-- [ ] Color difference validation vs sample references (ΔE thresholds)
-- [ ] Decide storage format (compressed CSV vs generated Rust module)
-- [ ] Performance impact estimate (lookup time, memory footprint)
-- [ ] Risk assessment & go/no-go decision
+1. Source Identification
+   - Locate authoritative NCS dataset (public vs licensed)
+   - Determine data fields: notation, sRGB approximation, Lab, description
+2. Licensing & Compliance
+   - Confirm redistribution rights
+   - If proprietary, outline fallback: user-supplied CSV import path
+3. Data Quality & Mapping
+   - Evaluate conversion accuracy from available representations to Lab
+   - Define tolerance thresholds vs published references
+4. Data Model Integration
+   - Extend `ColorCollectionKind` with `Ncs` (gated behind feature flag to preserve F5 invariants when absent)
+   - Add loader/parsing similar to existing RAL loaders
+5. Performance & Size Impact
+   - Estimate added memory footprint (entries * struct size)
+   - Benchmark lookup & distance operations
+6. Risk & Mitigation
+   - Licensing risk: mitigate via optional feature + user data import
+   - Accuracy risk: add validation harness comparing sample known values
+7. Rollout Plan
+   - Phase 1: Research + prototype loader
+   - Phase 2: Validation tests + performance benchmarks
+   - Phase 3: Documentation & CLI exposure
 
-## Success Criteria
-- Documented license path OR decision not to proceed
-- Technical plan for ingestion (parsing → normalization → indexing)
-- Estimated impact on binary size and matching performance
+## Open Questions
+- Are official Lab coordinates published or only NCS notations requiring conversion?
+- Acceptable delta E variance threshold (<2.0?) for approximations.
 
-## Risks
-- Licensing restrictions blocking redistribution
-- Inconsistent or approximate public data leading to inaccurate matches
-
-## Follow-up
-If approved: implement ingestion pipeline with feature flag (ncs) and property tests ensuring ΔE tolerances.
+## Next Steps
+- Perform licensing survey and record findings in follow-up report.

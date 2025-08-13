@@ -179,184 +179,18 @@ pub fn execute_hue_analysis(
     _output_path: Option<&str>,
 ) -> Result<ExecutionResult> {
     use crate::cli::OutputFormat;
-    use crate::cli_range::Range;
-    use crate::color_parser::{CssColorCollection, RalClassicCollection, RalDesignCollection};
-    use crate::color_parser::collections::ColorCollectionKind;
     use crate::color_report_formatting::display;
-    use crate::output_formats::{HueCollectionConfiguration, HueCollectionOutput, HueColorEntry};
-    use palette::Lch;
-    use std::collections::HashMap;
+    use crate::output_formats::HueCollectionOutput;
+    use crate::command_execution::hue_analysis::*;
 
-    // Load the specified collection using enum-based ADT (migration from Box<dyn ColorCollection>)
-    let collection: ColorCollectionKind = match args.collection.as_str() {
-        "css" => ColorCollectionKind::Css(CssColorCollection::new().map_err(|e| {
-            crate::error::ColorError::ParseError(format!("Failed to load CSS collection: {e}"))
-        })?),
-        "ralc" => ColorCollectionKind::RalClassic(RalClassicCollection::new().map_err(|e| {
-            crate::error::ColorError::ParseError(format!(
-                "Failed to load RAL Classic collection: {e}"
-            ))
-        })?),
-        "rald" => ColorCollectionKind::RalDesign(RalDesignCollection::new().map_err(|e| {
-            crate::error::ColorError::ParseError(format!(
-                "Failed to load RAL Design collection: {e}"
-            ))
-        })?),
-        _ => {
-            return Err(crate::error::ColorError::ParseError(format!(
-                "Unknown collection: {}",
-                args.collection
-            )));
-        }
-    };
-
-    // Parse range filters if provided
-    let hue_range = if let Some(ref range_str) = args.hue_range {
-        Some(Range::parse(range_str)?)
-    } else {
-        None
-    };
-
-    let lightness_range = if let Some(ref range_str) = args.lightness_range {
-        Some(Range::parse(range_str)?)
-    } else {
-        None
-    };
-
-    let chroma_range = if let Some(ref range_str) = args.chroma_range {
-        Some(Range::parse(range_str)?)
-    } else {
-        None
-    };
-
-    // Filter and sort collection by hue
-    let mut filtered_colors: Vec<_> = collection
-        .colors()
-        .iter()
-        .filter_map(|color_entry| {
-            // Convert to LCH for filtering
-            let srgb = palette::Srgb::new(
-                color_entry.color.rgb[0] as f32 / 255.0,
-                color_entry.color.rgb[1] as f32 / 255.0,
-                color_entry.color.rgb[2] as f32 / 255.0,
-            );
-            let lch: Lch = palette::FromColor::from_color(srgb);
-
-            // Apply range filters
-            if let Some(ref hr) = hue_range {
-                if !hr.contains_with_wrap(lch.hue.into_degrees() as f64) {
-                    return None;
-                }
-            }
-
-            if let Some(ref lr) = lightness_range {
-                if !lr.contains_linear(lch.l as f64) {
-                    return None;
-                }
-            }
-
-            if let Some(ref cr) = chroma_range {
-                if !cr.contains_linear(lch.chroma as f64) {
-                    return None;
-                }
-            }
-
-            Some((color_entry, lch))
-        })
-        .collect();
-
-    // Sort by hue (primary), then by code (secondary)
-    filtered_colors.sort_by(|a, b| {
-        let hue_cmp =
-            a.1.hue
-                .into_degrees()
-                .partial_cmp(&b.1.hue.into_degrees())
-                .unwrap_or(std::cmp::Ordering::Equal);
-        if hue_cmp != std::cmp::Ordering::Equal {
-            hue_cmp
-        } else {
-            a.0.metadata
-                .code
-                .as_ref()
-                .unwrap_or(&String::new())
-                .cmp(b.0.metadata.code.as_ref().unwrap_or(&String::new()))
-        }
-    });
-
-    // Create structured output
-    let configuration = HueCollectionConfiguration {
-        collection: args.collection.clone(),
-        total_colors: filtered_colors.len(),
-        hue_range: args.hue_range.clone(),
-        lightness_range: args.lightness_range.clone(),
-        chroma_range: args.chroma_range.clone(),
-    };
-
-    let hue_colors: Vec<HueColorEntry> = {
-        let mut previous_hue = None;
-        filtered_colors
-            .iter()
-            .map(|(color_entry, lch)| {
-                // Get color name
-                let name = color_entry.metadata.name.clone();
-
-                // Calculate hue and hue shift
-                let hue = lch.hue.into_degrees() as f64;
-                let hue_shift = previous_hue.map(|prev| {
-                    let diff = hue - prev;
-                    if diff > 180.0 {
-                        diff - 360.0
-                    } else if diff < -180.0 {
-                        diff + 360.0
-                    } else {
-                        diff
-                    }
-                });
-
-                // Create hex representation
-                let hex = format!(
-                    "#{:02X}{:02X}{:02X}",
-                    color_entry.color.rgb[0], color_entry.color.rgb[1], color_entry.color.rgb[2]
-                );
-
-                // Create LCH representation
-                let lch_str = format!("lch({:>4.1}, {:>4.1}, {:>6.1})", lch.l, lch.chroma, hue);
-
-                // Create code
-                let code = color_entry
-                    .metadata
-                    .code
-                    .as_ref()
-                    .unwrap_or(&"Unknown".to_string())
-                    .clone();
-
-                // Create hue shift string
-                let hue_shift_str = match hue_shift {
-                    Some(shift) => format!("{:>6}", format!("+{:.2}", shift)),
-                    None => format!("{:>6}", "—"),
-                };
-
-                // Create single line format: "Hue | code | HEX | LCH | name | Hue shift from previous color"
-                let display =
-                    format!("{hue:>6.1} | {hex} | {lch_str} | {hue_shift_str} | {code} | {name}");
-
-                previous_hue = Some(hue);
-
-                HueColorEntry { display }
-            })
-            .collect()
-    };
-
-    let hue_output = HueCollectionOutput::new()
-        .with_configuration(configuration)
-        .with_colors(hue_colors);
-
-    // Generate YAML output for colored terminal display
-    let yaml_output = hue_output.to_yaml().map_err(|e| {
-        crate::error::ColorError::ParseError(format!("Failed to serialize to YAML: {e}"))
-    })?;
-
-    // Display with colored terminal output
+    let collection = load_collection(&args.collection)?;
+    let ranges = parse_ranges(args)?;
+    let mut filtered = collect_filtered_colors(&collection, &ranges);
+    sort_filtered_colors(&mut filtered);
+    let configuration = build_configuration(args, filtered.len());
+    let entries = build_hue_entries(&filtered);
+    let hue_output = HueCollectionOutput::new().with_configuration(configuration).with_colors(entries);
+    let yaml_output = hue_output.to_yaml().map_err(|e| crate::error::ColorError::ParseError(format!("Failed to serialize to YAML: {e}")))?;
     display::display_terminal_output(&yaml_output, &OutputFormat::Yaml);
 
     // Handle file export if requested
@@ -367,22 +201,7 @@ pub fn execute_hue_analysis(
 
     // Handle visual output if requested
     if args.should_generate_visual() {
-        // Convert filtered colors to HueAnalysisResult format for visual generation
-        let analysis_results: Vec<crate::color_ops::analysis::hue::HueAnalysisResult> =
-            filtered_colors
-                .iter()
-                .map(|(color_entry, lch)| {
-                    crate::color_ops::analysis::hue::HueAnalysisResult {
-                        color: *lch,
-                        name: Some(color_entry.metadata.name.clone()),
-                        hue_distance: 0.0, // Not used for visual generation
-                        saturation: lch.chroma as f64,
-                        lightness: lch.l as f64,
-                        collection: args.collection.clone(),
-                        code: color_entry.metadata.code.clone(),
-                    }
-                })
-                .collect();
+        let analysis_results = build_visual_analysis_results(&filtered, &args.collection);
 
         // Generate visual output
         let image_generator = crate::image::ImageGenerator::new();
@@ -405,21 +224,7 @@ pub fn execute_hue_analysis(
     }
 
     // Create metadata
-    let mut metadata = HashMap::new();
-    metadata.insert("collection".to_string(), args.collection.clone());
-    metadata.insert(
-        "total_colors".to_string(),
-        filtered_colors.len().to_string(),
-    );
-    if let Some(ref hr) = args.hue_range {
-        metadata.insert("hue_range".to_string(), hr.clone());
-    }
-    if let Some(ref lr) = args.lightness_range {
-        metadata.insert("lightness_range".to_string(), lr.clone());
-    }
-    if let Some(ref cr) = args.chroma_range {
-        metadata.insert("chroma_range".to_string(), cr.clone());
-    }
+    let metadata = build_metadata(args, filtered.len());
 
     // Return success result without terminal output since we already displayed it
     Ok(ExecutionResult::success_with_metadata(

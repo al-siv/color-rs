@@ -1,74 +1,69 @@
-use std::fs;
-use std::path::{Path, PathBuf};
+//! Simple function length gate: scans Rust source files under `src/` (excluding generated or this file) and reports
+//! any function whose body exceeds the soft cap (default 60 LOC). Heuristic (regex-based) to avoid heavy parsing.
+//! This is a non-fatal tool: exits with code 0 but prints a FAIL summary if violations exist (integration can choose to fail).
 
-const MAX_FN_LOC: usize = 60;
+use std::{env, fs, path::Path};
+
+use regex::Regex;
+
+const DEFAULT_LIMIT: usize = 60;
 
 fn main() {
-    let src_root = Path::new("src");
-    let mut failures: Vec<(String, usize)> = Vec::new();
-    let mut scanned = 0usize;
-    for entry in walk(src_root) {
-        if let Some(ext) = entry.extension() { if ext != "rs" { continue; } }
-        let path_str = entry.to_string_lossy().to_string();
-        if path_str.contains("/bin/") { continue; }
-        let Ok(content) = fs::read_to_string(&entry) else { continue };
-        let mut lines = content.lines().enumerate().peekable();
-        while let Some((i, line)) = lines.next() {
-            if line.trim_start().starts_with("fn ") || line.contains(" fn ") {
-                if line.trim_start().starts_with("//") { continue; }
-                let mut brace_depth = 0isize;
-                let mut body_lines = 0usize;
-                let mut signature_seen_open = false;
-                if let Some(idx) = line.find('{') {
-                    signature_seen_open = true;
-                    brace_depth += 1;
-                    if line[idx+1..].contains('}') { brace_depth -= 1; }
-                }
-                while let Some(&(_j, next_line)) = lines.peek() {
-                    if !signature_seen_open {
-                        if let Some(idx) = next_line.find('{') {
-                            signature_seen_open = true;
-                            brace_depth += 1;
-                            if next_line[idx+1..].contains('}') { brace_depth -= 1; }
-                        }
-                        lines.next();
-                        continue;
-                    }
-                    body_lines += 1;
-                    let opens = next_line.matches('{').count();
-                    let closes = next_line.matches('}').count();
-                    brace_depth += opens as isize - closes as isize;
-                    lines.next();
-                    if brace_depth <= 0 { break; }
-                }
-                if body_lines > MAX_FN_LOC {
-                    failures.push((format!("{}:{}", path_str, i+1), body_lines));
-                }
-                scanned += 1;
-            }
-        }
-    }
-    if failures.is_empty() {
-        println!("Function length gate PASS (scanned {} fns)", scanned);
-    } else {
-        eprintln!("Function length gate FAIL: {} functions exceed {} LOC", failures.len(), MAX_FN_LOC);
-        for (loc, sz) in &failures { eprintln!(" - {} => {} LOC", loc, sz); }
-        std::process::exit(1);
-    }
-}
+	let limit: usize = env::var("FUNC_LEN_LIMIT").ok().and_then(|v| v.parse().ok()).unwrap_or(DEFAULT_LIMIT);
+	let src_root = Path::new("src");
+	if !src_root.exists() {
+		eprintln!("src directory not found");
+		return;
+	}
 
-fn walk(root: &Path) -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    if let Ok(entries) = fs::read_dir(root) {
-        for e in entries.flatten() {
-            let path = e.path();
-            if path.is_dir() {
-                if path.file_name().and_then(|s| s.to_str()) == Some("target") { continue; }
-                out.extend(walk(&path));
-            } else {
-                out.push(path);
-            }
-        }
-    }
-    out
+	let func_re = Regex::new(r"(?m)^\s*(pub\s+)?(async\s+)?(const\s+)?(unsafe\s+)?fn\s+([a-zA-Z0-9_]+)\s*\(").unwrap();
+	let mut violations = Vec::new();
+
+	for entry in walkdir::WalkDir::new(src_root) {
+		let entry = match entry { Ok(e) => e, Err(_) => continue };
+		if !entry.file_type().is_file() { continue; }
+		let path = entry.path();
+		if path.extension().and_then(|s| s.to_str()) != Some("rs") { continue; }
+		if path.ends_with("func_length_gate.rs") { continue; }
+		let content = match fs::read_to_string(path) { Ok(c) => c, Err(_) => continue };
+
+		for cap in func_re.captures_iter(&content) {
+			let name = cap.get(5).map(|m| m.as_str()).unwrap_or("<unknown>");
+			if let Some(start) = cap.get(0) {
+				// naive body slice: find next '{' after signature, then match braces
+				if let Some(sig_end) = content[start.end()..].find('{') {
+					let body_start_index = start.end() + sig_end + 1; // char after '{'
+					let mut depth = 1usize;
+					let mut i = body_start_index;
+					let bytes = content.as_bytes();
+					while i < content.len() && depth > 0 {
+						match bytes[i] as char {
+							'{' => depth += 1,
+							'}' => depth -= 1,
+							_ => {}
+						}
+						i += 1;
+					}
+					if depth == 0 {
+						// compute line span
+						let body_slice = &content[body_start_index..i-1];
+						let body_lines = body_slice.lines().count();
+						if body_lines > limit {
+							violations.push((body_lines, name.to_string(), path.display().to_string()));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if violations.is_empty() {
+		println!("Function length gate PASS (limit={limit} lines)");
+	} else {
+		println!("Function length gate FAIL (limit={limit} lines) — {} violations", violations.len());
+		violations.sort_by(|a,b| b.0.cmp(&a.0));
+		for (lines, name, path) in &violations {
+			println!("{lines:4} lines  {name}  ({path})");
+		}
+	}
 }

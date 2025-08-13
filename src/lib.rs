@@ -34,8 +34,8 @@ pub mod image_core; // Pure image/SVG construction utilities (functional core)
 pub mod logger;
 pub mod output_formats;
 pub mod output_formats_gradient; // Extracted gradient output models (Milestone 4 size refactor)
-pub mod serialization; // Centralized TOML/YAML serializer helpers (Milestone 4 refactor)
 pub mod precision_utils;
+pub mod serialization; // Centralized structured serialization helpers (Milestone 4)
 pub mod utils;
 
 // Functional Programming Modules

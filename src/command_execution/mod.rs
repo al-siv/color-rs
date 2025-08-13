@@ -8,6 +8,7 @@ pub mod commands;
 pub mod convenience;
 pub mod execution;
 pub mod types;
+pub mod hue_analysis; // extracted hue analysis helpers
 
 // Re-export main types and functions for public API
 pub use types::{

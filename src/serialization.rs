@@ -1,18 +1,15 @@
-//! Centralized serialization helpers for TOML and YAML output.
-//! Functions kept pure and small to reduce duplication across output model types.
+//! Centralized serialization helpers and trait to decouple data models from format-specific logic.
 
-/// Serialize any serde-serializable value to pretty TOML.
-///
-/// # Errors
-/// Propagates `toml::ser::Error` from `toml::to_string_pretty`.
-pub fn to_toml<T: serde::Serialize>(value: &T) -> Result<String, toml::ser::Error> {
-    toml::to_string_pretty(value)
+use serde::Serialize;
+
+pub trait StructuredSerialize: Serialize {
+    fn as_toml_pretty(&self) -> Result<String, toml::ser::Error> {
+        toml::to_string_pretty(self)
+    }
+    fn as_yaml(&self) -> Result<String, serde_yml::Error> {
+        serde_yml::to_string(self)
+    }
 }
 
-/// Serialize any serde-serializable value to YAML.
-///
-/// # Errors
-/// Propagates `serde_yml::Error` from `serde_yml::to_string`.
-pub fn to_yaml<T: serde::Serialize>(value: &T) -> Result<String, serde_yml::Error> {
-    serde_yml::to_string(value)
-}
+// Blanket impl for all Serialize types; keeps possibility to add specialization later if needed.
+impl<T: Serialize> StructuredSerialize for T {}
