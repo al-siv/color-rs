@@ -7,6 +7,7 @@ dockerfile*
 # IDE files
 .vscode/
 .idea/
+.github/
 *.swp
 *.swo
 
@@ -27,6 +28,8 @@ Thumbs.db
 
 # Plan file (not for version control)
 GUIDELINES.md
+WAVELET.md
 **/sprints/old/
-**/docs/archives/
+**/archive/
 **/analysis/
+analysis/
