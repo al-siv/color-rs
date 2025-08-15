@@ -13,6 +13,7 @@ use crate::color_ops::analysis::hue::HueAnalysisResult;
 use crate::config::{algorithm_constants, display_constants, math_constants};
 use crate::error::{ColorError, Result};
 use crate::gradient::GradientCalculator;
+use crate::gradient::unified_calculator::GradientConfigBuilder;
 
 /// Convert a color component from 0.0-1.0 range to 0-255 u8
 #[must_use]
@@ -44,13 +45,33 @@ pub fn lch_to_hex(lch: Lch) -> String {
     lab_to_hex(lab)
 }
 
-/// Build SVG content for a LAB gradient.
-/// Kept as Result for forward compatibility (may add validation errors later).
-pub fn create_svg_content(
-    args: &GradientArgs,
-    start_lab: Lab,
-    end_lab: Lab,
-) -> Result<String> {
+// --- Gradient SVG (pure) ---
+
+/// Create a gradient SVG string (pure) using cubic-bezier easing and optional legend.
+pub fn create_svg_content(args: &GradientArgs, start_lab: Lab, end_lab: Lab) -> Result<String> {
+    let (width, gradient_height, legend_height, total_height) = compute_dimensions(args);
+    let start_hex = lab_to_hex(start_lab);
+    let end_hex = lab_to_hex(end_lab);
+    let mut svg = build_svg_header(width, total_height);
+    svg.push_str(&build_gradient_definition(args, start_lab, end_lab)?);
+    svg.push_str(&format!(
+        "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{gradient_height}\" fill=\"url(#grad)\" />\n"
+    ));
+    if !args.no_legend {
+        svg.push_str(&build_legend(
+            args,
+            width,
+            gradient_height,
+            legend_height,
+            &start_hex,
+            &end_hex,
+        ));
+    }
+    svg.push_str("</svg>");
+    Ok(svg)
+}
+
+fn compute_dimensions(args: &GradientArgs) -> (u32, u32, u32, u32) {
     let width = args.width;
     let gradient_height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
     let legend_height = if args.no_legend {
@@ -60,25 +81,31 @@ pub fn create_svg_content(
             .max(display_constants::MIN_LEGEND_HEIGHT) as u32
     };
     let total_height = gradient_height + legend_height;
+    (width, gradient_height, legend_height, total_height)
+}
 
-    let start_hex = lab_to_hex(start_lab);
-    let end_hex = lab_to_hex(end_lab);
-
-    let mut svg = String::new();
-    svg.push_str(&format!(
-        r#"<svg width="{width}" height="{total_height}" xmlns="http://www.w3.org/2000/svg">"#
+fn build_svg_header(width: u32, total_height: u32) -> String {
+    let mut s = String::new();
+    s.push_str(&format!(
+        r#"<svg width=\"{width}\" height=\"{total_height}\" xmlns=\"http://www.w3.org/2000/svg\">"#
     ));
-    svg.push('\n');
+    s.push('\n');
+    s
+}
 
-    // Gradient definition
-    svg.push_str("  <defs>\n");
-    svg.push_str(&format!(
+fn build_gradient_definition(
+    args: &GradientArgs,
+    start_lab: Lab,
+    end_lab: Lab,
+) -> Result<String> {
+    let mut s = String::new();
+    s.push_str("  <defs>\n");
+    s.push_str(&format!(
         "    <linearGradient id=\"grad\" x1=\"{}%\" y1=\"0%\" x2=\"{}%\" y2=\"0%\">\n",
         args.start_position, args.end_position
     ));
-
-    let svg_steps = 400; // High resolution for smooth gradients
-    let cfg = crate::gradient::unified_calculator::GradientConfigBuilder::new()
+    let svg_steps = 400; // high resolution for smooth gradient
+    let cfg = GradientConfigBuilder::new()
         .start_lab(start_lab)
         .end_lab(end_lab)
         .start_position(args.start_position)?
@@ -89,9 +116,7 @@ pub fn create_svg_content(
         .simple_mode(args.stops_simple)
         .build()?;
     let unified_stops = GradientCalculator::calculate_unified_gradient_cfg(cfg);
-
     let position_range = args.end_position - args.start_position;
-    // Iterator pipeline: map stops -> (rounded_offset, hex) -> dedup consecutive -> format
     unified_stops
         .into_iter()
         .map(|stop| {
@@ -104,10 +129,7 @@ pub fn create_svg_content(
             (relative_offset, lab_to_hex(stop.lab_color))
         })
         .scan(None, |last: &mut Option<f64>, (offset, hex)| {
-            let emit = match *last {
-                Some(prev) => (offset - prev).abs() >= 0.5,
-                None => true,
-            };
+            let emit = match *last { Some(prev) => (offset - prev).abs() >= 0.5, None => true };
             if emit {
                 *last = Some(offset);
                 let offset_str = if offset.fract() == 0.0 {
@@ -118,63 +140,63 @@ pub fn create_svg_content(
                 Some(Some(format!(
                     "      <stop offset=\"{offset_str}\" stop-color=\"{hex}\" />\n"
                 )))
-            } else {
-                Some(None)
-            }
+            } else { Some(None) }
         })
         .flatten()
-        .for_each(|line| svg.push_str(&line));
-    svg.push_str("    </linearGradient>\n");
-    svg.push_str("  </defs>\n");
-
-    svg.push_str(&format!(
-        "  <rect x=\"0\" y=\"0\" width=\"{width}\" height=\"{gradient_height}\" fill=\"url(#grad)\" />\n"
-    ));
-
-    if !args.no_legend {
-        let font_size = (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO)
-            .max(display_constants::MIN_FONT_SIZE) as u32;
-        let text_y = gradient_height
-            + (f64::from(legend_height) * display_constants::DEFAULT_TEXT_Y_RATIO) as u32;
-        svg.push_str(&format!(
-            "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
-        ));
-        svg.push_str(&format!(
-            "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\">\n",
-            width / 100,
-            text_y,
-            display_constants::FONT_FAMILY,
-            font_size
-        ));
-        svg.push_str(&format!(
-            "    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n",
-            args.ease_in,
-            args.ease_out,
-            args.start_position,
-            args.end_position,
-            start_hex,
-            end_hex
-        ));
-        svg.push_str("  </text>\n");
-    }
-
-    svg.push_str("</svg>");
-    Ok(svg)
+        .for_each(|line| s.push_str(&line));
+    s.push_str("    </linearGradient>\n");
+    s.push_str("  </defs>\n");
+    Ok(s)
 }
 
-/// Build hue gradient SVG (horizontal) from analysis results.
+fn build_legend(
+    args: &GradientArgs,
+    width: u32,
+    gradient_height: u32,
+    legend_height: u32,
+    start_hex: &str,
+    end_hex: &str,
+) -> String {
+    let mut s = String::new();
+    let font_size = (f64::from(legend_height) * display_constants::DEFAULT_FONT_SIZE_RATIO)
+        .max(display_constants::MIN_FONT_SIZE) as u32;
+    let text_y = gradient_height
+        + (f64::from(legend_height) * display_constants::DEFAULT_TEXT_Y_RATIO) as u32;
+    s.push_str(&format!(
+        "  <rect x=\"0\" y=\"{gradient_height}\" width=\"100%\" height=\"{legend_height}\" fill=\"rgb(0,0,0)\" />\n"
+    ));
+    s.push_str(&format!(
+        "  <text x=\"{}\" y=\"{}\" font-family=\"{}\" font-size=\"{}\" fill=\"white\">\n",
+        width / 100,
+        text_y,
+        display_constants::FONT_FAMILY,
+        font_size
+    ));
+    s.push_str(&format!(
+        "    cubic-bezier({}, 0, {}, 1) | positions: {}%-{}% | colors: {}-{}\n",
+        args.ease_in,
+        args.ease_out,
+        args.start_position,
+        args.end_position,
+        start_hex,
+        end_hex
+    ));
+    s.push_str("  </text>\n");
+    s
+}
+
+/// Build hue gradient SVG (pure) showing sequence of hues.
 pub fn create_hue_gradient_svg(args: &HueArgs, colors: &[HueAnalysisResult]) -> Result<String> {
     if colors.is_empty() {
         return Err(ColorError::InvalidArguments(
-            "Cannot create gradient from empty color collection".to_string(),
+            "Cannot create hue gradient from empty color collection".to_string(),
         ));
     }
-
     let width = args.width;
     let height = (f64::from(width) * display_constants::HEIGHT_RATIO) as u32;
     let mut svg = String::new();
     svg.push_str(&format!(
-        r#"<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">"#
+        r#"<svg width=\"{width}\" height=\"{height}\" xmlns=\"http://www.w3.org/2000/svg\">"#
     ));
     svg.push('\n');
     svg.push_str(&format!(
@@ -185,15 +207,13 @@ pub fn create_hue_gradient_svg(args: &HueArgs, colors: &[HueAnalysisResult]) -> 
         "    <linearGradient id=\"huegrad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"0%\">\n",
     );
     let step = 100.0 / (colors.len() - 1).max(1) as f64;
-    // Iterator pipeline replicating imperative logic with explicit edge handling
     colors
         .iter()
         .enumerate()
         .flat_map(|(i, color)| {
             let hex_color = lch_to_hex(color.color);
             if i == 0 {
-                // Initial stop at 0%
-                vec![format!("      <stop offset=\"0%\" stop-color=\"{hex_color}\" />\n")] // single element
+                vec![format!("      <stop offset=\"0%\" stop-color=\"{hex_color}\" />\n")]
             } else if i == colors.len() - 1 {
                 let end_position = (i as f64 * step) - 0.5;
                 let prev_hex = lch_to_hex(colors[i - 1].color);

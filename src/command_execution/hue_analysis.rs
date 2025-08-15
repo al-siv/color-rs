@@ -65,14 +65,22 @@ pub(crate) fn build_configuration(args: &crate::cli::HueArgs, total: usize) -> H
     HueCollectionConfiguration { collection: args.collection.clone(), total_colors: total, hue_range: args.hue_range.clone(), lightness_range: args.lightness_range.clone(), chroma_range: args.chroma_range.clone() }
 }
 
+/// Compute minimal signed hue difference (current - previous) constrained to [-180,180].
+/// Returns None if no previous hue.
+pub fn compute_hue_shift(previous_hue: Option<f64>, current_hue: f64) -> Option<f64> {
+    previous_hue.map(|prev| {
+        let mut diff = current_hue - prev;
+        if diff > 180.0 { diff -= 360.0; }
+        else if diff < -180.0 { diff += 360.0; }
+        diff
+    })
+}
+
 pub(crate) fn build_hue_entries(filtered: &[FilteredColor<'_>]) -> Vec<HueColorEntry> {
     let mut previous_hue: Option<f64> = None;
     filtered.iter().map(|(color_entry, lch)| {
         let hue = lch.hue.into_degrees() as f64;
-        let hue_shift = previous_hue.map(|prev| {
-            let diff = hue - prev;
-            if diff > 180.0 { diff - 360.0 } else if diff < -180.0 { diff + 360.0 } else { diff }
-        });
+        let hue_shift = compute_hue_shift(previous_hue, hue);
         let hex = format!("#{:02X}{:02X}{:02X}", color_entry.color.rgb[0], color_entry.color.rgb[1], color_entry.color.rgb[2]);
         let lch_str = format!("lch({:>4.1}, {:>4.1}, {:>6.1})", lch.l, lch.chroma, hue);
         let code = color_entry.metadata.code.as_ref().unwrap_or(&"Unknown".to_string()).clone();

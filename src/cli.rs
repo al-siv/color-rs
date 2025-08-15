@@ -542,166 +542,14 @@ impl HueArgs {
     /// # Errors
     /// Returns error if visual output parameters are inconsistent or invalid
     pub fn validate(&self) -> Result<()> {
-        // Validate collection name
-        match self.collection.as_str() {
-            "css" | "ralc" | "rald" => {}
-            _ => {
-                return Err(ColorError::InvalidArguments(format!(
-                    "Invalid collection '{}'. Must be: css, ralc, or rald",
-                    self.collection
-                )));
-            }
-        }
-
-        // Validate hue range if provided
-        if let Some(ref hue_range) = self.hue_range {
-            let range = Range::parse(hue_range)?;
-            // Hue can be negative for wraparound, but validate reasonable bounds
-            if range.min < -360.0 || range.max > 720.0 {
-                return Err(ColorError::InvalidArguments(
-                    "Hue range values should be between -360 and 720 degrees".to_string(),
-                ));
-            }
-        }
-
-        // Validate lightness range if provided
-        if let Some(ref lightness_range) = self.lightness_range {
-            let range = Range::parse(lightness_range)?;
-            if range.min < 0.0 || range.max > 100.0 || range.min > range.max {
-                return Err(ColorError::InvalidArguments(
-                    "Lightness range must be 0-100% with min <= max".to_string(),
-                ));
-            }
-        }
-
-        // Validate chroma range if provided
-        if let Some(ref chroma_range) = self.chroma_range {
-            let range = Range::parse(chroma_range)?;
-            if range.min < 0.0 || range.max > 200.0 || range.min > range.max {
-                return Err(ColorError::InvalidArguments(
-                    "Chroma range must be 0-200 with min <= max".to_string(),
-                ));
-            }
-        }
-
-        // Validate visual output parameters
-        if self.should_generate_visual() {
-            // Check that SVG filename is provided
-            if self.svg.is_none() {
-                return Err(ColorError::InvalidArguments(
-                    "SVG filename (--svg) is required when using --grad or --pal".to_string(),
-                ));
-            }
-
-            // Validate width
-            if self.width == 0 {
-                return Err(ColorError::InvalidArguments(
-                    "Width must be greater than 0".to_string(),
-                ));
-            }
-
-            if self.width > 10000 {
-                return Err(ColorError::InvalidArguments(
-                    "Width should not exceed 10000 pixels for performance reasons".to_string(),
-                ));
-            }
-
-            // Validate filename extensions
-            if self.should_generate_svg()
-                && !std::path::Path::new(&self.svg_name())
-                    .extension()
-                    .is_some_and(|ext| ext.eq_ignore_ascii_case("svg"))
-            {
-                return Err(ColorError::InvalidArguments(
-                    "SVG filename must end with .svg extension".to_string(),
-                ));
-            }
-
-            if self.should_generate_png()
-                && !std::path::Path::new(&self.png_name())
-                    .extension()
-                    .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
-            {
-                return Err(ColorError::InvalidArguments(
-                    "PNG filename must end with .png extension".to_string(),
-                ));
-            }
-        }
-
-        // Validate PNG without visual output
-        if self.png.is_some() && !self.should_generate_visual() {
-            return Err(ColorError::InvalidArguments(
-                "PNG output (--png) requires --grad or --pal".to_string(),
-            ));
-        }
-
-        // Validate SVG without visual output
-        if self.svg.is_some() && !self.should_generate_visual() {
-            return Err(ColorError::InvalidArguments(
-                "SVG output (--svg) requires --grad or --pal".to_string(),
-            ));
-        }
-
-        // Validate --no-labels usage
-        if self.no_labels && !self.should_generate_visual() {
-            return Err(ColorError::InvalidArguments(
-                "--no-labels can only be used with --grad or --pal".to_string(),
-            ));
-        }
-
-        // Validate color-height parameter
-        if let Some(color_height) = self.color_height {
-            if !self.should_generate_palette() {
-                return Err(ColorError::InvalidArguments(
-                    "--color-height can only be used with --pal".to_string(),
-                ));
-            }
-            if color_height == 0 {
-                return Err(ColorError::InvalidArguments(
-                    "Color height must be greater than 0".to_string(),
-                ));
-            }
-            if color_height > 500 {
-                return Err(ColorError::InvalidArguments(
-                    "Color height should not exceed 500 pixels for reasonable layout".to_string(),
-                ));
-            }
-        }
-
-        // Validate font-size parameter
-        if self.font_size == 0 {
-            return Err(ColorError::InvalidArguments(
-                "Font size must be greater than 0".to_string(),
-            ));
-        }
-        if self.font_size > 72 {
-            return Err(ColorError::InvalidArguments(
-                "Font size should not exceed 72 points for reasonable layout".to_string(),
-            ));
-        }
-
-        // Validate border parameters (only valid with --pal)
-        if self.border_width > 0 && !self.should_generate_palette() {
-            return Err(ColorError::InvalidArguments(
-                "--border-width can only be used with --pal (gradients don't have borders)"
-                    .to_string(),
-            ));
-        }
-
-        if self.border_color != "white" && !self.should_generate_palette() {
-            return Err(ColorError::InvalidArguments(
-                "--border-color can only be used with --pal (gradients don't have borders)"
-                    .to_string(),
-            ));
-        }
-
-        // Validate border-width parameter
-        if self.border_width > 50 {
-            return Err(ColorError::InvalidArguments(
-                "Border width should not exceed 50 pixels for reasonable layout".to_string(),
-            ));
-        }
-
+        validate_collection(&self.collection)?;
+        validate_hue_range(&self.hue_range)?;
+        validate_lightness_range(&self.lightness_range)?;
+        validate_chroma_range(&self.chroma_range)?;
+        validate_visual_output_params(self)?;
+        validate_output_dependency_params(self)?;
+        validate_palette_specific_params(self)?;
+        validate_text_and_border_params(self)?;
         Ok(())
     }
 
@@ -794,4 +642,161 @@ impl HueArgs {
             }
         })
     }
+}
+
+// ---- HueArgs validation helpers (extracted to reduce HueArgs::validate size) ----
+
+fn validate_collection(collection: &str) -> Result<()> {
+    match collection {
+        "css" | "ralc" | "rald" => Ok(()),
+        other => Err(ColorError::InvalidArguments(format!(
+            "Invalid collection '{other}'. Must be: css, ralc, or rald"
+        ))),
+    }
+}
+
+fn validate_hue_range(hue_range: &Option<String>) -> Result<()> {
+    if let Some(range_str) = hue_range {
+        let range = Range::parse(range_str)?; // reuse existing parser (may wrap values)
+        if range.min < -360.0 || range.max > 720.0 {
+            return Err(ColorError::InvalidArguments(
+                "Hue range values should be between -360 and 720 degrees".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_lightness_range(lightness_range: &Option<String>) -> Result<()> {
+    if let Some(range_str) = lightness_range {
+        let range = Range::parse(range_str)?;
+        if range.min < 0.0 || range.max > 100.0 || range.min > range.max {
+            return Err(ColorError::InvalidArguments(
+                "Lightness range must be 0-100% with min <= max".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_chroma_range(chroma_range: &Option<String>) -> Result<()> {
+    if let Some(range_str) = chroma_range {
+        let range = Range::parse(range_str)?;
+        if range.min < 0.0 || range.max > 200.0 || range.min > range.max {
+            return Err(ColorError::InvalidArguments(
+                "Chroma range must be 0-200 with min <= max".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_visual_output_params(args: &HueArgs) -> Result<()> {
+    if args.should_generate_visual() {
+        if args.svg.is_none() {
+            return Err(ColorError::InvalidArguments(
+                "SVG filename (--svg) is required when using --grad or --pal".to_string(),
+            ));
+        }
+        if args.width == 0 {
+            return Err(ColorError::InvalidArguments(
+                "Width must be greater than 0".to_string(),
+            ));
+        }
+        if args.width > 10000 {
+            return Err(ColorError::InvalidArguments(
+                "Width should not exceed 10000 pixels for performance reasons".to_string(),
+            ));
+        }
+        if args.should_generate_svg()
+            && !std::path::Path::new(&args.svg_name())
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("svg"))
+        {
+            return Err(ColorError::InvalidArguments(
+                "SVG filename must end with .svg extension".to_string(),
+            ));
+        }
+        if args.should_generate_png()
+            && !std::path::Path::new(&args.png_name())
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
+        {
+            return Err(ColorError::InvalidArguments(
+                "PNG filename must end with .png extension".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_output_dependency_params(args: &HueArgs) -> Result<()> {
+    if args.png.is_some() && !args.should_generate_visual() {
+        return Err(ColorError::InvalidArguments(
+            "PNG output (--png) requires --grad or --pal".to_string(),
+        ));
+    }
+    if args.svg.is_some() && !args.should_generate_visual() {
+        return Err(ColorError::InvalidArguments(
+            "SVG output (--svg) requires --grad or --pal".to_string(),
+        ));
+    }
+    if args.no_labels && !args.should_generate_visual() {
+        return Err(ColorError::InvalidArguments(
+            "--no-labels can only be used with --grad or --pal".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_palette_specific_params(args: &HueArgs) -> Result<()> {
+    if let Some(color_height) = args.color_height {
+        if !args.should_generate_palette() {
+            return Err(ColorError::InvalidArguments(
+                "--color-height can only be used with --pal".to_string(),
+            ));
+        }
+        if color_height == 0 {
+            return Err(ColorError::InvalidArguments(
+                "Color height must be greater than 0".to_string(),
+            ));
+        }
+        if color_height > 500 {
+            return Err(ColorError::InvalidArguments(
+                "Color height should not exceed 500 pixels for reasonable layout".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_text_and_border_params(args: &HueArgs) -> Result<()> {
+    if args.font_size == 0 {
+        return Err(ColorError::InvalidArguments(
+            "Font size must be greater than 0".to_string(),
+        ));
+    }
+    if args.font_size > 72 {
+        return Err(ColorError::InvalidArguments(
+            "Font size should not exceed 72 points for reasonable layout".to_string(),
+        ));
+    }
+    if args.border_width > 0 && !args.should_generate_palette() {
+        return Err(ColorError::InvalidArguments(
+            "--border-width can only be used with --pal (gradients don't have borders)"
+                .to_string(),
+        ));
+    }
+    if args.border_color != "white" && !args.should_generate_palette() {
+        return Err(ColorError::InvalidArguments(
+            "--border-color can only be used with --pal (gradients don't have borders)"
+                .to_string(),
+        ));
+    }
+    if args.border_width > 50 {
+        return Err(ColorError::InvalidArguments(
+            "Border width should not exceed 50 pixels for reasonable layout".to_string(),
+        ));
+    }
+    Ok(())
 }
