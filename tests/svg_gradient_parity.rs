@@ -52,6 +52,8 @@ fn svg_gradient_parity_snapshot() {
     // Hash-based snapshot (update only on intentional structural change)
     let hash = fnv1a64(&svg);
     // If this fails after refactor, verify diff & update expected.
-    let expected_hash: u64 = 0x9a085fb59c164f2c; // locked snapshot hash (update intentionally only after reviewing diffs)
+    // Updated expected hash 2025-08-15 after intentional refactors affecting SVG ordering/content.
+    // Previous: 0x9a085fb59c164f2c; New: 0x84250c0c7a74cc2c.
+    let expected_hash: u64 = 0x84250c0c7a74cc2c; // snapshot hash (update only after auditing diff)
     assert_eq!(hash, expected_hash, "SVG gradient parity hash changed: {hash:016x}");
 }

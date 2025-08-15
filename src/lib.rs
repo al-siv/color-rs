@@ -37,6 +37,7 @@ pub mod output_formats_gradient; // Extracted gradient output models (Milestone 
 pub mod precision_utils;
 pub mod serialization; // Centralized structured serialization helpers (Milestone 4)
 pub mod utils;
+// Internal developer analysis utilities (non-production) for size & function length gates
 
 // Functional Programming Modules
 // Command Execution - Functional command processing patterns

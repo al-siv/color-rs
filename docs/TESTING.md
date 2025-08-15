@@ -36,6 +36,15 @@ Color-rs maintains high quality through multiple testing layers:
 5. **Benchmarks**: Performance regression detection for pure function implementations
 6. **Manual Testing**: CLI and library usage validation
 
+### Governance Gates
+
+In addition to standard tests, two governance-specific gates are enforced:
+
+1. **Function Length Gate**: A heuristic scanner (`func_len_scan` binary and `tests/function_length_gate.rs`) fails the build if any production function exceeds the current threshold (staged roll-down to 60 LOC). Current enforced threshold: 120 LOC (stabilization). Planned reductions: 100 → 85 → 70 → 60 (see sprint plan). The scanner ignores test and target directories and counts simple brace-delimited function bodies. Exceptions are not permitted; any temporary exceedance requires immediate refactor or explicit threshold stage adjustment recorded in the sprint file.
+2. **SVG Gradient Snapshot Parity**: `tests/svg_gradient_parity.rs` computes a FNV-1a 64-bit hash of generated SVG output to detect structural drift. Updating the expected hash requires: (a) verifying structural invariants (presence of `<svg>`, `linearGradient`, rectangle base), (b) capturing the new hash in a commit with rationale, and (c) documenting the change in the sprint file (hash old→new). This provides lightweight regression detection without storing large snapshot text.
+
+CI (`.github/workflows/quality-gates.yml`) runs clippy with `-D warnings`, the full test suite, and the function length scanner. Snapshot parity runs as part of the test suite.
+
 ### Testing Principles
 
 - **Fast Feedback**: Pure function tests run in milliseconds

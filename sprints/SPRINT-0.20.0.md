@@ -28,9 +28,20 @@ Mapping of repository execution to governance playbook sections:
 - Documentation (§12): Analysis directory was removed per user request; ephemeral analysis artifacts (dead_code_sweep_plan, size_report) no longer present—need recreation strategy (see Action Items below) to keep governance evidence.
 
 Action Items (Governance):
-- [ ] Recreate lightweight size report under docs/ or regenerate on demand (restore visibility lost with analysis folder removal).
-- [ ] Add automated function length scan script (Phase 4.1 follow-up) to enforce F4 threshold.
+- [x] Recreate lightweight size report artifact (analysis/size_report_0.20.0_202508152157.md generated 2025-08-15).
+- [x] Add automated function length scan script/binary (`func_len_scan`; gate test added with relaxed 120 LOC threshold).
 - [ ] Add ADR relocation note (analysis removal) or mark ADRs canceled if not restored, to maintain traceability (deny-list: traceability destruction).
+- [x] Update SVG gradient snapshot hash after intentional refactor (tests/svg_gradient_parity.rs: expected hash now 0x84250c0c7a74cc2c; previous 0x9a085fb59c164f2c documented).
+- [ ] Implement CI quality gate workflow (clippy -D warnings, tests, func_len_scan 120) (planned 2025-08-16).
+- [ ] Plan threshold step-down schedule (see below) to reach <60 LOC target.
+
+Threshold Step-Down Plan (Function Length Governance):
+- Current enforced test threshold: 120 LOC (stabilization phase).
+- Stage 1 (target date 2025-08-18): Reduce threshold to 100 LOC after refactoring top offenders >100.
+- Stage 2 (2025-08-20): Reduce to 85 LOC (eliminate remaining >85 LOC functions; ensure modularization of CLI and color_ops analysis segments).
+- Stage 3 (2025-08-22): Reduce to 70 LOC (focus on gradient_formatter, image_core hotspots).
+- Stage 4 (2025-08-24): Final target 60 LOC (soft cap per F4) with exceptions list reviewed (expect 0 production exceptions).
+- Post-final: Maintain <60 LOC; any temporary exceedance requires inline TODO with scheduled refactor date ≤7 days.
 
 Risk Note: Removal of `analysis/` eliminated historical artifacts referenced in milestones (dead code plan, size report). Mitigation path: regenerate minimal summaries and embed into sprint or docs to prevent traceability gaps.
 
